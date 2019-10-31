@@ -1,0 +1,2 @@
+include wrapping/*.pyx
+include wrapping/src/headers/*.h
