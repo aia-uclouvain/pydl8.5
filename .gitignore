@@ -10,3 +10,5 @@ dl85/__pycache__/*
 dl85/classifiers/__pycache__/*
 dl85classifiers/tests/__pycache__/*
 dl85/errors/__pycache__/*
+dl85/build/*
+dl85/source/*
