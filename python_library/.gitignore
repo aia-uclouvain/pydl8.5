@@ -2,3 +2,11 @@ build/*
 dist/*
 wrapping/dl85Optimizer.cpp
 dl85.egg-info/*
+docs/source/*
+docs/make.bat
+docs/Makefile
+docs/build/doctrees/*
+dl85/__pycache__/*
+dl85/classifiers/__pycache__/*
+dl85classifiers/tests/__pycache__/*
+dl85/errors/__pycache__/*
