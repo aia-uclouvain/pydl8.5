@@ -39,7 +39,7 @@ setup(
     url="https://github.com/aglingael/dl85_dist_source",
     project_urls={
         "Source on github": "https://github.com/aglingael/dl85_dist_source",
-        "Documentation": "https://github.com/aglingael/dl85_dist_source/tree/master/docs/build/html/index.html",
+        "Documentation": "https://aglingael.github.io/dl85_dist_source/",
     },
     author="Gael Aglin",
     author_email='aglingael@gmail.com',
