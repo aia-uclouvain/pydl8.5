@@ -35,7 +35,7 @@ dl85_extension = Extension(
 
 setup(
     name="dl85",
-    version="0.0.1",
+    version="0.0.2",
     url="https://github.com/aglingael/dl85_dist_source",
     project_urls={
         "Source on github": "https://github.com/aglingael/dl85_dist_source",
