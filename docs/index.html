@@ -1,0 +1,184 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Welcome to DL8.5’s documentation! &#8212; DL8.5 0.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-dl85.classifiers.classifier_model">
+<span id="welcome-to-dl8-5-s-documentation"></span><h1>Welcome to DL8.5’s documentation!<a class="headerlink" href="#module-dl85.classifiers.classifier_model" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="dl85.classifiers.classifier_model.OptimalDecisionTreesClassifier">
+<em class="property">class </em><code class="sig-prename descclassname">dl85.classifiers.classifier_model.</code><code class="sig-name descname">OptimalDecisionTreesClassifier</code><span class="sig-paren">(</span><em class="sig-param">max_depth=1</em>, <em class="sig-param">min_sup=1</em>, <em class="sig-param">iterative=False</em>, <em class="sig-param">max_error=0</em>, <em class="sig-param">stop_after_better=False</em>, <em class="sig-param">time_limit=0</em>, <em class="sig-param">verbose=False</em>, <em class="sig-param">desc=False</em>, <em class="sig-param">asc=False</em>, <em class="sig-param">repeat_sort=False</em>, <em class="sig-param">bin_save=False</em>, <em class="sig-param">nps=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dl85/classifiers/classifier_model.html#OptimalDecisionTreesClassifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dl85.classifiers.classifier_model.OptimalDecisionTreesClassifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>An optimal decision tree classifier.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>max_depth</strong> (<em>int</em><em>, </em><em>default=1</em>) – Maximum depth of the tree to be found</p></li>
+<li><p><strong>min_sup</strong> (<em>int</em><em>, </em><em>default=1</em>) – Minimum number of examples per leaf</p></li>
+<li><p><strong>max_error</strong> (<em>int</em><em>, </em><em>default=0</em>) – Maximum error that the searched tree cannot reach. Default value stand for no bound</p></li>
+<li><p><strong>stop_after_better</strong> (<em>bool</em><em>, </em><em>default=False</em>) – A parameter used to indicate if the search will stop after finding tree better than max_error</p></li>
+<li><p><strong>time_limit</strong> (<em>int</em><em>, </em><em>default=0</em>) – Allocated time in second(s) for the search. Default value stands for no limit</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>default=False</em>) – A parameter used to switch on/off the print of what happens during the search</p></li>
+<li><p><strong>desc</strong> (<em>bool</em><em>, </em><em>default=False</em>) – A parameter used to indicate if the sorting of the items is done in descendent order over the information gain</p></li>
+<li><p><strong>asc</strong> (<em>bool</em><em>, </em><em>default=False</em>) – A parameter used to indicate if the sorting of the items is done in ascendant order over the information gain</p></li>
+<li><p><strong>repeat_sort</strong> (<em>bool</em><em>, </em><em>default=False</em>) – A parameter used to indicate the sorting of items is done at each level of the lattice or only before the search</p></li>
+<li><p><strong>bin_save</strong> (<em>bool</em><em>, </em><em>default=False</em>) – A parameter used to indicate the continuous dataset will just be discretized and export without search</p></li>
+<li><p><strong>nps</strong> (<em>bool</em><em>, </em><em>default=False</em>) – A parameter used to indicate if only optimal solutions which will be reuse or not</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt><a href="#id1"><span class="problematic" id="id2">tree_</span></a><span class="classifier">str</span></dt><dd><p>Outputted tree in serialized form</p>
+</dd>
+<dt><a href="#id3"><span class="problematic" id="id4">size_</span></a><span class="classifier">int</span></dt><dd><p>The size of the outputted tree</p>
+</dd>
+<dt><a href="#id5"><span class="problematic" id="id6">depth_</span></a><span class="classifier">int</span></dt><dd><p>Depth of the found tree</p>
+</dd>
+<dt><a href="#id7"><span class="problematic" id="id8">error_</span></a><span class="classifier">float</span></dt><dd><p>Error of the found tree</p>
+</dd>
+<dt><a href="#id9"><span class="problematic" id="id10">accuracy_</span></a><span class="classifier">float</span></dt><dd><p>Accuracy of the found tree on training set</p>
+</dd>
+<dt><a href="#id11"><span class="problematic" id="id12">lattice_size_</span></a><span class="classifier">int</span></dt><dd><p>The number of nodes explored before found the optimal tree</p>
+</dd>
+<dt><a href="#id13"><span class="problematic" id="id14">runtime_</span></a><span class="classifier">float</span></dt><dd><p>Time of the optimal decision tree search</p>
+</dd>
+<dt><a href="#id15"><span class="problematic" id="id16">timeout_</span></a><span class="classifier">bool</span></dt><dd><p>Whether the search reached timeout or not</p>
+</dd>
+<dt><a href="#id17"><span class="problematic" id="id18">classes_</span></a><span class="classifier">ndarray, shape (n_classes,)</span></dt><dd><p>The classes seen at <a class="reference internal" href="#dl85.classifiers.classifier_model.OptimalDecisionTreesClassifier.fit" title="dl85.classifiers.classifier_model.OptimalDecisionTreesClassifier.fit"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code></a>.</p>
+</dd>
+</dl>
+<dl class="method">
+<dt id="dl85.classifiers.classifier_model.OptimalDecisionTreesClassifier.fit">
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">X</em>, <em class="sig-param">y</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dl85/classifiers/classifier_model.html#OptimalDecisionTreesClassifier.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dl85.classifiers.classifier_model.OptimalDecisionTreesClassifier.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>A reference implementation of a fitting function for a classifier.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>array-like</em><em>, </em><em>shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – The training input samples.</p></li>
+<li><p><strong>y</strong> (<em>array-like</em><em>, </em><em>shape</em><em> (</em><em>n_samples</em><em>,</em><em>)</em>) – The target values. An array of int.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Returns self.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="dl85.classifiers.classifier_model.OptimalDecisionTreesClassifier.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dl85/classifiers/classifier_model.html#OptimalDecisionTreesClassifier.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dl85.classifiers.classifier_model.OptimalDecisionTreesClassifier.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>A reference implementation of a prediction for a classifier.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>array-like</em><em>, </em><em>shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – The input samples.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The predicted labels.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>array-like, shape (n_samples)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">DL8.5</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Gaël Aglin.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
