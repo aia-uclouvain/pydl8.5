@@ -87,9 +87,9 @@ class OptimalDecisionTreesClassifier(BaseEstimator, ClassifierMixin):
         self.bin_save = bin_save
         self.nps = nps
 
-    def _more_tags(self):
-        return {'X_types': 'categorical',
-                'allow_nan': False}
+    # def _more_tags(self):
+    #     return {'X_types': 'categorical',
+    #             'allow_nan': False}
 
     def fit(self, X, y):
         """A reference implementation of a fitting function for a classifier.
@@ -237,67 +237,67 @@ class OptimalDecisionTreesClassifier(BaseEstimator, ClassifierMixin):
     def is_leaf_node(node):
         return list(node.items())[0][0] == 'class'
 
-    @staticmethod
-    def tree2graph(data, verbose=True):
-        """
-        Convert a JSON to a graph.
-
-        Run `dot -Tpng -otree.png`
-
-        Parameters
-        ----------
-        json_filepath : str
-            Path to a JSON file
-        out_dot_path : str
-            Path where the output dot file will be stored
-
-        Examples
-        --------
-        >>> s = {"Harry": [ "Bill", \
-                           {"Jane": [{"Diane": ["Mary", "Mark"]}]}]}
-        >>> tree2graph(s)
-        [('Harry', 'Bill'), ('Harry', 'Jane'), ('Jane', 'Diane'), ('Diane', 'Mary'), ('Diane', 'Mark')]
-        """
-        # Extract tree edges from the dict
-        edges = []
-
-        def get_edges(treedict, parent=None):
-            name = next(iter(treedict.keys()))
-            if parent is not None:
-                edges.append((parent, name))
-            for item in treedict[name]:
-                if isinstance(item, dict):
-                    get_edges(item, parent=name)
-                elif isinstance(item, list):
-                    for el in item:
-                        if isinstance(item, dict):
-                            edges.append((parent, item.keys()[0]))
-                            get_edges(item[item.keys()[0]])
-                        else:
-                            edges.append((parent, el))
-                else:
-                    edges.append((name, item))
-
-        get_edges(data)
-        return edges
-
-    def export_graphviz(self, lr=False, verbose=False):
-        check_is_fitted(self, 'tree_')
-        if verbose:
-            # Convert back to JSON & print to stderr so we can verfiy that the tree
-            # is correct.
-            print(json.dumps(self.tree_, indent=4))
-
-        # Get edges
-        edges = self.tree2graph(self.tree_, verbose)
-
-        # Dump edge list in Graphviz DOT format
-        dot_string = ""
-        dot_string += 'strict digraph tree {\n'
-        if lr:
-            dot_string += 'rankdir="LR";\n'
-        for row in edges:
-            dot_string += '    "{0}" -> "{1}";\n'.format(*row)
-        dot_string += '}\n'
-
-        return dot_string
+    # @staticmethod
+    # def tree2graph(data, verbose=True):
+    #     """
+    #     Convert a JSON to a graph.
+    #
+    #     Run `dot -Tpng -otree.png`
+    #
+    #     Parameters
+    #     ----------
+    #     json_filepath : str
+    #         Path to a JSON file
+    #     out_dot_path : str
+    #         Path where the output dot file will be stored
+    #
+    #     Examples
+    #     --------
+    #     >>> s = {"Harry": [ "Bill", \
+    #                        {"Jane": [{"Diane": ["Mary", "Mark"]}]}]}
+    #     >>> tree2graph(s)
+    #     [('Harry', 'Bill'), ('Harry', 'Jane'), ('Jane', 'Diane'), ('Diane', 'Mary'), ('Diane', 'Mark')]
+    #     """
+    #     # Extract tree edges from the dict
+    #     edges = []
+    #
+    #     def get_edges(treedict, parent=None):
+    #         name = next(iter(treedict.keys()))
+    #         if parent is not None:
+    #             edges.append((parent, name))
+    #         for item in treedict[name]:
+    #             if isinstance(item, dict):
+    #                 get_edges(item, parent=name)
+    #             elif isinstance(item, list):
+    #                 for el in item:
+    #                     if isinstance(item, dict):
+    #                         edges.append((parent, item.keys()[0]))
+    #                         get_edges(item[item.keys()[0]])
+    #                     else:
+    #                         edges.append((parent, el))
+    #             else:
+    #                 edges.append((name, item))
+    #
+    #     get_edges(data)
+    #     return edges
+    #
+    # def export_graphviz(self, lr=False, verbose=False):
+    #     check_is_fitted(self, 'tree_')
+    #     if verbose:
+    #         # Convert back to JSON & print to stderr so we can verfiy that the tree
+    #         # is correct.
+    #         print(json.dumps(self.tree_, indent=4))
+    #
+    #     # Get edges
+    #     edges = self.tree2graph(self.tree_, verbose)
+    #
+    #     # Dump edge list in Graphviz DOT format
+    #     dot_string = ""
+    #     dot_string += 'strict digraph tree {\n'
+    #     if lr:
+    #         dot_string += 'rankdir="LR";\n'
+    #     for row in edges:
+    #         dot_string += '    "{0}" -> "{1}";\n'.format(*row)
+    #     dot_string += '}\n'
+    #
+    #     return dot_string

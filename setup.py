@@ -36,7 +36,11 @@ dl85_extension = Extension(
 setup(
     name="dl85",
     version="0.0.1",
-    url="https://github.com/aglingael",
+    url="https://github.com/aglingael/dl85_dist_source",
+    project_urls={
+        "Source on github": "https://github.com/aglingael/dl85_dist_source",
+        "Documentation": "https://github.com/aglingael/dl85_dist_source/tree/master/docs/build/html/index.html",
+    },
     author="Gael Aglin",
     author_email='aglingael@gmail.com',
     license="LICENSE.txt",
@@ -49,6 +53,7 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
+    setup_requires=['cython'],
     install_requires=[
         "numpy",
         "cython>=0.25",
