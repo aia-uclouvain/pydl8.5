@@ -1,0 +1,312 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>dl85.classifiers.classifier_model &#8212; DL8.5 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for dl85.classifiers.classifier_model</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="k">import</span> <span class="n">BaseEstimator</span><span class="p">,</span> <span class="n">ClassifierMixin</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="k">import</span> <span class="n">check_X_y</span><span class="p">,</span> <span class="n">check_array</span><span class="p">,</span> <span class="n">check_is_fitted</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils.multiclass</span> <span class="k">import</span> <span class="n">unique_labels</span>
+<span class="kn">import</span> <span class="nn">dl85Optimizer</span>
+<span class="kn">from</span> <span class="nn">..errors.errors</span> <span class="k">import</span> <span class="n">SearchFailedError</span><span class="p">,</span> <span class="n">TreeNotFoundError</span>
+<span class="kn">import</span> <span class="nn">ast</span>
+
+
+<div class="viewcode-block" id="OptimalDecisionTreesClassifier"><a class="viewcode-back" href="../../../index.html#dl85.classifiers.classifier_model.OptimalDecisionTreesClassifier">[docs]</a><span class="k">class</span> <span class="nc">OptimalDecisionTreesClassifier</span><span class="p">(</span><span class="n">BaseEstimator</span><span class="p">,</span> <span class="n">ClassifierMixin</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; An optimal decision tree classifier.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :param max_depth: Maximum depth of the tree to be found</span>
+<span class="sd">    :type max_depth: int, default=1</span>
+
+<span class="sd">    :param min_sup: Minimum number of examples per leaf</span>
+<span class="sd">    :type min_sup: int, default=1</span>
+
+<span class="sd">    :param max_error: Maximum error that the searched tree cannot reach. Default value stand for no bound</span>
+<span class="sd">    :type max_error: int, default=0</span>
+
+<span class="sd">    :param stop_after_better: A parameter used to indicate if the search will stop after finding tree better than max_error</span>
+<span class="sd">    :type stop_after_better: bool, default=False</span>
+
+<span class="sd">    :param time_limit: Allocated time in second(s) for the search. Default value stands for no limit</span>
+<span class="sd">    :type time_limit: int, default=0</span>
+
+<span class="sd">    :param verbose: A parameter used to switch on/off the print of what happens during the search</span>
+<span class="sd">    :type verbose: bool, default=False</span>
+
+<span class="sd">    :param desc: A parameter used to indicate if the sorting of the items is done in descendent order over the information gain</span>
+<span class="sd">    :type desc: bool, default=False</span>
+
+<span class="sd">    :param asc: A parameter used to indicate if the sorting of the items is done in ascendant order over the information gain</span>
+<span class="sd">    :type asc: bool, default=False</span>
+
+<span class="sd">    :param repeat_sort: A parameter used to indicate the sorting of items is done at each level of the lattice or only before the search</span>
+<span class="sd">    :type repeat_sort: bool, default=False</span>
+
+<span class="sd">    :param bin_save: A parameter used to indicate the continuous dataset will just be discretized and export without search</span>
+<span class="sd">    :type bin_save: bool, default=False</span>
+
+<span class="sd">    :param nps: A parameter used to indicate if only optimal solutions which will be reuse or not</span>
+<span class="sd">    :type nps: bool, default=False</span>
+
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tree_ : str</span>
+<span class="sd">        Outputted tree in serialized form</span>
+<span class="sd">    size_ : int</span>
+<span class="sd">        The size of the outputted tree</span>
+<span class="sd">    depth_ : int</span>
+<span class="sd">        Depth of the found tree</span>
+<span class="sd">    error_ : float</span>
+<span class="sd">        Error of the found tree</span>
+<span class="sd">    accuracy_ : float</span>
+<span class="sd">        Accuracy of the found tree on training set</span>
+<span class="sd">    lattice_size_ : int</span>
+<span class="sd">        The number of nodes explored before found the optimal tree</span>
+<span class="sd">    runtime_ : float</span>
+<span class="sd">        Time of the optimal decision tree search</span>
+<span class="sd">    timeout_ : bool</span>
+<span class="sd">        Whether the search reached timeout or not</span>
+<span class="sd">    classes_ : ndarray, shape (n_classes,)</span>
+<span class="sd">        The classes seen at :meth:`fit`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">max_depth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">min_sup</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">iterative</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">max_error</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">stop_after_better</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">time_limit</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">desc</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">asc</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">repeat_sort</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">bin_save</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">nps</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_depth</span> <span class="o">=</span> <span class="n">max_depth</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_sup</span> <span class="o">=</span> <span class="n">min_sup</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iterative</span> <span class="o">=</span> <span class="n">iterative</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_error</span> <span class="o">=</span> <span class="n">max_error</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_after_better</span> <span class="o">=</span> <span class="n">stop_after_better</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_limit</span> <span class="o">=</span> <span class="n">time_limit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">desc</span> <span class="o">=</span> <span class="n">desc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">asc</span> <span class="o">=</span> <span class="n">asc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">repeat_sort</span> <span class="o">=</span> <span class="n">repeat_sort</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">continuous</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bin_save</span> <span class="o">=</span> <span class="n">bin_save</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nps</span> <span class="o">=</span> <span class="n">nps</span>
+
+<div class="viewcode-block" id="OptimalDecisionTreesClassifier.fit"><a class="viewcode-back" href="../../../index.html#dl85.classifiers.classifier_model.OptimalDecisionTreesClassifier.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A reference implementation of a fitting function for a classifier.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        :param X: The training input samples.</span>
+<span class="sd">        :type X: array-like, shape (n_samples, n_features)</span>
+
+<span class="sd">        :param y: The target values. An array of int.</span>
+<span class="sd">        :type y: array-like, shape (n_samples,)</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :return: Returns self.</span>
+<span class="sd">        :rtype: object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Check that X and y have correct shape and raise ValueError if not</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">check_X_y</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+        <span class="c1"># Store the classes seen during fit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">classes_</span> <span class="o">=</span> <span class="n">unique_labels</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="c1"># np.savetxt(&quot;foo&quot; + str(random.randint(0,100)) + &quot;.csv&quot;, X, delimiter=&quot;,&quot;)</span>
+        <span class="n">solution</span> <span class="o">=</span> <span class="n">dl85Optimizer</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_depth</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_sup</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_error</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_after_better</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">iterative</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_limit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">asc</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">repeat_sort</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">continuous</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_save</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nps</span><span class="p">)</span>
+
+        <span class="n">solution</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+        <span class="n">sol_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">solution</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sol_size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">solution</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">sol_size</span> <span class="o">==</span> <span class="mi">8</span> <span class="ow">or</span> <span class="n">sol_size</span> <span class="o">==</span> <span class="mi">9</span><span class="p">:</span>  <span class="c1"># solution found</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tree_</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">solution</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;Tree: &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">size_</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">solution</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">depth_</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">solution</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error_</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">solution</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">accuracy_</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">solution</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="n">sol_size</span> <span class="o">==</span> <span class="mi">8</span><span class="p">:</span>  <span class="c1"># without timeout</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DL8.5 fitting: Solution found&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">lattice_size_</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">solution</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">runtime_</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">solution</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">timeout_</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># timeout reached</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DL8.5 fitting: Timeout reached but solution found&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">lattice_size_</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">solution</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">runtime_</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">solution</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">timeout_</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">elif</span> <span class="n">sol_size</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">or</span> <span class="n">sol_size</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>  <span class="c1"># solution not found</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tree_</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">size_</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">depth_</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error_</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">accuracy_</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="n">sol_size</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>  <span class="c1"># without timeout</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DL8.5 fitting: Solution not found&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">lattice_size_</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">solution</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">runtime_</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">solution</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">timeout_</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># timeout reached</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DL8.5 fitting: Timeout reached and solution not found&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">lattice_size_</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">solution</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">runtime_</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">solution</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">timeout_</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># Return the classifier</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="OptimalDecisionTreesClassifier.predict"><a class="viewcode-back" href="../../../index.html#dl85.classifiers.classifier_model.OptimalDecisionTreesClassifier.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; A reference implementation of a prediction for a classifier.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        :param X: The input samples.</span>
+<span class="sd">        :type X: array-like, shape (n_samples, n_features)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :return: The predicted labels.</span>
+<span class="sd">        :rtype: array-like, shape (n_samples)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;tree_&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>  <span class="c1"># actually this case is not possible.</span>
+            <span class="k">raise</span> <span class="n">SearchFailedError</span><span class="p">(</span><span class="s2">&quot;PredictionError: &quot;</span><span class="p">,</span> <span class="s2">&quot;DL8.5 training has failed&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Check is fit had been called</span>
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;tree_&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree_</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TreeNotFoundError</span><span class="p">(</span><span class="s2">&quot;predict(): &quot;</span><span class="p">,</span> <span class="s2">&quot;Tree not found during training by DL8.5&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Input validation</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">check_array</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pred_on_dict</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]))</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_</span></div>
+
+    <span class="k">def</span> <span class="nf">pred_on_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree_</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_leaf_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">instance</span><span class="p">[</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;feat&#39;</span><span class="p">]]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">node</span> <span class="o">=</span> <span class="n">node</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">node</span> <span class="o">=</span> <span class="n">node</span><span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">node</span><span class="p">[</span><span class="s1">&#39;class&#39;</span><span class="p">]</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">is_leaf_node</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">items</span><span class="p">())[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;class&#39;</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">DL8.5</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Gaël Aglin.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
