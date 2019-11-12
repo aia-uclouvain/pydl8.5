@@ -1,1 +1,1 @@
-from .classifier_model import OptimalDecisionTreesClassifier
+from .predictors import ODTClassifier
