@@ -9,7 +9,7 @@ cache:
 
 matrix:
   include:
-    - env: PYTHON_VERSION="*" NUMPY_VERSION="1.13.1" SKLEARN_VERSION="0.21.3" SETUPTOOLS_VERSION="41.6.0"
+    - env: PYTHON_VERSION="3.5" NUMPY_VERSION="1.13.1" SKLEARN_VERSION="0.21.0" SETUPTOOLS_VERSION="38.5.1"
 
 install:
   # install miniconda
@@ -22,8 +22,7 @@ install:
   # create the testing environment
   - conda create -n testenv --yes python=$PYTHON_VERSION pip
   - source activate testenv
-  - conda install --yes numpy==$NUMPY_VERSION setuptools==$SETUPTOOLS_VERSION cython nose pytest pytest-cov
-  - pip install --pre -f https://sklearn-nightly.scdn8.secure.raxcdn.com scikit-learn
+  - conda install --yes numpy==$NUMPY_VERSION setuptools==$SETUPTOOLS_VERSION scikit-learn==$SKLEARN_VERSION cython nose pytest pytest-cov
   - pip install codecov
   - pip install .
 
