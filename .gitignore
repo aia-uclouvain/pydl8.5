@@ -7,5 +7,6 @@ doc_generator/auto_examples/*
 doc_generator/generated/*
 dl85/__pycache__/*
 dl85/classifiers/__pycache__/*
-dl85classifiers/tests/__pycache__/*
+dl85/classifiers/tests/__pycache__/*
 dl85/errors/__pycache__/*
+dl85Optimizer.cpython-36m-darwin.so

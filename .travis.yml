@@ -1,0 +1,12 @@
+language: python
+python:
+  - "3.6"
+# Commande pour installer votre code
+install:
+  - pip install .
+# Commandes pour installer les dépendances
+before_script:
+  - pip install -r requirements.txt
+# Commande pour exécuter les tests
+script:
+  - pytest

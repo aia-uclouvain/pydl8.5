@@ -32,17 +32,31 @@ def splitClassLast(dataset):
     return (data, target)
 
 
-def solve(data, target, maxDepth, minSup, maxError = 0, stop_after_better=False, iterative = False, time = 0, verbose = False, desc = False, asc = False, repeatSort = False, continuous = False, binSave = False, nps = False):
+def solve(data,
+          target,
+          max_depth=1,
+          min_sup=1,
+          max_error=0,
+          stop_after_better=False,
+          iterative=False,
+          time_limit=0,
+          verbose=False,
+          desc=False,
+          asc=False,
+          repeat_sort=False,
+          continuous=False,
+          bin_save=False,
+          nps=False):
     target = target.astype('int32')
     #check that variable are set
     args = ["None"]
     args.append("-d")
-    args.append(maxDepth)
+    args.append(max_depth)
     args.append("-s")
-    args.append(minSup)
-    if time > 0:
+    args.append(min_sup)
+    if time_limit > 0:
         args.append("-t")
-        args.append(time)
+        args.append(time_limit)
     if verbose is True:
         args.append("-v")
     #plan to print something in incorrect cases (eg: asc and desc are set to True)
@@ -50,7 +64,7 @@ def solve(data, target, maxDepth, minSup, maxError = 0, stop_after_better=False,
         args.append("-i")
     if asc is True and desc is True:
         args.append("-I")
-    if repeatSort is True:
+    if repeat_sort is True:
         args.append("-l")
     if continuous is True:
         data = data.astype('float32')
@@ -59,7 +73,7 @@ def solve(data, target, maxDepth, minSup, maxError = 0, stop_after_better=False,
         data = data.astype('int32')
         if np.array_equal(data, data.astype('bool')) is False:  # WARNING: maybe categorical (not binary) inputs will be supported in the future
             raise ValueError("Bad input type. DL8.5 actually only supports binary (0/1) inputs")
-    if binSave is True:
+    if bin_save is True:
         args.append("-e")
     if nps is True:
         args.append("-T")
@@ -103,15 +117,15 @@ def solve(data, target, maxDepth, minSup, maxError = 0, stop_after_better=False,
         c_argv[i] = b_args[i]
     # Grabbing return value
 
-    maxErr = maxError - 1  # because maxError but not be reached
-    if maxErr == -1:  # raise error when incompatibility between max_error value and stop_after_better value
+    max_err = max_error - 1  # because maxError but not be reached
+    if max_err == -1:  # raise error when incompatibility between max_error value and stop_after_better value
         stop_after_better = False
 
     if continuous is True:
         return "TrainingError: DL8.5 ODTClassifier is not yet implemented for continuous dataset."
-        #out = search_float(len(args), c_argv, &supports_view[0], ntransactions, nattributes, nclasses, &data_view_float[0][0], &target_view[0], maxErr, stop_after_better)
+        #out = search_float(len(args), c_argv, &supports_view[0], ntransactions, nattributes, nclasses, &data_view_float[0][0], &target_view[0], max_err, stop_after_better)
     else:
-        out = search(len(args), c_argv, &supports_view[0], ntransactions, nattributes, nclasses, &data_view_int[0][0], &target_view[0], maxErr, stop_after_better, iterative)
+        out = search(len(args), c_argv, &supports_view[0], ntransactions, nattributes, nclasses, &data_view_int[0][0], &target_view[0], max_err, stop_after_better, iterative)
     #print()
     #print(out.decode("utf-8"))
     #print()
