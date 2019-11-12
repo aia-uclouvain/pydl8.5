@@ -1,3 +1,3 @@
 from sklearn.utils.estimator_checks import check_estimator
-from classifier_model import OptimalDecisionTreesClassifier
-check_estimator(OptimalDecisionTreesClassifier)
+from ..predictors import ODTClassifier
+check_estimator(ODTClassifier)
