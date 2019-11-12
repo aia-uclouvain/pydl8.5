@@ -34,7 +34,7 @@ install:
         # install nightly wheels
         pip install --pre -f https://sklearn-nightly.scdn8.secure.raxcdn.com scikit-learn
     else
-        conda install --yes numpy==$NUMPY_VERSION scipy==$SCIPY_VERSION setuptools==$SETUPTOOLS_VERSION cython nose pytest pytest-cov
+        conda install --yes numpy==$NUMPY_VERSION setuptools==$SETUPTOOLS_VERSION cython nose pytest pytest-cov
     fi
   - pip install codecov
   - pip install .
