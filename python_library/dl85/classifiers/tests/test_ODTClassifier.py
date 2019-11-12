@@ -31,8 +31,7 @@ def test_predict():
                 return False
         return True
 
-    assert clf1.sol_size_ in [4, 5] or len(y_pred1) == X_test.shape[0] and is_class(y_pred1,
-                                                                                    clf1.classes_) is True  # list(set(y_pred1)) == list(set(list(clf1.classes_)))
+    assert clf1.sol_size_ in [4, 5] or (len(y_pred1) == X_test.shape[0] and is_class(y_pred1, clf1.classes_) is True)  # list(set(y_pred1)) == list(set(list(clf1.classes_)))
 
 
 check_estimator(ODTClassifier)
