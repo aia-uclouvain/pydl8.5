@@ -138,7 +138,7 @@ void DataContinuous::binarize(vector<vector<float>> toBinarize) {
     std::vector<std::pair<float,int>> zipped;
     zip(toBinarize[i], c, zipped);
     std::sort(std::begin(zipped), std::end(zipped),
-              [&](const auto& a, const auto& b)
+              [&](const pair<float,int> & a, const pair<float,int> & b)
               {
                   return a.first < b.first;
               });

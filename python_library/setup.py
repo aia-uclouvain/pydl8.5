@@ -59,7 +59,7 @@ EXTENSION_SOURCE_FILES = ['wrapping/dl85Optimizer.pyx',
                 'wrapping/src/codes/trie.cpp',
                 'wrapping/src/codes/dataBinaryPython.cpp']
 EXTENSION_INCLUDE_DIR = ['wrapping/src/headers']
-EXTENSION_BUILD_ARGS = ['-std=c++14']
+EXTENSION_BUILD_ARGS = ['-std=c++11']
 if platform.system() == 'Darwin':
     EXTENSION_BUILD_ARGS.append('-mmacosx-version-min=10.12')
 
