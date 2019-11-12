@@ -80,13 +80,13 @@ class ODTClassifier(BaseEstimator, ClassifierMixin):
         self.desc = desc
         self.asc = asc
         self.repeat_sort = repeat_sort
-        self.continuous = False
+        # self.continuous = False
         self.bin_save = bin_save
         self.nps = nps
 
-    # def _more_tags(self):
-    #     return {'X_types': 'categorical',
-    #             'allow_nan': False}
+    def _more_tags(self):
+        return {'X_types': 'categorical',
+                'allow_nan': False}
 
     def fit(self, X, y):
         """A reference implementation of a fitting function for a classifier.
@@ -111,29 +111,41 @@ class ODTClassifier(BaseEstimator, ClassifierMixin):
         self.classes_ = unique_labels(y)
         # np.savetxt("foo" + str(random.randint(0,100)) + ".csv", X, delimiter=",")
 
-        sys.path.insert(0, "../..")
+        # sys.path.insert(0, "../../")
         import dl85Optimizer
-        solution = dl85Optimizer.solve(X, y, self.max_depth, self.min_sup, self.max_error, self.stop_after_better,
-                                       self.iterative, self.time_limit, self.verbose, self.desc, self.asc,
-                                       self.repeat_sort, self.continuous, self.bin_save, self.nps)
+        solution = dl85Optimizer.solve(data=X,
+                                       target=y,
+                                       max_depth=self.max_depth,
+                                       min_sup=self.min_sup,
+                                       max_error=self.max_error,
+                                       stop_after_better=self.stop_after_better,
+                                       iterative=self.iterative,
+                                       time_limit=self.time_limit,
+                                       verbose=self.verbose,
+                                       desc=self.desc,
+                                       asc=self.asc,
+                                       repeat_sort=self.repeat_sort,
+                                       bin_save=self.bin_save,
+                                       # continuous=self.continuous,
+                                       nps=self.nps)
 
         # print(type(solution))
         # print(solution)
         # assert (isinstance(solution, str))
         solution = solution.splitlines()
-        sol_size = len(solution)
+        self.sol_size_ = len(solution)
 
-        if sol_size == 1:
-            raise ValueError(solution[0])
+        # if self.sol_size_ == 1:
+        #     raise ValueError(solution[0])
 
-        if sol_size == 8 or sol_size == 9:  # solution found
+        if self.sol_size_ == 8 or self.sol_size_ == 9:  # solution found
             self.tree_ = ast.literal_eval(solution[1].split('Tree: ')[1])
             self.size_ = int(solution[2].split(" ")[1])
             self.depth_ = int(solution[3].split(" ")[1])
             self.error_ = float(solution[4].split(" ")[1])
             self.accuracy_ = float(solution[5].split(" ")[1])
             # print("error =", self.error_)
-            if sol_size == 8:  # without timeout
+            if self.sol_size_ == 8:  # without timeout
                 print("DL8.5 fitting: Solution found")
                 self.lattice_size_ = int(solution[6].split(" ")[1])
                 self.runtime_ = float(solution[7].split(" ")[1])
@@ -144,13 +156,13 @@ class ODTClassifier(BaseEstimator, ClassifierMixin):
                 self.runtime_ = float(solution[8].split(" ")[1])
                 self.timeout_ = True
 
-        elif sol_size == 4 or sol_size == 5:  # solution not found
+        elif self.sol_size_ == 4 or self.sol_size_ == 5:  # solution not found
             self.tree_ = False
             self.size_ = -1
             self.depth_ = -1
             self.error_ = -1
             self.accuracy_ = -1
-            if sol_size == 4:  # without timeout
+            if self.sol_size_ == 4:  # without timeout
                 print("DL8.5 fitting: Solution not found")
                 self.lattice_size_ = int(solution[2].split(" ")[1])
                 self.runtime_ = float(solution[3].split(" ")[1])
