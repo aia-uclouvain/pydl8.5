@@ -20,9 +20,9 @@ install:
   - export PATH=$MINICONDA_PATH/bin:$PATH
   - conda update --yes conda
   # create the testing environment
-  - conda create -n testenv --yes python=$PYTHON_VERSION pip
+  - conda create -n testenv --yes python pip
   - source activate testenv
-  - conda install --yes numpy==$NUMPY_VERSION setuptools==$SETUPTOOLS_VERSION scikit-learn==$SKLEARN_VERSION cython nose pytest pytest-cov
+  - conda install --yes numpy setuptools scikit-learn cython nose pytest pytest-cov
   - pip install codecov
   - pip install .
 
