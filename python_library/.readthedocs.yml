@@ -2,9 +2,7 @@ formats:
   - none
 requirements_file: requirements.txt
 python:
-  version: 3.5.6
-  install:
-    - method: setuptools
+  version: 3.5
   pip_install: true
   extra_requirements:
     - tests
