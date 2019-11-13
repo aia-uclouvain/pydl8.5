@@ -2,8 +2,7 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 from sklearn.utils.multiclass import unique_labels
 from ..errors.errors import SearchFailedError, TreeNotFoundError
-import ast
-import sys
+import json
 
 
 class ODTClassifier(BaseEstimator, ClassifierMixin):
@@ -139,7 +138,7 @@ class ODTClassifier(BaseEstimator, ClassifierMixin):
         #     raise ValueError(solution[0])
 
         if self.sol_size_ == 8 or self.sol_size_ == 9:  # solution found
-            self.tree_ = ast.literal_eval(solution[1].split('Tree: ')[1])
+            self.tree_ = json.loads(solution[1].split('Tree: ')[1])
             print("tree =", self.tree_)
             self.size_ = int(solution[2].split(" ")[1])
             self.depth_ = int(solution[3].split(" ")[1])
