@@ -68,6 +68,7 @@ class ODTClassifier(BaseEstimator, ClassifierMixin):
             asc=False,
             repeat_sort=False,
             bin_save=False,
+            continuousMap=None,
             nps=False):
         self.max_depth = max_depth
         self.min_sup = min_sup
@@ -79,7 +80,7 @@ class ODTClassifier(BaseEstimator, ClassifierMixin):
         self.desc = desc
         self.asc = asc
         self.repeat_sort = repeat_sort
-        # self.continuous = False
+        self.continuousMap = continuousMap
         self.bin_save = bin_save
         self.nps = nps
 
@@ -120,12 +121,11 @@ class ODTClassifier(BaseEstimator, ClassifierMixin):
                                        stop_after_better=self.stop_after_better,
                                        iterative=self.iterative,
                                        time_limit=self.time_limit,
-                                       verbose=self.verbose,
+                                       verb=self.verbose,
                                        desc=self.desc,
                                        asc=self.asc,
                                        repeat_sort=self.repeat_sort,
                                        bin_save=self.bin_save,
-                                       # continuous=self.continuous,
                                        nps=self.nps)
 
         # print(type(solution))

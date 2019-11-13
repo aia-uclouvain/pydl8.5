@@ -78,7 +78,7 @@ void plusSupports ( Supports src1, Supports src2, Supports dest );
 extern Class nclasses;
 extern Attribute nattributes;
 extern std::map<int,int> attrFeat;
-extern bool noTree;
+extern bool nps;
 extern bool verbose;
 
 #define forEachClass(n) for ( Class n = 0; n < nclasses; ++n )

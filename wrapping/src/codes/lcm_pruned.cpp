@@ -75,7 +75,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
             return node;
         }
 
-        if (noTree)
+        if (!nps)
             if (initUb <=
                 storedInitUb) { //solution has not been found last time but the result is the same for this time
                 Logger::showMessageAndReturn("y'avait pas de solution mais c'est pareil cette fois-ci. Ancien init =",
