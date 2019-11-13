@@ -10,3 +10,4 @@ dl85/classifiers/__pycache__/*
 dl85/classifiers/tests/__pycache__/*
 dl85/errors/__pycache__/*
 dl85Optimizer.cpython-36m-darwin.so
+.pytest_cache/*
