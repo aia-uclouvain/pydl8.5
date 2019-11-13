@@ -21,7 +21,7 @@ def test_predict():
     X = dataset[:, 1:]
     y = dataset[:, 0]
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-    clf1 = ODTClassifier(max_depth=randrange(1, 4))
+    clf1 = ODTClassifier(max_depth=randrange(1, 4), min_sup=randrange(1, X_train.shape[0] // 4))
     clf1.fit(X_train, y_train)
 
     if clf1.sol_size_ in [8, 9]:

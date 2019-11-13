@@ -129,7 +129,7 @@ class ODTClassifier(BaseEstimator, ClassifierMixin):
                                        nps=self.nps)
 
         # print(type(solution))
-        print(solution)
+        # print(solution)
         # assert (isinstance(solution, str))
         solution = solution.splitlines()
         self.sol_size_ = len(solution)
@@ -139,7 +139,6 @@ class ODTClassifier(BaseEstimator, ClassifierMixin):
 
         if self.sol_size_ == 8 or self.sol_size_ == 9:  # solution found
             self.tree_ = json.loads(solution[1].split('Tree: ')[1])
-            print("tree =", self.tree_)
             self.size_ = int(solution[2].split(" ")[1])
             self.depth_ = int(solution[3].split(" ")[1])
             self.error_ = float(solution[4].split(" ")[1])
@@ -238,7 +237,6 @@ class ODTClassifier(BaseEstimator, ClassifierMixin):
 
     def pred_on_dict(self, instance):
         node = self.tree_
-        print("dans predict, tree =", node)
         while self.is_leaf_node(node) is not True:
             if instance[node['feat']] == 1:
                 node = node['left']
@@ -248,7 +246,8 @@ class ODTClassifier(BaseEstimator, ClassifierMixin):
 
     @staticmethod
     def is_leaf_node(node):
-        return list(node.items())[0][0] == 'class'
+        names = [x[0] for x in node.items()]
+        return 'class' in names
 
     # @staticmethod
     # def tree2graph(data, verbose=True):
