@@ -4,8 +4,5 @@ python:
   version: 3.5
   install:
     - requirements_file: requirements.txt
-    - method: setuptools
+    - method: pip
       path: .
-      extra_requirements:
-        - tests
-        - docs
