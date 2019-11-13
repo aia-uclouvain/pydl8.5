@@ -38,7 +38,7 @@ script:
 #  - mkdir for_test
 #  - cd for_test
 #  - pwd
-  - pytest -v --cov=dl85 --pyargs dl85
+  - pytest -v --cov=dl85 --pyargs dl85 -s
 
 after_success:
   - codecov
