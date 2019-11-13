@@ -80,7 +80,7 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
             return node;
         }
 
-        if (noTree)
+        if (!nps)
             if ( initUb <= storedInitUb && currentMaxDepth == *solDepth ) { //solution has not been found last time but the result is the same for this time
                 Logger::showMessageAndReturn("y'avait pas de solution pour cette profonceur ", currentMaxDepth, " mais c'est pareil cette fois-ci. Ancien init =",
                                              storedInitUb, " et nouveau = ", initUb);
