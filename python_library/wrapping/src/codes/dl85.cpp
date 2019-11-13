@@ -2,7 +2,8 @@
 #include <config.h>
 #endif
 
-#include <unistd.h>
+//#include <unistd.h>
+#include <getopt.h>
 #include <iostream>
 #include <cstdlib>
 #include <math.h>
