@@ -3,6 +3,8 @@ formats:
 requirements_file:
 python:
   version: 3.5
+  install:
+    - method: setuptools
   pip_install: true
   extra_requirements:
     - tests
