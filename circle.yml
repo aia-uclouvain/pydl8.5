@@ -29,7 +29,7 @@ jobs:
           paths: .
       - attach_workspace:
           at: doc_generator/_build/html
-      - run: ls -ltrh doc/_build/html
+      - run: ls -ltrh doc_generator/_build/html
     filters:
       branches:
         ignore: gh-pages
