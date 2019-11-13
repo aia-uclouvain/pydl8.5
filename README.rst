@@ -1,4 +1,4 @@
-|Travis|_
+|Travis|_ |CircleCI|_
 
 .. |Travis| image:: https://travis-ci.org/aglingael/dl85_dist_source.svg?branch=master
 .. _Travis: https://travis-ci.org/aglingael/dl85_dist_source
