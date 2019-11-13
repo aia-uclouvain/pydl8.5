@@ -1,4 +1,10 @@
-setuptools
-cython
 numpy
 scikit-learn
+scipy
+matplotlib
+sphinx
+sphinx_rtd_theme
+numpydoc
+pillow
+setuptools
+cython
