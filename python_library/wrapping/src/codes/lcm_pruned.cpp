@@ -39,7 +39,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
                              Depth depth,
                              float parent_ub) {
 
-    if (query->timeLimit > -1) {
+    if (query->timeLimit > 0) {
         float runtime = (clock() - query->startTime) / (float) CLOCKS_PER_SEC;
         if (runtime >= query->timeLimit)
             query->timeLimitReached = true;

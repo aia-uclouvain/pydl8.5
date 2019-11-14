@@ -20,6 +20,14 @@ dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')
 X = dataset[:, 1:]
 y = dataset[:, 0]
 
+# print("DL8.5")
+# clf1 = ODTClassifier(max_depth=4)
+# start = time.perf_counter()
+# print("Model building...")
+# clf1.fit(X, y)
+# duration = time.perf_counter() - start
+# print("Duration of model building =", duration)
+
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
 print("DL8.5")
