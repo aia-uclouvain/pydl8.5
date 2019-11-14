@@ -6,7 +6,7 @@
 .. |CircleCI| image:: https://circleci.com/gh/aglingael/dl8.5/tree/master.svg?style=svg
 .. _CircleCI: https://circleci.com/gh/aglingael/dl8.5/
 
-.. |ReadTheDocs| image:: https://readthedocs.org/projects/dl8.5/badge/?version=latest
+.. |ReadTheDocs| image:: https://readthedocs.org/projects/dl85/badge/?version=latest
 .. _ReadTheDocs: https://dl85.readthedocs.io/en/latest/?badge=latest
 
 This project is used to infer binary optimal decision trees classifier.
