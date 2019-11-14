@@ -5,7 +5,7 @@ import platform
 import codecs
 from dl85 import __version__
 
-DISTNAME = 'DL8.5'
+DISTNAME = 'DL85'
 DESCRIPTION = 'A package to build optimal binary decision trees classifier.'
 with codecs.open('README.rst', encoding='utf-8-sig') as f:
     LONG_DESCRIPTION = f.read()
