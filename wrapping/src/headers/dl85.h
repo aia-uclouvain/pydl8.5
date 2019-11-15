@@ -28,7 +28,7 @@ string search (int* supports,
         int timeLimit = 0,
         map<int, pair<int, int>>* continuousMap = NULL,
         bool save = false,
-        bool nps = false,
-        bool verbose = false);
+        bool nps_param = false,
+        bool verbose_param = false);
 
 #endif //DL85_DL85_H
