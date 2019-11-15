@@ -5,7 +5,7 @@ import platform
 import codecs
 from dl85 import __version__
 
-DISTNAME = 'DL85'
+DISTNAME = 'dl8.5'
 DESCRIPTION = 'A package to build optimal binary decision trees classifier.'
 with codecs.open('README.rst', encoding='utf-8-sig') as f:
     LONG_DESCRIPTION = f.read()
@@ -38,8 +38,8 @@ EXTRAS_REQUIRE = {
     ]
 }
 PROJECT_URLS = {
-    "Source on github": "https://github.com/aglingael/dl85_dist_source",
-    "Documentation": "https://aglingael.github.io/dl85_dist_source/",
+    "Source on github": "https://github.com/aglingael/dl8.5",
+    "Documentation": "https://dl85.readthedocs.io/en/latest/?badge=latest",
 }
 
 EXTENSION_NAME = 'dl85Optimizer'

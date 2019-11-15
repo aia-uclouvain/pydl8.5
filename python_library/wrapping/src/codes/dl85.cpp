@@ -38,9 +38,11 @@ string search(Supports supports,
               int timeLimit,
               map<int, pair<int,int>>* continuousMap,
               bool save,
-              bool nps,
-              bool verbose) {
+              bool nps_param,
+              bool verbose_param) {
 
+    nps = nps_param;
+    verbose = verbose_param;
     string out = "";
     clock_t t = clock();
     Trie *trie = new Trie;

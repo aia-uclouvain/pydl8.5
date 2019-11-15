@@ -23,8 +23,8 @@ cdef extern from "src/headers/dl85.h":
                     int timeLimit,
                     map[int, pair[int, int]]* continuousMap,
                     bool save,
-                    bool nps,
-                    bool verbose )
+                    bool nps_param,
+                    bool verbose_param )
 
 def readBinData(dataPath):
     dataset = np.genfromtxt(dataPath, delimiter = ' ')
@@ -117,7 +117,7 @@ def solve(data,
                  timeLimit = time_limit,
                  continuousMap = NULL,
                  save = bin_save,
-                 nps = nps,
-                 verbose = verb)
+                 nps_param = nps,
+                 verbose_param = verb)
 
     return out.decode("utf-8")

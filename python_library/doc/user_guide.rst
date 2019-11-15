@@ -20,9 +20,7 @@ scikit-learn. It implements methods ``fit`` and ``predict``.
 * at ``fit``, parameters listed in the API documentation <api.html> are learned from ``X`` and ``y``;
 * at ``predict``, predictions will be computed using ``X`` using the parameters
   learned during ``fit``. The output corresponds to a list containing the predicted class for each
-  sample;
-* ``predict_proba`` will give a 2D matrix where each column corresponds to the
-  class and each entry will be the probability of the associated class.
+  sample.
 
 In addition, scikit-learn provides a mixin, i.e.
 :class:`sklearn.base.ClassifierMixin`, which implements the ``score`` method
@@ -37,22 +35,23 @@ from both :class:`slearn.base.BaseEstimator` and
 :class:`sklearn.base.ClassifierMixin`. The method ``fit`` gets ``X`` and ``y``
 as input and should return ``self``. It should implement the ``predict``
 function which should output the class inferred by the classifier.
-``predict_proba`` will output some probabilities instead.
+.. predict_proba`` will output some probabilities instead.
 
 We illustrate that our classifier is working within a scikit-learn pipeline::
 
-    >>> X, y = load_iris(return_X_y=True)
-    >>> pipe = make_pipeline(MyOwnClassifier())
+    >>> dataset = np.genfromtxt("binary_dataset.txt", delimiter=' ')
+    >>> X = dataset[:, 1:]
+    >>> y = dataset[:, 0]
+    >>> pipe = make_pipeline(ODTClassifier())
     >>> pipe.fit(X, y)  # doctest: +ELLIPSIS
     Pipeline(...)
 
 
-Then, you can call ``predict`` and ``predict_proba``::
+Then, you can call ``predict``::
 
     >>> pipe.predict(X)  # doctest: +ELLIPSIS
     array([...])
-    >>> pipe.predict_proba(X)  # doctest: +ELLIPSIS
-    array([...])
+
 
 Since our classifier inherits from :class:`sklearn.base.ClassifierMixin`, we
 can compute the accuracy by calling the ``score`` method::
