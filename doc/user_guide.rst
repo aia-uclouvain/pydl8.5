@@ -14,8 +14,6 @@ Classifier
 
 ``ODTClassifier`` is a sckit-learn compatible classifier. It can be used as any classifier of
 scikit-learn. It implements methods ``fit`` and ``predict``.
-.. In addition, it outputs the probabilities of the prediction using the ``predict_proba`` method:
-.. Unfortunately, predict_proba is not yet implemented
 
 * at ``fit``, parameters listed in the API documentation <api.html> are learned from ``X`` and ``y``;
 * at ``predict``, predictions will be computed using ``X`` using the parameters
@@ -35,7 +33,6 @@ from both :class:`slearn.base.BaseEstimator` and
 :class:`sklearn.base.ClassifierMixin`. The method ``fit`` gets ``X`` and ``y``
 as input and should return ``self``. It should implement the ``predict``
 function which should output the class inferred by the classifier.
-.. predict_proba`` will output some probabilities instead.
 
 We illustrate that our classifier is working within a scikit-learn pipeline::
 
