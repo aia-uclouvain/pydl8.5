@@ -12,8 +12,8 @@
 .. |Codecov| image:: https://codecov.io/gh/aglingael/dl8.5/branch/master/graph/badge.svg
 .. _Codecov: https://codecov.io/gh/aglingael/dl8.5
 
-This project is used to infer binary optimal decision trees classifier.
-It is a scikit-learn compatible classifier which can be used with any scikit-learn functions.
+This project implements an algorithm for inferring optimal binary decision trees classifiers.
+It is scikit-learn compatible and can be used with any scikit-learn functions.
 As any scikit-learn classifier, you have to use methods "fit" and "predict".
 
 The documentation is available at https://dl85.readthedocs.io/en/latest/?badge=latest
