@@ -8,6 +8,7 @@ Welcome to DL8.5's documentation!
 
 This project implements an algorithm for inferring binary optimal decision tree classifiers.
 It provides a scikit-learn compatible classifier which can be used with any scikit-learn functions.
+
 .. As any scikit-learn classifier, you have to use methods "fit" and "predict".
 
 .. toctree::
@@ -34,7 +35,7 @@ It provides a scikit-learn compatible classifier which can be used with any scik
 `Getting started: User guide <user_guide.html>`_
 ------------------------------------------------
 
-Narrative documentation of the API. It explains how it works and how use it.
+This is a small tutorial that explains how to use DL8.5. 
 
 `API Documentation <api.html>`_
 -------------------------------
