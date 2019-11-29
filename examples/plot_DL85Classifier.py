@@ -1,13 +1,13 @@
 """
-==============================
-Usage example of ODTClassifier
-==============================
+===============================
+Usage example of DL85Classifier
+===============================
 
 """
 import numpy as np
 import sys
 sys.path.insert(0, "../")
-from dl85 import ODTClassifier
+from dl85 import DL85Classifier
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -28,7 +28,7 @@ start = time.perf_counter()
 error = 0
 clf = None
 for i in range(1, 4):
-    clf = ODTClassifier(max_depth=i, max_error=error)
+    clf = DL85Classifier(max_depth=i, max_error=error)
     clf.fit(X_train, y_train)
     error = clf.error_
 duration = time.perf_counter() - start
@@ -40,7 +40,7 @@ print("Accuracy DL8.5 on test set =", score1, "\n")
 
 
 print("DL8.5 iterative in c++")
-clf1 = ODTClassifier(max_depth=3, iterative=True)
+clf1 = DL85Classifier(max_depth=3, iterative=True)
 start = time.perf_counter()
 print("Model building...")
 clf1.fit(X_train, y_train)
@@ -65,7 +65,7 @@ score2 = accuracy_score(y_test, y_pred2)
 print("Accuracy default DT on test set =", score2, "\n")
 
 
-clf3 = ODTClassifier(max_depth=3)
+clf3 = DL85Classifier(max_depth=3)
 scores = cross_val_score(clf3, X, y, cv=5)
 print(scores)
 
@@ -83,7 +83,7 @@ for train_index, test_index in kf.split(X):
     data_test = X[test_index]
     target_test = y[test_index]
 
-    clf = ODTClassifier()
+    clf = DL85Classifier()
     clf.fit(data_train, target_train)
 
     preds = clf.predict(data_test)
