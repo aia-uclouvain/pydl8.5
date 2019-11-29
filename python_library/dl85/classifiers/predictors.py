@@ -17,30 +17,30 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
     iterative : bool, default=False
         Whether the search will be Iterative Deepening Search or not. By default, it is Depth First Search
     max_error : int, default=0
-        Maximum error that the searched tree cannot reach. Default value stand for no bound
+        Maximum allowed error. Default value stands for no bound. If no tree can be found that is strictly better, the model remains empty.
     stop_after_better : bool, default=False
-        A parameter used to indicate if the search will stop after finding tree better than max_error
+        A parameter used to indicate if the search will stop after finding a tree better than max_error
     time_limit : int, default=0
-        Allocated time in second(s) for the search. Default value stands for no limit
+        Allocated time in second(s) for the search. Default value stands for no limit. The best tree found within the time limit is stored, if this tree is better than max_error.
     verbose : bool, default=False
         A parameter used to switch on/off the print of what happens during the search
     desc : bool, default=False
-        A parameter used to indicate if the sorting of the items is done in descendent order over the information gain
+        A parameter used to indicate if the sorting of the items is done in descending order of information gain
     asc : bool, default=False
-        A parameter used to indicate if the sorting of the items is done in ascendant order over the information gain
+        A parameter used to indicate if the sorting of the items is done in ascending order of information gain
     repeat_sort : bool, default=False
-        A parameter used to indicate the sorting of items is done at each level of the lattice or only before the search
+        A parameter used to indicate whether the sorting of items is done at each level of the lattice or only before the search
     bin_save : bool, default=False
         A parameter used to indicate the continuous dataset will just be discretized and export without search
     nps : bool, default=False
-        A parameter used to indicate if only optimal solutions which will be reuse or not
+        A parameter used to indicate if only optimal solutions should be stored in the cache.
     print_output : bool, default=False
         A parameter used to indicate if the search output will be printed or not
 
     Attributes
     ----------
     tree_ : str
-        Outputted tree in serialized form
+        Outputted tree in serialized form; remains empty as long as no model is learned.
     size_ : int
         The size of the outputted tree
     depth_ : int
@@ -93,7 +93,7 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
                 'allow_nan': False}
 
     def fit(self, X, y):
-        """A reference implementation of a fitting function for a classifier.
+        """Implements the standard fitting function for a DL8.5 classifier.
 
         Parameters
         ----------
@@ -180,7 +180,7 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
         return self
 
     def predict(self, X):
-        """ A reference implementation of a prediction for a classifier.
+        """ Implements the standard predict function for a DL8.5 classifier.
 
         Parameters
         ----------
