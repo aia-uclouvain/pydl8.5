@@ -1,1 +1,1 @@
-from .predictors import ODTClassifier
+from .predictors import DL85Classifier

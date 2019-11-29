@@ -5,7 +5,7 @@ from ..errors.errors import SearchFailedError, TreeNotFoundError
 import json
 
 
-class ODTClassifier(BaseEstimator, ClassifierMixin):
+class DL85Classifier(BaseEstimator, ClassifierMixin):
     """ An optimal binary decision tree classifier.
 
     Parameters

@@ -21,16 +21,14 @@ scikit-learn. It inherits from :class:`sklearn.base.BaseEstimator` and reimpleme
   learned during ``fit``. The output corresponds to a list containing the predicted class for each
   sample.
 
-.. In addition, scikit-learn provides a mixin, i.e.
-:class:`sklearn.base.ClassifierMixin`, which implements the ``score`` method
-which computes the accuracy score of the predictions.
+.. In addition, scikit-learn provides a mixin, i.e. :class:`sklearn.base.ClassifierMixin`, which implements the ``score`` method which computes the accuracy score of the predictions.
 
 .. One can import this mixin as::
 
 ..    >>> from sklearn.base import ClassifierMixin
 .. The method ``fit`` gets ``X`` and ``y``
-as input and should return ``self``. It should implement the ``predict``
-function which should output the class inferred by the classifier.
+.. as input and should return ``self``. It should implement the ``predict``
+.. function which should output the class inferred by the classifier.
 
 The following example illustrates how to use our classifier within a scikit-learn pipeline to learn an optimal decision tree classifier::
 
