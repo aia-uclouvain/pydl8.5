@@ -7,11 +7,13 @@
 
 #include <string>
 #include <map>
+#include <vector>
 #include <utility>
 using namespace std;
 
 //string search ( int argc, char *argv[], int* supports, int ntransactions, int nattributes, int nclasses, int *data, int *target, float maxError, bool stopAfterError, bool iterative );
-string search (int* supports,
+string search (std::function<float(int*, int)> callback,
+        int* supports,
         int ntransactions,
         int nattributes,
         int nclasses,

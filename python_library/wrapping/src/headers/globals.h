@@ -30,7 +30,8 @@ typedef Support *Supports;
 
 // the array is a light-weight vector that does not do copying or resizing of storage space.
 template<class A> 
-struct Array {
+class Array {
+public:
   A *elts;
   int size;
   void alloc ( int size ) { this->size = size; elts = new A[size]; }
@@ -42,13 +43,13 @@ struct Array {
   A &operator[] ( int i ) { return elts[i]; }
 };
 
-template<class A>
+/*template<class A>
 Array<A> makeArray ( A *elts, int size ) {
   Array<A> a; 
   a.elts = elts;
   a.size = size;
   return a;
-}
+}*/
 
 void merge ( Array<Item> src1, Array<Item> src2, Array<Item> dest );
 
