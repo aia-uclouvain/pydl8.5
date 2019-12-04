@@ -63,6 +63,7 @@ class ODTClassifier(BaseEstimator, ClassifierMixin):
             self,
             max_depth=1,
             min_sup=1,
+            error_function=None,
             iterative=False,
             max_error=0,
             stop_after_better=False,
@@ -74,6 +75,7 @@ class ODTClassifier(BaseEstimator, ClassifierMixin):
             bin_save=False,
             nps=False,
             print_output=False):
+        self.error_function = error_function
         self.max_depth = max_depth
         self.min_sup = min_sup
         self.iterative = iterative
@@ -119,6 +121,7 @@ class ODTClassifier(BaseEstimator, ClassifierMixin):
         import dl85Optimizer
         solution = dl85Optimizer.solve(data=X,
                                        target=y,
+                                       func=self.error_function,
                                        max_depth=self.max_depth,
                                        min_sup=self.min_sup,
                                        max_error=self.max_error,

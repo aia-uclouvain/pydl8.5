@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+#include <functional>
 #include <iostream>
 #include <cstdlib>
 #include <math.h>
@@ -21,7 +22,8 @@ using namespace std;
 bool nps = false;
 bool verbose = false;
 
-string search(Supports supports,
+string search(std::function<float(int*, int)> callback,
+              Supports supports,
               Transaction ntransactions,
               Attribute nattributes,
               Class nclasses,
@@ -36,10 +38,18 @@ string search(Supports supports,
               bool infoAsc,
               bool repeatSort,
               int timeLimit,
-              map<int, pair<int,int>>* continuousMap,
+              map<int, pair<int, int>> *continuousMap,
               bool save,
               bool nps_param,
               bool verbose_param) {
+
+//    int* p = new int[3];
+//    p[0] = 10;
+//    p[1] = 20;
+//    p[2] = 30;
+//    //vector<int> vect{ 10, 20, 30 };
+//    //float erro = callback(vect);
+//    cout << "computed error is " << callback(p, 3) << endl;
 
     nps = nps_param;
     verbose = verbose_param;
@@ -69,7 +79,8 @@ string search(Supports supports,
     query->minsup = minsup;
 
     out = "TrainingDistribution: ";
-    forEachClass (i) out += std::to_string(dataReader->getSupports()[i]) + " ";
+    forEachClass(i)
+    out += std::to_string(dataReader->getSupports()[i]) + " ";
     out += "\n";
     //out += "(nItems, nTransactions) : ( " << std::to_string(dataReader->getNAttributes()*2) << ", " << std::to_string(dataReader->getNTransactions()) << " )" << endl;
 

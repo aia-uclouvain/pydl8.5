@@ -44,7 +44,8 @@ PROJECT_URLS = {
 
 EXTENSION_NAME = 'dl85Optimizer'
 EXTENSION_LANGUAGE = 'c++'
-EXTENSION_SOURCE_FILES = ['wrapping/dl85Optimizer.pyx',
+EXTENSION_SOURCE_FILES = ['wrapping/src/headers/call_obj.pyx',
+                          'wrapping/dl85Optimizer.pyx',
                 'wrapping/src/codes/data.cpp',
                 'wrapping/src/codes/dataContinuous.cpp',
                 'wrapping/src/codes/dataBinary.cpp',
