@@ -39,6 +39,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'numpydoc',
     'sphinx_gallery.gen_gallery',
+    'sphinxcontrib.bibtex',
 ]
 
 # this is needed for some reason...
