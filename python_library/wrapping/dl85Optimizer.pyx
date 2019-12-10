@@ -18,6 +18,7 @@ cdef extern from "src/headers/dl85.h":
                     float maxError,
                     bool stopAfterError,
                     bool iterative,
+                    bool user,
                     int maxdepth,
                     int minsup,
                     bool infoGain,
@@ -60,27 +61,42 @@ def splitClassLast(dataset):
     data = dataset[:,0:-1]
     return (data, target)
 
-cdef float default_err(vector[int] entry):
-    som = 0
-    for e in entry:
-        som += e
-    print(som + 2)
-    return float(som + 2)
+original_targets = []
+original_class_support = []
 
+def default_error_function(tid_iterator):
+    tid_iterator.init_iterator()
+    size = tid_iterator.get_size()
 
-cdef float default_e(int* entry, int size):
-    som = 0
-    for e in entry[:size]:
-        som += e
-    print(som + 2)
-    return float(som + 2)
+    tid_list = []
+    for i in range(size):
+        tid_list.append(tid_iterator.get_value())
+        if i != size - 1:
+            tid_iterator.inc_iterator()
+
+    target_subset = original_targets.take(tid_list)
+    classes, supports = np.unique(target_subset, return_counts=True)
+    class_support = dict(zip(classes, supports))
+    maxclass = -1
+    maxclassval = minclassval = -1
+    conflict = 0
+
+    for classe, sup in class_support.items():
+        if sup > maxclassval:
+            maxclass = classe
+            maxclassval = sup
+        elif sup == maxclassval:
+            conflict += 1
+            if original_class_support[classe] > original_class_support[maxclass]:
+                maxclass = classe
+        else:
+            minclassval = sup
+
+    error_score = sum(supports) - maxclassval
+    return [error_score, maxclass, conflict, minclassval]
 
 def default_error(entry):
-    som = 0
-    for e in entry:
-        som += e
-    print(som + 2)
-    return float(som + 2)
+    return 2
 
 
 def solve(func,
@@ -108,6 +124,9 @@ def solve(func,
     if np.array_equal(data, data.astype('bool')) is False:  # WARNING: maybe categorical (not binary) inputs will be supported in the future
         raise ValueError("Bad input type. DL8.5 actually only supports binary (0/1) inputs")
 
+    global original_targets
+    original_targets = target
+
     if not data.flags['C_CONTIGUOUS']:
         data = np.ascontiguousarray(data) # Makes a contiguous copy of the numpy array.
     if not target.flags['C_CONTIGUOUS']:
@@ -120,6 +139,9 @@ def solve(func,
     classes, supports = np.unique(target, return_counts=True)
     nclasses = len(classes)
     supports = supports.astype('int32')
+
+    global original_class_support
+    original_class_support = dict(zip(classes, supports))
 
     if not supports.flags['C_CONTIGUOUS']:
         supports = np.ascontiguousarray(supports) # Makes a contiguous copy of the numpy array.
@@ -148,6 +170,7 @@ def solve(func,
                      max_err,
                      stop_after_better,
                      iterative,
+                     user = False,
                      maxdepth = max_depth,
                      minsup = min_sup,
                      infoGain = info_gain,
@@ -170,6 +193,7 @@ def solve(func,
                  max_err,
                  stop_after_better,
                  iterative,
+                 user = True,
                  maxdepth = max_depth,
                  minsup = min_sup,
                  infoGain = info_gain,

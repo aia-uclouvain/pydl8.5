@@ -44,7 +44,7 @@ PROJECT_URLS = {
 
 EXTENSION_NAME = 'dl85Optimizer'
 EXTENSION_LANGUAGE = 'c++'
-EXTENSION_SOURCE_FILES = ['wrapping/src/headers/call_obj.pyx',
+EXTENSION_SOURCE_FILES = ['wrapping/src/headers/error_function.pyx',
                           'wrapping/dl85Optimizer.pyx',
                 'wrapping/src/codes/data.cpp',
                 'wrapping/src/codes/dataContinuous.cpp',
@@ -53,14 +53,15 @@ EXTENSION_SOURCE_FILES = ['wrapping/src/headers/call_obj.pyx',
                 'wrapping/src/codes/experror.cpp',
                 'wrapping/src/codes/globals.cpp',
                 'wrapping/src/codes/lcm_pruned.cpp',
-                'wrapping/src/codes/lcm_iterative.cpp',
+                #'wrapping/src/codes/lcm_iterative.cpp',
                 'wrapping/src/codes/query.cpp',
                 'wrapping/src/codes/query_best.cpp',
                 'wrapping/src/codes/query_totalfreq.cpp',
                 'wrapping/src/codes/trie.cpp',
                 'wrapping/src/codes/dataBinaryPython.cpp']
 EXTENSION_INCLUDE_DIR = ['wrapping/src/headers']
-EXTENSION_BUILD_ARGS = ['-std=c++11']
+# EXTENSION_BUILD_ARGS = ['-std=c++11']
+EXTENSION_BUILD_ARGS = ['-std=c++11', '-DCYTHON_PEP489_MULTI_PHASE_INIT=0']
 if platform.system() == 'Darwin':
     EXTENSION_BUILD_ARGS.append('-mmacosx-version-min=10.12')
 

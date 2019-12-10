@@ -3,6 +3,7 @@
 #include "trie.h"
 #include "experror.h"
 #include <query.h>
+#include <vector>
 
 struct QueryData_Best {
   Attribute test;
@@ -20,7 +21,7 @@ struct QueryData_Best {
 
 class Query_Best : public Query {
 public:
-    Query_Best ( Trie *trie, Data *data, ExpError *experror, int timeLimit, bool continuous, float maxError = NO_ERR, bool stopAfterError = false );
+    Query_Best ( Trie *trie, Data *data, ExpError *experror, int timeLimit, bool continuous, function<vector<float>(Array<int>*)>* error_callback, float maxError = NO_ERR, bool stopAfterError = false );
 
     virtual ~Query_Best ();
     bool canimprove ( QueryData *left, Error ub );

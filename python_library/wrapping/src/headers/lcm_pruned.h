@@ -8,7 +8,7 @@
 
 class LcmPruned {
 public:
-    LcmPruned ( Data *dataReader, Query *query, Trie *trie, bool infoGain, bool infoAsc, bool allDepths );
+    LcmPruned ( Data *dataReader, Query *query, Trie *trie, bool infoGain, bool infoAsc, bool allDepths, bool user );
 
     ~LcmPruned();
 
@@ -20,7 +20,7 @@ public:
 protected:
     TrieNode* recurse ( Array<Item> itemset,
                         Item added,
-                        Array<pair<bool,Attribute> > a_attributes,
+                        Array<pair<bool,Attribute>> a_attributes,
                         Array<Transaction> a_transactions,
                         Depth depth,
                         float priorUbFromParent );
@@ -39,6 +39,7 @@ protected:
     bool infoGain = false;
     bool infoAsc = false; //if true ==> items with low IG are explored first
     bool allDepths = false;
+    bool user = false;
     //bool timeLimitReached = false;
 };
 
