@@ -7,8 +7,7 @@
 #include <cstdlib>
 #include <math.h>
 #include <string.h>
-#include <lcm_iterative.h>
-#include "globals.h"
+//#include <lcm_iterative.h>
 #include "data.h"
 #include "dataContinuous.h"
 #include "dataBinary.h"
@@ -22,7 +21,8 @@ using namespace std;
 bool nps = false;
 bool verbose = false;
 
-string search(std::function<float(int*, int)> callback,
+string search(//std::function<float(Array<int>::iterator)> callback,
+              function<vector<float>(Array<int>*)> error_callback,
               Supports supports,
               Transaction ntransactions,
               Attribute nattributes,
@@ -32,6 +32,7 @@ string search(std::function<float(int*, int)> callback,
               float maxError,
               bool stopAfterError,
               bool iterative,
+              bool user,
               int maxdepth,
               int minsup,
               bool infoGain,
@@ -43,13 +44,13 @@ string search(std::function<float(int*, int)> callback,
               bool nps_param,
               bool verbose_param) {
 
-//    int* p = new int[3];
-//    p[0] = 10;
-//    p[1] = 20;
-//    p[2] = 30;
-//    //vector<int> vect{ 10, 20, 30 };
-//    //float erro = callback(vect);
-//    cout << "computed error is " << callback(p, 3) << endl;
+    /*Array<int> ar(3,3);
+    ar[0] = 10;
+    ar[1] = 20;
+    ar[2] = 30;
+    //cout << "computed error is " << endl << callback(ar.begin()) << endl;
+    cout << "computed error is " << endl << callback(&ar) << endl;
+    ar.free();*/
 
     nps = nps_param;
     verbose = verbose_param;
@@ -70,9 +71,9 @@ string search(std::function<float(int*, int)> callback,
     experror = new ExpError_Zero;
 
     if (maxError < 0)
-        query = new Query_TotalFreq(trie, dataReader, experror, timeLimit, continuousMap);
+        query = new Query_TotalFreq(trie, dataReader, experror, timeLimit, continuousMap, &error_callback);
     else
-        query = new Query_TotalFreq(trie, dataReader, experror, timeLimit, continuousMap, maxError, stopAfterError);
+        query = new Query_TotalFreq(trie, dataReader, experror, timeLimit, continuousMap, &error_callback, maxError, stopAfterError);
 
 
     query->maxdepth = maxdepth;
@@ -87,17 +88,19 @@ string search(std::function<float(int*, int)> callback,
     void *lcm;
 
     if (iterative) {
-        lcm = new LcmIterative(dataReader, query, trie, infoGain, infoAsc, repeatSort);
-        ((LcmIterative *) lcm)->run();
+        cout << "it" << endl;
+        //lcm = new LcmIterative(dataReader, query, trie, infoGain, infoAsc, repeatSort);
+        //((LcmIterative *) lcm)->run();
     } else {
-        lcm = new LcmPruned(dataReader, query, trie, infoGain, infoAsc, repeatSort);
+        lcm = new LcmPruned(dataReader, query, trie, infoGain, infoAsc, repeatSort, user);
         ((LcmPruned *) lcm)->run();
     }
 
     out = query->printResult(dataReader);
 
     if (iterative)
-        out += "LatticeSize: " + std::to_string(((LcmIterative *) lcm)->closedsize) + "\n";// << endl;
+        cout << "it" << endl;
+        //out += "LatticeSize: " + std::to_string(((LcmIterative *) lcm)->closedsize) + "\n";// << endl;
     else
         out += "LatticeSize: " + std::to_string(((LcmPruned *) lcm)->closedsize) + "\n";// << endl;
 

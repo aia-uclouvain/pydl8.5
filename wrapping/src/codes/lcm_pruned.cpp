@@ -25,8 +25,8 @@ struct Hash {
     }
 };
 
-LcmPruned::LcmPruned(Data *dataReader, Query *query, Trie *trie, bool infoGain, bool infoAsc, bool allDepths) :
-        dataReader(dataReader), query(query), trie(trie), infoGain(infoGain), infoAsc(infoAsc), allDepths(allDepths) {
+LcmPruned::LcmPruned(Data *dataReader, Query *query, Trie *trie, bool infoGain, bool infoAsc, bool allDepths, bool user) :
+        dataReader(dataReader), query(query), trie(trie), infoGain(infoGain), infoAsc(infoAsc), allDepths(allDepths), user(user) {
 }
 
 LcmPruned::~LcmPruned() {
@@ -118,10 +118,17 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
         //if ( closedsize % 1000 == 0 )
         //cerr << "--- Searching, lattice size: " << closedsize << "\r" << flush;
 
-        //STEP 1 : count supports
-        //<=================== START STEP 1 ===================>
         //declare variable of pair type to keep firstly an array of support per class and second the support of the itemset
         pair<Supports, Support> itemsetSupport;
+
+        if (user){
+            node->data = query->initDataFromUser(a_transactions, parent_ub, query->minsup);
+        }
+        else {
+
+        //STEP 1 : count supports
+        //<=================== START STEP 1 ===================>
+
         //allocate memory for the array
         itemsetSupport.first = newSupports();
         //put all value to 0 in the array
@@ -132,13 +139,14 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
         }
         //compute the support of the itemset
         itemsetSupport.second = sumSupports(itemsetSupport.first);
-        //<===================  END STEP 1  ===================>
+            //<===================  END STEP 1  ===================>
 
 
-        //STEP 2 : call initData of query
-        //<=================== START STEP 2 ===================>
-        //cout << "step 2" << endl;
-        node->data = query->initData(itemsetSupport, parent_ub, query->minsup);
+            //STEP 2 : call initData of query
+            //<=================== START STEP 2 ===================>
+            //cout << "step 2" << endl;
+            node->data = query->initData(itemsetSupport, parent_ub, query->minsup);
+        }
 
         //initialize the bound. it will be used for children in for loop
         initUb = ((QueryData_Best *) node->data)->initUb;
@@ -184,7 +192,10 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
         //<=================== START STEP 4 ===================>
         a_attributes2 = getSuccessors(a_attributes, a_transactions, added);
         //((QueryData_Best*) node->data)->children = a_attributes2;
-        deleteSupports(itemsetSupport.first);
+
+        if (!user)
+            deleteSupports(itemsetSupport.first);
+
         //<===================  END STEP 4  ===================>
     } else {//case 2 : when the node exists but init value of upper bound is higher than the last one and last solution is NO_TREE
         Error storedInit = ((QueryData_Best *) node->data)->initUb;

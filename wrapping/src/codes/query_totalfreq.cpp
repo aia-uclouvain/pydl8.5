@@ -3,8 +3,8 @@
 #include <iostream>
 #include <stdlib.h>
 
-Query_TotalFreq::Query_TotalFreq(Trie *trie, Data *data, ExpError *experror, int timeLimit, bool continuous, float maxError, bool stopAfterError )
-        : Query_Best(trie,data,experror,timeLimit,continuous, maxError, stopAfterError) {
+Query_TotalFreq::Query_TotalFreq(Trie *trie, Data *data, ExpError *experror, int timeLimit, bool continuous, function<vector<float>(Array<int>*)>* error_callback, float maxError, bool stopAfterError )
+        : Query_Best(trie,data,experror,timeLimit,continuous, error_callback, maxError, stopAfterError) {
 }
 
 
@@ -49,7 +49,7 @@ bool Query_TotalFreq::updateData ( QueryData *best, Error upperBound, Attribute 
 }
 
 QueryData *Query_TotalFreq::initData ( pair<Supports,Support> supports, Error parent_ub, Support minsup, Depth currentMaxDepth ) {
-    Support maxclass = 0, maxclassval = supports.first[0], minclassval = supports.first[0];
+        Support maxclass = 0, maxclassval = supports.first[0], minclassval = supports.first[0];
     //cout << "tot freq" << endl;
     int conflict = 0;
     for ( int i = 1; i < nclasses; ++i )
@@ -65,7 +65,7 @@ QueryData *Query_TotalFreq::initData ( pair<Supports,Support> supports, Error pa
                 maxclass = i;
         } else
             minclassval = supports.first[i];
-    //QueryData_Best *data2 = (QueryData_Best*) malloc(sizeof(QueryData_Best));
+    //Support minclassval = 0;
     QueryData_Best *data2 = new QueryData_Best();
     data2->test = maxclass;
     data2->left = data2->right = NULL;
@@ -76,8 +76,10 @@ QueryData *Query_TotalFreq::initData ( pair<Supports,Support> supports, Error pa
     data2->initUb = min(parent_ub, data2->leafError );
     data2->solutionDepth = currentMaxDepth;
     data2->nTransactions = supports.second;
-    if ( conflict )
+
+    if ( conflict > 0 )
         data2->right = (QueryData_Best*) 1;
+
     if ( minsup <= minclassval )
         data2->lowerBound = 0;
     else{
@@ -89,6 +91,47 @@ QueryData *Query_TotalFreq::initData ( pair<Supports,Support> supports, Error pa
             data2->lowerBound = 0;
         }
 
+    }
+
+    return (QueryData*) data2;
+}
+
+
+QueryData *Query_TotalFreq::initDataFromUser ( Array<Transaction> tid, Error parent_ub, Support minsup, Depth currentMaxDepth ) {
+    function<vector<float>(Array<int>*)> callback = *error_callback;
+    vector<float> infos = callback(&tid);
+    float error = infos[0];
+    Attribute maxclass = int(infos[1]);
+    QueryData_Best *data2 = new QueryData_Best();
+    data2->test = maxclass;
+    data2->left = data2->right = NULL;
+    data2->leafError = error;
+    data2->error = FLT_MAX;
+    data2->error += experror->addError ( tid.size, data2->error, data->getNTransactions() );
+    data2->size = 1;
+    data2->initUb = min(parent_ub, data2->leafError );
+    data2->solutionDepth = currentMaxDepth;
+    data2->nTransactions = tid.size;
+    if (infos.size() > 2){
+        int conflict = int(infos[2]);
+        if ( conflict > 0 )
+            data2->right = (QueryData_Best*) 1;
+    }
+
+    if (infos.size() > 3){
+        int minclassval = int(infos[3]);
+        if ( minsup <= minclassval )
+            data2->lowerBound = 0;
+        else{
+            if (nclasses == 2){
+                data2->lowerBound = min(minclassval, minsup-minclassval);// minsup - maxclassval;
+            }
+            else{
+                //cout << "bingo" << endl;
+                data2->lowerBound = 0;
+            }
+
+        }
     }
 
     return (QueryData*) data2;
