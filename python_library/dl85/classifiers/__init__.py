@@ -1,1 +1,1 @@
-from .predictors import DL85Classifier
+from .classifier import DL85Classifier

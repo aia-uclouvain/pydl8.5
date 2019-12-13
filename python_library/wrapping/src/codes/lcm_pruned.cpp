@@ -25,8 +25,8 @@ struct Hash {
     }
 };
 
-LcmPruned::LcmPruned(Data *dataReader, Query *query, Trie *trie, bool infoGain, bool infoAsc, bool allDepths, bool user) :
-        dataReader(dataReader), query(query), trie(trie), infoGain(infoGain), infoAsc(infoAsc), allDepths(allDepths), user(user) {
+LcmPruned::LcmPruned(Data *dataReader, Query *query, Trie *trie, bool infoGain, bool infoAsc, bool allDepths) :
+        dataReader(dataReader), query(query), trie(trie), infoGain(infoGain), infoAsc(infoAsc), allDepths(allDepths) {
 }
 
 LcmPruned::~LcmPruned() {
@@ -118,46 +118,20 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
         //if ( closedsize % 1000 == 0 )
         //cerr << "--- Searching, lattice size: " << closedsize << "\r" << flush;
 
-        //declare variable of pair type to keep firstly an array of support per class and second the support of the itemset
-        pair<Supports, Support> itemsetSupport;
+        //STEP 1 : Initialize all information about the node
+        //<=================== START STEP 3 ===================>
+        node->data = query->initData(a_transactions, dataReader, parent_ub, query->minsup);
 
-        if (user){
-            node->data = query->initDataFromUser(a_transactions, parent_ub, query->minsup);
-        }
-        else {
-
-        //STEP 1 : count supports
-        //<=================== START STEP 1 ===================>
-
-        //allocate memory for the array
-        itemsetSupport.first = newSupports();
-        //put all value to 0 in the array
-        zeroSupports(itemsetSupport.first);
-        //count support for the itemset for each class
-        forEach (j, a_transactions) {
-            ++itemsetSupport.first[dataReader->targetClass(a_transactions[j])];
-        }
-        //compute the support of the itemset
-        itemsetSupport.second = sumSupports(itemsetSupport.first);
-            //<===================  END STEP 1  ===================>
-
-
-            //STEP 2 : call initData of query
-            //<=================== START STEP 2 ===================>
-            //cout << "step 2" << endl;
-            node->data = query->initData(itemsetSupport, parent_ub, query->minsup);
-        }
-
-        //initialize the bound. it will be used for children in for loop
+        //get the upper bound. it will be used for children in for loop
         initUb = ((QueryData_Best *) node->data)->initUb;
 
         Logger::showMessageAndReturn("après initialisation du nouveau noeud. parent bound = ", parent_ub,
                                      " et leaf error = ", ((QueryData_Best *) node->data)->leafError, " init bound = ",
                                      initUb);
-        //<===================  END STEP 2  ===================>
+        //<===================  END STEP 1  ===================>
 
 
-        //STEP 3 : Case in which we cannot split more
+        //STEP 2 : Case in which we cannot split more
         //<=================== START STEP 3 ===================>
         if (((QueryData_Best *) node->data)->leafError == 0) {
             //when leaf error equals 0 all solution parameters have already been stored by initData apart from node error
@@ -185,18 +159,14 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
             ((QueryData_Best *) node->data)->error = ((QueryData_Best *) node->data)->leafError;
             return node;
         }
-        //<===================  END STEP 3  ===================>
+        //<===================  END STEP 2  ===================>
 
 
-        //STEP 4 : determine successors
+        //STEP 3 : determine successors
         //<=================== START STEP 4 ===================>
         a_attributes2 = getSuccessors(a_attributes, a_transactions, added);
-        //((QueryData_Best*) node->data)->children = a_attributes2;
-
-        if (!user)
-            deleteSupports(itemsetSupport.first);
-
         //<===================  END STEP 4  ===================>
+
     } else {//case 2 : when the node exists but init value of upper bound is higher than the last one and last solution is NO_TREE
         Error storedInit = ((QueryData_Best *) node->data)->initUb;
         initUb = min(parent_ub, ((QueryData_Best *) node->data)->leafError);
@@ -206,17 +176,12 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
                                      ((QueryData_Best *) node->data)->error, " and init = ",
                                      ((QueryData_Best *) node->data)->initUb, " and stored init = ", storedInit);
 
-
         //IF TIMEOUT IS REACHED
-        //<=================== START STEP 3 ===================>
         if (query->timeLimitReached) {
             if (((QueryData_Best *) node->data)->error == FLT_MAX)
                 ((QueryData_Best *) node->data)->error = ((QueryData_Best *) node->data)->leafError;
             return node;
         }
-
-        //<===================  END STEP  ===================>
-
 
         //ONLY STEP : determine successors
         //<=================== START STEP ===================>
@@ -388,35 +353,22 @@ Array<pair<bool, Attribute> > LcmPruned::getSuccessors(Array<pair<bool, Attribut
             zeroSupports(supports[1].first);
 
 
-            forEach (j, a_transactions) {
-                ++supports[dataReader->isIn(a_transactions[j], a_attributes[i].second)].first[dataReader->targetClass(
-                        a_transactions[j])];
-            }
+            if (query->error_callback != nullptr){
+                forEach (j, a_transactions) {
+                    ++supports[dataReader->isIn(a_transactions[j], a_attributes[i].second)].second;
+                }
+            } else{
+                forEach (j, a_transactions) {
+                    ++supports[dataReader->isIn(a_transactions[j], a_attributes[i].second)].first[dataReader->targetClass(
+                            a_transactions[j])];
+                }
 
-            supports[0].second = sumSupports(supports[0].first);
-            supports[1].second = sumSupports(supports[1].first);
+                supports[0].second = sumSupports(supports[0].first);
+                supports[1].second = sumSupports(supports[1].first);
+            }
 
             if (query->is_freq(supports[0]) && query->is_freq(supports[1])) {
 
-                /*if (query->continuous){
-                    //cout << "item feat size = " << attrFeat.size() << endl;
-
-                    int sizeBefore = int(control[attrFeat[a_attributes[i].second]].size());
-                    control[attrFeat[a_attributes[i].second]].insert(supports[0].second);
-                    int sizeAfter = int(control[attrFeat[a_attributes[i].second]].size());
-
-                    if (sizeAfter != sizeBefore) {
-                        if (infoGain)
-                            gain.insert(std::pair<float, pair<bool, Attribute>>(informationGain(supports[0], supports[1]),make_pair(true, a_attributes[i].second)));
-                        else a_attributes2.push_back(make_pair(true, a_attributes[i].second));
-                    } else {
-
-                        if (infoGain)
-                            gain.insert(std::pair<float, pair<bool, Attribute>>(informationGain(supports[0], supports[1]),make_pair(false, a_attributes[i].second)));
-                        else a_attributes2.push_back(make_pair(false, a_attributes[i].second));
-                    }
-
-                }*/
                 if (query->continuous) {//continuous dataset
 
                     //when heuristic is used to reorder attribute, use a policy to always select the same attribute

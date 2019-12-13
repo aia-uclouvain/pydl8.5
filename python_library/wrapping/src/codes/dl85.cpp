@@ -2,7 +2,6 @@
 #include <config.h>
 #endif
 
-#include <functional>
 #include <iostream>
 #include <cstdlib>
 #include <math.h>
@@ -16,13 +15,12 @@
 #include "query_totalfreq.h"
 #include "experror.h"
 
-using namespace std;
+//using namespace std;
 
 bool nps = false;
 bool verbose = false;
 
 string search(//std::function<float(Array<int>::iterator)> callback,
-              function<vector<float>(Array<int>*)> error_callback,
               Supports supports,
               Transaction ntransactions,
               Attribute nattributes,
@@ -32,7 +30,10 @@ string search(//std::function<float(Array<int>::iterator)> callback,
               float maxError,
               bool stopAfterError,
               bool iterative,
-              bool user,
+              function<float(Array<int>*)> error_callback,
+              function<vector<float>(Array<int>*)> fast_error_callback,
+              bool error_is_null,
+              bool fast_error_is_null,
               int maxdepth,
               int minsup,
               bool infoGain,
@@ -44,21 +45,20 @@ string search(//std::function<float(Array<int>::iterator)> callback,
               bool nps_param,
               bool verbose_param) {
 
-    /*Array<int> ar(3,3);
-    ar[0] = 10;
-    ar[1] = 20;
-    ar[2] = 30;
-    //cout << "computed error is " << endl << callback(ar.begin()) << endl;
-    cout << "computed error is " << endl << callback(&ar) << endl;
-    ar.free();*/
+    function<float(Array<int>*)> *error_callback_pointer = &error_callback;
+    function<vector<float>(Array<int>*)> *fast_error_callback_pointer = &fast_error_callback;
+    if (error_is_null)
+        error_callback_pointer = nullptr;
+    if (fast_error_is_null)
+        fast_error_callback_pointer = nullptr;
 
+    //cout << "print " << fast_error_callback->pyFunction << endl;
     nps = nps_param;
     verbose = verbose_param;
     string out = "";
     clock_t t = clock();
     Trie *trie = new Trie;
     Query *query = NULL;
-
 
     Data *dataReader;
     dataReader = new DataBinaryPython(supports, ntransactions, nattributes, nclasses, data, target);
@@ -71,9 +71,9 @@ string search(//std::function<float(Array<int>::iterator)> callback,
     experror = new ExpError_Zero;
 
     if (maxError < 0)
-        query = new Query_TotalFreq(trie, dataReader, experror, timeLimit, continuousMap, &error_callback);
+        query = new Query_TotalFreq(trie, dataReader, experror, timeLimit, continuousMap, error_callback_pointer, fast_error_callback_pointer);
     else
-        query = new Query_TotalFreq(trie, dataReader, experror, timeLimit, continuousMap, &error_callback, maxError, stopAfterError);
+        query = new Query_TotalFreq(trie, dataReader, experror, timeLimit, continuousMap, error_callback_pointer, fast_error_callback_pointer, maxError, stopAfterError);
 
 
     query->maxdepth = maxdepth;
@@ -92,7 +92,7 @@ string search(//std::function<float(Array<int>::iterator)> callback,
         //lcm = new LcmIterative(dataReader, query, trie, infoGain, infoAsc, repeatSort);
         //((LcmIterative *) lcm)->run();
     } else {
-        lcm = new LcmPruned(dataReader, query, trie, infoGain, infoAsc, repeatSort, user);
+        lcm = new LcmPruned(dataReader, query, trie, infoGain, infoAsc, repeatSort);
         ((LcmPruned *) lcm)->run();
     }
 

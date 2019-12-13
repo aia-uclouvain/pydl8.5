@@ -9,13 +9,14 @@
 #include <map>
 #include <vector>
 #include <utility>
+#include <functional>
 #include "globals.h"
+
 using namespace std;
 
 //string search ( int argc, char *argv[], int* supports, int ntransactions, int nattributes, int nclasses, int *data, int *target, float maxError, bool stopAfterError, bool iterative );
 string search (//std::function<float(int*)> callback,
         //std::function<float(Array<int>::iterator)> callback,
-        std::function<vector<float>(Array<int>*)> callback,
         int* supports,
         int ntransactions,
         int nattributes,
@@ -25,7 +26,10 @@ string search (//std::function<float(int*)> callback,
         float maxError,
         bool stopAfterError,
         bool iterative,
-        bool user,
+        function<float(Array<int>*)> error_callback,
+        function<vector<float>(Array<int>*)> fast_error_callback,
+        bool error_is_null = true,
+        bool fast_error_is_null = true,
         int maxdepth = 1,
         int minsup = 1,
         bool infoGain = false,

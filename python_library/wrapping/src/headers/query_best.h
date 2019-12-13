@@ -21,7 +21,7 @@ struct QueryData_Best {
 
 class Query_Best : public Query {
 public:
-    Query_Best ( Trie *trie, Data *data, ExpError *experror, int timeLimit, bool continuous, function<vector<float>(Array<int>*)>* error_callback, float maxError = NO_ERR, bool stopAfterError = false );
+    Query_Best ( Trie *trie, Data *data, ExpError *experror, int timeLimit, bool continuous, function<float(Array<int>*)>* error_callback = nullptr, function<vector<float>(Array<int>*)>* fast_error_callback = nullptr, float maxError = NO_ERR, bool stopAfterError = false );
 
     virtual ~Query_Best ();
     bool canimprove ( QueryData *left, Error ub );

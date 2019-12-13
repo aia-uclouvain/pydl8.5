@@ -8,6 +8,7 @@ import numpy as np
 import sys
 sys.path.insert(0, "../")
 from dl85 import DL85Classifier
+from dl85 import DL85Predictor
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -48,6 +49,7 @@ def error_function(original_targets, original_class_support):
             if sup > maxclassval:
                 maxclass = classe
                 maxclassval = sup
+                conflict = 0
             elif sup == maxclassval:
                 conflict += 1
                 if original_class_support[classe] > original_class_support[maxclass]:
@@ -56,11 +58,43 @@ def error_function(original_targets, original_class_support):
                 minclassval = sup
 
         error_score = sum(supports) - maxclassval
+        return error_score
+        # return [error_score, maxclass, conflict, minclassval]
+    return func
+
+
+def fast_error_function(original_class_support):
+    def func(supports_iterator):
+        supports_iterator.init_iterator()
+        nclasses = supports_iterator.get_size()
+
+        maxclass = conflict = som = 0
+        maxclassval = minclassval = supports_iterator.get_value()
+        som += supports_iterator.get_value()
+        supports_iterator.inc_iterator()
+
+        for i in range(1, nclasses):
+            if supports_iterator.get_value() > maxclassval:
+                maxclassval = supports_iterator.get_value()
+                maxclass = i
+                conflict = 0
+            elif supports_iterator.get_value() == maxclassval:
+                conflict += 1
+                if original_class_support[i] > original_class_support[maxclass]:
+                    maxclass = i
+            else:
+                minclassval = supports_iterator.get_value()
+            som += supports_iterator.get_value()
+            supports_iterator.init_iterator()
+
+        error_score = som - maxclassval
         return [error_score, maxclass, conflict, minclassval]
     return func
 
 
-clf = DL85Classifier(max_depth=3, print_output=True, error_function=error_function(y, class_support))
+clf = DL85Predictor(max_depth=2, print_output=True, error_function=error_function(y, class_support))
+# clf = DL85Classifier(max_depth=2, print_output=True, error_function=fast_error_function(class_support))
+# clf = DL85Classifier(max_depth=2, print_output=True)
 # clf = DL85Classifier(max_depth=3, print_output=True)
 # clf.fit(X_train, y_train)
 clf.fit(X, y)

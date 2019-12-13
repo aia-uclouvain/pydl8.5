@@ -8,7 +8,7 @@
 
 class LcmPruned {
 public:
-    LcmPruned ( Data *dataReader, Query *query, Trie *trie, bool infoGain, bool infoAsc, bool allDepths, bool user );
+    LcmPruned ( Data *dataReader, Query *query, Trie *trie, bool infoGain, bool infoAsc, bool allDepths );
 
     ~LcmPruned();
 
@@ -26,8 +26,7 @@ protected:
                         float priorUbFromParent );
 
     Array<pair<bool,Attribute>> getSuccessors(Array<pair<bool,Attribute > > a_attributes,
-                                                     Array<Transaction> a_transactions,
-                                              Item added);
+            Array<Transaction> a_transactions, Item added);
 
     void printItemset(Array<Item> itemset);
 
@@ -39,7 +38,6 @@ protected:
     bool infoGain = false;
     bool infoAsc = false; //if true ==> items with low IG are explored first
     bool allDepths = false;
-    bool user = false;
     //bool timeLimitReached = false;
 };
 

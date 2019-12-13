@@ -4,8 +4,8 @@
 
 using namespace std;
 
-Query_Best::Query_Best(Trie *Trie, Data *data, ExpError *experror, int timeLimit, bool continuous, function<vector<float>(Array<int>*)>* error_callback, float maxError, bool stopAfterError )
-  : Query(trie,data,timeLimit,continuous, error_callback, maxError, stopAfterError),experror ( experror )
+Query_Best::Query_Best(Trie *Trie, Data *data, ExpError *experror, int timeLimit, bool continuous, function<float(Array<int>*)>* error_callback, function<vector<float>(Array<int>*)>* fast_error_callback, float maxError, bool stopAfterError )
+  : Query(trie,data,timeLimit,continuous, error_callback, fast_error_callback, maxError, stopAfterError),experror ( experror )
 {
 }
 
