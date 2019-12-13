@@ -30,8 +30,6 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
         A parameter used to indicate if the sorting of the items is done in ascending order of information gain
     repeat_sort : bool, default=False
         A parameter used to indicate whether the sorting of items is done at each level of the lattice or only before the search
-    bin_save : bool, default=False
-        A parameter used to indicate the continuous dataset will just be discretized and export without search
     nps : bool, default=False
         A parameter used to indicate if only optimal solutions should be stored in the cache.
     print_output : bool, default=False
@@ -72,7 +70,6 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
             desc=False,
             asc=False,
             repeat_sort=False,
-            bin_save=False,
             nps=False,
             print_output=False):
         self.error_function = error_function
@@ -86,7 +83,6 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
         self.desc = desc
         self.asc = asc
         self.repeat_sort = repeat_sort
-        self.bin_save = bin_save
         self.nps = nps
         self.print_output = print_output
 
@@ -121,7 +117,8 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
         import dl85Optimizer
         solution = dl85Optimizer.solve(data=X,
                                        target=y,
-                                       func=self.error_function,
+                                       func=None,
+                                       fast_func=self.error_function,
                                        max_depth=self.max_depth,
                                        min_sup=self.min_sup,
                                        max_error=self.max_error,
@@ -132,7 +129,7 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
                                        desc=self.desc,
                                        asc=self.asc,
                                        repeat_sort=self.repeat_sort,
-                                       bin_save=self.bin_save,
+                                       bin_save=False,
                                        nps=self.nps)
 
         if self.print_output:

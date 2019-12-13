@@ -33,9 +33,12 @@ typedef Support *Supports;
 template<class A>
 class Array {
 public:
-    Array() {
-        elts = nullptr;
-        size = -1;
+
+    Array () { }
+
+    Array(A* e, int s) {
+        elts = e;
+        size = s;
     }
 
     Array(int allocsize, int size) {

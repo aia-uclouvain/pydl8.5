@@ -1,6 +1,6 @@
 from sklearn.utils.estimator_checks import check_estimator
 from sklearn.model_selection import train_test_split
-from ..predictors import DL85Classifier
+from ..classifier import DL85Classifier
 import numpy as np
 from random import randrange
 

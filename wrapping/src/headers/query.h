@@ -19,15 +19,16 @@ typedef void *QueryData; // using void pointers is much lighter than class deriv
 
 class Query {
 public:
-    Query( Trie * trie, Data *data, int timeLimit, bool continuous, function<vector<float>(Array<int>*)>* error_callback, float maxError = NO_ERR, bool stopAfterError = false );
+    Query( Trie * trie, Data *data, int timeLimit, bool continuous, function<float(Array<int>*)>* error_callback = nullptr, function<vector<float>(Array<int>*)>* fast_error_callback = nullptr, float maxError = NO_ERR, bool stopAfterError = false );
 
     virtual ~Query();
     virtual bool is_freq ( pair<Supports,Support> supports ) = 0; 
     virtual bool is_pure ( pair<Supports,Support> supports ) = 0;
     virtual bool canimprove ( QueryData *left, Error ub ) = 0;
     virtual bool canSkip ( QueryData *actualBest ) = 0;
-    virtual QueryData *initData ( pair<Supports,Support> supports, Error parent_ub, Support minsup, Depth currentMaxDepth = -1) = 0;
-    virtual QueryData *initDataFromUser ( Array<Transaction> tid, Error parent_ub, Support minsup, Depth currentMaxDepth = -1) = 0;
+    virtual QueryData *initData ( Array<Transaction> tid, Data *dataReader, Error parent_ub, Support minsup, Depth currentMaxDepth = -1) = 0;
+    //virtual QueryData *initDataFastFromUser ( pair<Supports,Support> supports, Error parent_ub, Support minsup, Depth currentMaxDepth = -1) = 0;
+    //virtual QueryData *initDataFromUser ( Array<Transaction> tid, Error parent_ub, Support minsup, Depth currentMaxDepth = -1) = 0;
     virtual bool updateData ( QueryData *best, Error upperBound, Attribute attribute, QueryData *left, QueryData *right ) = 0;
     virtual string printResult ( Data *data ) = 0;
     void setStartTime( clock_t sTime ){startTime = sTime;}
@@ -43,7 +44,8 @@ public:
     bool continuous = false;
     float maxError = NO_ERR;
     bool stopAfterError = false;
-    function<vector<float>(Array<int>*)>* error_callback;
+    function<float(Array<int>*)>* error_callback;
+    function<vector<float>(Array<int>*)>* fast_error_callback;
 };
 
 #endif

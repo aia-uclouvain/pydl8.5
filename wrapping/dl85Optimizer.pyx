@@ -7,9 +7,20 @@ from libcpp.vector cimport vector
 from libcpp.functional cimport function
 import numpy as np
 
+cdef extern from "src/headers/globals.h":
+    cdef cppclass Array[T]:
+        cppclass iterator:
+            T operator*()
+            iterator operator++()
+            bool operator==(iterator)
+            bool operator!=(iterator)
+        iterator begin()
+        iterator end()
+        int getSize()
+
+
 cdef extern from "src/headers/dl85.h":
-    string search ( PyObjWrapper,
-                    int* supports,
+    string search ( int* supports,
                     int ntransactions,
                     int nattributes,
                     int nclasses,
@@ -18,7 +29,10 @@ cdef extern from "src/headers/dl85.h":
                     float maxError,
                     bool stopAfterError,
                     bool iterative,
-                    bool user,
+                    PyErrorWrapper error_callback,
+                    PyFastErrorWrapper fast_error_callback,
+                    bool error_is_null,
+                    bool fast_error_is_null,
                     int maxdepth,
                     int minsup,
                     bool infoGain,
@@ -28,80 +42,25 @@ cdef extern from "src/headers/dl85.h":
                     map[int, pair[int, int]]* continuousMap,
                     bool save,
                     bool nps_param,
-                    bool verbose_param ) except +
+                    bool verbose_param) except +
 
-cdef extern from "src/headers/py_obj_wrapper.h":
-    cdef cppclass PyObjWrapper:
-        PyObjWrapper()
-        PyObjWrapper(object) # define a constructor that takes a Python object
+cdef extern from "src/headers/py_error_function_wrapper.h":
+    cdef cppclass PyErrorWrapper:
+        PyErrorWrapper()
+        PyErrorWrapper(object) # define a constructor that takes a Python object
              # note - doesn't match c++ signature - that's fine!
 
-def readBinData(dataPath):
-    dataset = np.genfromtxt(dataPath, delimiter = ' ')
-    dataset = dataset.astype('int32')
-    return dataset
-
-def readBinCSVData(dataPath):
-    dataset = np.genfromtxt(dataPath, delimiter = ',')
-    dataset = dataset.astype('int32')
-    return dataset
-
-def readBinCSV2Data(dataPath):
-    dataset = np.genfromtxt(dataPath, delimiter = ';')
-    dataset = dataset.astype('int32')
-    return dataset
-
-def splitClassFirst(dataset):
-    target = dataset[:,0]
-    data = dataset[:,1:]
-    return (data, target)
-
-def splitClassLast(dataset):
-    target = dataset[:,-1]
-    data = dataset[:,0:-1]
-    return (data, target)
-
-original_targets = []
-original_class_support = []
-
-def default_error_function(tid_iterator):
-    tid_iterator.init_iterator()
-    size = tid_iterator.get_size()
-
-    tid_list = []
-    for i in range(size):
-        tid_list.append(tid_iterator.get_value())
-        if i != size - 1:
-            tid_iterator.inc_iterator()
-
-    target_subset = original_targets.take(tid_list)
-    classes, supports = np.unique(target_subset, return_counts=True)
-    class_support = dict(zip(classes, supports))
-    maxclass = -1
-    maxclassval = minclassval = -1
-    conflict = 0
-
-    for classe, sup in class_support.items():
-        if sup > maxclassval:
-            maxclass = classe
-            maxclassval = sup
-        elif sup == maxclassval:
-            conflict += 1
-            if original_class_support[classe] > original_class_support[maxclass]:
-                maxclass = classe
-        else:
-            minclassval = sup
-
-    error_score = sum(supports) - maxclassval
-    return [error_score, maxclass, conflict, minclassval]
-
-def default_error(entry):
-    return 2
+cdef extern from "src/headers/py_fast_error_function_wrapper.h":
+    cdef cppclass PyFastErrorWrapper:
+        PyFastErrorWrapper()
+        PyFastErrorWrapper(object) # define a constructor that takes a Python object
+             # note - doesn't match c++ signature - that's fine!
 
 
-def solve(func,
-          data,
+def solve(data,
           target,
+          func=None,
+          fast_func=None,
           max_depth=1,
           min_sup=1,
           max_error=0,
@@ -116,32 +75,38 @@ def solve(func,
           bin_save=False,
           nps=False):
 
-    cdef PyObjWrapper f_user = PyObjWrapper(func)
-    cdef PyObjWrapper f_default = PyObjWrapper(default_error)
+    cdef PyErrorWrapper f_user = PyErrorWrapper(func)
+    error_null_flag = True
+    if func is not None:
+        error_null_flag = False
 
-    target = target.astype('int32')
+    cdef PyFastErrorWrapper f_user_fast = PyFastErrorWrapper(fast_func)
+    fast_error_null_flag = True
+    if fast_func is not None:
+        fast_error_null_flag = False
+
     data = data.astype('int32')
     if np.array_equal(data, data.astype('bool')) is False:  # WARNING: maybe categorical (not binary) inputs will be supported in the future
         raise ValueError("Bad input type. DL8.5 actually only supports binary (0/1) inputs")
-
-    global original_targets
-    original_targets = target
-
     if not data.flags['C_CONTIGUOUS']:
         data = np.ascontiguousarray(data) # Makes a contiguous copy of the numpy array.
-    if not target.flags['C_CONTIGUOUS']:
-        target = np.ascontiguousarray(target) # Makes a contiguous copy of the numpy array.
-
     cdef int [:, ::1] data_view = data
-    cdef int [::1] target_view = target
+    cdef int *data_matrix = &data_view[0][0]
+
+    cdef int [::1] target_view
+    cdef int *target_array = NULL
+    if target is not None:
+        target = target.astype('int32')
+        if not target.flags['C_CONTIGUOUS']:
+            target = np.ascontiguousarray(target) # Makes a contiguous copy of the numpy array.
+        target_view = target
+        target_array = &target_view[0]
 
     ntransactions, nattributes = data.shape
     classes, supports = np.unique(target, return_counts=True)
     nclasses = len(classes)
     supports = supports.astype('int32')
 
-    global original_class_support
-    original_class_support = dict(zip(classes, supports))
 
     if not supports.flags['C_CONTIGUOUS']:
         supports = np.ascontiguousarray(supports) # Makes a contiguous copy of the numpy array.
@@ -158,42 +123,19 @@ def solve(func,
 
     info_gain = not (desc == False and asc == False)
 
-    if not callable(func):
-
-        out = search(f_default,
-                     &supports_view[0],
-                     ntransactions,
-                     nattributes,
-                     nclasses,
-                     &data_view[0][0],
-                     &target_view[0],
-                     max_err,
-                     stop_after_better,
-                     iterative,
-                     user = False,
-                     maxdepth = max_depth,
-                     minsup = min_sup,
-                     infoGain = info_gain,
-                     infoAsc = asc,
-                     repeatSort = repeat_sort,
-                     timeLimit = time_limit,
-                     continuousMap = NULL,
-                     save = bin_save,
-                     nps_param = nps,
-                     verbose_param = verb)
-    else:
-
-        out = search(f_user,
-                 &supports_view[0],
+    out = search(&supports_view[0],
                  ntransactions,
                  nattributes,
                  nclasses,
-                 &data_view[0][0],
-                 &target_view[0],
+                 data_matrix,
+                 target_array,
                  max_err,
                  stop_after_better,
                  iterative,
-                 user = True,
+                 error_callback = f_user,
+                 fast_error_callback = f_user_fast,
+                 error_is_null = error_null_flag,
+                 fast_error_is_null = fast_error_null_flag,
                  maxdepth = max_depth,
                  minsup = min_sup,
                  infoGain = info_gain,

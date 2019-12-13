@@ -3,8 +3,8 @@
 #include <iostream>
 #include <stdlib.h>
 
-Query_TotalFreq::Query_TotalFreq(Trie *trie, Data *data, ExpError *experror, int timeLimit, bool continuous, function<vector<float>(Array<int>*)>* error_callback, float maxError, bool stopAfterError )
-        : Query_Best(trie,data,experror,timeLimit,continuous, error_callback, maxError, stopAfterError) {
+Query_TotalFreq::Query_TotalFreq(Trie *trie, Data *data, ExpError *experror, int timeLimit, bool continuous, function<float(Array<int>*)>* error_callback, function<vector<float>(Array<int>*)>* fast_error_callback, float maxError, bool stopAfterError )
+        : Query_Best(trie,data,experror,timeLimit,continuous, error_callback, fast_error_callback, maxError, stopAfterError) {
 }
 
 
@@ -48,60 +48,61 @@ bool Query_TotalFreq::updateData ( QueryData *best, Error upperBound, Attribute 
     return false;
 }
 
-QueryData *Query_TotalFreq::initData ( pair<Supports,Support> supports, Error parent_ub, Support minsup, Depth currentMaxDepth ) {
-        Support maxclass = 0, maxclassval = supports.first[0], minclassval = supports.first[0];
-    //cout << "tot freq" << endl;
+QueryData *Query_TotalFreq::initData ( Array<Transaction> tid, Data *dataReader, Error parent_ub, Support minsup, Depth currentMaxDepth ) {
+
+    pair<Supports, Support> itemsetSupport;//declare variable of pair type to keep firstly an array of support per class and second the support of the itemset
+    Support minclassval = -1;
+    Class maxclass = -1;
+    Error error;
     int conflict = 0;
-    for ( int i = 1; i < nclasses; ++i )
-        if ( supports.first[i] > maxclassval ) {
-            maxclassval = supports.first[i];
-            maxclass = i;
-            conflict = 0;
-        }
-        else
-        if ( supports.first[i] == maxclassval ) {
-            ++conflict; // two with the same label
-            if ( data->getSupports() [i] > data->getSupports() [maxclass] )
-                maxclass = i;
-        } else
-            minclassval = supports.first[i];
-    //Support minclassval = 0;
-    QueryData_Best *data2 = new QueryData_Best();
-    data2->test = maxclass;
-    data2->left = data2->right = NULL;
-    data2->leafError = supports.second - maxclassval;
-    data2->error = FLT_MAX;
-    data2->error += experror->addError ( supports.second, data2->error, data->getNTransactions() );
-    data2->size = 1;
-    data2->initUb = min(parent_ub, data2->leafError );
-    data2->solutionDepth = currentMaxDepth;
-    data2->nTransactions = supports.second;
+    Error lowerb = 0;
 
-    if ( conflict > 0 )
-        data2->right = (QueryData_Best*) 1;
-
-    if ( minsup <= minclassval )
-        data2->lowerBound = 0;
-    else{
-        if (nclasses == 2){
-            data2->lowerBound = min(minclassval, minsup-minclassval);// minsup - maxclassval;
+    if (error_callback == nullptr){//fast or default error. support will be used
+        //allocate memory for the array
+        itemsetSupport.first = newSupports();
+        //put all value to 0 in the array
+        zeroSupports(itemsetSupport.first);
+        //count support for the itemset for each class
+        forEach (j, tid) {
+            ++itemsetSupport.first[dataReader->targetClass(tid[j])];
         }
-        else{
-            //cout << "bingo" << endl;
-            data2->lowerBound = 0;
-        }
+        //compute the support of the itemset
+        itemsetSupport.second = tid.size;
+        //itemsetSupport.second = sumSupports(itemsetSupport.first);
 
+        if(fast_error_callback != nullptr){//python fast error
+            function<vector<float>(Array<int>*)> callback = *fast_error_callback;
+            Array<int>* sup = new Array<int>(itemsetSupport.first, nclasses);
+            vector<float> infos = callback(sup);
+            error = infos[0];
+            maxclass = int(infos[1]);
+        }
+        else{//default error
+            Support maxclassval = itemsetSupport.first[0];
+            minclassval = itemsetSupport.first[0];
+            for ( int i = 1; i < nclasses; ++i ){
+                if ( itemsetSupport.first[i] > maxclassval ) {
+                    maxclassval = itemsetSupport.first[i];
+                    maxclass = i;
+                    conflict = 0;
+                }
+                else
+                if ( itemsetSupport.first[i] == maxclassval ) {
+                    ++conflict; // two with the same label
+                    if ( data->getSupports() [i] > data->getSupports() [maxclass] )
+                        maxclass = i;
+                } else
+                    minclassval = itemsetSupport.first[i];
+            }
+            error = itemsetSupport.second - maxclassval;
+        }
+        deleteSupports(itemsetSupport.first);
+    }
+    else{//slow error function. Not need to compute support
+        function<float(Array<int>*)> callback = *error_callback;
+        error = callback(&tid);
     }
 
-    return (QueryData*) data2;
-}
-
-
-QueryData *Query_TotalFreq::initDataFromUser ( Array<Transaction> tid, Error parent_ub, Support minsup, Depth currentMaxDepth ) {
-    function<vector<float>(Array<int>*)> callback = *error_callback;
-    vector<float> infos = callback(&tid);
-    float error = infos[0];
-    Attribute maxclass = int(infos[1]);
     QueryData_Best *data2 = new QueryData_Best();
     data2->test = maxclass;
     data2->left = data2->right = NULL;
@@ -112,30 +113,15 @@ QueryData *Query_TotalFreq::initDataFromUser ( Array<Transaction> tid, Error par
     data2->initUb = min(parent_ub, data2->leafError );
     data2->solutionDepth = currentMaxDepth;
     data2->nTransactions = tid.size;
-    if (infos.size() > 2){
-        int conflict = int(infos[2]);
-        if ( conflict > 0 )
-            data2->right = (QueryData_Best*) 1;
-    }
-
-    if (infos.size() > 3){
-        int minclassval = int(infos[3]);
-        if ( minsup <= minclassval )
-            data2->lowerBound = 0;
-        else{
-            if (nclasses == 2){
-                data2->lowerBound = min(minclassval, minsup-minclassval);// minsup - maxclassval;
-            }
-            else{
-                //cout << "bingo" << endl;
-                data2->lowerBound = 0;
-            }
-
-        }
-    }
+    if ( conflict > 0 )
+        data2->right = (QueryData_Best*) 1;
+    if (minclassval != -1 && nclasses == 2 && minsup > minclassval)
+        lowerb = min(minclassval, minsup-minclassval);// minsup - maxclassval;
+    data2->lowerBound = lowerb;
 
     return (QueryData*) data2;
 }
+
 
 void Query_TotalFreq::printAccuracy ( Data *data2, QueryData_Best *data, string* out ) {
     //cout << "Accuracy: " << (data2->getNTransactions() - data->error) / (double) data2->getNTransactions() << endl;
