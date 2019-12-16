@@ -21,7 +21,7 @@ struct QueryData_Best {
 
 class Query_Best : public Query {
 public:
-    Query_Best ( Trie *trie, Data *data, ExpError *experror, int timeLimit, bool continuous, function<float(Array<int>*)>* error_callback = nullptr, function<vector<float>(Array<int>*)>* fast_error_callback = nullptr, float maxError = NO_ERR, bool stopAfterError = false );
+    Query_Best ( Trie *trie, Data *data, ExpError *experror, int timeLimit, bool continuous, function<vector<float>(Array<int>*)>* error_callback = nullptr, function<vector<float>(Array<int>*)>* fast_error_callback = nullptr, bool predictor = false, float maxError = NO_ERR, bool stopAfterError = false );
 
     virtual ~Query_Best ();
     bool canimprove ( QueryData *left, Error ub );
@@ -32,8 +32,6 @@ public:
     virtual void printAccuracy ( Data *data2, QueryData_Best *data, string* );
     virtual Class runResult ( Data *data, Transaction transaction );
     virtual Class runResult ( QueryData_Best *node, Data *data, Transaction transaction );
-    //bool updateMyData ( QueryData *best, Error upperBound, Attribute attribute, QueryData *left, QueryData *right);
-    //QueryData  *initMyData ( pair<Supports,Support> supports, Error initBound, Support minsup);
     QueryData_Best *rootBest () const { return (QueryData_Best*) realroot->data; }
 protected:
     int printResult ( QueryData_Best *node, int depth, string* );

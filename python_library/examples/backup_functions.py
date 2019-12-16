@@ -9,6 +9,7 @@ import sys
 sys.path.insert(0, "../")
 from dl85 import DL85Classifier
 from dl85 import DL85Predictor
+from dl85 import DL85Cluster
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -20,6 +21,8 @@ import time
 dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')
 X = dataset[:, 1:]
 y = dataset[:, 0]
+X = X.astype('int32')
+y = y.astype('int32')
 
 # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
@@ -92,12 +95,22 @@ def fast_error_function(original_class_support):
     return func
 
 
-clf = DL85Predictor(max_depth=2, print_output=True, error_function=error_function(y, class_support))
+def assign_value_to_leave(target):
+    def func(tid_list):
+        target_subset = target.take(tid_list)
+        classes, supports = np.unique(target_subset, return_counts=True)
+        class_support = dict(zip(classes, supports))
+        class_support = {k: v for k, v in sorted(class_support.items(), key=lambda item: item[1])}
+        return list(class_support.keys())[0]
+    return func
+
+
+clf = DL85Cluster(max_depth=2, print_output=True, error_function=error_function(y, class_support), leaf_value_function=assign_value_to_leave(y))
 # clf = DL85Classifier(max_depth=2, print_output=True, error_function=fast_error_function(class_support))
 # clf = DL85Classifier(max_depth=2, print_output=True)
 # clf = DL85Classifier(max_depth=3, print_output=True)
 # clf.fit(X_train, y_train)
-clf.fit(X, y)
+clf.fit(X)
 
 
 # print("DL8.5 iterative in python")

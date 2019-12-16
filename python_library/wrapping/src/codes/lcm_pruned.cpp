@@ -34,8 +34,8 @@ LcmPruned::~LcmPruned() {
 
 TrieNode *LcmPruned::recurse(Array<Item> itemset_,
                              Item added,
-                             Array<pair<bool, Attribute> > a_attributes,
-                             Array<Transaction> a_transactions,
+                             Array<pair<bool, Attribute> > current_attributes,
+                             Array<Transaction> current_transactions,
                              Depth depth,
                              float parent_ub) {
 
@@ -44,7 +44,6 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
         if (runtime >= query->timeLimit)
             query->timeLimitReached = true;
     }
-
 
     Array<Item> itemset;
     itemset.alloc(itemset_.size + 1);
@@ -60,6 +59,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
     Logger::showMessage("itemset après ajout : ");
     printItemset(itemset);
 
+    //insert the node or get it if it already exists
     TrieNode *node = trie->insert(itemset);
 
     if (node->data) {//node already exists
@@ -76,10 +76,8 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
         }
 
         if (!nps)
-            if (initUb <=
-                storedInitUb) { //solution has not been found last time but the result is the same for this time
-                Logger::showMessageAndReturn("y'avait pas de solution mais c'est pareil cette fois-ci. Ancien init =",
-                                             storedInitUb, " et nouveau = ", initUb);
+            if (initUb <= storedInitUb) { //solution has not been found last time but the result is the same for this time
+                Logger::showMessageAndReturn("y'avait pas de solution mais c'est pareil cette fois-ci. Ancien init =", storedInitUb, " et nouveau = ", initUb);
                 return node;
             }
 
@@ -89,8 +87,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
         }
 
         if (depth == query->maxdepth) {
-            Logger::showMessageAndReturn("on a atteint la profondeur maximale. parent boud = ", parent_ub,
-                                         " et leaf error = ", leafError);
+            Logger::showMessageAndReturn("on a atteint la profondeur maximale. parent boud = ", parent_ub, " et leaf error = ", leafError);
 
             if (parent_ub < leafError) {
                 *nodeError = FLT_MAX;
@@ -107,44 +104,37 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
     //1- when the node did not exist
     //2- when the node exists but init value of upper bound is higher than the last one and last solution is NO_TREE
 
-    // allocate itemset info
-    Array<pair<bool, Attribute> > a_attributes2;
+
+    Array<pair<bool, Attribute> > next_attributes;
     Error initUb = FLT_MAX;
+    Array<Transaction> next_transactions[2];
 
 
     if (!node->data) { // case 1 : when the node did not exist
         Logger::showMessageAndReturn("Nouveau noeud");
-        closedsize++;
+        latticesize++;
         //if ( closedsize % 1000 == 0 )
         //cerr << "--- Searching, lattice size: " << closedsize << "\r" << flush;
 
-        //STEP 1 : Initialize all information about the node
-        //<=================== START STEP 3 ===================>
-        node->data = query->initData(a_transactions, dataReader, parent_ub, query->minsup);
-
+        //<=================== STEP 1 : Initialize all information about the node ===================>
+        node->data = query->initData(current_transactions, parent_ub, query->minsup);
         //get the upper bound. it will be used for children in for loop
         initUb = ((QueryData_Best *) node->data)->initUb;
-
-        Logger::showMessageAndReturn("après initialisation du nouveau noeud. parent bound = ", parent_ub,
-                                     " et leaf error = ", ((QueryData_Best *) node->data)->leafError, " init bound = ",
-                                     initUb);
-        //<===================  END STEP 1  ===================>
+        Logger::showMessageAndReturn("après initialisation du nouveau noeud. parent bound = ", parent_ub," et leaf error = ", ((QueryData_Best *) node->data)->leafError, " init bound = ", initUb);
+        //<====================================  END STEP  ==========================================>
 
 
-        //STEP 2 : Case in which we cannot split more
-        //<=================== START STEP 3 ===================>
+
+        //<====================== STEP 2 : Case in which we cannot split more =======================>
         if (((QueryData_Best *) node->data)->leafError == 0) {
             //when leaf error equals 0 all solution parameters have already been stored by initData apart from node error
             ((QueryData_Best *) node->data)->error = ((QueryData_Best *) node->data)->leafError;
-            Logger::showMessageAndReturn("l'erreur est nulle. node error = leaf error = ",
-                                         ((QueryData_Best *) node->data)->error);
+            Logger::showMessageAndReturn("l'erreur est nulle. node error = leaf error = ", ((QueryData_Best *) node->data)->error);
             return node;
         }
 
         if (depth == query->maxdepth) {
-            Logger::showMessageAndReturn("on a atteint la profondeur maximale. parent boud = ", parent_ub,
-                                         " et leaf error = ", ((QueryData_Best *) node->data)->leafError);
-
+            Logger::showMessageAndReturn("on a atteint la profondeur maximale. parent boud = ", parent_ub, " et leaf error = ", ((QueryData_Best *) node->data)->leafError);
             if (parent_ub < ((QueryData_Best *) node->data)->leafError) {
                 ((QueryData_Best *) node->data)->error = FLT_MAX;
                 Logger::showMessageAndReturn("pas de solution");
@@ -159,78 +149,67 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
             ((QueryData_Best *) node->data)->error = ((QueryData_Best *) node->data)->leafError;
             return node;
         }
-        //<===================  END STEP 2  ===================>
+        //<====================================  END STEP  ==========================================>
 
 
-        //STEP 3 : determine successors
-        //<=================== START STEP 4 ===================>
-        a_attributes2 = getSuccessors(a_attributes, a_transactions, added);
-        //<===================  END STEP 4  ===================>
 
-    } else {//case 2 : when the node exists but init value of upper bound is higher than the last one and last solution is NO_TREE
+        //<============================= STEP 3 : determine successors ==============================>
+        next_attributes = getSuccessors(current_attributes, current_transactions, added);
+        //<====================================  END STEP  ==========================================>
+
+    }
+    else {//case 2 : when the node exists but init value of upper bound is higher than the last one and last solution is NO_TREE
         Error storedInit = ((QueryData_Best *) node->data)->initUb;
         initUb = min(parent_ub, ((QueryData_Best *) node->data)->leafError);
         ((QueryData_Best *) node->data)->initUb = initUb;
-        Logger::showMessageAndReturn("noeud existant sans solution avec nvelle init bound. leaf error = ",
-                                     ((QueryData_Best *) node->data)->leafError, " last time: error = ",
-                                     ((QueryData_Best *) node->data)->error, " and init = ",
-                                     ((QueryData_Best *) node->data)->initUb, " and stored init = ", storedInit);
+        Logger::showMessageAndReturn("noeud existant sans solution avec nvelle init bound. leaf error = ", ((QueryData_Best *) node->data)->leafError, " last time: error = ", ((QueryData_Best *) node->data)->error, " and init = ", ((QueryData_Best *) node->data)->initUb, " and stored init = ", storedInit);
 
-        //IF TIMEOUT IS REACHED
         if (query->timeLimitReached) {
             if (((QueryData_Best *) node->data)->error == FLT_MAX)
                 ((QueryData_Best *) node->data)->error = ((QueryData_Best *) node->data)->leafError;
             return node;
         }
 
-        //ONLY STEP : determine successors
-        //<=================== START STEP ===================>
-        //a_attributes2 = ((QueryData_Best*) node->data)->children;
-        a_attributes2 = getSuccessors(a_attributes, a_transactions, added);
-        //<===================  END STEP  ===================>
+        //<=========================== ONLY STEP : determine successors =============================>
+        next_attributes = getSuccessors(current_attributes, current_transactions, added);
+        //<====================================  END STEP  ==========================================>
     }
 
 
     Error ub = initUb;
-    //run for successors
-    Array<Transaction> a[2]; // might allocate more than necessary, as we know that the union of a[0] and a[1] is a_transactions
+
+    // might allocate more than necessary, as we know that the union of a[0] and a[1] is current_transactions
     // we could even optimize by reordering the previous array to avoid allocating additional memory at all.
     // the order is not important, after all. (but could destroy cache locality)
-    a[0].alloc(((QueryData_Best *) node->data)->nTransactions);
-    a[1].alloc(((QueryData_Best *) node->data)->nTransactions);
+    next_transactions[0].alloc(((QueryData_Best *) node->data)->nTransactions);
+    next_transactions[1].alloc(((QueryData_Best *) node->data)->nTransactions);
 
 
     int count = 0;
-    /*if (depth == 0)
-        cout << "nombre de features = " << a_attributes2.size << endl;*/
-    forEach (i, a_attributes2) {
-        if (a_attributes2[i].first) {
+    forEach (i, next_attributes) {
+        if (next_attributes[i].first) {
             count++;
-            // build occurrence list for positive and negative
-            a[0].resize(0);
-            a[1].resize(0);
-            forEach (j, a_transactions)a[dataReader->isIn(a_transactions[j], a_attributes2[i].second)].push_back(
-                        a_transactions[j]);
+            // build transactions id list for positive and negative items
+            next_transactions[0].resize(0);
+            next_transactions[1].resize(0);
+            forEach (j, current_transactions)
+            next_transactions[dataReader->isIn(current_transactions[j], next_attributes[i].second)].push_back(current_transactions[j]);
 
-            TrieNode *left = recurse(itemset, item(a_attributes2[i].second, 0), a_attributes2, a[0], depth + 1, ub);
+            TrieNode *left = recurse(itemset, item(next_attributes[i].second, 0), next_attributes, next_transactions[0], depth + 1, ub);
 
             if (query->canimprove(left->data, ub)) {
 
                 float remainUb = ub - ((QueryData_Best *) left->data)->error;
-                TrieNode *right = recurse(itemset, item(a_attributes2[i].second, 1), a_attributes2, a[1], depth + 1,
-                                          remainUb);
+                TrieNode *right = recurse(itemset, item(next_attributes[i].second, 1), next_attributes, next_transactions[1], depth + 1, remainUb);
 
                 Error feature_error = ((QueryData_Best *) left->data)->error + ((QueryData_Best *) right->data)->error;
-                bool hasUpdated = query->updateData(node->data, ub, a_attributes2[i].second, left->data, right->data);
+                bool hasUpdated = query->updateData(node->data, ub, next_attributes[i].second, left->data, right->data);
                 if (hasUpdated) {
                     ub = feature_error - 1;
-                    Logger::showMessageAndReturn("après cet attribut, node error = ",
-                                                 ((QueryData_Best *) node->data)->error, " et ub = ", ub);
+                    Logger::showMessageAndReturn("après cet attribut, node error = ", ((QueryData_Best *) node->data)->error, " et ub = ", ub);
                 }
 
-                if (query->canSkip(node->data)) {//lowerBound
-//                    if (((QueryData_Best*) node->data )->lowerBound > 0)
-//                        cout << "lower = " << ((QueryData_Best*) node->data )->lowerBound << endl;
+                if (query->canSkip(node->data)) {//lowerBound reached
                     Logger::showMessageAndReturn("C'est le meilleur. on break le reste");
                     break; //prune remaining attributes not browsed yet
                 }
@@ -239,7 +218,6 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
         }
         if (query->stopAfterError){
             if (depth == 0 && parent_ub < FLT_MAX){
-                //cout << "error après un attribute = " << ( (QueryData_Best*) node->data )->error << endl;
                 if ( ( (QueryData_Best*) node->data )->error <= parent_ub )
                     break;
             }
@@ -256,15 +234,14 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
         }
         Logger::showMessageAndReturn("on replie");
     }
-    Logger::showMessageAndReturn("depth = ", depth, " and init ub = ", initUb, " and error after search = ",
-                                 ((QueryData_Best *) node->data)->error);
+    Logger::showMessageAndReturn("depth = ", depth, " and init ub = ", initUb, " and error after search = ", ((QueryData_Best *) node->data)->error);
 
 
-    //a_attributes2.free();
+    next_attributes.free();
+    next_transactions[0].free();
+    next_transactions[1].free();
     if (itemset.size > 0)
         itemset.free();
-    //if (!support.first)
-    //deleteSupports(support.first);
 
     return node;
 }
@@ -273,24 +250,26 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
 void LcmPruned::run() {
     query->setStartTime(clock());
     Array<Item> itemset; //array of items representing an itemset
-    Array<pair<bool, Attribute> > a_attributes;
-    Array<Transaction> a_transactions;
-
     itemset.size = 0;
+    Array<pair<bool, Attribute> > next_attributes;
+    Array<Transaction> next_transactions;
 
-    a_attributes.alloc(nattributes);
-    forEach (i, a_attributes) a_attributes[i] = make_pair(true, i);
-    a_transactions.alloc(dataReader->getNTransactions());
-    forEach (i, a_transactions) a_transactions[i] = i;
+    next_attributes.alloc(nattributes);
+    forEach (i, next_attributes)
+        next_attributes[i] = make_pair(true, i);
+    
+    next_transactions.alloc(dataReader->getNTransactions());
+    forEach (i, next_transactions)
+        next_transactions[i] = i;
 
     float maxError = NO_ERR;
     if (query->maxError > 0)
         maxError = query->maxError;
 
-    query->realroot = recurse(itemset, NO_ITEM, a_attributes, a_transactions, 0, maxError);
+    query->realroot = recurse(itemset, NO_ITEM, next_attributes, next_transactions, 0, maxError);
 
-    a_attributes.free();
-    a_transactions.free();
+    next_attributes.free();
+    next_transactions.free();
 }
 
 
@@ -326,12 +305,12 @@ float LcmPruned::informationGain(pair<Supports, Support> notTaken, pair<Supports
     //return condEntropy;
 }
 
-Array<pair<bool, Attribute> > LcmPruned::getSuccessors(Array<pair<bool, Attribute >> a_attributes,
-                                                       Array<Transaction> a_transactions,
+Array<pair<bool, Attribute> > LcmPruned::getSuccessors(Array<pair<bool, Attribute >> current_attributes,
+                                                       Array<Transaction> current_transactions,
                                                        Item added) {
 
     std::multimap<float, pair<bool, Attribute> > gain;
-    Array<pair<bool, Attribute>> a_attributes2(a_attributes.size, 0);
+    Array<pair<bool, Attribute>> a_attributes2(current_attributes.size, 0);
     pair<Supports, Support> supports[2];
     // in principle, we have already computed this support before; however, we want to avoid
     // allocating additional memory for storing the additional supports, and therefore
@@ -345,22 +324,22 @@ Array<pair<bool, Attribute> > LcmPruned::getSuccessors(Array<pair<bool, Attribut
     map<int, unordered_set<int, Hash >> control;
     map<int, unordered_map<int, pair<int, float>, Hash>> controle;
 
-    forEach (i, a_attributes) {
-        if (item_attribute (added) == a_attributes[i].second)
+    forEach (i, current_attributes) {
+        if (item_attribute (added) == current_attributes[i].second)
             continue;
-        else if (a_attributes[i].first) {
+        else if (current_attributes[i].first) {
             zeroSupports(supports[0].first);
             zeroSupports(supports[1].first);
 
 
             if (query->error_callback != nullptr){
-                forEach (j, a_transactions) {
-                    ++supports[dataReader->isIn(a_transactions[j], a_attributes[i].second)].second;
+                forEach (j, current_transactions) {
+                    ++supports[dataReader->isIn(current_transactions[j], current_attributes[i].second)].second;
                 }
             } else{
-                forEach (j, a_transactions) {
-                    ++supports[dataReader->isIn(a_transactions[j], a_attributes[i].second)].first[dataReader->targetClass(
-                            a_transactions[j])];
+                forEach (j, current_transactions) {
+                    ++supports[dataReader->isIn(current_transactions[j], current_attributes[i].second)].first[dataReader->targetClass(
+                            current_transactions[j])];
                 }
 
                 supports[0].second = sumSupports(supports[0].first);
@@ -374,59 +353,59 @@ Array<pair<bool, Attribute> > LcmPruned::getSuccessors(Array<pair<bool, Attribut
                     //when heuristic is used to reorder attribute, use a policy to always select the same attribute
                     if (infoGain) {
                         //attribute for this feature did not exist with these transactions
-                        if (controle[attrFeat[a_attributes[i].second]].count(supports[0].second) == 0)
+                        if (controle[attrFeat[current_attributes[i].second]].count(supports[0].second) == 0)
                             gain.insert(
                                     std::pair<float, pair<bool, Attribute>>(informationGain(supports[0], supports[1]),
-                                                                            make_pair(true, a_attributes[i].second)));
+                                            make_pair(true, current_attributes[i].second)));
                         else
                             //attribute of this feature exist with these transactions and the existing attribute is the relevant (low index)
-                        if (controle[attrFeat[a_attributes[i].second]][supports[0].second].first <
-                            a_attributes[i].second)
+                        if (controle[attrFeat[current_attributes[i].second]][supports[0].second].first <
+                            current_attributes[i].second)
                             gain.insert(std::pair<float, pair<bool, Attribute>>(
-                                    controle[attrFeat[a_attributes[i].second]][supports[0].second].second,
-                                    make_pair(false, a_attributes[i].second)));
+                                    controle[attrFeat[current_attributes[i].second]][supports[0].second].second,
+                                            make_pair(false, current_attributes[i].second)));
                         else {
                             //attribute of this feature exist with these transactions but this one is more relevant (low index)
                             for (auto itr = gain.find(
-                                    controle[attrFeat[a_attributes[i].second]][supports[0].second].second);
+                                    controle[attrFeat[current_attributes[i].second]][supports[0].second].second);
                                  itr != gain.end(); itr++)
                                 if (itr->second.second ==
-                                    controle[attrFeat[a_attributes[i].second]][supports[0].second].first) {
+                                    controle[attrFeat[current_attributes[i].second]][supports[0].second].first) {
                                     itr->second.first = false;
                                     gain.insert(std::pair<float, pair<bool, Attribute>>(itr->first, make_pair(true,
-                                                                                                              a_attributes[i].second)));
+                                                                                                              current_attributes[i].second)));
                                     break;
                                 }
                         }
                     } else { //when there is not heuristic
 
-                        int sizeBefore = int(control[attrFeat[a_attributes[i].second]].size());
-                        control[attrFeat[a_attributes[i].second]].insert(supports[0].second);
-                        int sizeAfter = int(control[attrFeat[a_attributes[i].second]].size());
+                        int sizeBefore = int(control[attrFeat[current_attributes[i].second]].size());
+                        control[attrFeat[current_attributes[i].second]].insert(supports[0].second);
+                        int sizeAfter = int(control[attrFeat[current_attributes[i].second]].size());
 
-                        a_attributes2.push_back(make_pair(sizeAfter != sizeBefore, a_attributes[i].second));
+                        a_attributes2.push_back(make_pair(sizeAfter != sizeBefore, current_attributes[i].second));
                     }
                 } else {
 
                     if (infoGain)
                         gain.insert(std::pair<float, pair<bool, Attribute>>(informationGain(supports[0], supports[1]),
-                                                                            make_pair(true, a_attributes[i].second)));
-                    else a_attributes2.push_back(make_pair(true, a_attributes[i].second));
+                                make_pair(true, current_attributes[i].second)));
+                    else a_attributes2.push_back(make_pair(true, current_attributes[i].second));
 
                 }
 
             } else {
                 if (infoGain)
                     gain.insert(std::pair<float, pair<bool, Attribute>>(NO_GAIN, make_pair(false,
-                                                                                           a_attributes[i].second)));
-                else a_attributes2.push_back(make_pair(false, a_attributes[i].second));
+                                                                                           current_attributes[i].second)));
+                else a_attributes2.push_back(make_pair(false, current_attributes[i].second));
             }
 
         } else {
             if (infoGain)
                 gain.insert(
-                        std::pair<float, pair<bool, Attribute>>(NO_GAIN, make_pair(false, a_attributes[i].second)));
-            else a_attributes2.push_back(a_attributes[i]);
+                        std::pair<float, pair<bool, Attribute>>(NO_GAIN, make_pair(false, current_attributes[i].second)));
+            else a_attributes2.push_back(current_attributes[i]);
         }
     }
 

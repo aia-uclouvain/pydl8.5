@@ -14,19 +14,19 @@ public:
 
     void run ();
 
-    int closedsize = 0;
+    int latticesize = 0;
 
 
 protected:
     TrieNode* recurse ( Array<Item> itemset,
                         Item added,
                         Array<pair<bool,Attribute>> a_attributes,
-                        Array<Transaction> a_transactions,
-                        Depth depth,
-                        float priorUbFromParent );
+    Array<Transaction> a_transactions,
+            Depth depth,
+    float priorUbFromParent );
 
     Array<pair<bool,Attribute>> getSuccessors(Array<pair<bool,Attribute > > a_attributes,
-            Array<Transaction> a_transactions, Item added);
+    Array<Transaction> a_transactions, Item added);
 
     void printItemset(Array<Item> itemset);
 

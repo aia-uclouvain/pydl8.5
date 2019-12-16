@@ -3,8 +3,8 @@
 #include <iostream>
 #include <stdlib.h>
 
-Query_TotalFreq::Query_TotalFreq(Trie *trie, Data *data, ExpError *experror, int timeLimit, bool continuous, function<float(Array<int>*)>* error_callback, function<vector<float>(Array<int>*)>* fast_error_callback, float maxError, bool stopAfterError )
-        : Query_Best(trie,data,experror,timeLimit,continuous, error_callback, fast_error_callback, maxError, stopAfterError) {
+Query_TotalFreq::Query_TotalFreq(Trie *trie, Data *data, ExpError *experror, int timeLimit, bool continuous, function<vector<float>(Array<int>*)>* error_callback, function<vector<float>(Array<int>*)>* fast_error_callback, bool predictor, float maxError, bool stopAfterError )
+        : Query_Best(trie,data,experror,timeLimit,continuous, error_callback, fast_error_callback, predictor, maxError, stopAfterError) {
 }
 
 
@@ -48,7 +48,7 @@ bool Query_TotalFreq::updateData ( QueryData *best, Error upperBound, Attribute 
     return false;
 }
 
-QueryData *Query_TotalFreq::initData ( Array<Transaction> tid, Data *dataReader, Error parent_ub, Support minsup, Depth currentMaxDepth ) {
+QueryData *Query_TotalFreq::initData ( Array<Transaction> tid, Error parent_ub, Support minsup, Depth currentMaxDepth ) {
 
     pair<Supports, Support> itemsetSupport;//declare variable of pair type to keep firstly an array of support per class and second the support of the itemset
     Support minclassval = -1;
@@ -64,7 +64,7 @@ QueryData *Query_TotalFreq::initData ( Array<Transaction> tid, Data *dataReader,
         zeroSupports(itemsetSupport.first);
         //count support for the itemset for each class
         forEach (j, tid) {
-            ++itemsetSupport.first[dataReader->targetClass(tid[j])];
+            ++itemsetSupport.first[data->targetClass(tid[j])];
         }
         //compute the support of the itemset
         itemsetSupport.second = tid.size;
@@ -80,6 +80,7 @@ QueryData *Query_TotalFreq::initData ( Array<Transaction> tid, Data *dataReader,
         else{//default error
             Support maxclassval = itemsetSupport.first[0];
             minclassval = itemsetSupport.first[0];
+            maxclass = 0;
             for ( int i = 1; i < nclasses; ++i ){
                 if ( itemsetSupport.first[i] > maxclassval ) {
                     maxclassval = itemsetSupport.first[i];
@@ -99,8 +100,11 @@ QueryData *Query_TotalFreq::initData ( Array<Transaction> tid, Data *dataReader,
         deleteSupports(itemsetSupport.first);
     }
     else{//slow error function. Not need to compute support
-        function<float(Array<int>*)> callback = *error_callback;
-        error = callback(&tid);
+        function<vector<float>(Array<int>*)> callback = *error_callback;
+        vector<float> infos = callback(&tid);
+        error = infos[0];
+        if (!predictor)
+            maxclass = int(infos[1]);
     }
 
     QueryData_Best *data2 = new QueryData_Best();
@@ -124,7 +128,5 @@ QueryData *Query_TotalFreq::initData ( Array<Transaction> tid, Data *dataReader,
 
 
 void Query_TotalFreq::printAccuracy ( Data *data2, QueryData_Best *data, string* out ) {
-    //cout << "Accuracy: " << (data2->getNTransactions() - data->error) / (double) data2->getNTransactions() << endl;
     *out += "Accuracy: " + std::to_string((data2->getNTransactions() - data->error) / (double) data2->getNTransactions()) + "\n";
 }
-

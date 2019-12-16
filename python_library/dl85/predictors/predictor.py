@@ -1,11 +1,12 @@
-from sklearn.base import BaseEstimator, ClassifierMixin
-from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
-from sklearn.utils.multiclass import unique_labels
+#from sklearn.base import BaseEstimator, ClassifierMixin
+#from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
+#from sklearn.utils.multiclass import unique_labels
 from ..errors.errors import SearchFailedError, TreeNotFoundError
 import json
+import numpy as np
 
 
-class DL85Predictor(BaseEstimator, ClassifierMixin):
+class DL85Predictor:
     """ An optimal binary decision tree classifier.
 
     Parameters
@@ -62,7 +63,6 @@ class DL85Predictor(BaseEstimator, ClassifierMixin):
             max_depth=1,
             min_sup=1,
             error_function=None,
-            leaf_value=None,
             iterative=False,
             max_error=0,
             stop_after_better=False,
@@ -77,7 +77,6 @@ class DL85Predictor(BaseEstimator, ClassifierMixin):
         self.max_depth = max_depth
         self.min_sup = min_sup
         self.error_function = error_function
-        self.leaf_value = leaf_value
         self.iterative = iterative
         self.max_error = max_error
         self.stop_after_better = stop_after_better
@@ -90,11 +89,11 @@ class DL85Predictor(BaseEstimator, ClassifierMixin):
         self.nps = nps
         self.print_output = print_output
 
-    def _more_tags(self):
-        return {'X_types': 'categorical',
-                'allow_nan': False}
+    # def _more_tags(self):
+    #     return {'X_types': 'categorical',
+    #             'allow_nan': False}
 
-    def fit(self, X, y):
+    def predictor_fit(self, X):
         """Implements the standard fitting function for a DL8.5 classifier.
 
         Parameters
@@ -111,10 +110,10 @@ class DL85Predictor(BaseEstimator, ClassifierMixin):
         """
 
         # Check that X and y have correct shape and raise ValueError if not
-        X, y = check_X_y(X, y)
+        #X, y = check_X_y(X, y)
 
         # Store the classes seen during fit
-        self.classes_ = unique_labels(y)
+        #self.classes_ = unique_labels(y)
         # np.savetxt("foo" + str(random.randint(0,100)) + ".csv", X, delimiter=",")
 
         # sys.path.insert(0, "../../")
@@ -130,11 +129,12 @@ class DL85Predictor(BaseEstimator, ClassifierMixin):
                                        iterative=self.iterative,
                                        time_limit=self.time_limit,
                                        verb=self.verbose,
-                                       desc=False,
-                                       asc=False,
+                                       desc=self.desc_sort_function,
+                                       asc=self.asc_sort_function,
                                        repeat_sort=self.repeat_sort,
                                        bin_save=False,
-                                       nps=self.nps)
+                                       nps=self.nps,
+                                       predictor=True)
 
         if self.print_output:
             print(solution)
@@ -180,10 +180,24 @@ class DL85Predictor(BaseEstimator, ClassifierMixin):
                 self.runtime_ = float(solution[4].split(" ")[1])
                 self.timeout_ = True
 
-        # Return the classifier
-        return self
+        if hasattr(self, 'tree_'):
+            # add transactions to nodes of the tree
+            self.tree_dfs(X)
 
-    def predict(self, X):
+            if self.leaf_value_function is not None:
+                def search(node):
+                    if self.is_leaf_node(node) is not True:
+                        search(node['left'])
+                        search(node['right'])
+                    else:
+                        node['value'] = self.leaf_value_function(node['transactions'])
+                node = self.tree_
+                search(node)
+
+        # Return the classifier
+        # return self
+
+    def predictor_predict(self, X):
         """ Implements the standard predict function for a DL8.5 classifier.
 
         Parameters
@@ -198,25 +212,12 @@ class DL85Predictor(BaseEstimator, ClassifierMixin):
             seen during fit.
         """
 
-        if hasattr(self, 'tree_') is False:  # actually this case is not possible.
-            raise SearchFailedError("PredictionError: ", "DL8.5 training has failed")
-            # return None
-
-        # Check is fit had been called
-        check_is_fitted(self, 'tree_')
-
-        if self.tree_ is False:
-            raise TreeNotFoundError("predict(): ", "Tree not found during training by DL8.5")
-
-        # Input validation
-        X = check_array(X)
-
-        self.y_ = []
+        y = []
 
         for i in range(X.shape[0]):
-            self.y_.append(self.pred_on_dict(X[i, :]))
+            y.append(self.pred_on_dict(X[i, :]))
 
-        return self.y_
+        return y
 
     def pred_on_dict(self, instance):
         node = self.tree_
@@ -225,9 +226,42 @@ class DL85Predictor(BaseEstimator, ClassifierMixin):
                 node = node['left']
             else:
                 node = node['right']
-        return node['class']
+        return node['value']
 
     @staticmethod
     def is_leaf_node(node):
         names = [x[0] for x in node.items()]
-        return 'class' in names
+        return 'error' in names
+
+    def tree_dfs(self, X):
+
+        def recurse(transactions, node, feature, positive):
+            if transactions is None:
+                current_transactions = list(range(0, X.shape[0]))
+                node['transactions'] = current_transactions
+                if 'feat' in node.keys():
+                    recurse(current_transactions, node['left'], node['feat'], True)
+                    recurse(current_transactions, node['right'], node['feat'], False)
+            else:
+                feature_vector = X[:, feature]
+                feature_vector = feature_vector.astype('int32')
+                if positive:
+                    positive_vector = np.where(feature_vector == 1)[0]
+                    positive_vector = positive_vector.tolist()
+                    current_transactions = set(transactions).intersection(positive_vector)
+                    node['transactions'] = list(current_transactions)
+                    if 'feat' in node.keys():
+                        recurse(current_transactions, node['left'], node['feat'], True)
+                        recurse(current_transactions, node['right'], node['feat'], False)
+                else:
+                    negative_vector = np.where(feature_vector == 0)[0]
+                    negative_vector = negative_vector.tolist()
+                    current_transactions = set(transactions).intersection(negative_vector)
+                    node['transactions'] = list(current_transactions)
+                    if 'feat' in node.keys():
+                        recurse(current_transactions, node['left'], node['feat'], True)
+                        recurse(current_transactions, node['right'], node['feat'], False)
+
+        node = self.tree_
+        recurse(None, node, None, None)
+
