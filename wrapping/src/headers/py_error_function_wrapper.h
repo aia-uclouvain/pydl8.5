@@ -42,7 +42,7 @@ public:
         return *this;
     }
 
-    float operator()(Array<int>* ar) {
+    vector<float> operator()(Array<int>* ar) {
         PyInit_error_function();
         if (pyFunction) { // nullptr check
             return call_python_error_function(pyFunction, ar); // note, no way of checking for errors until you return to Python

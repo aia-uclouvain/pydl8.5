@@ -1,7 +1,7 @@
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 from sklearn.utils.multiclass import unique_labels
-from ..errors.errors import SearchFailedError, TreeNotFoundError
+from ...errors.errors import SearchFailedError, TreeNotFoundError
 import json
 
 
@@ -62,6 +62,7 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
             max_depth=1,
             min_sup=1,
             error_function=None,
+            fast_error_function=None,
             iterative=False,
             max_error=0,
             stop_after_better=False,
@@ -73,6 +74,7 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
             nps=False,
             print_output=False):
         self.error_function = error_function
+        self.fast_error_function = fast_error_function
         self.max_depth = max_depth
         self.min_sup = min_sup
         self.iterative = iterative
@@ -107,7 +109,7 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
         """
 
         # Check that X and y have correct shape and raise ValueError if not
-        X, y = check_X_y(X, y)
+        X, y = check_X_y(X, y, dtype='int32')
 
         # Store the classes seen during fit
         self.classes_ = unique_labels(y)
@@ -117,8 +119,8 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
         import dl85Optimizer
         solution = dl85Optimizer.solve(data=X,
                                        target=y,
-                                       func=None,
-                                       fast_func=self.error_function,
+                                       func=self.error_function,
+                                       fast_func=self.fast_error_function,
                                        max_depth=self.max_depth,
                                        min_sup=self.min_sup,
                                        max_error=self.max_error,
@@ -226,4 +228,4 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
     @staticmethod
     def is_leaf_node(node):
         names = [x[0] for x in node.items()]
-        return 'class' in names
+        return 'error' in names

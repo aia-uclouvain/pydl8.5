@@ -30,7 +30,7 @@ string search(//std::function<float(Array<int>::iterator)> callback,
               float maxError,
               bool stopAfterError,
               bool iterative,
-              function<float(Array<int>*)> error_callback,
+              function<vector<float>(Array<int>*)> error_callback,
               function<vector<float>(Array<int>*)> fast_error_callback,
               bool error_is_null,
               bool fast_error_is_null,
@@ -43,9 +43,10 @@ string search(//std::function<float(Array<int>::iterator)> callback,
               map<int, pair<int, int>> *continuousMap,
               bool save,
               bool nps_param,
-              bool verbose_param) {
+              bool verbose_param,
+              bool predict) {
 
-    function<float(Array<int>*)> *error_callback_pointer = &error_callback;
+    function<vector<float>(Array<int>*)> *error_callback_pointer = &error_callback;
     function<vector<float>(Array<int>*)> *fast_error_callback_pointer = &fast_error_callback;
     if (error_is_null)
         error_callback_pointer = nullptr;
@@ -71,9 +72,9 @@ string search(//std::function<float(Array<int>::iterator)> callback,
     experror = new ExpError_Zero;
 
     if (maxError < 0)
-        query = new Query_TotalFreq(trie, dataReader, experror, timeLimit, continuousMap, error_callback_pointer, fast_error_callback_pointer);
+        query = new Query_TotalFreq(trie, dataReader, experror, timeLimit, continuousMap, error_callback_pointer, fast_error_callback_pointer, predict);
     else
-        query = new Query_TotalFreq(trie, dataReader, experror, timeLimit, continuousMap, error_callback_pointer, fast_error_callback_pointer, maxError, stopAfterError);
+        query = new Query_TotalFreq(trie, dataReader, experror, timeLimit, continuousMap, error_callback_pointer, fast_error_callback_pointer, predict, maxError, stopAfterError);
 
 
     query->maxdepth = maxdepth;
@@ -102,7 +103,7 @@ string search(//std::function<float(Array<int>::iterator)> callback,
         cout << "it" << endl;
         //out += "LatticeSize: " + std::to_string(((LcmIterative *) lcm)->closedsize) + "\n";// << endl;
     else
-        out += "LatticeSize: " + std::to_string(((LcmPruned *) lcm)->closedsize) + "\n";// << endl;
+        out += "LatticeSize: " + std::to_string(((LcmPruned *) lcm)->latticesize) + "\n";// << endl;
 
     out += "RunTime: " + std::to_string((clock() - t) / (float) CLOCKS_PER_SEC);// << endl;
 

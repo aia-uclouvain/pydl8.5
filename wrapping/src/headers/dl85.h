@@ -26,7 +26,7 @@ string search (//std::function<float(int*)> callback,
         float maxError,
         bool stopAfterError,
         bool iterative,
-        function<float(Array<int>*)> error_callback,
+        function<vector<float>(Array<int>*)> error_callback,
         function<vector<float>(Array<int>*)> fast_error_callback,
         bool error_is_null = true,
         bool fast_error_is_null = true,
@@ -39,6 +39,7 @@ string search (//std::function<float(int*)> callback,
         map<int, pair<int, int>>* continuousMap = NULL,
         bool save = false,
         bool nps_param = false,
-        bool verbose_param = false);
+        bool verbose_param = false,
+        bool predict = false);
 
 #endif //DL85_DL85_H

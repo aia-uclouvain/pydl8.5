@@ -4,8 +4,8 @@
 
 using namespace std;
 
-Query_Best::Query_Best(Trie *Trie, Data *data, ExpError *experror, int timeLimit, bool continuous, function<float(Array<int>*)>* error_callback, function<vector<float>(Array<int>*)>* fast_error_callback, float maxError, bool stopAfterError )
-  : Query(trie,data,timeLimit,continuous, error_callback, fast_error_callback, maxError, stopAfterError),experror ( experror )
+Query_Best::Query_Best(Trie *Trie, Data *data, ExpError *experror, int timeLimit, bool continuous, function<vector<float>(Array<int>*)>* error_callback, function<vector<float>(Array<int>*)>* fast_error_callback, bool predictor, float maxError, bool stopAfterError )
+  : Query(trie,data,timeLimit,continuous, error_callback, fast_error_callback, predictor, maxError, stopAfterError),experror ( experror )
 {
 }
 
@@ -43,7 +43,10 @@ string Query_Best::printResult ( Data *data2, QueryData_Best *data ) {
 
 int Query_Best::printResult ( QueryData_Best *data, int depth, string* out ) {
     if ( data->left == NULL ) { // leaf
-        *out += "{\"class\": " + std::to_string(data->test) + ", \"error\": " + std::to_string(data->error);// << "}";
+        if (error_callback != nullptr && predictor)
+            *out += "{\"value\": \"undefined\", \"error\": " + std::to_string(data->error);
+        else
+            *out += "{\"class\": " + std::to_string(data->test) + ", \"error\": " + std::to_string(data->error);// << "}";
         //if ( data->right )
         //cout << "!!!";
         return depth;

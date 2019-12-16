@@ -34,7 +34,7 @@ cdef public wrap_array(Array[int] *ar):
     tid_python_object.arr = ar
     return tid_python_object
 
-cdef public float call_python_error_function(python_function, Array[int] *ar):
+cdef public vector[float] call_python_error_function(python_function, Array[int] *ar):
     return python_function(wrap_array(ar))
 
 cdef public vector[float] call_python_fast_error_function(python_fast_function, Array[int] *ar):

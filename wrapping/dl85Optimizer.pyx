@@ -42,7 +42,8 @@ cdef extern from "src/headers/dl85.h":
                     map[int, pair[int, int]]* continuousMap,
                     bool save,
                     bool nps_param,
-                    bool verbose_param) except +
+                    bool verbose_param,
+                    bool predict) except +
 
 cdef extern from "src/headers/py_error_function_wrapper.h":
     cdef cppclass PyErrorWrapper:
@@ -73,7 +74,8 @@ def solve(data,
           repeat_sort=False,
           continuousMap=None,
           bin_save=False,
-          nps=False):
+          nps=False,
+          predictor=False):
 
     cdef PyErrorWrapper f_user = PyErrorWrapper(func)
     error_null_flag = True
@@ -145,6 +147,7 @@ def solve(data,
                  continuousMap = NULL,
                  save = bin_save,
                  nps_param = nps,
-                 verbose_param = verb)
+                 verbose_param = verb,
+                 predict = predictor)
 
     return out.decode("utf-8")

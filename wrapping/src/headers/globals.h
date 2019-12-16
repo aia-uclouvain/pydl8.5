@@ -146,7 +146,7 @@ public:
 
 /*template<class A>
 Array<A> makeArray ( A *elts, int size ) {
-  Array<A> a; 
+  Array<A> a;
   a.elts = elts;
   a.size = size;
   return a;

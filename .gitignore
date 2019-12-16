@@ -8,9 +8,11 @@ doc/_build/*
 doc/auto_examples/*
 doc/generated/*
 dl85/__pycache__/*
-dl85/classifiers/__pycache__/*
+dl85/supervised/classifiers/__pycache__/*
+dl85/supervised/__pycache__/*
+dl85/unsupervised/__pycache__/*
 dl85/predictors/__pycache__/*
-dl85/classifiers/tests/__pycache__/*
+dl85/supervised/classifiers/tests/__pycache__/*
 dl85/errors/__pycache__/*
 dl85Optimizer.cpython-36m-darwin.so
 .pytest_cache/*
