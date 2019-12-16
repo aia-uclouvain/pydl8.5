@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <math.h>
 #include <string.h>
-//#include <lcm_iterative.h>
+#include <lcm_iterative.h>
 #include "data.h"
 #include "dataContinuous.h"
 #include "dataBinary.h"
@@ -89,9 +89,9 @@ string search(//std::function<float(Array<int>::iterator)> callback,
     void *lcm;
 
     if (iterative) {
-        cout << "it" << endl;
-        //lcm = new LcmIterative(dataReader, query, trie, infoGain, infoAsc, repeatSort);
-        //((LcmIterative *) lcm)->run();
+        //cout << "it" << endl;
+        lcm = new LcmIterative(dataReader, query, trie, infoGain, infoAsc, repeatSort);
+        ((LcmIterative *) lcm)->run();
     } else {
         lcm = new LcmPruned(dataReader, query, trie, infoGain, infoAsc, repeatSort);
         ((LcmPruned *) lcm)->run();
@@ -100,8 +100,8 @@ string search(//std::function<float(Array<int>::iterator)> callback,
     out = query->printResult(dataReader);
 
     if (iterative)
-        cout << "it" << endl;
-        //out += "LatticeSize: " + std::to_string(((LcmIterative *) lcm)->closedsize) + "\n";// << endl;
+        //cout << "it" << endl;
+        out += "LatticeSize: " + std::to_string(((LcmIterative *) lcm)->closedsize) + "\n";// << endl;
     else
         out += "LatticeSize: " + std::to_string(((LcmPruned *) lcm)->latticesize) + "\n";// << endl;
 

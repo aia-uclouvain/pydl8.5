@@ -1,7 +1,7 @@
 """
-===============================
-Usage example of DL85Classifier
-===============================
+======================
+Default DL85Classifier
+======================
 
 """
 import numpy as np

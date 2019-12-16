@@ -39,9 +39,9 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
                                Depth currentMaxDepth) {
     //cout << "current max depth = " << currentMaxDepth << endl;
     Logger::showMessageAndReturn("-----------\t------------");
-    Logger::showMessageAndReturn("\t\tAppel recursif. CMD : ", currentMaxDepth);
+    Logger::showMessageAndReturn("\t\tAppel recursif. CMD : ", currentMaxDepth, " and current depth : ", depth);
 
-    if ( query->timeLimit > -1 ){
+    if ( query->timeLimit > 0 ){
         float runtime = ( clock () - query->startTime ) / (float) CLOCKS_PER_SEC;
         if( runtime >= query->timeLimit )
             query->timeLimitReached = true;
@@ -130,24 +130,27 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
             //STEP 1 : count supports
             //<=================== START STEP 1 ===================>
             //declare variable of pair type to keep firstly an array of support per class and second the support of the itemset
-            pair<Supports,Support> itemsetSupport;
+            //pair<Supports,Support> itemsetSupport;
             //allocate memory for the array
-            itemsetSupport.first = newSupports ();
+            //itemsetSupport.first = newSupports ();
             //put all value to 0 in the array
-            zeroSupports ( itemsetSupport.first );
+            //zeroSupports ( itemsetSupport.first );
             //count support for the itemset for each class
-            forEach ( j, a_transactions ){
-                ++itemsetSupport.first[data->targetClass( a_transactions[j] )];
-            }
+            //forEach ( j, a_transactions ){
+            //    ++itemsetSupport.first[data->targetClass( a_transactions[j] )];
+            //}
             //compute the support of the itemset
-            itemsetSupport.second = sumSupports(itemsetSupport.first);
+            //itemsetSupport.second = sumSupports(itemsetSupport.first);
             //<===================  END STEP 1  ===================>
 
             //STEP 2 : call initData of query
             //<=================== START STEP 2 ===================>
             //cout << "step 2" << endl;
+            //cout << "misup " << query->minsup << endl;
+            //cout << "cmd " << currentMaxDepth << endl;
             Error bound = parent_ub;
-            node->data = query->initData( itemsetSupport, bound, query->minsup, currentMaxDepth );
+            node->data = query->initData(a_transactions, parent_ub, query->minsup,currentMaxDepth);
+            //node->data = query->initData( itemsetSupport, bound, query->minsup, currentMaxDepth );
 
             //initialize the bound. it will be used for children in for loop
             initUb = ((QueryData_Best*) node->data)->initUb;
@@ -188,7 +191,7 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
                 return node;
             }
             //<===================  END STEP 3  ===================>
-            deleteSupports(itemsetSupport.first);
+            //deleteSupports(itemsetSupport.first);
         }
 
         else{
@@ -209,6 +212,7 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
         //STEP 4 : determine successors
         //<=================== START STEP 4 ===================>
         a_attributes2 = getSuccessors(a_attributes, a_transactions, added);
+        //cout << "nb succ = " << a_attributes2.size << endl;
         //((QueryData_Best*) node->data)->children = a_attributes2;
         //<===================  END STEP 4  ===================>
     }
@@ -323,11 +327,11 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
     }while (depth == 0 && currentMaxDepth <= query->maxdepth);
 
 
-    //a_attributes2.free();
+    a_attributes2.free();
+    a[0].free();
+    a[1].free();
     if (itemset.size > 0)
         itemset.free();
-    //if (!support.first)
-    //deleteSupports(support.first);
 
     return node;
 }

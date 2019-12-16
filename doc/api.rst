@@ -14,7 +14,7 @@ This project currently implements one class ``DL85Classifier``.
  We aim to add other classifiers as soon as possible. Any contributions are welcome. Feel
 free to contact us :-)
 
-.. currentmodule:: dl85.classifiers
+.. currentmodule:: dl85.supervised.classifiers
 
 Predictors
 ==========
