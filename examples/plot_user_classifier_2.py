@@ -27,42 +27,20 @@ print("##############################################################\n"
       "##############################################################")
 
 
-# user error function
-def node_error(y):
-
-    def funct(tid_iterator):
-        tid_iterator.init_iterator()
-        size = tid_iterator.get_size()
-
-        tid_list = []
-        for i in range(size):
-            tid_list.append(tid_iterator.get_value())
-            if i != size - 1:
-                tid_iterator.inc_iterator()
-
-        target_subset = y.take(tid_list)
-        classes, supports = np.unique(target_subset, return_counts=True)
-        subset_class_support = dict(zip(classes, supports))
-        maxclass = maxclassval = -1
-
-        for classe, sup in subset_class_support.items():
-            if sup > maxclassval:
-                maxclass = classe
-                maxclassval = sup
-
-        error_score = sum(supports) - maxclassval
-        return error_score, maxclass
-    return funct
+def error(tids, y):
+    classes, supports = np.unique(y.take(list(tids)), return_counts=True)
+    maxindex = np.argmax(supports)
+    return sum(supports) - supports[maxindex], classes[maxindex]
 
 
-clf = DL85Classifier(max_depth=2, error_function=node_error(y_train))
+clf = DL85Classifier(max_depth=2, error_function=lambda tids: error(tids, y_train))
 start = time.perf_counter()
 print("Model building...")
 clf.fit(X_train, y_train)
 duration = time.perf_counter() - start
 print("Model built. Duration of building =", round(duration, 4))
-y_pred1 = clf.predict(X_test)
+y_pred = clf.predict(X_test)
 print("Confusion Matrix below")
-print(confusion_matrix(y_test, y_pred1))
+print(confusion_matrix(y_test, y_pred))
 print("Accuracy DL8.5 on training set =", round(clf.accuracy_, 4))
-print("Accuracy DL8.5 on test set =", round(accuracy_score(y_test, y_pred1), 4), "\n\n\n")
+print("Accuracy DL8.5 on test set =", round(accuracy_score(y_test, y_pred), 4))

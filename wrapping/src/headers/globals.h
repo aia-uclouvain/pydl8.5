@@ -95,8 +95,9 @@ public:
         }*/
 
         value_type operator*() const {
-            if (nIndex >= container->size)
+            if (nIndex >= container->size){
                 throw std::out_of_range("Out of Range Exception!");
+            }
             else {
                 return container->elts[nIndex];
             }

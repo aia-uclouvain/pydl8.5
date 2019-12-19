@@ -19,7 +19,7 @@ typedef void *QueryData; // using void pointers is much lighter than class deriv
 
 class Query {
 public:
-    Query( Trie * trie, Data *data, int timeLimit, bool continuous, function<vector<float>(Array<int>*)>* error_callback = nullptr, function<vector<float>(Array<int>*)>* fast_error_callback = nullptr, bool predictor = false, float maxError = NO_ERR, bool stopAfterError = false );
+    Query( Trie * trie, Data *data, int timeLimit, bool continuous, function<vector<float>(Array<int>*)>* error_callback = nullptr, function<vector<float>(Array<int>*)>* fast_error_callback = nullptr, function<float(Array<int>*)>*  predictor_error_callback = nullptr, float maxError = NO_ERR, bool stopAfterError = false );
 
     virtual ~Query();
     virtual bool is_freq ( pair<Supports,Support> supports ) = 0;
@@ -44,7 +44,7 @@ public:
     bool stopAfterError = false;
     function<vector<float>(Array<int>*)>* error_callback;
     function<vector<float>(Array<int>*)>* fast_error_callback;
-    bool predictor;
+    function<float(Array<int>*)>*  predictor_error_callback;
 };
 
 #endif

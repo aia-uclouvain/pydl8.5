@@ -25,12 +25,12 @@ class DL85Predictor:
         Allocated time in second(s) for the search. Default value stands for no limit. The best tree found within the time limit is stored, if this tree is better than max_error.
     verbose : bool, default=False
         A parameter used to switch on/off the print of what happens during the search
-    desc : bool, default=False
-        A parameter used to indicate if the sorting of the items is done in descending order of information gain
-    asc : bool, default=False
-        A parameter used to indicate if the sorting of the items is done in ascending order of information gain
+    desc_sort_function : function, default=None
+        A parameter used to indicate heuristic function used to sort the items in descending order
+    asc_sort_function : function, default=None
+        A parameter used to indicate heuristic function used to sort the items in ascending order
     repeat_sort : bool, default=False
-        A parameter used to indicate whether the sorting of items is done at each level of the lattice or only before the search
+        A parameter used to indicate whether the heuristic sort will be applied at each level of the lattice or only at the root
     nps : bool, default=False
         A parameter used to indicate if only optimal solutions should be stored in the cache.
     print_output : bool, default=False
@@ -120,8 +120,9 @@ class DL85Predictor:
         import dl85Optimizer
         solution = dl85Optimizer.solve(data=X,
                                        target=None,
-                                       func=self.error_function,
+                                       func=None,
                                        fast_func=None,
+                                       predictor_func=self.error_function,
                                        max_depth=self.max_depth,
                                        min_sup=self.min_sup,
                                        max_error=self.max_error,

@@ -1,9 +1,8 @@
 from sklearn.base import BaseEstimator, ClusterMixin
 from sklearn.utils.validation import assert_all_finite, check_array, check_is_fitted
-#from sklearn.utils.multiclass import unique_labels
+from sklearn.neighbors import DistanceMetric
 from ..errors.errors import SearchFailedError, TreeNotFoundError
 from ..predictors.predictor import DL85Predictor
-import json
 import numpy as np
 
 
@@ -75,6 +74,7 @@ class DL85Cluster(DL85Predictor, BaseEstimator, ClusterMixin):
             leaf_value_function=None,
             nps=False,
             print_output=False):
+
         DL85Predictor.__init__(self,
                                max_depth,
                                min_sup,
@@ -91,25 +91,57 @@ class DL85Cluster(DL85Predictor, BaseEstimator, ClusterMixin):
                                nps,
                                print_output)
 
+    @staticmethod
+    def default_error(tids, X):
+        dist = DistanceMetric.get_metric('euclidean')
+        X_subset = np.asarray([X[index, :] for index in list(tids)], dtype='int32')
+        centroid = np.mean(X_subset, axis=0).reshape(1, X_subset.shape[1])
+        distances = [dist.pairwise(instance.reshape(1, X_subset.shape[1]), centroid)[0, 0] for instance in X_subset]
+        return sum(distances)
+
+    @staticmethod
+    def default_leaf_value(tids, X):
+        return np.mean(X.take(list(tids)))
+
     def _more_tags(self):
         return {'X_types': 'categorical',
                 'allow_nan': False}
 
-    def fit(self, X):
+    def fit(self, X, X_error=None):
         """Implements the standard fitting function for a DL8.5 classifier.
 
         Parameters
         ----------
         X : array-like, shape (n_samples, n_features)
-            The training input samples.
-        y : array-like, shape (n_samples,)
-            The target values. An array of int.
+            The training input samples. If X_error is provided, it represents explanation input
+        X_error : array-like, shape (n_samples, n_features_1)
+            The training input used to calculate error. If it is not provided X is used to calculate error
 
         Returns
         -------
         self : object
             Returns self.
         """
+
+        if self.error_function is None:
+            if X_error is None:
+                self.error_function = lambda tids: self.default_error(tids, X)
+            else:
+                if X_error.shape[0] == X.shape[0]:
+                    self.error_function = lambda tids: self.default_error(tids, X_error)
+                else:
+                    print(X.shape)
+                    print(X_error.shape)
+                    raise ValueError("X_error does not have the same number of rows as X")
+
+        if self.leaf_value_function is None:
+            if X_error is None:
+                self.leaf_value_function = lambda tids: self.default_leaf_value(tids, X)
+            else:
+                if X_error.shape[0] == X.shape[0]:
+                    self.leaf_value_function = lambda tids: self.default_leaf_value(tids, X_error)
+                else:
+                    raise ValueError("X_error does not have the same number of rows as X")
 
         # Check that X and y have correct shape and raise ValueError if not
         assert_all_finite(X)
