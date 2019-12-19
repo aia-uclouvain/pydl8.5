@@ -3,8 +3,8 @@
 #include <iostream>
 #include <stdlib.h>
 
-Query_TotalFreq::Query_TotalFreq(Trie *trie, Data *data, ExpError *experror, int timeLimit, bool continuous, function<vector<float>(Array<int>*)>* error_callback, function<vector<float>(Array<int>*)>* fast_error_callback, bool predictor, float maxError, bool stopAfterError )
-        : Query_Best(trie,data,experror,timeLimit,continuous, error_callback, fast_error_callback, predictor, maxError, stopAfterError) {
+Query_TotalFreq::Query_TotalFreq(Trie *trie, Data *data, ExpError *experror, int timeLimit, bool continuous, function<vector<float>(Array<int>*)>* error_callback, function<vector<float>(Array<int>*)>* fast_error_callback, function<float(Array<int>*)>*  predictor_error_callback, float maxError, bool stopAfterError )
+        : Query_Best(trie,data,experror,timeLimit,continuous, error_callback, fast_error_callback, predictor_error_callback, maxError, stopAfterError) {
 }
 
 
@@ -57,7 +57,7 @@ QueryData *Query_TotalFreq::initData ( Array<Transaction> tid, Error parent_ub, 
     int conflict = 0;
     Error lowerb = 0;
 
-    if (error_callback == nullptr){//fast or default error. support will be used
+    if (error_callback == nullptr && predictor_error_callback == nullptr){//fast or default error. support will be used
         //allocate memory for the array
         itemsetSupport.first = newSupports();
         //put all value to 0 in the array
@@ -99,12 +99,17 @@ QueryData *Query_TotalFreq::initData ( Array<Transaction> tid, Error parent_ub, 
         }
         deleteSupports(itemsetSupport.first);
     }
-    else{//slow error function. Not need to compute support
-        function<vector<float>(Array<int>*)> callback = *error_callback;
-        vector<float> infos = callback(&tid);
-        error = infos[0];
-        if (!predictor)
+    else{//slow error or predictor error function. Not need to compute support
+
+        if (predictor_error_callback != nullptr){
+            function<float(Array<int>*)> callback = *predictor_error_callback;
+            error = callback(&tid);
+        } else{
+            function<vector<float>(Array<int>*)> callback = *error_callback;
+            vector<float> infos = callback(&tid);
+            error = infos[0];
             maxclass = int(infos[1]);
+        }
     }
 
     QueryData_Best *data2 = new QueryData_Best();

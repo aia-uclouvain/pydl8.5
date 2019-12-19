@@ -31,6 +31,7 @@ cdef extern from "src/headers/dl85.h":
                     bool iterative,
                     PyErrorWrapper error_callback,
                     PyFastErrorWrapper fast_error_callback,
+                    PyPredictorErrorWrapper predictor_error_callback,
                     bool error_is_null,
                     bool fast_error_is_null,
                     int maxdepth,
@@ -57,11 +58,18 @@ cdef extern from "src/headers/py_fast_error_function_wrapper.h":
         PyFastErrorWrapper(object) # define a constructor that takes a Python object
              # note - doesn't match c++ signature - that's fine!
 
+cdef extern from "src/headers/py_predictor_error_function_wrapper.h":
+    cdef cppclass PyPredictorErrorWrapper:
+        PyPredictorErrorWrapper()
+        PyPredictorErrorWrapper(object) # define a constructor that takes a Python object
+             # note - doesn't match c++ signature - that's fine!
+
 
 def solve(data,
           target,
           func=None,
           fast_func=None,
+          predictor_func=None,
           max_depth=1,
           min_sup=1,
           max_error=0,
@@ -86,6 +94,8 @@ def solve(data,
     fast_error_null_flag = True
     if fast_func is not None:
         fast_error_null_flag = False
+
+    cdef PyPredictorErrorWrapper f_user_predictor = PyPredictorErrorWrapper(predictor_func)
 
     data = data.astype('int32')
     if np.array_equal(data, data.astype('bool')) is False:  # WARNING: maybe categorical (not binary) inputs will be supported in the future
@@ -136,6 +146,7 @@ def solve(data,
                  iterative,
                  error_callback = f_user,
                  fast_error_callback = f_user_fast,
+                 predictor_error_callback = f_user_predictor,
                  error_is_null = error_null_flag,
                  fast_error_is_null = fast_error_null_flag,
                  maxdepth = max_depth,

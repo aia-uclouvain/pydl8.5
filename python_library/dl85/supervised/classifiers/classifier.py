@@ -121,6 +121,7 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
                                        target=y,
                                        func=self.error_function,
                                        fast_func=self.fast_error_function,
+                                       predictor_func=None,
                                        max_depth=self.max_depth,
                                        min_sup=self.min_sup,
                                        max_error=self.max_error,

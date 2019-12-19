@@ -193,7 +193,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
             next_transactions[0].resize(0);
             next_transactions[1].resize(0);
             forEach (j, current_transactions)
-            next_transactions[dataReader->isIn(current_transactions[j], next_attributes[i].second)].push_back(current_transactions[j]);
+                next_transactions[dataReader->isIn(current_transactions[j], next_attributes[i].second)].push_back(current_transactions[j]);
 
             TrieNode *left = recurse(itemset, item(next_attributes[i].second, 0), next_attributes, next_transactions[0], depth + 1, ub);
 
@@ -255,8 +255,20 @@ void LcmPruned::run() {
     Array<Transaction> next_transactions;
 
     next_attributes.alloc(nattributes);
-    forEach (i, next_attributes)
-        next_attributes[i] = make_pair(true, i);
+    next_attributes.resize(0);
+//    forEach (i, next_attributes)
+//        next_attributes[i] = make_pair(true, i);
+
+    int sup[2];
+    for (int i = 0; i < nattributes; ++i) {
+        sup[0] = 0;
+        sup[1] = 0;
+        for (int j = 0; j < dataReader->getNTransactions(); ++j) {
+            ++sup[dataReader->isIn(j, i)];
+        }
+        if (sup[0] >= query->minsup && sup[1] >= query->minsup)
+            next_attributes.push_back(make_pair(true, i));
+    }
     
     next_transactions.alloc(dataReader->getNTransactions());
     forEach (i, next_transactions)
@@ -305,6 +317,8 @@ float LcmPruned::informationGain(pair<Supports, Support> notTaken, pair<Supports
     //return condEntropy;
 }
 
+
+
 Array<pair<bool, Attribute> > LcmPruned::getSuccessors(Array<pair<bool, Attribute >> current_attributes,
                                                        Array<Transaction> current_transactions,
                                                        Item added) {
@@ -332,8 +346,10 @@ Array<pair<bool, Attribute> > LcmPruned::getSuccessors(Array<pair<bool, Attribut
             zeroSupports(supports[1].first);
 
 
-            if (query->error_callback != nullptr){
-                forEach (j, current_transactions) {
+            if (query->error_callback != nullptr || query->predictor_error_callback != nullptr){
+                supports[0].second = 0;
+                supports[1].second = 0;
+                        forEach (j, current_transactions) {
                     ++supports[dataReader->isIn(current_transactions[j], current_attributes[i].second)].second;
                 }
             } else{

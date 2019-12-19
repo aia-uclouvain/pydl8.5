@@ -28,7 +28,7 @@ print("##############################################################\n"
 start = time.perf_counter()
 error = 0  # default max error value expressing no bound
 clf = None
-for i in range(1, 4):  # max depth = 3
+for i in range(1, 3):  # max depth = 2
     clf = DL85Classifier(max_depth=i, max_error=error)
     clf.fit(X_train, y_train)
     error = clf.error_
@@ -38,4 +38,4 @@ y_pred = clf.predict(X_test)
 print("Confusion Matrix below")
 print(confusion_matrix(y_test, y_pred))
 print("Accuracy DL8.5 on training set =", round(clf.accuracy_, 4))
-print("Accuracy DL8.5 on test set =", round(accuracy_score(y_test, y_pred), 4), "\n\n\n")
+print("Accuracy DL8.5 on test set =", round(accuracy_score(y_test, y_pred), 4))

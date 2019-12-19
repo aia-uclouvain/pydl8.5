@@ -32,6 +32,7 @@ string search(//std::function<float(Array<int>::iterator)> callback,
               bool iterative,
               function<vector<float>(Array<int>*)> error_callback,
               function<vector<float>(Array<int>*)> fast_error_callback,
+              function<float(Array<int>*)> predictor_error_callback,
               bool error_is_null,
               bool fast_error_is_null,
               int maxdepth,
@@ -48,10 +49,14 @@ string search(//std::function<float(Array<int>::iterator)> callback,
 
     function<vector<float>(Array<int>*)> *error_callback_pointer = &error_callback;
     function<vector<float>(Array<int>*)> *fast_error_callback_pointer = &fast_error_callback;
+    function<float(Array<int>*)> *predictor_error_callback_pointer = &predictor_error_callback;
+
     if (error_is_null)
         error_callback_pointer = nullptr;
     if (fast_error_is_null)
         fast_error_callback_pointer = nullptr;
+    if(!predict)
+        predictor_error_callback_pointer = nullptr;
 
     //cout << "print " << fast_error_callback->pyFunction << endl;
     nps = nps_param;
@@ -72,9 +77,9 @@ string search(//std::function<float(Array<int>::iterator)> callback,
     experror = new ExpError_Zero;
 
     if (maxError < 0)
-        query = new Query_TotalFreq(trie, dataReader, experror, timeLimit, continuousMap, error_callback_pointer, fast_error_callback_pointer, predict);
+        query = new Query_TotalFreq(trie, dataReader, experror, timeLimit, continuousMap, error_callback_pointer, fast_error_callback_pointer, predictor_error_callback_pointer);
     else
-        query = new Query_TotalFreq(trie, dataReader, experror, timeLimit, continuousMap, error_callback_pointer, fast_error_callback_pointer, predict, maxError, stopAfterError);
+        query = new Query_TotalFreq(trie, dataReader, experror, timeLimit, continuousMap, error_callback_pointer, fast_error_callback_pointer, predictor_error_callback_pointer, maxError, stopAfterError);
 
 
     query->maxdepth = maxdepth;
