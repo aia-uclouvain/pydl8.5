@@ -11,6 +11,7 @@
 #include <utility>
 #include <functional>
 #include "globals.h"
+#include "rCover.h"
 
 using namespace std;
 
@@ -26,9 +27,9 @@ string search (//std::function<float(int*)> callback,
         float maxError,
         bool stopAfterError,
         bool iterative,
-        function<vector<float>(Array<int>*)> error_callback,
-        function<vector<float>(Array<int>*)> fast_error_callback,
-        function<float(Array<int>*)> predictor_error_callback,
+        function<vector<float>(RCover*)> error_callback,
+        function<vector<float>(RCover*)> fast_error_callback,
+        function<float(RCover*)> predictor_error_callback,
         bool error_is_null = true,
         bool fast_error_is_null = true,
         int maxdepth = 1,

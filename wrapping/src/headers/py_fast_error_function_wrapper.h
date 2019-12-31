@@ -7,7 +7,7 @@
 
 #include <Python.h>
 #include "error_function.h" // cython helper file
-#include "globals.h"
+#include "rCover.h"
 
 class PyFastErrorWrapper {
 public:
@@ -42,7 +42,7 @@ public:
         return *this;
     }
 
-    vector<float> operator()(Array<int>* ar) {
+    vector<float> operator()(RCover* ar) {
         PyInit_error_function();
         if (pyFastFunction) { // nullptr check
             return call_python_fast_error_function(pyFastFunction, ar); // note, no way of checking for errors until you return to Python

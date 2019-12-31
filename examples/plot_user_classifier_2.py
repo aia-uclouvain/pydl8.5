@@ -33,7 +33,7 @@ def error(tids, y):
     return sum(supports) - supports[maxindex], classes[maxindex]
 
 
-clf = DL85Classifier(max_depth=2, error_function=lambda tids: error(tids, y_train))
+clf = DL85Classifier(max_depth=2, error_function=lambda tids: error(tids, y_train), time_limit=600)
 start = time.perf_counter()
 print("Model building...")
 clf.fit(X_train, y_train)

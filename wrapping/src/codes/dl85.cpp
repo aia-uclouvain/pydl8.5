@@ -14,6 +14,7 @@
 #include "lcm_pruned.h"
 #include "query_totalfreq.h"
 #include "experror.h"
+#include "dataManager.h"
 
 //using namespace std;
 
@@ -30,9 +31,9 @@ string search(//std::function<float(Array<int>::iterator)> callback,
               float maxError,
               bool stopAfterError,
               bool iterative,
-              function<vector<float>(Array<int>*)> error_callback,
-              function<vector<float>(Array<int>*)> fast_error_callback,
-              function<float(Array<int>*)> predictor_error_callback,
+              function<vector<float>(RCover*)> error_callback,
+              function<vector<float>(RCover*)> fast_error_callback,
+              function<float(RCover*)> predictor_error_callback,
               bool error_is_null,
               bool fast_error_is_null,
               int maxdepth,
@@ -47,9 +48,11 @@ string search(//std::function<float(Array<int>::iterator)> callback,
               bool verbose_param,
               bool predict) {
 
-    function<vector<float>(Array<int>*)> *error_callback_pointer = &error_callback;
-    function<vector<float>(Array<int>*)> *fast_error_callback_pointer = &fast_error_callback;
-    function<float(Array<int>*)> *predictor_error_callback_pointer = &predictor_error_callback;
+    clock_t t = clock();
+
+    function<vector<float>(RCover*)> *error_callback_pointer = &error_callback;
+    function<vector<float>(RCover*)> *fast_error_callback_pointer = &fast_error_callback;
+    function<float(RCover*)> *predictor_error_callback_pointer = &predictor_error_callback;
 
     if (error_is_null)
         error_callback_pointer = nullptr;
@@ -62,12 +65,10 @@ string search(//std::function<float(Array<int>::iterator)> callback,
     nps = nps_param;
     verbose = verbose_param;
     string out = "";
-    clock_t t = clock();
     Trie *trie = new Trie;
     Query *query = NULL;
 
-    Data *dataReader;
-    dataReader = new DataBinaryPython(supports, ntransactions, nattributes, nclasses, data, target);
+    DataManager *dataReader = new DataManager(supports, ntransactions, nattributes, nclasses, data, target);
 
     if (save)
         return 0;
@@ -81,7 +82,6 @@ string search(//std::function<float(Array<int>::iterator)> callback,
     else
         query = new Query_TotalFreq(trie, dataReader, experror, timeLimit, continuousMap, error_callback_pointer, fast_error_callback_pointer, predictor_error_callback_pointer, maxError, stopAfterError);
 
-
     query->maxdepth = maxdepth;
     query->minsup = minsup;
 
@@ -92,9 +92,7 @@ string search(//std::function<float(Array<int>::iterator)> callback,
     //out += "(nItems, nTransactions) : ( " << std::to_string(dataReader->getNAttributes()*2) << ", " << std::to_string(dataReader->getNTransactions()) << " )" << endl;
 
     void *lcm;
-
     if (iterative) {
-        //cout << "it" << endl;
         lcm = new LcmIterative(dataReader, query, trie, infoGain, infoAsc, repeatSort);
         ((LcmIterative *) lcm)->run();
     } else {
@@ -105,12 +103,11 @@ string search(//std::function<float(Array<int>::iterator)> callback,
     out = query->printResult(dataReader);
 
     if (iterative)
-        //cout << "it" << endl;
-        out += "LatticeSize: " + std::to_string(((LcmIterative *) lcm)->closedsize) + "\n";// << endl;
+        out += "LatticeSize: " + std::to_string(((LcmIterative *) lcm)->latticesize) + "\n";
     else
-        out += "LatticeSize: " + std::to_string(((LcmPruned *) lcm)->latticesize) + "\n";// << endl;
+        out += "LatticeSize: " + std::to_string(((LcmPruned *) lcm)->latticesize) + "\n";
 
-    out += "RunTime: " + std::to_string((clock() - t) / (float) CLOCKS_PER_SEC);// << endl;
+    out += "RunTime: " + std::to_string((clock() - t) / (float) CLOCKS_PER_SEC);
 
     return out;
 }

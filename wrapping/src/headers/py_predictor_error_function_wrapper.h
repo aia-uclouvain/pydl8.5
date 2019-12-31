@@ -7,7 +7,7 @@
 
 #include <Python.h>
 #include "error_function.h" // cython helper file
-#include "globals.h"
+#include "rCover.h"
 
 class PyPredictorErrorWrapper {
 public:
@@ -42,7 +42,7 @@ public:
         return *this;
     }
 
-    float operator()(Array<int>* ar) {
+    float operator()(RCover* ar) {
         PyInit_error_function();
         if (pyPredictorFunction) { // nullptr check
             return call_python_predictor_error_function(pyPredictorFunction, ar); // note, no way of checking for errors until you return to Python

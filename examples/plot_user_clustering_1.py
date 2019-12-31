@@ -21,7 +21,7 @@ X_train, X_test = train_test_split(X, test_size=0.2, random_state=0)
 print("####################################################################\n"
       "#                      DL8.5 default clustering                    #\n"
       "####################################################################")
-clf = DL85Cluster(max_depth=1)
+clf = DL85Cluster(max_depth=1, time_limit=600)
 start = time.perf_counter()
 print("Model building...")
 clf.fit(X_train)
@@ -34,7 +34,7 @@ print("####################################################################\n"
       "#                DL8.5 default predictive clustering               #\n"
       "####################################################################")
 X_train1 = X_train[:X_test.shape[0], :]
-clf = DL85Cluster(max_depth=1)
+clf = DL85Cluster(max_depth=1, time_limit=600)
 start = time.perf_counter()
 print("Model building...")
 clf.fit(X_train1, X_test)

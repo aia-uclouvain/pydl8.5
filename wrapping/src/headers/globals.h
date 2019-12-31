@@ -31,7 +31,7 @@ typedef Support *Supports;
 
 // the array is a light-weight vector that does not do copying or resizing of storage space.
 template<class A>
-class Array {
+struct Array {
 public:
 
     Array () { }
@@ -46,7 +46,7 @@ public:
         elts = new A[allocsize];
     }
 
-    ~Array() {} //desctructor does not do anything. Make sure you call free method after using the object
+    //~Array() {} //desctructor does not do anything. Make sure you call free method after using the object
 
     A *elts;
     int size;
@@ -74,84 +74,8 @@ public:
     }
 
     A &operator[](int i) { return elts[i]; }
-
-    //template <class T>
-    class iterator {
-    public:
-        typedef iterator self_type;
-        typedef A value_type;
-        typedef A &reference;
-        typedef A *pointer;
-        typedef std::input_iterator_tag iterator_category;
-        typedef int difference_type;
-
-        explicit iterator(Array *container_, size_t index = 0) : nIndex(index), container(container_) {}
-
-        explicit iterator() : nIndex(0), container(nullptr) {}
-
-        /*iterator(const iterator& it){
-            this->container = it.container;
-            this->nIndex = it.nIndex;
-        }*/
-
-        value_type operator*() const {
-            if (nIndex >= container->size){
-                throw std::out_of_range("Out of Range Exception!");
-            }
-            else {
-                return container->elts[nIndex];
-            }
-        }
-
-        pointer operator->() const {
-            if (nIndex >= container->size)
-                throw std::out_of_range("Out of Range Exception!");
-            else {
-                return container->elts + nIndex;
-            }
-        }
-
-        self_type operator++() {
-            ++nIndex;
-            return *this;
-        }
-
-        self_type operator++(int) {
-            iterator tmp = iterator(container, nIndex);
-            ++nIndex;
-            return tmp;
-        }
-
-        bool operator==(const self_type rhs) {
-            return container->elts + nIndex == rhs.container->elts + rhs.nIndex;
-        }
-
-        bool operator!=(const self_type rhs) {
-            return container->elts + nIndex != rhs.container->elts + rhs.nIndex;
-        }
-
-        int nIndex = 0;
-        Array *container;
-    };
-
-    iterator begin()
-    {
-        return iterator(this, 0);
-    }
-
-    iterator end()
-    {
-        return iterator(this, this->size);
-    }
 };
 
-/*template<class A>
-Array<A> makeArray ( A *elts, int size ) {
-  Array<A> a;
-  a.elts = elts;
-  a.size = size;
-  return a;
-}*/
 
 void merge(Array<Item> src1, Array<Item> src2, Array<Item> dest);
 

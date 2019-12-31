@@ -27,7 +27,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 print("##############################################################\n"
       "#                      DL8.5 classifier                      #\n"
       "##############################################################")
-clf = DL85Classifier(max_depth=2)
+clf = DL85Classifier(max_depth=2, time_limit=600)
 start = time.perf_counter()
 print("Model building...")
 clf.fit(X_train, y_train)
@@ -53,7 +53,7 @@ for train_index, test_index in kf.split(X):
     target_train = y[train_index]
     data_test = X[test_index]
     target_test = y[test_index]
-    clf = DL85Classifier(max_depth=2)
+    clf = DL85Classifier(max_depth=2, time_limit=600)
     clf.fit(data_train, target_train)
     preds = clf.predict(data_test)
     training_accuracies.append(clf.accuracy_)
@@ -67,7 +67,7 @@ print("Average accuracy on test set =", round(np.mean(test_accuracies), 4), "\n\
 print("##############################################################\n"
       "#   DL8.5 classifier : Automatic cross-validation (5-fold)   #\n"
       "##############################################################")
-clf = DL85Classifier(max_depth=2)
+clf = DL85Classifier(max_depth=2, time_limit=600)
 start = time.perf_counter()
 print("Model building...")
 scores = cross_val_score(clf, X, y, cv=5)
