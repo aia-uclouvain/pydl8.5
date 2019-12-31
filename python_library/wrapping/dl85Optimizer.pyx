@@ -98,6 +98,16 @@ def solve(data,
     cdef PyPredictorErrorWrapper f_user_predictor = PyPredictorErrorWrapper(predictor_func)
 
     data = data.astype('int32')
+
+
+    ntransactions, nattributes = data.shape
+    classes, supports = np.unique(target, return_counts=True)
+    nclasses = len(classes)
+    supports = supports.astype('int32')
+
+
+    data = data.transpose()
+    # print(data)
     if np.array_equal(data, data.astype('bool')) is False:  # WARNING: maybe categorical (not binary) inputs will be supported in the future
         raise ValueError("Bad input type. DL8.5 actually only supports binary (0/1) inputs")
     if not data.flags['C_CONTIGUOUS']:
@@ -113,19 +123,16 @@ def solve(data,
             target = np.ascontiguousarray(target) # Makes a contiguous copy of the numpy array.
         target_view = target
         target_array = &target_view[0]
-
-    ntransactions, nattributes = data.shape
-    classes, supports = np.unique(target, return_counts=True)
-    nclasses = len(classes)
-    supports = supports.astype('int32')
+    else:
+        nclasses = 0
 
 
     if not supports.flags['C_CONTIGUOUS']:
         supports = np.ascontiguousarray(supports) # Makes a contiguous copy of the numpy array.
     cdef int [::1] supports_view = supports
 
-    max_err = max_error - 1  # because maxError but not be reached
-    if max_err == -1:  # raise error when incompatibility between max_error value and stop_after_better value
+    # max_err = max_error - 1  # because maxError but not be reached
+    if max_error < 0:  # raise error when incompatibility between max_error value and stop_after_better value
         stop_after_better = False
 
     cont_map = NULL
@@ -141,7 +148,7 @@ def solve(data,
                  nclasses,
                  data_matrix,
                  target_array,
-                 max_err,
+                 max_error,
                  stop_after_better,
                  iterative,
                  error_callback = f_user,

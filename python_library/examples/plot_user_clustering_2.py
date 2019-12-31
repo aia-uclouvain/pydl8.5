@@ -38,7 +38,7 @@ def leaf_value(tids, X):
     return np.mean(X.take(list(tids)))
 
 
-clf = DL85Cluster(max_depth=1, error_function=lambda tids: error(tids, X_train), leaf_value_function=lambda tids: leaf_value(tids, X_train))
+clf = DL85Cluster(max_depth=1, error_function=lambda tids: error(tids, X_train), leaf_value_function=lambda tids: leaf_value(tids, X_train), time_limit=600)
 start = time.perf_counter()
 print("Model building...")
 clf.fit(X_train)

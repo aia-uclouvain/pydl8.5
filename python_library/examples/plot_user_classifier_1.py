@@ -33,7 +33,7 @@ def error(sup_iter):
     return sum(supports) - supports[maxindex], maxindex
 
 
-clf = DL85Classifier(max_depth=2, fast_error_function=error)
+clf = DL85Classifier(max_depth=2, fast_error_function=error, time_limit=600)
 start = time.perf_counter()
 print("Model building...")
 clf.fit(X_train, y_train)

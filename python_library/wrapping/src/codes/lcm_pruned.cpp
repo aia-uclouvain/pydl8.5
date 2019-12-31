@@ -9,23 +9,15 @@
 #include <unordered_set>
 #include <unordered_map>
 #include "dataContinuous.h"
-#include <csignal>
 
-template<class T>
-void hash_combine(std::size_t &seed, const T &v) {
-    std::hash<T> hasher;
-    seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-}
 
 struct Hash {
     size_t operator()(const int &vec) const {
-        //                                           ^^^^^
-        //                                           Don't forget this!
         return vec;
     }
 };
 
-LcmPruned::LcmPruned(Data *dataReader, Query *query, Trie *trie, bool infoGain, bool infoAsc, bool allDepths) :
+LcmPruned::LcmPruned(DataManager *dataReader, Query *query, Trie *trie, bool infoGain, bool infoAsc, bool allDepths) :
         dataReader(dataReader), query(query), trie(trie), infoGain(infoGain), infoAsc(infoAsc), allDepths(allDepths) {
 }
 
@@ -35,7 +27,7 @@ LcmPruned::~LcmPruned() {
 TrieNode *LcmPruned::recurse(Array<Item> itemset_,
                              Item added,
                              Array<pair<bool, Attribute> > current_attributes,
-                             Array<Transaction> current_transactions,
+                             RCover* current_cover,
                              Depth depth,
                              float parent_ub) {
 
@@ -59,7 +51,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
     Logger::showMessage("itemset après ajout : ");
     printItemset(itemset);
 
-    //insert the node or get it if it already exists
+    //insert the node in the cache or get it if it already exists
     TrieNode *node = trie->insert(itemset);
 
     if (node->data) {//node already exists
@@ -107,17 +99,16 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
 
     Array<pair<bool, Attribute> > next_attributes;
     Error initUb = FLT_MAX;
-    Array<Transaction> next_transactions[2];
 
 
     if (!node->data) { // case 1 : when the node did not exist
         Logger::showMessageAndReturn("Nouveau noeud");
         latticesize++;
         //if ( closedsize % 1000 == 0 )
-        //cerr << "--- Searching, lattice size: " << closedsize << "\r" << flush;
+        //cerr << "--- Searching, lattice size: " << latticesize << "\r" << flush;
 
         //<=================== STEP 1 : Initialize all information about the node ===================>
-        node->data = query->initData(current_transactions, parent_ub, query->minsup);
+        node->data = query->initData(current_cover, parent_ub, query->minsup);
         //get the upper bound. it will be used for children in for loop
         initUb = ((QueryData_Best *) node->data)->initUb;
         Logger::showMessageAndReturn("après initialisation du nouveau noeud. parent bound = ", parent_ub," et leaf error = ", ((QueryData_Best *) node->data)->leafError, " init bound = ", initUb);
@@ -154,7 +145,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
 
 
         //<============================= STEP 3 : determine successors ==============================>
-        next_attributes = getSuccessors(current_attributes, current_transactions, added);
+        next_attributes = getSuccessors(current_attributes, current_cover, added);
         //<====================================  END STEP  ==========================================>
 
     }
@@ -171,41 +162,32 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
         }
 
         //<=========================== ONLY STEP : determine successors =============================>
-        next_attributes = getSuccessors(current_attributes, current_transactions, added);
+        next_attributes = getSuccessors(current_attributes, current_cover, added);
         //<====================================  END STEP  ==========================================>
     }
 
 
     Error ub = initUb;
-
-    // might allocate more than necessary, as we know that the union of a[0] and a[1] is current_transactions
-    // we could even optimize by reordering the previous array to avoid allocating additional memory at all.
-    // the order is not important, after all. (but could destroy cache locality)
-    next_transactions[0].alloc(((QueryData_Best *) node->data)->nTransactions);
-    next_transactions[1].alloc(((QueryData_Best *) node->data)->nTransactions);
-
-
     int count = 0;
     forEach (i, next_attributes) {
         if (next_attributes[i].first) {
             count++;
-            // build transactions id list for positive and negative items
-            next_transactions[0].resize(0);
-            next_transactions[1].resize(0);
-            forEach (j, current_transactions)
-                next_transactions[dataReader->isIn(current_transactions[j], next_attributes[i].second)].push_back(current_transactions[j]);
 
-            TrieNode *left = recurse(itemset, item(next_attributes[i].second, 0), next_attributes, next_transactions[0], depth + 1, ub);
+            current_cover->intersect(next_attributes[i].second, false);
+            TrieNode *left = recurse(itemset, item(next_attributes[i].second, 0), next_attributes, current_cover, depth + 1, ub);
+            current_cover->backtrack();
 
             if (query->canimprove(left->data, ub)) {
 
                 float remainUb = ub - ((QueryData_Best *) left->data)->error;
-                TrieNode *right = recurse(itemset, item(next_attributes[i].second, 1), next_attributes, next_transactions[1], depth + 1, remainUb);
+                current_cover->intersect(next_attributes[i].second);
+                TrieNode *right = recurse(itemset, item(next_attributes[i].second, 1), next_attributes, current_cover, depth + 1, remainUb);
+                current_cover->backtrack();
 
                 Error feature_error = ((QueryData_Best *) left->data)->error + ((QueryData_Best *) right->data)->error;
                 bool hasUpdated = query->updateData(node->data, ub, next_attributes[i].second, left->data, right->data);
                 if (hasUpdated) {
-                    ub = feature_error - 1;
+                    ub = feature_error;
                     Logger::showMessageAndReturn("après cet attribut, node error = ", ((QueryData_Best *) node->data)->error, " et ub = ", ub);
                 }
 
@@ -238,8 +220,6 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
 
 
     next_attributes.free();
-    next_transactions[0].free();
-    next_transactions[1].free();
     if (itemset.size > 0)
         itemset.free();
 
@@ -251,37 +231,32 @@ void LcmPruned::run() {
     query->setStartTime(clock());
     Array<Item> itemset; //array of items representing an itemset
     itemset.size = 0;
-    Array<pair<bool, Attribute> > next_attributes;
-    Array<Transaction> next_transactions;
-
-    next_attributes.alloc(nattributes);
-    next_attributes.resize(0);
-//    forEach (i, next_attributes)
-//        next_attributes[i] = make_pair(true, i);
+    Array<pair<bool, Attribute> > next_attributes(nattributes, 0);
 
     int sup[2];
+    RCover* cover = new RCover(dataReader);
     for (int i = 0; i < nattributes; ++i) {
-        sup[0] = 0;
-        sup[1] = 0;
-        for (int j = 0; j < dataReader->getNTransactions(); ++j) {
-            ++sup[dataReader->isIn(j, i)];
-        }
+
+        cover->intersect(i, false);
+        sup[0] = cover->getSupport();
+        cover->backtrack();
+
+        cover->intersect(i);
+        sup[1] = cover->getSupport();
+        cover->backtrack();
+
         if (sup[0] >= query->minsup && sup[1] >= query->minsup)
             next_attributes.push_back(make_pair(true, i));
     }
-    
-    next_transactions.alloc(dataReader->getNTransactions());
-    forEach (i, next_transactions)
-        next_transactions[i] = i;
 
     float maxError = NO_ERR;
     if (query->maxError > 0)
         maxError = query->maxError;
 
-    query->realroot = recurse(itemset, NO_ITEM, next_attributes, next_transactions, 0, maxError);
+    query->realroot = recurse(itemset, NO_ITEM, next_attributes, cover, 0, maxError);
 
     next_attributes.free();
-    next_transactions.free();
+    delete cover;
 }
 
 
@@ -313,28 +288,17 @@ float LcmPruned::informationGain(pair<Supports, Support> notTaken, pair<Supports
 
     float actualGain = baseEntropy - condEntropy;
 
-    return actualGain; //most error to least error when it will be put in the map. If you want to have the reverse, just return the negative value of the entropy
-    //return condEntropy;
+    return actualGain; //high error to low error when it will be put in the map. If you want to have the reverse, just return the negative value of the entropy
 }
 
 
-
 Array<pair<bool, Attribute> > LcmPruned::getSuccessors(Array<pair<bool, Attribute >> current_attributes,
-                                                       Array<Transaction> current_transactions,
+                                                       RCover* current_cover,
                                                        Item added) {
 
     std::multimap<float, pair<bool, Attribute> > gain;
     Array<pair<bool, Attribute>> a_attributes2(current_attributes.size, 0);
     pair<Supports, Support> supports[2];
-    // in principle, we have already computed this support before; however, we want to avoid
-    // allocating additional memory for storing the additional supports, and therefore
-    // will recompute supports here for the itemset "itemset \cup added".
-
-    //supports[0] for item value = 0 (not taken)
-    //supports[1] for item value = 1 (taken)
-    supports[0].first = newSupports();
-    supports[1].first = newSupports();
-
     map<int, unordered_set<int, Hash >> control;
     map<int, unordered_map<int, pair<int, float>, Hash>> controle;
 
@@ -342,24 +306,27 @@ Array<pair<bool, Attribute> > LcmPruned::getSuccessors(Array<pair<bool, Attribut
         if (item_attribute (added) == current_attributes[i].second)
             continue;
         else if (current_attributes[i].first) {
-            zeroSupports(supports[0].first);
-            zeroSupports(supports[1].first);
 
 
-            if (query->error_callback != nullptr || query->predictor_error_callback != nullptr){
-                supports[0].second = 0;
-                supports[1].second = 0;
-                        forEach (j, current_transactions) {
-                    ++supports[dataReader->isIn(current_transactions[j], current_attributes[i].second)].second;
-                }
-            } else{
-                forEach (j, current_transactions) {
-                    ++supports[dataReader->isIn(current_transactions[j], current_attributes[i].second)].first[dataReader->targetClass(
-                            current_transactions[j])];
-                }
+            if (query->error_callback != nullptr || query->predictor_error_callback != nullptr){//slow or predictor
 
-                supports[0].second = sumSupports(supports[0].first);
-                supports[1].second = sumSupports(supports[1].first);
+                current_cover->intersect(current_attributes[i].second, false);
+                supports[0].second = current_cover->getSupport();
+                current_cover->backtrack();
+
+                current_cover->intersect(current_attributes[i].second);
+                supports[1].second = current_cover->getSupport();
+                current_cover->backtrack();
+            }
+            else{ // fast or default
+
+                current_cover->intersect(current_attributes[i].second, false);
+                supports[0] = current_cover->getSupportPerClass();
+                current_cover->backtrack();
+
+                current_cover->intersect(current_attributes[i].second);
+                supports[1] = current_cover->getSupportPerClass();
+                current_cover->backtrack();
             }
 
             if (query->is_freq(supports[0]) && query->is_freq(supports[1])) {
