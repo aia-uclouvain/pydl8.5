@@ -3,4 +3,4 @@
 General examples
 ================
 
-Introductory examples.
+Some are example of usage of our algorithm.

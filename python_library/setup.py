@@ -44,11 +44,13 @@ PROJECT_URLS = {
 
 EXTENSION_NAME = 'dl85Optimizer'
 EXTENSION_LANGUAGE = 'c++'
-EXTENSION_SOURCE_FILES = ['wrapping/src/headers/call_obj.pyx',
+EXTENSION_SOURCE_FILES = ['wrapping/src/headers/error_function.pyx',
                           'wrapping/dl85Optimizer.pyx',
                 'wrapping/src/codes/data.cpp',
                 'wrapping/src/codes/dataContinuous.cpp',
                 'wrapping/src/codes/dataBinary.cpp',
+                'wrapping/src/codes/dataManager.cpp',
+                'wrapping/src/codes/rCover.cpp',
                 'wrapping/src/codes/dl85.cpp',
                 'wrapping/src/codes/experror.cpp',
                 'wrapping/src/codes/globals.cpp',
@@ -60,7 +62,8 @@ EXTENSION_SOURCE_FILES = ['wrapping/src/headers/call_obj.pyx',
                 'wrapping/src/codes/trie.cpp',
                 'wrapping/src/codes/dataBinaryPython.cpp']
 EXTENSION_INCLUDE_DIR = ['wrapping/src/headers']
-EXTENSION_BUILD_ARGS = ['-std=c++11']
+# EXTENSION_BUILD_ARGS = ['-std=c++11']
+EXTENSION_BUILD_ARGS = ['-std=c++11', '-DCYTHON_PEP489_MULTI_PHASE_INIT=0']
 if platform.system() == 'Darwin':
     EXTENSION_BUILD_ARGS.append('-mmacosx-version-min=10.12')
 
