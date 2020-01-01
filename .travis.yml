@@ -31,7 +31,7 @@ script:
 - pytest -v --cov=dl85 --pyargs dl85 -s
 after_success:
 - codecov
-- deactivate
+- conda deactivate
 deploy:
   provider: pypi
   edge: true # v2
