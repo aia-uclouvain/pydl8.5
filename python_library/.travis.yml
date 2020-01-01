@@ -32,6 +32,9 @@ script:
 after_success:
 - codecov
 - conda deactivate
+before_deploy:
+  - pip install cython
+  - pip install numpy
 deploy:
   provider: pypi
   edge: true # v2
