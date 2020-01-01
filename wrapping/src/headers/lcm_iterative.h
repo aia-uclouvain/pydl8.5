@@ -8,38 +8,39 @@
 #include "globals.h"
 #include "trie.h"
 #include "query.h"
-#include "data.h"
+#include "dataManager.h"
+#include "rCover.h"
 
 
 class LcmIterative {
 public:
-    LcmIterative ( Data *data, Query *query, Trie *trie, bool infoGain, bool infoAsc, bool allDepths );
+    LcmIterative ( DataManager *data, Query *query, Trie *trie, bool infoGain, bool infoAsc, bool allDepths );
 
     ~LcmIterative();
 
     void run ();
 
-    int closedsize = 0;
+    int latticesize = 0;
 
 
 protected:
     TrieNode* recurse ( Array<Item> itemset,
                         Item added,
                         Array<pair<bool,Attribute> > a_attributes,
-                        Array<Transaction> a_transactions,
+                        RCover* a_transactions,
                         Depth depth,
                         float priorUbFromParent,
                         int currentMaxDepth);
 
     Array<pair<bool,Attribute>> getSuccessors(Array<pair<bool,Attribute > > a_attributes,
-                                              Array<Transaction> a_transactions,
+                                              RCover* a_transactions,
                                               Item added);
 
     void printItemset(Array<Item> itemset);
 
     float informationGain ( pair<Supports,Support> notTaken, pair<Supports,Support> taken);
 
-    Data *data;
+    DataManager *dataReader;
     Trie *trie;
     Query *query;
     bool infoGain = false;
