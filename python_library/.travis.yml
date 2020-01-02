@@ -1,41 +1,44 @@
 dist: trusty
 sudo: false
 language: python
-cache:
-  directories:
-  - "$HOME/.cache/pip"
-matrix:
-  include:
-  - env: PYTHON_VERSION="3.5" NUMPY_VERSION="1.13.1" SCIPY_VERSION="0.19.1" SKLEARN_VERSION="nightly"
+python:
+  - "3.8"
+#cache:
+#  directories:
+#  - "$HOME/.cache/pip"
+#matrix:
+#  include:
+#  - env: PYTHON_VERSION="3.5" NUMPY_VERSION="1.13.1" SCIPY_VERSION="0.19.1" SKLEARN_VERSION="nightly"
   # - env: PYTHON_VERSION="3.6" NUMPY_VERSION="1.14.2" SCIPY_VERSION="0.19.1" SKLEARN_VERSION="0.21.3"
 install:
-- deactivate
-- wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
-- MINICONDA_PATH=/home/travis/miniconda
-- chmod +x miniconda.sh && ./miniconda.sh -b -p $MINICONDA_PATH
-- export PATH=$MINICONDA_PATH/bin:$PATH
-- conda update --yes conda
-- conda create -n testenv --yes python=$PYTHON_VERSION pip
-- source activate testenv
-- |
-  if [ $SKLEARN_VERSION = "nightly" ]; then
-      conda install --yes numpy==$NUMPY_VERSION scipy==$SCIPY_VERSION setuptools cython nose pytest pytest-cov
-      # install nightly wheels
-      pip install --pre -f https://sklearn-nightly.scdn8.secure.raxcdn.com scikit-learn
-  else
-      conda install --yes numpy==$NUMPY_VERSION scipy==$SCIPY_VERSION scikit-learn==$SKLEARN_VERSION setuptools cython nose pytest pytest-cov
-  fi
+#- deactivate
+#- wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+#- MINICONDA_PATH=/home/travis/miniconda
+#- chmod +x miniconda.sh && ./miniconda.sh -b -p $MINICONDA_PATH
+#- export PATH=$MINICONDA_PATH/bin:$PATH
+#- conda update --yes conda
+#- conda create -n testenv --yes python=$PYTHON_VERSION pip
+#- source activate testenv
+#- |
+#  if [ $SKLEARN_VERSION = "nightly" ]; then
+#      conda install --yes numpy==$NUMPY_VERSION scipy==$SCIPY_VERSION setuptools cython nose pytest pytest-cov
+#      # install nightly wheels
+#      pip install --pre -f https://sklearn-nightly.scdn8.secure.raxcdn.com scikit-learn
+#  else
+#      conda install --yes numpy==$NUMPY_VERSION scipy==$SCIPY_VERSION scikit-learn==$SKLEARN_VERSION setuptools cython nose pytest pytest-cov
+#  fi
+- pip install -r requirements.txt
 - pip install codecov
 - pip install .
 script:
 - pytest -v --cov=dl85 --pyargs dl85 -s
 after_success:
 - codecov
-- conda deactivate
-before_deploy:
-  - pip install cython
-  - pip install numpy
-  - pip install scikit-learn
+# - conda deactivate
+#before_deploy:
+#  - pip install cython
+#  - pip install numpy
+#  - pip install scikit-learn
 deploy:
   provider: pypi
   edge: true # v2
@@ -45,7 +48,8 @@ deploy:
   on:
     # tags: true
     branch: master
-  distributions: sdist bdist_wheel
+  # distributions: sdist bdist_wheel
+  distributions: sdist
   allow_failure: true # v2
   skip_existing: true
   # skip_cleanup: true # v1
