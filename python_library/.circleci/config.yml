@@ -8,8 +8,14 @@ jobs:
       - checkout
       - run:
           command: |
-            pipenv shell
-            pip install --user -r requirements.txt
+            wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+            chmod +x miniconda.sh && ./miniconda.sh -b -p ~/miniconda
+            export PATH="~/miniconda/bin:$PATH"
+            conda update --yes --quiet conda
+            conda create -n testenv --yes --quiet python=3.5
+            source activate testenv
+            conda install --yes pip numpy scipy scikit-learn matplotlib sphinx sphinx_rtd_theme numpydoc pillow setuptools cython
+            pip install sphinx-gallery
             pip install .
 
 workflows:
