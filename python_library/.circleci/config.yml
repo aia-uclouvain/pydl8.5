@@ -8,6 +8,7 @@ jobs:
       - checkout
       - run:
           command: |
+            pipenv shell
             pip install --user -r requirements.txt
             pip install .
 
