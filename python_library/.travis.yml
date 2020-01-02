@@ -35,6 +35,7 @@ after_success:
 before_deploy:
   - pip install cython
   - pip install numpy
+  - pip install scikit-learn
 deploy:
   provider: pypi
   edge: true # v2
