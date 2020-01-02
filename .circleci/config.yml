@@ -10,3 +10,9 @@ jobs:
           command: |
             pip install -r ../requirements.txt
             pip install .
+
+workflows:
+  version: 2
+  build-doc-and-deploy:
+    jobs:
+      - python3
