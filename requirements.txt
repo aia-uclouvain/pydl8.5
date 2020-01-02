@@ -10,3 +10,5 @@ numpydoc
 pillow
 setuptools
 cython
+pytest
+pytest-cov
