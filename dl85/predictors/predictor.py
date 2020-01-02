@@ -89,10 +89,6 @@ class DL85Predictor:
         self.nps = nps
         self.print_output = print_output
 
-    # def _more_tags(self):
-    #     return {'X_types': 'categorical',
-    #             'allow_nan': False}
-
     def predictor_fit(self, X):
         """Implements the standard fitting function for a DL8.5 classifier.
 
@@ -108,13 +104,6 @@ class DL85Predictor:
         self : object
             Returns self.
         """
-
-        # Check that X and y have correct shape and raise ValueError if not
-        #X, y = check_X_y(X, y)
-
-        # Store the classes seen during fit
-        #self.classes_ = unique_labels(y)
-        # np.savetxt("foo" + str(random.randint(0,100)) + ".csv", X, delimiter=",")
 
         # sys.path.insert(0, "../../")
         import dl85Optimizer
@@ -141,19 +130,19 @@ class DL85Predictor:
             print(solution)
 
         solution = solution.splitlines()
-        self.sol_size_ = len(solution)
+        self.sol_size = len(solution)
 
         # if self.sol_size_ == 1:
         #     raise ValueError(solution[0])
 
-        if self.sol_size_ == 8 or self.sol_size_ == 9:  # solution found
+        if self.sol_size == 8 or self.sol_size == 9:  # solution found
             self.tree_ = json.loads(solution[1].split('Tree: ')[1])
             self.size_ = int(solution[2].split(" ")[1])
             self.depth_ = int(solution[3].split(" ")[1])
             self.error_ = float(solution[4].split(" ")[1])
             self.accuracy_ = float(solution[5].split(" ")[1])
 
-            if self.sol_size_ == 8:  # without timeout
+            if self.sol_size == 8:  # without timeout
                 print("DL8.5 fitting: Solution found")
                 self.lattice_size_ = int(solution[6].split(" ")[1])
                 self.runtime_ = float(solution[7].split(" ")[1])
@@ -164,13 +153,13 @@ class DL85Predictor:
                 self.runtime_ = float(solution[8].split(" ")[1])
                 self.timeout_ = True
 
-        elif self.sol_size_ == 4 or self.sol_size_ == 5:  # solution not found
+        elif self.sol_size == 4 or self.sol_size == 5:  # solution not found
             self.tree_ = False
             self.size_ = -1
             self.depth_ = -1
             self.error_ = -1
             self.accuracy_ = -1
-            if self.sol_size_ == 4:  # without timeout
+            if self.sol_size == 4:  # without timeout
                 print("DL8.5 fitting: Solution not found")
                 self.lattice_size_ = int(solution[2].split(" ")[1])
                 self.runtime_ = float(solution[3].split(" ")[1])

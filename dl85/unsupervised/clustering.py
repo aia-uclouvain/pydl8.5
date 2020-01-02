@@ -2,6 +2,7 @@ from sklearn.base import BaseEstimator, ClusterMixin
 from sklearn.utils.validation import assert_all_finite, check_array, check_is_fitted
 from sklearn.neighbors import DistanceMetric
 from ..errors.errors import SearchFailedError, TreeNotFoundError
+from sklearn.exceptions import NotFittedError
 from ..predictors.predictor import DL85Predictor
 import numpy as np
 
@@ -68,8 +69,8 @@ class DL85Cluster(DL85Predictor, BaseEstimator, ClusterMixin):
             stop_after_better=False,
             time_limit=0,
             verbose=False,
-            desc_sort_function=None,
-            asc_sort_function=None,
+            # desc_sort_function=None,
+            # asc_sort_function=None,
             repeat_sort=False,
             leaf_value_function=None,
             nps=False,
@@ -84,8 +85,8 @@ class DL85Cluster(DL85Predictor, BaseEstimator, ClusterMixin):
                                stop_after_better,
                                time_limit,
                                verbose,
-                               desc_sort_function,
-                               asc_sort_function,
+                               None,
+                               None,
                                repeat_sort,
                                leaf_value_function,
                                nps,
@@ -123,6 +124,15 @@ class DL85Cluster(DL85Predictor, BaseEstimator, ClusterMixin):
             Returns self.
         """
 
+        # Check that X has correct shape and raise ValueError if not
+        assert_all_finite(X)
+        X = check_array(X, dtype='int32')
+
+        # Check that X_error has correct shape and raise ValueError if not
+        if X_error is not None:
+            assert_all_finite(X_error)
+            X_error = check_array(X_error, dtype='int32')
+
         if self.error_function is None:
             if X_error is None:
                 self.error_function = lambda tids: self.default_error(tids, X)
@@ -130,8 +140,6 @@ class DL85Cluster(DL85Predictor, BaseEstimator, ClusterMixin):
                 if X_error.shape[0] == X.shape[0]:
                     self.error_function = lambda tids: self.default_error(tids, X_error)
                 else:
-                    print(X.shape)
-                    print(X_error.shape)
                     raise ValueError("X_error does not have the same number of rows as X")
 
         if self.leaf_value_function is None:
@@ -142,10 +150,6 @@ class DL85Cluster(DL85Predictor, BaseEstimator, ClusterMixin):
                     self.leaf_value_function = lambda tids: self.default_leaf_value(tids, X_error)
                 else:
                     raise ValueError("X_error does not have the same number of rows as X")
-
-        # Check that X and y have correct shape and raise ValueError if not
-        assert_all_finite(X)
-        X = check_array(X, dtype='int32')
 
         # call fit method of the predictor
         self.predictor_fit(X)
@@ -169,15 +173,17 @@ class DL85Cluster(DL85Predictor, BaseEstimator, ClusterMixin):
             seen during fit.
         """
 
-        if hasattr(self, 'tree_') is False:  # actually this case is not possible.
-            raise SearchFailedError("PredictionError: ", "DL8.5 training has failed")
-            # return None
-
         # Check is fit had been called
-        check_is_fitted(self, 'tree_')
+        # check_is_fitted(self, attributes='tree_') # use of attributes is deprecated. alternative solution is below
 
-        if self.tree_ is False:
+        if hasattr(self, 'sol_size') is False:  # actually this case is not possible.
+            raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
+
+        if self.tree_ is None:
             raise TreeNotFoundError("predict(): ", "Tree not found during training by DL8.5")
+
+        if hasattr(self, 'tree_') is False:  # normally this case is not possible.
+            raise SearchFailedError("PredictionError: ", "DL8.5 training has failed. Please contact the developers if the problem is in the scope claimed by the tool.")
 
         # Input validation
         X = check_array(X)
