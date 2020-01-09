@@ -149,7 +149,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
         //<====================================  END STEP  ==========================================>
 
     }
-    else {//case 2 : when the node exists but init value of upper bound is higher than the last one and last solution is NO_TREE
+    else {//case 2 : when the node exists but init value of upper bound is higher than the last one and last solution were NO_TREE
         Error storedInit = ((QueryData_Best *) node->data)->initUb;
         initUb = min(parent_ub, ((QueryData_Best *) node->data)->leafError);
         ((QueryData_Best *) node->data)->initUb = initUb;
@@ -163,6 +163,21 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
 
         //<=========================== ONLY STEP : determine successors =============================>
         next_attributes = getSuccessors(current_attributes, current_cover, added);
+        // next_attributes = (QueryData_Best *) node->data)->successors //if successors have been cached
+        // Array<pair<bool, Attribute>> no_attributes = getExistingSuccessors(node); //get successors from trie
+        /*if (next_attributes.size != no_attributes.size){ //print for debug
+            cout << "itemset size : " << itemset.size << endl;
+            cout << "getSuccessors: " << next_attributes.size << endl;
+            forEach(i, next_attributes)
+                cout << next_attributes[i].second << " : " << next_attributes[i].first << ", ";
+            cout << endl;
+
+            cout << "getExistingSuccessors: " << no_attributes.size << endl;
+            forEach(i, no_attributes)
+                cout << no_attributes[i].second << " : " << no_attributes[i].first << ", ";
+            cout << endl;
+            cout << endl;
+        }*/
         //<====================================  END STEP  ==========================================>
     }
 
@@ -198,6 +213,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
             }
 
         }
+
         if (query->stopAfterError){
             if (depth == 0 && parent_ub < FLT_MAX){
                 if ( ( (QueryData_Best*) node->data )->error <= parent_ub )
@@ -205,6 +221,13 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
             }
         }
     }
+    /*if ((QueryData_Best *) node->data)->error == FLT_MAX) //cache successors if solution not found
+        (QueryData_Best *) node->data)->successors = next_attributes;
+    else{ //free the cache when solution found
+        if ((QueryData_Best *) node->data)->successors != nullptr)
+        (QueryData_Best *) node->data)->successors = nullptr;
+    }*/
+
     if (count == 0) {
         Logger::showMessageAndReturn("pas d'enfant.");
         if (parent_ub < ((QueryData_Best *) node->data)->leafError) {
@@ -233,11 +256,12 @@ void LcmPruned::run() {
     itemset.size = 0;
     Array<pair<bool, Attribute> > next_attributes(nattributes, 0);
 
-    int sup[2];
+    //int sup[2];
     RCover* cover = new RCover(dataReader);
     for (int i = 0; i < nattributes; ++i) {
+        next_attributes.push_back(make_pair(true, i));
 
-        cover->intersect(i, false);
+        /*cover->intersect(i, false);
         sup[0] = cover->getSupport();
         cover->backtrack();
 
@@ -246,7 +270,7 @@ void LcmPruned::run() {
         cover->backtrack();
 
         if (sup[0] >= query->minsup && sup[1] >= query->minsup)
-            next_attributes.push_back(make_pair(true, i));
+            next_attributes.push_back(make_pair(true, i));*/
     }
 
     float maxError = NO_ERR;
@@ -377,19 +401,21 @@ Array<pair<bool, Attribute> > LcmPruned::getSuccessors(Array<pair<bool, Attribut
 
                 }
 
-            } else {
+            }
+            /*else {
                 if (infoGain)
                     gain.insert(std::pair<float, pair<bool, Attribute>>(NO_GAIN, make_pair(false,
                                                                                            current_attributes[i].second)));
                 else a_attributes2.push_back(make_pair(false, current_attributes[i].second));
-            }
+            }*/
 
-        } else {
+        }
+        /*else {
             if (infoGain)
                 gain.insert(
                         std::pair<float, pair<bool, Attribute>>(NO_GAIN, make_pair(false, current_attributes[i].second)));
             else a_attributes2.push_back(current_attributes[i]);
-        }
+        }*/
     }
 
 
@@ -424,4 +450,13 @@ void LcmPruned::printItemset(Array<Item> itemset) {
         }
         cout << endl;
     }
+}
+
+Array<pair<bool, Attribute> > LcmPruned::getExistingSuccessors(TrieNode* node) {
+    Array<pair<bool, Attribute>> a_attributes2(node->edges.size(), 0);
+    for(TrieEdge edge : node->edges){
+        if (edge.item % 2 == 0)
+            a_attributes2.push_back(make_pair(true, item_attribute(edge.item)));
+    }
+    return a_attributes2;
 }

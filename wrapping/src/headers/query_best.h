@@ -14,8 +14,7 @@ struct QueryData_Best {
   Error lowerBound;
   Size size;
   Depth solutionDepth;
-  //Array<pair<bool,Attribute> > children;
-  //int nTransactions; //we do not want to count at new the support of an already viewed itemset
+  //Array<pair<bool,Attribute> > successors = nullptr;
 };
 
 

@@ -1,2 +1,6 @@
 include wrapping/*.pyx
+exclude wrapping/*.cpp
 include wrapping/src/headers/*.h
+include wrapping/src/headers/error_function.pyx
+exclude wrapping/src/headers/error_function.cpp
+exclude wrapping/src/headers/error_function.h

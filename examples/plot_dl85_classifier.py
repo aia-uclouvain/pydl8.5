@@ -5,14 +5,12 @@ Default DL85Classifier
 
 """
 import numpy as np
-import sys
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import KFold
 from sklearn.model_selection import cross_val_score
 import time
-sys.path.insert(0, "../")
 from dl85 import DL85Classifier
 
 dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')
@@ -27,7 +25,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 print("##############################################################\n"
       "#                      DL8.5 classifier                      #\n"
       "##############################################################")
-clf = DL85Classifier(max_depth=2, time_limit=600)
+clf = DL85Classifier(max_depth=2, time_limit=600, desc=True, print_output=True)
 start = time.perf_counter()
 print("Model building...")
 clf.fit(X_train, y_train)
