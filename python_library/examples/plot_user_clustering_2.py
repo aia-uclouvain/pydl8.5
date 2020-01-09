@@ -5,11 +5,9 @@ DL8.5 clustering : user specific error function and leaves' values assignation
 
 """
 import numpy as np
-import sys
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import DistanceMetric
 import time
-sys.path.insert(0, "../")
 from dl85 import DL85Cluster
 
 dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')

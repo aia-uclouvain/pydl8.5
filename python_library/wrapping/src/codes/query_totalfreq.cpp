@@ -49,7 +49,6 @@ bool Query_TotalFreq::updateData(QueryData *best, Error upperBound, Attribute at
 QueryData *Query_TotalFreq::initData(RCover *cover, Error parent_ub, Support minsup, Depth currentMaxDepth) {
 
     pair <Supports, Support> itemsetSupport;//declare variable of pair type to keep firstly an array of support per class and second the support of the itemset
-    Support minclassval = -1;
     Class maxclass = -1;
     Error error;
     int conflict = 0;
@@ -66,21 +65,39 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Error parent_ub, Support min
             maxclass = int(infos[1]);
         } else {//default error
             Support maxclassval = itemsetSupport.first[0];
-            minclassval = itemsetSupport.first[0];
             maxclass = 0;
+            int secondval = -1;
             for (int i = 1; i < nclasses; ++i) {
                 if (itemsetSupport.first[i] > maxclassval) {
+                    if (maxclassval > secondval)
+                        secondval = maxclassval;
                     maxclassval = itemsetSupport.first[i];
                     maxclass = i;
                     conflict = 0;
                 } else if (itemsetSupport.first[i] == maxclassval) {
+                    secondval = maxclassval;
                     ++conflict; // two with the same label
                     if (data->getSupports()[i] > data->getSupports()[maxclass])
                         maxclass = i;
-                } else
-                    minclassval = itemsetSupport.first[i];
+                } else{
+                    if (itemsetSupport.first[i] > secondval)
+                        secondval = itemsetSupport.first[i];
+                }
+
             }
             error = itemsetSupport.second - maxclassval;
+            int remaining = itemsetSupport.second - (maxclassval + secondval);
+            if (maxclassval >= minsup){
+                if (secondval >= minsup)
+                    lowerb = remaining;
+                else
+                    if (secondval + remaining >= minsup)
+                        lowerb = remaining;
+                    else
+                        lowerb = minsup - secondval;
+            } else
+                if (secondval < minsup)
+                    lowerb = remaining;
         }
         deleteSupports(itemsetSupport.first);
     } else {//slow error or predictor error function. Not need to compute support
@@ -107,8 +124,8 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Error parent_ub, Support min
     data2->solutionDepth = currentMaxDepth;
     if (conflict > 0)
         data2->right = (QueryData_Best *) 1;
-    if (minclassval != -1 && nclasses == 2 && minsup > minclassval)
-        lowerb = min(minclassval, minsup - minclassval);// minsup - maxclassval;
+//    if (minclassval != -1 && nclasses == 2 && minsup > minclassval)
+//        lowerb = min(minclassval, minsup - minclassval);// minsup - maxclassval;
     data2->lowerBound = lowerb;
 
     return (QueryData *) data2;

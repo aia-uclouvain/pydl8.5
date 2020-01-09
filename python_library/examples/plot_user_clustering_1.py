@@ -5,10 +5,8 @@ DL8.5 default clustering minimizing sum of euclidean distrance from cluster's me
 
 """
 import numpy as np
-import sys
 from sklearn.model_selection import train_test_split
 import time
-sys.path.insert(0, "../")
 from dl85 import DL85Cluster
 
 dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')

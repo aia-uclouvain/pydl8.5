@@ -19,9 +19,11 @@ public:
 
 
 protected:
-    TrieNode* recurse ( Array<Item> itemset,Item added,Array<pair<bool,Attribute>> a_attributes,RCover* a_transactions,Depth depth,float priorUbFromParent );
+    TrieNode* recurse ( Array<Item> itemset, Item added, Array<pair<bool,Attribute>> a_attributes, RCover* a_transactions, Depth depth, float priorUbFromParent );
 
     Array<pair<bool,Attribute>> getSuccessors(Array<pair<bool,Attribute > > a_attributes,RCover* a_transactions, Item added);
+
+    Array<pair<bool, Attribute> > getExistingSuccessors(TrieNode* node);
 
     void printItemset(Array<Item> itemset);
 
