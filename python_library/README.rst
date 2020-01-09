@@ -13,14 +13,13 @@
 .. _Codecov: https://codecov.io/gh/aglingael/dl8.5
 
 This project implements an algorithm for inferring optimal binary decision trees classifiers.
-It is scikit-learn compatible and can be used with any scikit-learn functions.
-As any scikit-learn classifier, you have to use methods "fit" and "predict".
-
-The documentation is available at https://dl85.readthedocs.io/en/latest/?badge=latest
+It is scikit-learn compatible package which provide classifiers and clustering algorithms
+and can be used with any scikit-learn functions. As any scikit-learn estimators, you have
+to use methods "fit" and "predict".
 
 This tool can be installed by two ways:
 
 * download the sources from github and compile using the command ``python3 setup.py install`` in the root folder
 * install from pip by using the command ``pip install dl8.5`` in your console
 
-
+The complete documentation is available at https://dl85.readthedocs.io/en/latest/?badge=latest
