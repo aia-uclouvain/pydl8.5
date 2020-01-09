@@ -12,6 +12,11 @@
 .. |Codecov| image:: https://codecov.io/gh/aglingael/dl8.5/branch/master/graph/badge.svg
 .. _Codecov: https://codecov.io/gh/aglingael/dl8.5
 
+:Authors:
+    Gaël Aglin, Siegfried Nijssen, Pierre Schaus
+
+`Relevant paper <https://dial.uclouvain.be/pr/boreal/fr/object/boreal%3A223390/datastream/PDF_01/view>`_: [DL852020]_
+
 This project implements an algorithm for inferring optimal binary decision trees classifiers.
 It is scikit-learn compatible package which provide classifiers and clustering algorithms
 and can be used with any scikit-learn functions. As any scikit-learn estimators, you have
@@ -25,3 +30,5 @@ This tool can be installed by two ways:
 *Installation from sources ensure you to have up-to-date functionalities when* ``pip`` *method ensure you to have last release.*
 
 The `complete documentation <https://dl85.readthedocs.io/en/latest/?badge=latest>`_ is available at https://dl85.readthedocs.io/en/latest/?badge=latest
+
+.. [DL852020] Aglin, G., Nijssen, S., Schaus, P. Learning optimal decision trees using caching branch-and-bound search. In AAAI. 2020.
