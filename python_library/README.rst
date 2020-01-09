@@ -15,7 +15,7 @@
 :Authors:
     Gaël Aglin, Siegfried Nijssen, Pierre Schaus
 
-Relevant paper: `[DL852020]<https://dial.uclouvain.be/pr/boreal/fr/object/boreal%3A223390/datastream/PDF_01/view>`_
+`Relevant paper <https://dial.uclouvain.be/pr/boreal/fr/object/boreal%3A223390/datastream/PDF_01/view>`_: [DL852020]_
 
 This project implements an algorithm for inferring optimal binary decision trees classifiers.
 It is scikit-learn compatible package which provide classifiers and clustering algorithms
