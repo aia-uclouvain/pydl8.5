@@ -22,4 +22,6 @@ This tool can be installed by two ways:
 * download the sources from github and compile using the command ``python3 setup.py install`` in the root folder
 * install from pip by using the command ``pip install dl8.5`` in your console
 
-The complete documentation is available at https://dl85.readthedocs.io/en/latest/?badge=latest
+*Installation from sources ensure you to have up-to-date functionalities when ``pip`` method ensure you to have last release.*
+
+The `complete documentation <https://dl85.readthedocs.io/en/latest/?badge=latest>`_ is available at https://dl85.readthedocs.io/en/latest/?badge=latest
