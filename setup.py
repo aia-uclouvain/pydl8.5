@@ -15,7 +15,7 @@ URL = 'https://github.com/aglingael/dl8.5'
 LICENSE = 'LICENSE.txt'
 DOWNLOAD_URL = 'https://github.com/aglingael/dl8.5'
 VERSION = __version__
-INSTALL_REQUIRES = ['numpy', 'scikit-learn']
+INSTALL_REQUIRES = ['cython', 'numpy', 'scikit-learn']
 SETUP_REQUIRES = ['cython']
 KEYWORDS = ['decision trees', 'discrete optimization', 'classification']
 CLASSIFIERS = ['Programming Language :: Python :: 3',
@@ -95,8 +95,8 @@ setup(
     classifiers=CLASSIFIERS,
     setup_requires=SETUP_REQUIRES,
     install_requires=INSTALL_REQUIRES,
-    extras_require=EXTRAS_REQUIRE,
-    zip_safe=False,  # the package can run out of an .egg file
+    # extras_require=EXTRAS_REQUIRE,
+    zip_safe=True,  # the package can run out of an .egg file
     ext_modules=cythonize(
         [dl85_extension],
         compiler_directives={"language_level": "3"}
