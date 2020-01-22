@@ -132,9 +132,6 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
                                        bin_save=False,
                                        nps=self.nps)
 
-        if self.print_output:
-            print(solution)
-
         solution = solution.splitlines()
         self.sol_size = len(solution)
 
@@ -146,15 +143,36 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
             self.size_ = int(solution[2].split(" ")[1])
             self.depth_ = int(solution[3].split(" ")[1])
             self.error_ = float(solution[4].split(" ")[1])
-            self.accuracy_ = float(solution[5].split(" ")[1])
+            if self.size_ < 3:
+                self.accuracy_ = -1
+            else:
+                self.accuracy_ = float(solution[5].split(" ")[1])
 
             if self.sol_size == 8:  # without timeout
-                print("DL8.5 fitting: Solution found")
+                if self.size_ < 3:
+                    print("DL8.5 fitting: Solution found but not kept since it has the same error as the max error you specify as unreachable.")
+                    self.tree_ = None
+                    self.size_ = -1
+                    self.depth_ = -1
+                    self.error_ = -1
+                    self.accuracy_ = -1
+                else:
+                    print("DL8.5 fitting: Solution found")
+
                 self.lattice_size_ = int(solution[6].split(" ")[1])
                 self.runtime_ = float(solution[7].split(" ")[1])
                 self.timeout_ = False
             else:  # timeout reached
-                print("DL8.5 fitting: Timeout reached but solution found")
+                if self.size_ < 3:
+                    print("DL8.5 fitting: Timeout reached and solution found is not kept since it has the same error as the max error you specify as unreachable.")
+                    self.tree_ = None
+                    self.size_ = -1
+                    self.depth_ = -1
+                    self.error_ = -1
+                    self.accuracy_ = -1
+                else:
+                    print("DL8.5 fitting: Timeout reached but solution found")
+
                 self.lattice_size_ = int(solution[7].split(" ")[1])
                 self.runtime_ = float(solution[8].split(" ")[1])
                 self.timeout_ = True
@@ -178,6 +196,17 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
                 self.lattice_size_ = int(solution[3].split(" ")[1])
                 self.runtime_ = float(solution[4].split(" ")[1])
                 self.timeout_ = True
+
+        if self.print_output:
+            print(solution[0])
+            print("Tree:", self.tree_)
+            print("Size:", str(self.size_))
+            print("Depth:", str(self.depth_))
+            print("Error:", str(self.error_))
+            print("Accuracy:", str(self.accuracy_))
+            print("LatticeSize:", str(self.lattice_size_))
+            print("Runtime:", str(self.runtime_))
+            print("Timeout:", str(self.timeout_))
 
         # Return the classifier
         return self
@@ -204,7 +233,7 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
             raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
 
         if self.tree_ is None:
-            raise TreeNotFoundError("predict(): ", "Tree not found during training by DL8.5")
+            raise TreeNotFoundError("predict(): ", "Tree not found during training by DL8.5 — Check fitting message for more info.")
 
         if hasattr(self, 'tree_') is False:  # normally this case is not possible.
             raise SearchFailedError("PredictionError: ", "DL8.5 training has failed. Please contact the developers if the problem is in the scope claimed by the tool.")
