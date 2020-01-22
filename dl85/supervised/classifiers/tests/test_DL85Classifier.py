@@ -73,6 +73,8 @@ def test_depth_3():
     depth = 3
 
     for i, file in enumerate(onlyfiles):
+        if file in ["ionosphere.txt", "letter.txt", "mushroom.txt", "pendigits.txt", "splice-1.txt", "vehicle.txt"]:
+            continue
         dataset = np.genfromtxt(join(mypath, file), delimiter=' ')
         X = dataset[:, 1:]
         y = dataset[:, 0]
