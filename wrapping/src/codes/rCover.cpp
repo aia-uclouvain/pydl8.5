@@ -13,7 +13,7 @@ RCover::RCover(DataManager *dmm):dm(dmm) {
         stack<bitset<M>> rword;
         bitset<M> word;
         word.set();
-        if(i == 0){
+        if(i == 0 && dm->getNTransactions()%M != 0){
             for (int j = dm->getNTransactions()%M; j < M; ++j) {
                 word.set(j, false);
             }

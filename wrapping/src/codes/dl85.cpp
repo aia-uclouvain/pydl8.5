@@ -77,7 +77,7 @@ string search(//std::function<float(Array<int>::iterator)> callback,
     ExpError *experror;
     experror = new ExpError_Zero;
 
-    if (maxError < 0)
+    if (maxError <= 0)
         query = new Query_TotalFreq(trie, dataReader, experror, timeLimit, continuousMap, error_callback_pointer, fast_error_callback_pointer, predictor_error_callback_pointer);
     else
         query = new Query_TotalFreq(trie, dataReader, experror, timeLimit, continuousMap, error_callback_pointer, fast_error_callback_pointer, predictor_error_callback_pointer, maxError, stopAfterError);
