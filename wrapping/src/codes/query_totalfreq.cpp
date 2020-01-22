@@ -42,17 +42,17 @@ bool Query_TotalFreq::updateData(QueryData *best, Error upperBound, Attribute at
         best2->test = attribute;
         return true;
     }
-    /*else if (error == upperBound){
+    else if (error == upperBound){
         if (best2->error == FLT_MAX)
             best2->error = error;
-        else if (size < best2->size){
+        /*else if (size < best2->size){
             best2->error = error;
             best2->left = left2;
             best2->right = right2;
             best2->size = size;
             best2->test = attribute;
-        }
-    }*/
+        }*/
+    }
     return false;
 }
 
