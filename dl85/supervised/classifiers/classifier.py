@@ -132,6 +132,7 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
                                        bin_save=False,
                                        nps=self.nps)
 
+        # print(solution)
         solution = solution.splitlines()
         self.sol_size = len(solution)
 
@@ -143,13 +144,13 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
             self.size_ = int(solution[2].split(" ")[1])
             self.depth_ = int(solution[3].split(" ")[1])
             self.error_ = float(solution[4].split(" ")[1])
-            if self.size_ < 3:
+            if self.size_ < 3 and self.max_error > 0:
                 self.accuracy_ = -1
             else:
                 self.accuracy_ = float(solution[5].split(" ")[1])
 
             if self.sol_size == 8:  # without timeout
-                if self.size_ < 3:
+                if self.size_ < 3 and self.max_error > 0:
                     print("DL8.5 fitting: Solution found but not kept since it has the same error as the max error you specify as unreachable.")
                     self.tree_ = None
                     self.size_ = -1
@@ -163,7 +164,7 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
                 self.runtime_ = float(solution[7].split(" ")[1])
                 self.timeout_ = False
             else:  # timeout reached
-                if self.size_ < 3:
+                if self.size_ < 3 and self.max_error > 0:
                     print("DL8.5 fitting: Timeout reached and solution found is not kept since it has the same error as the max error you specify as unreachable.")
                     self.tree_ = None
                     self.size_ = -1
