@@ -17,3 +17,6 @@ Release v0.0.5
 Release v0.0.6
 - fix bug of datasets with ntransactions multiple of 64
 - fix tree print bug
+
+Release v0.0.7
+- fix bug of invalid tree on some datasets
