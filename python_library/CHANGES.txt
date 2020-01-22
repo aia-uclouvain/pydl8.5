@@ -20,3 +20,7 @@ Release v0.0.6
 
 Release v0.0.7
 - fix bug of invalid tree on some datasets
+
+Release v0.0.8
+- fix bug in the classifier
+- add tests to automatically check results
