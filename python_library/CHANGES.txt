@@ -24,3 +24,6 @@ Release v0.0.7
 Release v0.0.8
 - fix bug in the classifier
 - add tests to automatically check results
+
+Release v0.0.9
+- fix bug on upper bound

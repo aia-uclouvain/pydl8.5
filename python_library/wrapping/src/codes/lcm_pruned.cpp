@@ -60,7 +60,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
         Error leafError = ((QueryData_Best *) node->data)->leafError;
         Error *nodeError = &(((QueryData_Best *) node->data)->error);
         Error storedInitUb = ((QueryData_Best *) node->data)->initUb;
-        Error initUb = min(parent_ub, leafError);
+        Error initUb = parent_ub;
 
         if (*nodeError < FLT_MAX) { //if( nodeError != FLT_MAX ) best solution has been already found
             Logger::showMessageAndReturn("solution avait été trouvée et vaut : ", *nodeError);
@@ -81,7 +81,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
         if (depth == query->maxdepth) {
             Logger::showMessageAndReturn("on a atteint la profondeur maximale. parent boud = ", parent_ub, " et leaf error = ", leafError);
 
-            if (parent_ub < leafError) {
+            if (parent_ub <= leafError) {
                 *nodeError = FLT_MAX;
                 Logger::showMessageAndReturn("pas de solution");
             } else {
@@ -126,12 +126,12 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
 
         if (depth == query->maxdepth) {
             Logger::showMessageAndReturn("on a atteint la profondeur maximale. parent boud = ", parent_ub, " et leaf error = ", ((QueryData_Best *) node->data)->leafError);
-            if (parent_ub < ((QueryData_Best *) node->data)->leafError) {
-                ((QueryData_Best *) node->data)->error = FLT_MAX;
-                Logger::showMessageAndReturn("pas de solution");
-            } else {
+            if ( ((QueryData_Best *) node->data)->leafError < parent_ub ) {
                 ((QueryData_Best *) node->data)->error = ((QueryData_Best *) node->data)->leafError;
                 Logger::showMessageAndReturn("on retourne leaf error = ", ((QueryData_Best *) node->data)->leafError);
+            } else {
+                ((QueryData_Best *) node->data)->error = FLT_MAX;
+                Logger::showMessageAndReturn("pas de solution");
             }
             return node;
         }
@@ -151,7 +151,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
     }
     else {//case 2 : when the node exists but init value of upper bound is higher than the last one and last solution were NO_TREE
         Error storedInit = ((QueryData_Best *) node->data)->initUb;
-        initUb = min(parent_ub, ((QueryData_Best *) node->data)->leafError);
+        initUb = parent_ub;
         ((QueryData_Best *) node->data)->initUb = initUb;
         Logger::showMessageAndReturn("noeud existant sans solution avec nvelle init bound. leaf error = ", ((QueryData_Best *) node->data)->leafError, " last time: error = ", ((QueryData_Best *) node->data)->error, " and init = ", ((QueryData_Best *) node->data)->initUb, " and stored init = ", storedInit);
 
@@ -216,7 +216,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
 
         if (query->stopAfterError){
             if (depth == 0 && parent_ub < FLT_MAX){
-                if ( ( (QueryData_Best*) node->data )->error <= parent_ub )
+                if ( ( (QueryData_Best*) node->data )->error < parent_ub )
                     break;
             }
         }
@@ -230,12 +230,12 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
 
     if (count == 0) {
         Logger::showMessageAndReturn("pas d'enfant.");
-        if (parent_ub < ((QueryData_Best *) node->data)->leafError) {
-            ((QueryData_Best *) node->data)->error = FLT_MAX;
-            Logger::showMessageAndReturn("pas de solution");
-        } else {
+        if ( ((QueryData_Best *) node->data)->leafError < parent_ub ) {
             ((QueryData_Best *) node->data)->error = ((QueryData_Best *) node->data)->leafError;
             Logger::showMessageAndReturn("on retourne leaf error = ", ((QueryData_Best *) node->data)->leafError);
+        } else {
+            ((QueryData_Best *) node->data)->error = FLT_MAX;
+            Logger::showMessageAndReturn("pas de solution");
         }
         Logger::showMessageAndReturn("on replie");
     }
