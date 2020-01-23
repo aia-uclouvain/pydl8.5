@@ -34,24 +34,13 @@ bool Query_TotalFreq::updateData(QueryData *best, Error upperBound, Attribute at
     QueryData_Best *best2 = (QueryData_Best *) best, *left2 = (QueryData_Best *) left, *right2 = (QueryData_Best *) right;
     Error error = left2->error + right2->error;
     Size size = left2->size + right2->size + 1;
-    if (error < upperBound) {
+    if (error < upperBound || (error == upperBound && size < best2->size)) {
         best2->error = error;
         best2->left = left2;
         best2->right = right2;
         best2->size = size;
         best2->test = attribute;
         return true;
-    }
-    else if (error == upperBound){
-        if (best2->error == FLT_MAX)
-            best2->error = error;
-        /*else if (size < best2->size){
-            best2->error = error;
-            best2->left = left2;
-            best2->right = right2;
-            best2->size = size;
-            best2->test = attribute;
-        }*/
     }
     return false;
 }
@@ -131,7 +120,7 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Error parent_ub, Support min
     data2->error = FLT_MAX;
     data2->error += experror->addError(cover->getSupport(), data2->error, data->getNTransactions());
     data2->size = 1;
-    data2->initUb = min(parent_ub, data2->leafError);
+    data2->initUb = parent_ub;
     data2->solutionDepth = currentMaxDepth;
     if (conflict > 0)
         data2->right = (QueryData_Best *) 1;
