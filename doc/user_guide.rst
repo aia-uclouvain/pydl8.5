@@ -2,17 +2,17 @@
 
 .. _user_guide:
 
-===================================
-User guide: Usage of DL85Classifier
-===================================
+=========================
+User guide: Usage of DL85
+=========================
 
-Predictors
-----------
+Optimal Decision Tree Predictors
+--------------------------------
 
 This project implements the DL8.5 algorithm for learning optimal binary decision tree predictors. 
-A decision tree predictor is a tree structure that
-has predictions in its leafs. In the most simple case, a prediction corresponds to a class label; in this case,
-the predictor is a classifier. 
+Examples of decision tree predictors are classification trees and regression trees. 
+Classification trees are predictors in which the predictions correspond to class labels; 
+regression trees are predictors in which the predictions are numerical.
 
 In contrast to heuristic algorithms, such as CART and C4.5, the trees learned by DL8.5 are optimal on the training data,
 that is, no better tree can be found on the training data under the constraints specified.
@@ -35,7 +35,7 @@ object. For more information on how the results of the learning algorithm are st
   samples.
 
 Parameters of the learning process need to be specified during the construction of the ``DL85Classifier`` object. 
-The complete list of parameters can be found in the `API documentation <api.html>`_. We highly recommend to always
+The complete list of parameters can be found in the `API documentation <api.html>`_. We highly recommend to
 specify the parameters of the following constraints, as their default values are not useful in many cases:
 
 * ``max_depth``, which specifies the maximum depth of the tree to be learned; low values will ensure that more interpretable trees are found; high values may lead to better training set accuracy, but can also lead to overfitting;
@@ -43,7 +43,7 @@ specify the parameters of the following constraints, as their default values are
 
 Other parameters that may be useful to tune are:
 
-* ``time_limit``, which indicates the maximum amount of time the algorithm is allowed to run; the algorithm will be interrupted when the runtime is exceeded, and the best tree found within the allocated time will be returned. The default value is ``0``, in which ase no limit on runtime is imposed.
+* ``time_limit``, which indicates the maximum amount of time the algorithm is allowed to run; the algorithm will be interrupted when the runtime is exceeded, and the best tree found within the allocated time will be returned. The default value is ``0``, in which case no limit on runtime is imposed.
 * ``max_error``, which will direct the search algorithm to only find trees with an error lower than ``max_error``. For instance, 
 if a decision tree has already been found using another algorithm (such as a heuristic algorithm), specifying this parameter could direct DL8.5 to only 
 find trees that are better than the tree found using this other algorithm.
@@ -107,7 +107,14 @@ Other predictors
 
 DL8.5 provides an interface that allows other trees than classification trees to be learned, and other scoring functions 
 than training set error to be used. In this case, the user has to implement a new scoring function 
-in Python, which will then be used by DL8.5 during the optimization process. Examples of the use of this interface 
-can be found on the page of examples for predictive clustering. Note that regression trees are a special case
-of predictive clustering trees. However, please note that this interface may still change in the future 
-to make it easier to use. 
+in Python. Examples of the use of this interface 
+can be found on the page of examples for predictive clustering. 
+
+Note 1: As regression trees are a special case
+of predictive clustering trees, this interface can also be used for regression.
+
+Note 2: While we decided to make this preliminary interface publicly available already, 
+it may still change in the future 
+to make it easier to use. For this reason, the documentation of this interface is currently still short.
+
+
