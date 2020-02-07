@@ -9,9 +9,10 @@ you. We will try as soon as possible to add another classifiers or
 add other features to this one. Any contributions are welcomed. Feel
 free to contact us :-)
 
-This project currently implements one class ``DL85Classifier``.
+For classification purposes this project implements the class ``DL85Classifier``.
  The documentation for this class is given below. 
- We aim to add other classifiers as soon as possible. Any contributions are welcome. Feel
+ We are working on support for other types of models and documentation for this
+ will be added later. Any contributions are welcome. Feel
 free to contact us :-)
 
 .. currentmodule:: dl85.supervised.classifiers
