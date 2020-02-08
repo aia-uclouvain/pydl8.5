@@ -28,7 +28,4 @@ This tool can be installed in two ways:
 
 **Disclaimer: The compilation of the project has been tested with C++ compilers on the Linux and MacOS operating systems; Windows is not yet supported.**
 
-.. a*Installation from sources: make sure  when using the * ``pip`` *method that you have the last release installed.*
-The `complete documentation <https://dl85.readthedocs.io/en/latest/>`_ is available at https://dl85.readthedocs.io/en/latest/
-
 .. [DL852020] Aglin, G., Nijssen, S., Schaus, P. Learning optimal decision trees using caching branch-and-bound search. In AAAI. 2020.
