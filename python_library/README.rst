@@ -23,7 +23,7 @@ As a scikit-learn classifier, it implements the methods "fit" and "predict".
 
 This tool can be installed in two ways:
 
-* download the source from github and compile using the command ``python3 setup.py install`` in the root folder
+* download the source from github and install using the command ``python3 setup.py install`` in the root folder
 * install from pip by using the command ``pip install dl8.5`` in the console
 
 **Disclaimer: The compilation of the project has been tested with C++ compilers on the Linux and MacOS operating systems; Windows is not yet supported.**
