@@ -6,13 +6,15 @@
 Welcome to DL8.5's documentation!
 =================================
 
-**Decision Trees (DTs)** are a supervised learning method used for *classification* and
-*regression*. The goal is to create a model that predicts the value of a target variable by learning
+**Decision Trees (DTs)** are machine learning models used for *classification* and
+*regression*. They perform predictions by means of 
 simple decision rules inferred from data.
 
-Although traditional algorithms for learning decision trees provide good results in general, well-known algorithms such as CART and C4.5 do not calculate trees that are necessarily optimal.
+Traditional algorithms for learning decision trees, such as CART and C4.5, are 
+heuristic in nature. However, as a result, the trees that are learned by these 
+algorithms may sometimes be more complex than necessary, and hence less interpretable. 
 
-This repository contains an implemetation of DL8.5, an algorithm for finding optimal decision trees under formal requirements on the accuracy, support and depth of the decision trees to be found. Details about this algorithm can be found in :cite:`dl852020`. The key idea underlying this new approach
+This repository contains an implementation of DL8.5, an algorithm for finding optimal decision trees under formal requirements on the accuracy, support and depth of the decision trees to be found. Details about this algorithm can be found in :cite:`dl852020`. The key idea underlying this algorithm
 is the use of a cache of itemsets in combination with branch-and-bound search; this new type of cache also stores
 results for parts of the search space that have been traversed partially.
 
@@ -54,7 +56,8 @@ This is the API documentation of DL8.5.
 `Examples <auto_examples/index.html>`_
 --------------------------------------
 
-A set of examples. It complements the `User Guide <user_guide.html>`_.
+These examples illustrate further how DL8.5 can be used; 
+for more detailed information, please consult   the `User Guide <user_guide.html>`_.
 
 .. rubric:: References
 .. bibliography:: references.bib
