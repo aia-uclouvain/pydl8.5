@@ -17,20 +17,18 @@
 
 `Relevant paper <https://dial.uclouvain.be/pr/boreal/fr/object/boreal%3A223390/datastream/PDF_01/view>`_: [DL852020]_
 
-This project implements an algorithm for inferring optimal binary decision trees classifiers.
-It is scikit-learn compatible package which provide classifiers and clustering algorithms
-and can be used with any scikit-learn functions. As any scikit-learn estimators, you have
-to use methods "fit" and "predict".
+This project implements an algorithm for inferring optimal binary decision tree classifiers.
+It is scikit-learn compatible and can be used in combination with scikit-learn.
+As a scikit-learn classifier, it implements the methods "fit" and "predict".
 
 This tool can be installed by two ways:
 
-* download the sources from github and compile using the command ``python3 setup.py install`` in the root folder
-* install from pip by using the command ``pip install dl8.5`` in your console
+* download the source from github and compile using the command ``python3 setup.py install`` in the root folder
+* install from pip by using the command ``pip install dl8.5`` in the console
 
-**Disclaimer: The compilation of the project has been tested with C++ compilers of Linux and MacOS operating systems**
+**Disclaimer: The compilation of the project has been tested with C++ compilers on the Linux and MacOS operating systems; Windows is not yet supported.**
 
 .. a*Installation from sources ensure you to have up-to-date functionalities when* ``pip`` *method ensure you to have last release.*
-
 The `complete documentation <https://dl85.readthedocs.io/en/latest/?badge=latest>`_ is available at https://dl85.readthedocs.io/en/latest/?badge=latest
 
 .. [DL852020] Aglin, G., Nijssen, S., Schaus, P. Learning optimal decision trees using caching branch-and-bound search. In AAAI. 2020.
