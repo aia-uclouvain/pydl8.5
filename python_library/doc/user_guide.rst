@@ -21,7 +21,10 @@ that is, no better tree can be found under user-specified constraints that aim t
 trees both interpretable and accurate.
 
 Please note that trees that that are accurate on training data, may not always perform good on test data. To avoid 
-problems with overfitting, it is recommended to run DL8.5 using carefully chosen constraints, as specified below. 
+problems with overfitting, it is recommended to run DL8.5 using carefully chosen constraints, as specified below. Moreover,
+finding optimal decision tree is a hard search problem, and will require more computational resources. 
+However, a recent study has shown that DL8.5's performance on this search problem is much better than that of
+competing methods.
 
 Classifiers
 ~~~~~~~~~~~
