@@ -23,8 +23,8 @@ trees more interpretable.
 Please note that trees that perform well on training data, may not always perform good on test data. To avoid 
 problems with overfitting, it is recommended to run DL8.5 using carefully chosen constraints, as specified below. 
 
-Classifier
-~~~~~~~~~~
+Classifiers
+~~~~~~~~~~~
 
 Decision tree classifiers are learned using the class ``DL85Classifier``. 
 ``DL85Classifier`` is a scikit-learn compatible classifier and can be used as a scikit-learn
@@ -46,9 +46,7 @@ specify the parameters of the following constraints, as their default values are
 Other parameters that may be useful to tune are:
 
 * ``time_limit``, which indicates the maximum amount of time the algorithm is allowed to run; the algorithm will be interrupted when the runtime is exceeded, and the best tree found within the allocated time will be returned. The default value is ``0``, in which case no limit on runtime is imposed.
-* ``max_error``, which will direct the search algorithm to only find trees with an error lower than ``max_error``. For instance, 
-if a decision tree has already been found using another algorithm (such as a heuristic algorithm), specifying this parameter could direct DL8.5 to only 
-find trees that are better than the tree found using this other algorithm.
+* ``max_error``, which will direct the search algorithm to only find trees with an error lower than ``max_error``. For instance, if a decision tree has already been found using another algorithm (such as a heuristic algorithm), specifying this parameter could direct DL8.5 to only find trees that are better than the tree found using this other algorithm.
 
 
 
