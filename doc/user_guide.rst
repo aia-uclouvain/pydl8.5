@@ -30,8 +30,7 @@ Decision tree classifiers are learned using the class ``DL85Classifier``.
 ``DL85Classifier`` is a scikit-learn compatible classifier and can be used as a scikit-learn
 classifier. It inherits from :class:`sklearn.base.BaseEstimator` and reimplements the methods ``fit`` and ``predict``.
 
-* when the ``fit(X,y)`` method is executed, an optimal decision tree classifier is learned from ``X`` and ``y``, where ``X`` is a set of Boolean training samples and ``y`` is the  vector of target values; the resulting tree is stored in the ``DL85Classifier`` object. For more information on how the results of the learning algorithm are stored, please check the 
- `API documentation <api.html>`_.
+* when the ``fit(X,y)`` method is executed, an optimal decision tree classifier is learned from ``X`` and ``y``, where ``X`` is a set of Boolean training samples and ``y`` is the  vector of target values; the resulting tree is stored in the ``DL85Classifier`` object. For more information on how the results of the learning algorithm are stored, please check the  `API documentation <api.html>`_.
 * when the ``predict(X)`` method is executed, predictions will be computed for the Boolean test samples ``X`` using the tree
   learned during the execution of ``fit``. The output corresponds to a list of predicted classes for all the
   samples.
