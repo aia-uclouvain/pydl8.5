@@ -16,7 +16,7 @@ algorithms may sometimes be more complex than necessary, and hence less interpre
 
 This repository contains an implementation of DL8.5, an algorithm for finding optimal decision trees under formal requirements on the accuracy, support and depth of the decision trees to be found. Details about this algorithm can be found in :cite:`dl852020`. The key idea underlying this algorithm
 is the use of a cache of itemsets in combination with branch-and-bound search; this new type of cache also stores
-results for parts of the search space that have been traversed partially.
+results for parts of the search space that have been traversed partially. An experimental comparison with other methods in :cite:`dl852020` shows that DL8.5's performance is much better than that of competing methods. 
 
 This implementation is scikit-learn compatible and can be used in combination with scikit-learn. 
 
