@@ -2,20 +2,23 @@
 
 .. _user_guide:
 
-=========================
-User guide: Usage of DL85
-=========================
+======================
+User guide: Using DL85
+======================
 
-Optimal Decision Tree Predictors
---------------------------------
+Optimal Decision Trees
+----------------------
 
-This project implements the DL8.5 algorithm for learning optimal binary decision tree predictors. 
-Examples of decision tree predictors are classification trees and regression trees. 
+This project implements the DL8.5 algorithm for learning optimal binary decision trees. 
+Examples of decision trees are classification trees and regression trees. 
 Classification trees are predictors in which the predictions correspond to class labels; 
 regression trees are predictors in which the predictions are numerical.
 
-In contrast to heuristic algorithms, such as CART and C4.5, the trees learned by DL8.5 are optimal on the training data,
-that is, no better tree can be found on the training data under the constraints specified.
+Decision trees are traditionally learned using heuristic algorithms, such as CART and C4.5.
+However, due to their heuristic nature, the trees learned using these algorithms can be larger than 
+necessary; this makes the resulting trees less interpretable. Trees found by DL8.5 are optimal on training data,
+that is, no better tree can be found under user-specified constraints that aim to make the resulting
+trees more interpretable.
 
 Please note that trees that perform well on training data, may not always perform good on test data. To avoid 
 problems with overfitting, it is recommended to run DL8.5 using carefully chosen constraints, as specified below. 
@@ -27,8 +30,7 @@ Decision tree classifiers are learned using the class ``DL85Classifier``.
 ``DL85Classifier`` is a scikit-learn compatible classifier and can be used as a scikit-learn
 classifier. It inherits from :class:`sklearn.base.BaseEstimator` and reimplements the methods ``fit`` and ``predict``.
 
-* when the ``fit(X,y)`` method is executed, an optimal decision tree classifier is learned from ``X`` and ``y``, where ``X`` is a set of Boolean training samples and ``y`` is the  vector of target values; the resulting tree is stored in the ``DL85Classifier`` 
-object. For more information on how the results of the learning algorithm are stored, please check the 
+* when the ``fit(X,y)`` method is executed, an optimal decision tree classifier is learned from ``X`` and ``y``, where ``X`` is a set of Boolean training samples and ``y`` is the  vector of target values; the resulting tree is stored in the ``DL85Classifier`` object. For more information on how the results of the learning algorithm are stored, please check the 
  `API documentation <api.html>`_.
 * when the ``predict(X)`` method is executed, predictions will be computed for the Boolean test samples ``X`` using the tree
   learned during the execution of ``fit``. The output corresponds to a list of predicted classes for all the
