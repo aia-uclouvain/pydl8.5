@@ -7,7 +7,7 @@ Welcome to DL8.5's documentation!
 =================================
 
 **Decision Trees (DTs)** are machine learning models used for *classification* and
-*regression*. They perform predictions by means of 
+*regression*. They perform prediction by means of 
 simple decision rules inferred from data.
 
 Traditional algorithms for learning decision trees, such as CART and C4.5, are 
