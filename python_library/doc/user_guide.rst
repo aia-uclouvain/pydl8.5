@@ -15,12 +15,12 @@ Classification trees are predictors in which the predictions correspond to class
 regression trees are predictors in which the predictions are numerical.
 
 Decision trees are traditionally learned using heuristic algorithms, such as CART and C4.5.
-However, due to their heuristic nature, the trees learned using these algorithms can be larger than 
-necessary; this makes the resulting trees less interpretable. Trees found by DL8.5 are optimal on training data,
+However, due to the heuristic nature of these algorithms, the trees learned using them can be larger than 
+necessary; this may make the resulting trees less interpretable. Trees found by DL8.5 are optimal on training data,
 that is, no better tree can be found under user-specified constraints that aim to make the resulting
-trees more interpretable.
+trees both interpretable and accurate.
 
-Please note that trees that perform well on training data, may not always perform good on test data. To avoid 
+Please note that trees that that are accurate on training data, may not always perform good on test data. To avoid 
 problems with overfitting, it is recommended to run DL8.5 using carefully chosen constraints, as specified below. 
 
 Classifiers
