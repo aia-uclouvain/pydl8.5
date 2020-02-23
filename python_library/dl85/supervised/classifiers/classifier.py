@@ -234,7 +234,7 @@ class DL85Classifier(BaseEstimator, ClassifierMixin):
             raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
 
         if self.tree_ is None:
-            raise TreeNotFoundError("predict(): ", "Tree not found during training by DL8.5 — Check fitting message for more info.")
+            raise TreeNotFoundError("predict(): ", "Tree not found during training by DL8.5 - Check fitting message for more info.")
 
         if hasattr(self, 'tree_') is False:  # normally this case is not possible.
             raise SearchFailedError("PredictionError: ", "DL8.5 training has failed. Please contact the developers if the problem is in the scope claimed by the tool.")
