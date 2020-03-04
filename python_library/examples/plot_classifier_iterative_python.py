@@ -11,7 +11,7 @@ from sklearn.metrics import accuracy_score
 import time
 from dl85 import DL85Classifier
 
-dataset = np.genfromtxt("../datasets/letter.txt", delimiter=' ')
+dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')
 X = dataset[:, 1:]
 y = dataset[:, 0]
 X = X.astype('int32')
@@ -27,7 +27,7 @@ start = time.perf_counter()
 error = 0  # default max error value expressing no bound
 clf = None
 remaining_time = 600
-for i in range(1, 4):  # max depth = 2
+for i in range(1, 3):  # max depth = 2
     clf = DL85Classifier(max_depth=i, max_error=error, time_limit=remaining_time)
     clf.fit(X_train, y_train)
     error = clf.error_
