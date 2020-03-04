@@ -1,7 +1,7 @@
 """
-===============================================
-DL8.5 classifier : python side iterative search
-===============================================
+==========================================
+DL8.5 classifier : native iterative search
+==========================================
 
 """
 import numpy as np
@@ -20,16 +20,13 @@ y = y.astype('int32')
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
 
-print("##############################################################\n"
-      "#      DL8.5 classifier : python side iterative search       #\n"
-      "##############################################################")
+print("##########################################################################\n"
+      "#            DL8.5 default classifier using iterative search             #\n"
+      "##########################################################################")
+clf = DL85Classifier(max_depth=2, iterative=True, time_limit=600)
 start = time.perf_counter()
-error = 0  # default max error value expressing no bound
-clf = None
-for i in range(1, 3):  # max depth = 2
-    clf = DL85Classifier(max_depth=i, max_error=error, time_limit=600)
-    clf.fit(X_train, y_train)
-    error = clf.error_
+print("Model building...")
+clf.fit(X_train, y_train)
 duration = time.perf_counter() - start
 print("Model built. Duration of building =", round(duration, 4))
 y_pred = clf.predict(X_test)

@@ -1,7 +1,7 @@
 """
-==========================================
-DL8.5 classifier : native iterative search
-==========================================
+========================================================================
+DL8.5 classifier : user specific error function based on transactions ID
+========================================================================
 
 """
 import numpy as np
@@ -20,10 +20,19 @@ y = y.astype('int32')
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
 
-print("##############################################################\n"
-      "#            DL8.5 classifier : iterative search             #\n"
-      "##############################################################")
-clf = DL85Classifier(max_depth=2, iterative=True, time_limit=600)
+print("########################################################################################\n"
+      "#      DL8.5 classifier : user specific error function based on transactions ids       #\n"
+      "########################################################################################")
+
+
+# return the error and the majority class
+def error(tids, y):
+    classes, supports = np.unique(y.take(list(tids)), return_counts=True)
+    maxindex = np.argmax(supports)
+    return sum(supports) - supports[maxindex], classes[maxindex]
+
+
+clf = DL85Classifier(max_depth=2, error_function=lambda tids: error(tids, y_train), time_limit=600)
 start = time.perf_counter()
 print("Model building...")
 clf.fit(X_train, y_train)

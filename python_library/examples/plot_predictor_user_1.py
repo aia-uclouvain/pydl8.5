@@ -1,7 +1,7 @@
 """
-===========================================================================
-DL8.5 classifier : user specific error function based on supports per class
-===========================================================================
+========================================================================
+DL8.5 classifier : user specific error function based on transactions ID
+========================================================================
 
 """
 import numpy as np
@@ -9,7 +9,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import time
-from dl85 import DL85Classifier
+from dl85 import DL85Predictor
 
 dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')
 X = dataset[:, 1:]
@@ -20,18 +20,19 @@ y = y.astype('int32')
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
 
-print("##############################################################\n"
-      "#      DL8.5 classifier : user specific error function       #\n"
-      "##############################################################")
+print("#####################################################################################\n"
+      "#      DL8.5 Predictor used for classification : user specific error function       #\n"
+      "#####################################################################################")
 
 
-def error(sup_iter):
-    supports = list(sup_iter)
+# return the error and the majority class
+def error(tids, y):
+    classes, supports = np.unique(y.take(list(tids)), return_counts=True)
     maxindex = np.argmax(supports)
-    return sum(supports) - supports[maxindex], maxindex
+    return sum(supports) - supports[maxindex], classes[maxindex]
 
 
-clf = DL85Classifier(max_depth=2, fast_error_function=error, time_limit=600)
+clf = DL85Predictor(max_depth=2, error_function=lambda tids: error(tids, y_train), time_limit=600)
 start = time.perf_counter()
 print("Model building...")
 clf.fit(X_train, y_train)

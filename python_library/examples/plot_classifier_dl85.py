@@ -22,9 +22,9 @@ y = y.astype('int32')
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
 
-print("##############################################################\n"
-      "#                      DL8.5 classifier                      #\n"
-      "##############################################################")
+print("######################################################################\n"
+      "#                      DL8.5 default classifier                      #\n"
+      "######################################################################")
 clf = DL85Classifier(max_depth=2, time_limit=600, desc=True)
 start = time.perf_counter()
 print("Model building...")
