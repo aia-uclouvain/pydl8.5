@@ -1,13 +1,12 @@
-from sklearn.base import BaseEstimator
-from sklearn.utils.validation import assert_all_finite, check_X_y, check_array, check_is_fitted
+from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 from sklearn.utils.multiclass import unique_labels
 from sklearn.exceptions import NotFittedError
-from ..errors.errors import SearchFailedError, TreeNotFoundError
+from ...errors.errors import SearchFailedError, TreeNotFoundError
 import json
-import numpy as np
 
 
-class DL85Predictor(BaseEstimator):
+class DL85Classifier(BaseEstimator, ClassifierMixin):
     """ An optimal binary decision tree classifier.
 
     Parameters
@@ -26,12 +25,12 @@ class DL85Predictor(BaseEstimator):
         Allocated time in second(s) for the search. Default value stands for no limit. The best tree found within the time limit is stored, if this tree is better than max_error.
     verbose : bool, default=False
         A parameter used to switch on/off the print of what happens during the search
-    desc_sort_function : function, default=None
-        A parameter used to indicate heuristic function used to sort the items in descending order
-    asc_sort_function : function, default=None
-        A parameter used to indicate heuristic function used to sort the items in ascending order
+    desc : bool, default=False
+        A parameter used to indicate if the sorting of the items is done in descending order of information gain
+    asc : bool, default=False
+        A parameter used to indicate if the sorting of the items is done in ascending order of information gain
     repeat_sort : bool, default=False
-        A parameter used to indicate whether the heuristic sort will be applied at each level of the lattice or only at the root
+        A parameter used to indicate whether the sorting of items is done at each level of the lattice or only before the search
     nps : bool, default=False
         A parameter used to indicate if only optimal solutions should be stored in the cache.
     print_output : bool, default=False
@@ -73,13 +72,12 @@ class DL85Predictor(BaseEstimator):
             desc=False,
             asc=False,
             repeat_sort=False,
-            leaf_value_function=None,
             nps=False,
             print_output=False):
-        self.max_depth = max_depth
-        self.min_sup = min_sup
         self.error_function = error_function
         self.fast_error_function = fast_error_function
+        self.max_depth = max_depth
+        self.min_sup = min_sup
         self.iterative = iterative
         self.max_error = max_error
         self.stop_after_better = stop_after_better
@@ -88,7 +86,6 @@ class DL85Predictor(BaseEstimator):
         self.desc = desc
         self.asc = asc
         self.repeat_sort = repeat_sort
-        self.leaf_value_function = leaf_value_function
         self.nps = nps
         self.print_output = print_output
 
@@ -96,7 +93,7 @@ class DL85Predictor(BaseEstimator):
         return {'X_types': 'categorical',
                 'allow_nan': False}
 
-    def fit(self, X, y=None):
+    def fit(self, X, y):
         """Implements the standard fitting function for a DL8.5 classifier.
 
         Parameters
@@ -112,34 +109,16 @@ class DL85Predictor(BaseEstimator):
             Returns self.
         """
 
-        target_is_need = True if y is not None else False
-        opt_func = self.error_function
-        opt_fast_func = self.fast_error_function
-        opt_pred_func = self.error_function
-        predict = True
-
-        if target_is_need:  # target-needed tasks (eg: classification, regression, etc.)
-            # Check that X and y have correct shape and raise ValueError if not
-            X, y = check_X_y(X, y, dtype='int32')
-            opt_pred_func = None
-            self.leaf_value_function = None
-            predict = False
-            # if opt_func is None and opt_pred_func is None:
-            #     print("No optimization criterion defined. Misclassification error is used by default.")
-        else:  # target-less tasks (clustering, etc.)
-            # Check that X has correct shape and raise ValueError if not
-            assert_all_finite(X)
-            X = check_array(X, dtype='int32')
-            opt_func = None
-            opt_fast_func = None
+        # Check that X and y have correct shape and raise ValueError if not
+        X, y = check_X_y(X, y, dtype='int32')
 
         # sys.path.insert(0, "../../")
         import dl85Optimizer
         solution = dl85Optimizer.solve(data=X,
                                        target=y,
-                                       func=opt_func,
-                                       fast_func=opt_fast_func,
-                                       predictor_func=opt_pred_func,
+                                       func=self.error_function,
+                                       fast_func=self.fast_error_function,
+                                       predictor_func=None,
                                        max_depth=self.max_depth,
                                        min_sup=self.min_sup,
                                        max_error=self.max_error,
@@ -151,12 +130,9 @@ class DL85Predictor(BaseEstimator):
                                        asc=self.asc,
                                        repeat_sort=self.repeat_sort,
                                        bin_save=False,
-                                       nps=self.nps,
-                                       predictor=predict)
+                                       nps=self.nps)
 
-        # if self.print_output:
-        #     print(solution)
-
+        # print(solution)
         solution = solution.splitlines()
         self.sol_size = len(solution)
 
@@ -174,9 +150,8 @@ class DL85Predictor(BaseEstimator):
                 self.accuracy_ = float(solution[5].split(" ")[1])
 
             if self.sol_size == 8:  # without timeout
-                if self.size_ < 3 and self.max_error > 0:  # return just a leaf as fake solution
-                    print("DL8.5 fitting: Solution not found. However, a solution exists with error equal to the "
-                          "max error you specify as unreachable. Please increase your bound if you want to reach it.")
+                if self.size_ < 3 and self.max_error > 0:
+                    print("DL8.5 fitting: Solution found but not kept since it has the same error as the max error you specify as unreachable.")
                     self.tree_ = None
                     self.size_ = -1
                     self.depth_ = -1
@@ -188,12 +163,9 @@ class DL85Predictor(BaseEstimator):
                 self.lattice_size_ = int(solution[6].split(" ")[1])
                 self.runtime_ = float(solution[7].split(" ")[1])
                 self.timeout_ = False
-
             else:  # timeout reached
-                if self.size_ < 3 and self.max_error > 0:  # return just a leaf as fake solution
-                    print("DL8.5 fitting: Timeout reached without solution. However, a solution exists with "
-                          "error equal to the max error you specify as unreachable. Please increase "
-                          "your bound if you want to reach it.")
+                if self.size_ < 3 and self.max_error > 0:
+                    print("DL8.5 fitting: Timeout reached and solution found is not kept since it has the same error as the max error you specify as unreachable.")
                     self.tree_ = None
                     self.size_ = -1
                     self.depth_ = -1
@@ -206,9 +178,8 @@ class DL85Predictor(BaseEstimator):
                 self.runtime_ = float(solution[8].split(" ")[1])
                 self.timeout_ = True
 
-            if target_is_need:  # problem with target
-                # Store the classes seen during fit
-                self.classes_ = unique_labels(y)
+            # Store the classes seen during fit
+            self.classes_ = unique_labels(y)
 
         elif self.sol_size == 4 or self.sol_size == 5:  # solution not found
             self.tree_ = None
@@ -227,37 +198,19 @@ class DL85Predictor(BaseEstimator):
                 self.runtime_ = float(solution[4].split(" ")[1])
                 self.timeout_ = True
 
-        if target_is_need is False:
-            if hasattr(self, 'tree_'):
-                # add transactions to nodes of the tree
-                self.tree_dfs(X)
-
-                if self.leaf_value_function is not None:
-                    def search(node):
-                        if self.is_leaf_node(node) is not True:
-                            search(node['left'])
-                            search(node['right'])
-                        else:
-                            node['value'] = self.leaf_value_function(node['transactions'])
-                    node = self.tree_
-                    search(node)
-
         if self.print_output:
             print(solution[0])
-            if target_is_need:
-                print("Tree:", self.tree_)
-            else:
-                print("Tree:", self.tree_without_transactions())
+            print("Tree:", self.tree_)
             print("Size:", str(self.size_))
             print("Depth:", str(self.depth_))
             print("Error:", str(self.error_))
-            # print("Accuracy:", str(self.accuracy_))
+            print("Accuracy:", str(self.accuracy_))
             print("LatticeSize:", str(self.lattice_size_))
             print("Runtime:", str(self.runtime_))
             print("Timeout:", str(self.timeout_))
 
         # Return the classifier
-        # return self
+        return self
 
     def predict(self, X):
         """ Implements the standard predict function for a DL8.5 classifier.
@@ -274,19 +227,17 @@ class DL85Predictor(BaseEstimator):
             seen during fit.
         """
 
-        # Check is fit is called
+        # Check is fit had been called
         # check_is_fitted(self, attributes='tree_') # use of attributes is deprecated. alternative solution is below
 
-        if hasattr(self, 'sol_size') is False:  # fit method has not been called
+        if hasattr(self, 'sol_size') is False:  # actually this case is not possible.
             raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
 
         if self.tree_ is None:
-            raise TreeNotFoundError("predict(): ", "Tree not found during training by DL8.5 - "
-                                                   "Check fitting message for more info.")
+            raise TreeNotFoundError("predict(): ", "Tree not found during training by DL8.5 - Check fitting message for more info.")
 
         if hasattr(self, 'tree_') is False:  # normally this case is not possible.
-            raise SearchFailedError("PredictionError: ", "DL8.5 training has failed. Please contact the developers "
-                                                         "if the problem is in the scope supported by the tool.")
+            raise SearchFailedError("PredictionError: ", "DL8.5 training has failed. Please contact the developers if the problem is in the scope claimed by the tool.")
 
         # Input validation
         X = check_array(X)
@@ -294,65 +245,20 @@ class DL85Predictor(BaseEstimator):
         self.y_ = []
 
         for i in range(X.shape[0]):
-            self.y_.append(self.pred_value_on_dict(X[i, :]))
+            self.y_.append(self.pred_on_dict(X[i, :]))
 
         return self.y_
 
-    def pred_value_on_dict(self, instance):
+    def pred_on_dict(self, instance):
         node = self.tree_
         while self.is_leaf_node(node) is not True:
             if instance[node['feat']] == 1:
                 node = node['left']
             else:
                 node = node['right']
-        return node['value']
+        return node['class']
 
     @staticmethod
     def is_leaf_node(node):
         names = [x[0] for x in node.items()]
         return 'error' in names
-
-    def tree_dfs(self, X):  # explore the decision tree found and add transactions to leaf nodes.
-        def recurse(transactions, node, feature, positive):
-            if transactions is None:
-                current_transactions = list(range(0, X.shape[0]))
-                node['transactions'] = current_transactions
-                if 'feat' in node.keys():
-                    recurse(current_transactions, node['left'], node['feat'], True)
-                    recurse(current_transactions, node['right'], node['feat'], False)
-            else:
-                feature_vector = X[:, feature]
-                feature_vector = feature_vector.astype('int32')
-                if positive:
-                    positive_vector = np.where(feature_vector == 1)[0]
-                    positive_vector = positive_vector.tolist()
-                    current_transactions = set(transactions).intersection(positive_vector)
-                    node['transactions'] = list(current_transactions)
-                    if 'feat' in node.keys():
-                        recurse(current_transactions, node['left'], node['feat'], True)
-                        recurse(current_transactions, node['right'], node['feat'], False)
-                else:
-                    negative_vector = np.where(feature_vector == 0)[0]
-                    negative_vector = negative_vector.tolist()
-                    current_transactions = set(transactions).intersection(negative_vector)
-                    node['transactions'] = list(current_transactions)
-                    if 'feat' in node.keys():
-                        recurse(current_transactions, node['left'], node['feat'], True)
-                        recurse(current_transactions, node['right'], node['feat'], False)
-
-        root_node = self.tree_
-        recurse(None, root_node, None, None)
-
-    def tree_without_transactions(self):
-
-        def recurse(node):
-            if 'feat' in node.keys() or 'value' in node.keys():
-                del node['transactions']
-                if 'left' in node.keys():
-                    recurse(node['left'])
-                    recurse(node['right'])
-
-        tree = dict(self.tree_)
-        recurse(tree)
-        return tree
-

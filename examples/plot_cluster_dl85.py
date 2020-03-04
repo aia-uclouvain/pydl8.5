@@ -1,6 +1,6 @@
 """
 ==================================================================================
-DL8.5 default clustering minimizing sum of euclidean distrance from cluster's mean
+DL8.5 default clustering minimizing sum of euclidean distance from cluster's mean
 ==================================================================================
 
 """

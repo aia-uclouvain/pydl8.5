@@ -46,7 +46,7 @@ int Query_Best::printResult ( QueryData_Best *data, int depth, string* out ) {
         if (predictor_error_callback != nullptr)
             *out += "{\"value\": \"undefined\", \"error\": " + std::to_string(data->error);
         else
-            *out += "{\"class\": " + std::to_string(data->test) + ", \"error\": " + std::to_string(data->error);
+            *out += "{\"value\": " + std::to_string(data->test) + ", \"error\": " + std::to_string(data->error);
         return depth;
     }
     else {

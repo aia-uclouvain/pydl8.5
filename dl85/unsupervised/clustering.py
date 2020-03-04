@@ -1,13 +1,11 @@
-from sklearn.base import BaseEstimator, ClusterMixin
-from sklearn.utils.validation import assert_all_finite, check_array, check_is_fitted
+from sklearn.base import ClusterMixin
+from sklearn.utils.validation import assert_all_finite, check_array
 from sklearn.neighbors import DistanceMetric
-from ..errors.errors import SearchFailedError, TreeNotFoundError
-from sklearn.exceptions import NotFittedError
 from ..predictors.predictor import DL85Predictor
 import numpy as np
 
 
-class DL85Cluster(DL85Predictor, BaseEstimator, ClusterMixin):
+class DL85Cluster(DL85Predictor, ClusterMixin):
     """ An optimal binary decision tree classifier.
 
     Parameters
@@ -69,28 +67,29 @@ class DL85Cluster(DL85Predictor, BaseEstimator, ClusterMixin):
             stop_after_better=False,
             time_limit=0,
             verbose=False,
-            # desc_sort_function=None,
-            # asc_sort_function=None,
+            desc=False,
+            asc=False,
             repeat_sort=False,
             leaf_value_function=None,
             nps=False,
             print_output=False):
 
         DL85Predictor.__init__(self,
-                               max_depth,
-                               min_sup,
-                               error_function,
-                               iterative,
-                               max_error,
-                               stop_after_better,
-                               time_limit,
-                               verbose,
-                               None,
-                               None,
-                               repeat_sort,
-                               leaf_value_function,
-                               nps,
-                               print_output)
+                               max_depth=max_depth,
+                               min_sup=min_sup,
+                               error_function=error_function,
+                               fast_error_function=None,
+                               iterative=iterative,
+                               max_error=max_error,
+                               stop_after_better=stop_after_better,
+                               time_limit=time_limit,
+                               verbose=verbose,
+                               desc=desc,
+                               asc=asc,
+                               repeat_sort=repeat_sort,
+                               leaf_value_function=leaf_value_function,
+                               nps=nps,
+                               print_output=print_output)
 
     @staticmethod
     def default_error(tids, X):
@@ -98,15 +97,11 @@ class DL85Cluster(DL85Predictor, BaseEstimator, ClusterMixin):
         X_subset = np.asarray([X[index, :] for index in list(tids)], dtype='int32')
         centroid = np.mean(X_subset, axis=0).reshape(1, X_subset.shape[1])
         distances = [dist.pairwise(instance.reshape(1, X_subset.shape[1]), centroid)[0, 0] for instance in X_subset]
-        return sum(distances)
+        return round(sum(distances), 2)
 
     @staticmethod
     def default_leaf_value(tids, X):
-        return np.mean(X.take(list(tids)))
-
-    def _more_tags(self):
-        return {'X_types': 'categorical',
-                'allow_nan': False}
+        return round(np.mean(X.take(list(tids))), 2)
 
     def fit(self, X, X_error=None):
         """Implements the standard fitting function for a DL8.5 classifier.
@@ -123,10 +118,6 @@ class DL85Cluster(DL85Predictor, BaseEstimator, ClusterMixin):
         self : object
             Returns self.
         """
-
-        # Check that X has correct shape and raise ValueError if not
-        assert_all_finite(X)
-        X = check_array(X, dtype='int32')
 
         # Check that X_error has correct shape and raise ValueError if not
         if X_error is not None:
@@ -152,8 +143,8 @@ class DL85Cluster(DL85Predictor, BaseEstimator, ClusterMixin):
                     raise ValueError("X_error does not have the same number of rows as X")
 
         # call fit method of the predictor
-        self.predictor_fit(X)
-        #print(self.tree_)
+        DL85Predictor.fit(self, X)
+        # print(self.tree_)
 
         # Return the classifier
         return self
@@ -173,22 +164,7 @@ class DL85Cluster(DL85Predictor, BaseEstimator, ClusterMixin):
             seen during fit.
         """
 
-        # Check is fit had been called
-        # check_is_fitted(self, attributes='tree_') # use of attributes is deprecated. alternative solution is below
-
-        if hasattr(self, 'sol_size') is False:  # actually this case is not possible.
-            raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
-
-        if self.tree_ is None:
-            raise TreeNotFoundError("predict(): ", "Tree not found during training by DL8.5")
-
-        if hasattr(self, 'tree_') is False:  # normally this case is not possible.
-            raise SearchFailedError("PredictionError: ", "DL8.5 training has failed. Please contact the developers if the problem is in the scope claimed by the tool.")
-
-        # Input validation
-        X = check_array(X)
-
-        self.y_ = self.predictor_predict(X)
+        DL85Predictor.predict(self, X)
 
         return self.y_
 

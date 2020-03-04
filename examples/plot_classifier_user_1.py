@@ -1,8 +1,7 @@
 """
-========================================================================
-DL8.5 classifier : user specific error function based on transactions ID
-========================================================================
-
+===========================================================================
+DL8.5 classifier : user specific error function based on supports per class
+===========================================================================
 """
 import numpy as np
 from sklearn.metrics import confusion_matrix
@@ -20,18 +19,19 @@ y = y.astype('int32')
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
 
-print("##############################################################\n"
-      "#      DL8.5 classifier : user specific error function       #\n"
-      "##############################################################")
+print("##########################################################################################\n"
+      "#      DL8.5 classifier : user specific error function based on supports per class       #\n"
+      "##########################################################################################")
 
 
-def error(tids, y):
-    classes, supports = np.unique(y.take(list(tids)), return_counts=True)
+# return the error and the majority class
+def error(sup_iter):
+    supports = list(sup_iter)
     maxindex = np.argmax(supports)
-    return sum(supports) - supports[maxindex], classes[maxindex]
+    return sum(supports) - supports[maxindex], maxindex
 
 
-clf = DL85Classifier(max_depth=2, error_function=lambda tids: error(tids, y_train), time_limit=600)
+clf = DL85Classifier(max_depth=2, fast_error_function=error, time_limit=600)
 start = time.perf_counter()
 print("Model building...")
 clf.fit(X_train, y_train)
