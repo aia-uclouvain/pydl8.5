@@ -46,7 +46,8 @@ string search(//std::function<float(Array<int>::iterator)> callback,
               bool save,
               bool nps_param,
               bool verbose_param,
-              bool predict) {
+              bool predict,
+              float alpha) {
 
     clock_t t = clock();
 
@@ -75,7 +76,10 @@ string search(//std::function<float(Array<int>::iterator)> callback,
 
     //create error object and initialize it in the next
     ExpError *experror;
-    experror = new ExpError_Zero;
+    if (alpha == 0.0)
+        experror = new ExpError_Zero;
+    else
+        experror = new ExpError_Alpha(alpha);
 
     if (maxError <= 0)
         query = new Query_TotalFreq(trie, dataReader, experror, timeLimit, continuousMap, error_callback_pointer, fast_error_callback_pointer, predictor_error_callback_pointer);

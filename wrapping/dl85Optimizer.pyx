@@ -44,7 +44,8 @@ cdef extern from "src/headers/dl85.h":
                     bool save,
                     bool nps_param,
                     bool verbose_param,
-                    bool predict) except +
+                    bool predict,
+                    float alpha) except +
 
 cdef extern from "src/headers/py_error_function_wrapper.h":
     cdef cppclass PyErrorWrapper:
@@ -74,6 +75,7 @@ def solve(data,
           min_sup=1,
           max_error=0,
           stop_after_better=False,
+          alph=0,
           iterative=False,
           time_limit=0,
           verb=False,
@@ -166,6 +168,7 @@ def solve(data,
                  save = bin_save,
                  nps_param = nps,
                  verbose_param = verb,
-                 predict = predictor)
+                 predict = predictor,
+                 alpha = alph)
 
     return out.decode("utf-8")

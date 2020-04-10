@@ -16,6 +16,7 @@ dl85/unsupervised/old_clustering.py
 dl85/predictors/__pycache__/*
 dl85/predictors/old_predictor.py
 dl85/supervised/classifiers/tests/__pycache__/*
+dl85/feature_selection/__pycache__/*
 dl85/errors/__pycache__/*
 dl85Optimizer.cpython-36m-darwin.so
 .pytest_cache/*

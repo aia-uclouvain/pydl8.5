@@ -117,7 +117,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
 
 
         //<====================== STEP 2 : Case in which we cannot split more =======================>
-        if (((QueryData_Best *) node->data)->leafError == 0) {
+        if (query->canSplit(node->data)) {
             //when leaf error equals 0 all solution parameters have already been stored by initData apart from node error
             ((QueryData_Best *) node->data)->error = ((QueryData_Best *) node->data)->leafError;
             Logger::showMessageAndReturn("l'erreur est nulle. node error = leaf error = ", ((QueryData_Best *) node->data)->error);
@@ -256,21 +256,23 @@ void LcmPruned::run() {
     itemset.size = 0;
     Array<pair<bool, Attribute> > next_attributes(nattributes, 0);
 
-    //int sup[2];
+
     RCover* cover = new RCover(dataReader);
     for (int i = 0; i < nattributes; ++i) {
-        next_attributes.push_back(make_pair(true, i));
+        // next_attributes.push_back(make_pair(true, i));
 
-        /*cover->intersect(i, false);
-        sup[0] = cover->getSupport();
+        int sup_neg = 0;
+        cover->intersect(i, false);
+        sup_neg = cover->getSupport();
         cover->backtrack();
 
+        int sup_pos = 0;
         cover->intersect(i);
-        sup[1] = cover->getSupport();
+        sup_pos = cover->getSupport();
         cover->backtrack();
 
-        if (sup[0] >= query->minsup && sup[1] >= query->minsup)
-            next_attributes.push_back(make_pair(true, i));*/
+        if (sup_neg >= query->minsup && sup_pos >= query->minsup)
+            next_attributes.push_back(make_pair(true, i));
     }
 
     float maxError = NO_ERR;

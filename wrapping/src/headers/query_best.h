@@ -32,6 +32,7 @@ public:
     //virtual Class runResult ( DataManager *data, Transaction transaction );
     //virtual Class runResult ( QueryData_Best *node, DataManager *data, Transaction transaction );
     QueryData_Best *rootBest () const { return (QueryData_Best*) realroot->data; }
+    ExpError * getExp(){ return experror;}
 protected:
     int printResult ( QueryData_Best *node, int depth, string* );
     ExpError *experror;

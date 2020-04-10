@@ -1,5 +1,6 @@
 #include "query_totalfreq.h"
 #include "trie.h"
+#include "experror.h"
 #include <iostream>
 
 Query_TotalFreq::Query_TotalFreq(Trie *trie,DataManager *data, ExpError *experror, int timeLimit, bool continuous,
@@ -30,6 +31,15 @@ bool Query_TotalFreq::is_pure(pair <Supports, Support> supports) {
     return ((long int) minsup - (long int) (supports.second - majnum)) > (long int) secmajnum;
 }
 
+bool Query_TotalFreq::canSplit(QueryData * node_data){
+    if (experror->getExpErrorType() == Alpha){
+        return ((QueryData_Best *) node_data)->leafError - ((ExpError_Alpha *)experror)->alpha == 0;
+    }
+    else if (experror->getExpErrorType() == Zero){
+        return ((QueryData_Best *) node_data)->leafError == 0;
+    }
+}
+
 bool Query_TotalFreq::updateData(QueryData *best, Error upperBound, Attribute attribute, QueryData *left, QueryData *right) {
     QueryData_Best *best2 = (QueryData_Best *) best, *left2 = (QueryData_Best *) left, *right2 = (QueryData_Best *) right;
     Error error = left2->error + right2->error;
@@ -40,6 +50,7 @@ bool Query_TotalFreq::updateData(QueryData *best, Error upperBound, Attribute at
         best2->right = right2;
         best2->size = size;
         best2->test = attribute;
+        best2->lowerBound = left2->lowerBound + right2->lowerBound;
         return true;
     }
     return false;
@@ -117,8 +128,8 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Error parent_ub, Support min
     data2->test = maxclass;
     data2->left = data2->right = NULL;
     data2->leafError = error;
+    data2->leafError += experror->addError(cover->getSupport(), data2->leafError, data->getNTransactions());
     data2->error = FLT_MAX;
-    data2->error += experror->addError(cover->getSupport(), data2->error, data->getNTransactions());
     data2->size = 1;
     data2->initUb = parent_ub;
     data2->solutionDepth = currentMaxDepth;
@@ -127,6 +138,9 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Error parent_ub, Support min
 //    if (minclassval != -1 && nclasses == 2 && minsup > minclassval)
 //        lowerb = min(minclassval, minsup - minclassval);// minsup - maxclassval;
     data2->lowerBound = lowerb;
+    if (experror->getExpErrorType() == Alpha){
+        data2->lowerBound += ((ExpError_Alpha *)experror)->alpha;
+    }
 
     return (QueryData *) data2;
 }

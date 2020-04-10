@@ -36,8 +36,7 @@ ExpError_C45::ExpError_C45 ( float CF ):ExpError (), CF ( CF ) {
   i = 0;
   while ( CF > Val[i] ) i++;
 
-  Coeff = Dev[i-1] +
-      (Dev[i] - Dev[i-1]) * (CF - Val[i-1]) /(Val[i] - Val[i-1]);
+  Coeff = Dev[i-1] + (Dev[i] - Dev[i-1]) * (CF - Val[i-1]) /(Val[i] - Val[i-1]);
   Coeff = Coeff * Coeff;
 }
 

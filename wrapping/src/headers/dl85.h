@@ -42,6 +42,7 @@ string search (//std::function<float(int*)> callback,
         bool save = false,
         bool nps_param = false,
         bool verbose_param = false,
-        bool predict = false);
+        bool predict = false,
+        float alpha = 0.0);
 
 #endif //DL85_DL85_H

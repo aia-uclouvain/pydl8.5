@@ -68,6 +68,7 @@ class DL85Predictor(BaseEstimator):
             iterative=False,
             max_error=0,
             stop_after_better=False,
+            alpha=0,
             time_limit=0,
             verbose=False,
             desc=False,
@@ -91,12 +92,13 @@ class DL85Predictor(BaseEstimator):
         self.leaf_value_function = leaf_value_function
         self.nps = nps
         self.print_output = print_output
+        self.alpha = alpha
 
     def _more_tags(self):
         return {'X_types': 'categorical',
                 'allow_nan': False}
 
-    def fit(self, X, y=None):
+    def fit(self, X, y=None, feature_indexes=None):
         """Implements the standard fitting function for a DL8.5 classifier.
 
         Parameters
@@ -111,6 +113,10 @@ class DL85Predictor(BaseEstimator):
         self : object
             Returns self.
         """
+        self.feature_indexes = feature_indexes
+        if self.feature_indexes is not None and len(self.feature_indexes) != X.shape[1]:
+            print("The size of feature_indexes does not correspond to number of features in the dataset. It won't be taken into account. Your prediction can be impacted.")
+            self.feature_indexes = None
 
         target_is_need = True if y is not None else False
         opt_func = self.error_function
@@ -135,6 +141,22 @@ class DL85Predictor(BaseEstimator):
 
         # sys.path.insert(0, "../../")
         import dl85Optimizer
+        # print("func=", opt_func)
+        # print("fast_func=", opt_fast_func)
+        # print("predictor_func=", opt_pred_func)
+        # print("max_depth=", self.max_depth)
+        # print("min_sup=", self.min_sup)
+        # print("max_error=", self.max_error)
+        # print("stop_after_better=", self.stop_after_better)
+        # print("iterative=", self.iterative)
+        # print("time_limit=", self.time_limit)
+        # print("verb=", self.verbose)
+        # print("desc=", self.desc)
+        # print("asc=", self.asc)
+        # print("repeat_sort=", self.repeat_sort)
+        # print("bin_save=", False)
+        # print("nps=", self.nps)
+        # print("predictor=", predict)
         solution = dl85Optimizer.solve(data=X,
                                        target=y,
                                        func=opt_func,
@@ -144,6 +166,7 @@ class DL85Predictor(BaseEstimator):
                                        min_sup=self.min_sup,
                                        max_error=self.max_error,
                                        stop_after_better=self.stop_after_better,
+                                       alph=self.alpha,
                                        iterative=self.iterative,
                                        time_limit=self.time_limit,
                                        verb=self.verbose,
@@ -227,10 +250,13 @@ class DL85Predictor(BaseEstimator):
                 self.runtime_ = float(solution[4].split(" ")[1])
                 self.timeout_ = True
 
+        if self.feature_indexes is not None:
+            self.add_leaves_transactions(X)
         if target_is_need is False:
             if hasattr(self, 'tree_'):
-                # add transactions to nodes of the tree
-                self.tree_dfs(X)
+                # add transactions to leaf nodes of the tree if it not done during feature indexes correction
+                if self.feature_indexes is None:
+                    self.add_leaves_transactions(X)
 
                 if self.leaf_value_function is not None:
                     def search(node):
@@ -244,14 +270,15 @@ class DL85Predictor(BaseEstimator):
 
         if self.print_output:
             print(solution[0])
-            if target_is_need:
-                print("Tree:", self.tree_)
-            else:
-                print("Tree:", self.tree_without_transactions())
+            # if target_is_need:
+            #     print("Tree:", self.tree_)
+            # else:
+            print("Tree:", self.get_tree_without_transactions())
             print("Size:", str(self.size_))
             print("Depth:", str(self.depth_))
             print("Error:", str(self.error_))
-            # print("Accuracy:", str(self.accuracy_))
+            if target_is_need:
+                print("Accuracy:", str(self.accuracy_))
             print("LatticeSize:", str(self.lattice_size_))
             print("Runtime:", str(self.runtime_))
             print("Timeout:", str(self.timeout_))
@@ -281,12 +308,10 @@ class DL85Predictor(BaseEstimator):
             raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
 
         if self.tree_ is None:
-            raise TreeNotFoundError("predict(): ", "Tree not found during training by DL8.5 - "
-                                                   "Check fitting message for more info.")
+            raise TreeNotFoundError("predict(): ", "Tree not found during training by DL8.5 - Check fitting message for more info.")
 
         if hasattr(self, 'tree_') is False:  # normally this case is not possible.
-            raise SearchFailedError("PredictionError: ", "DL8.5 training has failed. Please contact the developers "
-                                                         "if the problem is in the scope supported by the tool.")
+            raise SearchFailedError("PredictionError: ", "DL8.5 training has failed. Please contact the developers if the problem is in the scope supported by the tool.")
 
         # Input validation
         X = check_array(X)
@@ -309,17 +334,20 @@ class DL85Predictor(BaseEstimator):
 
     @staticmethod
     def is_leaf_node(node):
-        names = [x[0] for x in node.items()]
-        return 'error' in names
+        # names = [x[0] for x in node.items()]
+        return 'error' in node.keys()
 
-    def tree_dfs(self, X):  # explore the decision tree found and add transactions to leaf nodes.
-        def recurse(transactions, node, feature, positive):
+    def add_leaves_transactions(self, X):  # explore the decision tree found and add transactions to leaf nodes.
+        def recurse(feature_indexes, transactions, node, feature, positive):
             if transactions is None:
                 current_transactions = list(range(0, X.shape[0]))
-                node['transactions'] = current_transactions
+                if 'error' in node.keys():
+                    node['transactions'] = current_transactions
                 if 'feat' in node.keys():
-                    recurse(current_transactions, node['left'], node['feat'], True)
-                    recurse(current_transactions, node['right'], node['feat'], False)
+                    recurse(feature_indexes, current_transactions, node['left'], node['feat'], True)
+                    recurse(feature_indexes, current_transactions, node['right'], node['feat'], False)
+                    if feature_indexes is not None:
+                        node['feat'] = feature_indexes[node['feat']]
             else:
                 feature_vector = X[:, feature]
                 feature_vector = feature_vector.astype('int32')
@@ -327,30 +355,36 @@ class DL85Predictor(BaseEstimator):
                     positive_vector = np.where(feature_vector == 1)[0]
                     positive_vector = positive_vector.tolist()
                     current_transactions = set(transactions).intersection(positive_vector)
-                    node['transactions'] = list(current_transactions)
+                    if 'error' in node.keys():
+                        node['transactions'] = list(current_transactions)
                     if 'feat' in node.keys():
-                        recurse(current_transactions, node['left'], node['feat'], True)
-                        recurse(current_transactions, node['right'], node['feat'], False)
+                        recurse(feature_indexes, current_transactions, node['left'], node['feat'], True)
+                        recurse(feature_indexes, current_transactions, node['right'], node['feat'], False)
+                        if feature_indexes is not None:
+                            node['feat'] = feature_indexes[node['feat']]
                 else:
                     negative_vector = np.where(feature_vector == 0)[0]
                     negative_vector = negative_vector.tolist()
                     current_transactions = set(transactions).intersection(negative_vector)
-                    node['transactions'] = list(current_transactions)
+                    if 'error' in node.keys():
+                        node['transactions'] = list(current_transactions)
                     if 'feat' in node.keys():
-                        recurse(current_transactions, node['left'], node['feat'], True)
-                        recurse(current_transactions, node['right'], node['feat'], False)
+                        recurse(feature_indexes, current_transactions, node['left'], node['feat'], True)
+                        recurse(feature_indexes, current_transactions, node['right'], node['feat'], False)
+                        if feature_indexes is not None:
+                            node['feat'] = feature_indexes[node['feat']]
 
         root_node = self.tree_
-        recurse(None, root_node, None, None)
+        recurse(self.feature_indexes, None, root_node, None, None)
 
-    def tree_without_transactions(self):
+    def get_tree_without_transactions(self):
 
         def recurse(node):
-            if 'feat' in node.keys() or 'value' in node.keys():
+            if 'error' in node.keys() and 'transactions' in node.keys():
                 del node['transactions']
-                if 'left' in node.keys():
-                    recurse(node['left'])
-                    recurse(node['right'])
+            else:
+                recurse(node['left'])
+                recurse(node['right'])
 
         tree = dict(self.tree_)
         recurse(tree)

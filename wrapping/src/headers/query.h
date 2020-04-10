@@ -25,6 +25,7 @@ public:
     virtual ~Query();
     virtual bool is_freq ( pair<Supports,Support> supports ) = 0;
     virtual bool is_pure ( pair<Supports,Support> supports ) = 0;
+    virtual bool canSplit(QueryData * node_data) = 0;
     virtual bool canimprove ( QueryData *left, Error ub ) = 0;
     virtual bool canSkip ( QueryData *actualBest ) = 0;
     //virtual QueryData *initData ( Array<Transaction> tid, Error parent_ub, Support minsup, Depth currentMaxDepth = -1) = 0;

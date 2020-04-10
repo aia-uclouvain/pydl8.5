@@ -13,6 +13,7 @@ public:
     bool is_pure ( pair<Supports,Support> supports );
     bool updateData ( QueryData *best, Error upperBound, Attribute attribute, QueryData *left, QueryData *right);
     QueryData *initData ( RCover* tid, Error initBound, Support minsup, Depth currentMaxDepth = -1);
+    bool canSplit(QueryData * node_data);
     //QueryData *initData ( Array<Transaction> tid, Error initBound, Support minsup, Depth currentMaxDepth = -1);
     void printAccuracy ( DataManager *data2, QueryData_Best *data, string* );
 protected:

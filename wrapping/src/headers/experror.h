@@ -2,7 +2,7 @@
 #define EXPERROR_H
 #include "globals.h"
 
-enum ExpErrorType { Zero, C45, J48, Half };
+enum ExpErrorType { Zero, C45, J48, Half, Alpha };
 
 
 class ExpError{
@@ -53,6 +53,15 @@ public:
     
     ExpErrorType getExpErrorType () { return Half; }
     Error addError ( Support total, Error error, Support datasize ){ return 0.5; }
+};
+
+class ExpError_Alpha:public ExpError {
+public:
+    ExpError_Alpha (float alpha):ExpError (), alpha(alpha) {}
+
+    ExpErrorType getExpErrorType () { return Alpha; }
+    Error addError ( Support total, Error error, Support datasize ){ return alpha; }
+    float alpha;
 };
 
 #endif
