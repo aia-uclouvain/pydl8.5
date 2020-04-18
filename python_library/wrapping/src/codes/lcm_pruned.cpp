@@ -38,13 +38,15 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
     }
 
     Array<Item> itemset;
-    itemset.alloc(itemset_.size + 1);
 
-    if (added != NO_ITEM)
+    if (added != NO_ITEM){
+        itemset.alloc(itemset_.size + 1);
         addItem(itemset_, added, itemset);
-    else
-        forEach(i, itemset_)
-            itemset[i] = itemset_[i];
+    }
+    else{
+        itemset.size = 0;
+        itemset.elts = nullptr;
+    }
 
     Logger::showMessage("\nitemset avant ajout : ");
     printItemset(itemset_);
