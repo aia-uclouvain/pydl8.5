@@ -36,3 +36,6 @@ Release v0.0.11
 
 Release v0.0.12
 - fix memory leaks
+
+Release v0.0.13
+- fix empty itemset allocation
