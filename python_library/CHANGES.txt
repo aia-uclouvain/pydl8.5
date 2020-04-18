@@ -27,3 +27,12 @@ Release v0.0.8
 
 Release v0.0.9
 - fix bug on upper bound
+
+Release v0.0.10
+- readme modif
+
+Release v0.0.11
+- change structure of the package
+
+Release v0.0.12
+- fix memory leaks
