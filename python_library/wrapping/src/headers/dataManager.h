@@ -21,7 +21,13 @@ public:
     DataManager(int* supports, int ntransactions, int nattributes, int nclasses, int *b, int *c);
 
     ~DataManager(){
+        for (int i = 0; i < nattributes; ++i) {
+            delete[] b[i];
+        }
         delete[]b;
+        for (int j = 0; j < nclasses; ++j) {
+            delete[] c[j];
+        }
         delete[]c;
     }
 

@@ -9,9 +9,8 @@
 
 DataManager::DataManager(int* supports, int ntransactions, int nattributes, int nclasses, int *data, int *target):supports(supports), ntransactions(ntransactions), nattributes(nattributes), nclasses(nclasses) {
     nWords = (int)ceil((float)ntransactions/M);
-    bitset<M> * t = (bitset<M> *)malloc(nWords * sizeof(bitset<M>));
-    b = (bitset<M> **)malloc(nattributes * sizeof(t));
-    c = (bitset<M> **)malloc(nclasses * sizeof(t));
+    b = new bitset<M> *[nattributes];
+    c = new bitset<M> *[nclasses];
 
     for (int i = 0; i < nattributes; i++){
         bitset<M> * attrCov = new bitset<M>[nWords];

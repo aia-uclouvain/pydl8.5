@@ -43,7 +43,8 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
     if (added != NO_ITEM)
         addItem(itemset_, added, itemset);
     else
-        itemset = itemset_;
+        forEach(i, itemset_)
+            itemset[i] = itemset_[i];
 
     Logger::showMessage("\nitemset avant ajout : ");
     printItemset(itemset_);
@@ -64,17 +65,20 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
 
         if (*nodeError < FLT_MAX) { //if( nodeError != FLT_MAX ) best solution has been already found
             Logger::showMessageAndReturn("solution avait été trouvée et vaut : ", *nodeError);
+            itemset.free();
             return node;
         }
 
         if (!nps)
             if (initUb <= storedInitUb) { //solution has not been found last time but the result is the same for this time
                 Logger::showMessageAndReturn("y'avait pas de solution mais c'est pareil cette fois-ci. Ancien init =", storedInitUb, " et nouveau = ", initUb);
+                itemset.free();
                 return node;
             }
 
         if (leafError == 0) { // if we have a node already visited with lErr = 0, we can return the last solution
             Logger::showMessageAndReturn("l'erreur est nulle");
+            itemset.free();
             return node;
         }
 
@@ -88,6 +92,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
                 *nodeError = leafError;
                 Logger::showMessageAndReturn("on retourne leaf error = ", leafError);
             }
+            itemset.free();
             return node;
         }
     }
@@ -121,6 +126,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
             //when leaf error equals 0 all solution parameters have already been stored by initData apart from node error
             ((QueryData_Best *) node->data)->error = ((QueryData_Best *) node->data)->leafError;
             Logger::showMessageAndReturn("l'erreur est nulle. node error = leaf error = ", ((QueryData_Best *) node->data)->error);
+            itemset.free();
             return node;
         }
 
@@ -133,11 +139,13 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
                 ((QueryData_Best *) node->data)->error = FLT_MAX;
                 Logger::showMessageAndReturn("pas de solution");
             }
+            itemset.free();
             return node;
         }
 
         if (query->timeLimitReached) {
             ((QueryData_Best *) node->data)->error = ((QueryData_Best *) node->data)->leafError;
+            itemset.free();
             return node;
         }
         //<====================================  END STEP  ==========================================>
@@ -158,6 +166,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
         if (query->timeLimitReached) {
             if (((QueryData_Best *) node->data)->error == FLT_MAX)
                 ((QueryData_Best *) node->data)->error = ((QueryData_Best *) node->data)->leafError;
+            itemset.free();
             return node;
         }
 
@@ -243,8 +252,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
 
 
     next_attributes.free();
-    if (itemset.size > 0)
-        itemset.free();
+    itemset.free();
 
     return node;
 }
@@ -325,6 +333,7 @@ Array<pair<bool, Attribute> > LcmPruned::getSuccessors(Array<pair<bool, Attribut
     pair<Supports, Support> supports[2];
     map<int, unordered_set<int, Hash >> control;
     map<int, unordered_map<int, pair<int, float>, Hash>> controle;
+    bool to_delete = false;
 
     forEach (i, current_attributes) {
         if (item_attribute (added) == current_attributes[i].second)
@@ -344,6 +353,7 @@ Array<pair<bool, Attribute> > LcmPruned::getSuccessors(Array<pair<bool, Attribut
             }
             else{ // fast or default
 
+                to_delete = true;
                 current_cover->intersect(current_attributes[i].second, false);
                 supports[0] = current_cover->getSupportPerClass();
                 current_cover->backtrack();
@@ -409,6 +419,10 @@ Array<pair<bool, Attribute> > LcmPruned::getSuccessors(Array<pair<bool, Attribut
                 else a_attributes2.push_back(make_pair(false, current_attributes[i].second));
             }*/
 
+            if (to_delete){
+                deleteSupports(supports[0].first);
+                deleteSupports(supports[1].first);
+            }
         }
         /*else {
             if (infoGain)
@@ -435,9 +449,6 @@ Array<pair<bool, Attribute> > LcmPruned::getSuccessors(Array<pair<bool, Attribut
     }
     if (!allDepths)
         infoGain = false;
-
-    deleteSupports(supports[0].first);
-    deleteSupports(supports[1].first);
 
     return a_attributes2;
 
