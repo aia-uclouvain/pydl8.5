@@ -39,3 +39,6 @@ Release v0.0.12
 
 Release v0.0.13
 - fix empty itemset allocation
+
+Release v0.0.14
+- add support of user error function with non-int predicted value
