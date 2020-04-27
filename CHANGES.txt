@@ -41,4 +41,7 @@ Release v0.0.13
 - fix empty itemset allocation
 
 Release v0.0.14
-- add support of user error function with non-int predicted value
+- task with target : add support of user error function with non-int predicted value
+
+Release v0.0.15
+- task without target : support simple syntax for user error function with int predicted value
