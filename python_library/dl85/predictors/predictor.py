@@ -121,9 +121,12 @@ class DL85Predictor(BaseEstimator):
         if target_is_need:  # target-needed tasks (eg: classification, regression, etc.)
             # Check that X and y have correct shape and raise ValueError if not
             X, y = check_X_y(X, y, dtype='int32')
-            opt_pred_func = None
-            self.leaf_value_function = None
-            predict = False
+            if self.leaf_value_function is None:
+                opt_pred_func = None
+                predict = False
+            else:
+                opt_func = None
+                opt_fast_func = None
             # if opt_func is None and opt_pred_func is None:
             #     print("No optimization criterion defined. Misclassification error is used by default.")
         else:  # target-less tasks (clustering, etc.)
@@ -227,7 +230,7 @@ class DL85Predictor(BaseEstimator):
                 self.runtime_ = float(solution[4].split(" ")[1])
                 self.timeout_ = True
 
-        if target_is_need is False:
+        if self.leaf_value_function is not None:
             if hasattr(self, 'tree_'):
                 # add transactions to nodes of the tree
                 self.tree_dfs(X)
@@ -244,7 +247,7 @@ class DL85Predictor(BaseEstimator):
 
         if self.print_output:
             print(solution[0])
-            if target_is_need:
+            if self.leaf_value_function is None:
                 print("Tree:", self.tree_)
             else:
                 print("Tree:", self.tree_without_transactions())
