@@ -133,8 +133,12 @@ class DL85Predictor(BaseEstimator):
             # Check that X has correct shape and raise ValueError if not
             assert_all_finite(X)
             X = check_array(X, dtype='int32')
-            opt_func = None
-            opt_fast_func = None
+            if self.leaf_value_function is None:
+                opt_pred_func = None
+                predict = False
+            else:
+                opt_func = None
+                opt_fast_func = None
 
         # sys.path.insert(0, "../../")
         import dl85Optimizer
