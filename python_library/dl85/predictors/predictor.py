@@ -26,9 +26,9 @@ class DL85Predictor(BaseEstimator):
         Allocated time in second(s) for the search. Default value stands for no limit. The best tree found within the time limit is stored, if this tree is better than max_error.
     verbose : bool, default=False
         A parameter used to switch on/off the print of what happens during the search
-    desc_sort_function : function, default=None
+    desc : function, default=None
         A parameter used to indicate heuristic function used to sort the items in descending order
-    asc_sort_function : function, default=None
+    asc : function, default=None
         A parameter used to indicate heuristic function used to sort the items in ascending order
     repeat_sort : bool, default=False
         A parameter used to indicate whether the heuristic sort will be applied at each level of the lattice or only at the root
