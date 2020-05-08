@@ -119,7 +119,7 @@ other optimisation criteria than error.
 An example of another type of decision tree is the Predictive Clustering tree. In a Predictive Clustering tree
 the leafs of the tree correspond to clusters in the unlabeled training data. The quality of the tree 
 is determined by the quality of the clusters in the leafs of the tree. Standard measures can be used to
-evaluate the quality of the clusters, such as `within-cluster sum of squares  <https://en.wikipedia.org/wiki/K-means_clustering>`. The predictions in the leafs of the tree then correspond to the centroids of the clusters.
+evaluate the quality of the clusters, such as `within-cluster sum of squares  <https://en.wikipedia.org/wiki/K-means_clustering>`_. The predictions in the leafs of the tree then correspond to the centroids of the clusters.
 
 Using DL8.5's ``DL85Predictor`` class, this clustering task can be solved by specifying an error function 
 that evaluates the quality of clusters in the leafs. The full code is given below::
