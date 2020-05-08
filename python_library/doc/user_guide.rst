@@ -13,13 +13,19 @@ This project implements the DL8.5 algorithm for learning optimal binary decision
 and provides a Python interface for this algorithm. 
 Examples of decision trees are classification trees and regression trees. 
 Classification trees are predictors in which the predictions correspond to class labels; 
-regression trees are predictors in which the predictions are numerical.
+regression trees are predictors in which the predictions are numerical. 
+
+An explicit aim of this library is to make it easy to specify and solve many different types of 
+decision tree learning problems, including, but not limited to, classification trees.
 
 Decision trees are traditionally learned using heuristic algorithms, such as CART and C4.5.
 However, due to the heuristic nature of these algorithms, the trees learned using them can be larger than 
 necessary; this may make the resulting trees less interpretable. Trees found by DL8.5 are optimal on training data,
 that is, no better tree can be found under user-specified constraints that aim to make the resulting
 trees both interpretable and accurate.
+
+Moreover, given that in DL8.5 it is not necessary to specify a heuristic, solving other learning problems 
+than classification problems potentially becomes simpler.
 
 Please note that trees that that are accurate on training data, may not always perform good on test data. To avoid 
 problems with overfitting, it is recommended to run DL8.5 using carefully chosen constraints, as specified below. Moreover,
