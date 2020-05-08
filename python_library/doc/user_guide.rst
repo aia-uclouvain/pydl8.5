@@ -9,20 +9,20 @@ User guide: Using DL8.5
 Optimal Decision Trees
 ----------------------
 
-This project implements the DL8.5 algorithm for learning optimal binary decision trees, 
+This library implements the DL8.5 algorithm for learning optimal binary decision trees
 and provides a Python interface for this algorithm. 
-Examples of decision trees are classification trees and regression trees. 
-Classification trees are predictors in which the predictions correspond to class labels; 
-regression trees are predictors in which the predictions are numerical. 
+
+An example of decision trees are classification trees. 
+Classification trees are predictors in which the predictions correspond to class labels.
+A tree is considered optimal on training data if no tree can be found that scores better on the given training data. 
 
 An explicit aim of this library is to make it easy to specify and solve many different types of 
 decision tree learning problems, including, but not limited to, classification trees.
 
 Decision trees are traditionally learned using heuristic algorithms, such as CART and C4.5.
 However, due to the heuristic nature of these algorithms, the trees learned using them can be larger than 
-necessary; this may make the resulting trees less interpretable. Trees found by DL8.5 are optimal on training data,
-that is, no better tree can be found under user-specified constraints that aim to make the resulting
-trees both interpretable and accurate.
+necessary; this may make the resulting trees less interpretable. Trees found by DL8.5 are optimal under
+ constraints  that aim to make the resulting trees both interpretable and accurate. 
 
 Moreover, given that in DL8.5 it is not necessary to specify a heuristic, solving other learning problems 
 than classification problems potentially becomes simpler.
@@ -39,6 +39,26 @@ Classifiers
 Decision tree classifiers are learned using the class ``DL85Classifier``. 
 ``DL85Classifier`` is a scikit-learn compatible classifier and can be used as a scikit-learn
 classifier. It inherits from :class:`sklearn.base.BaseEstimator` and reimplements the methods ``fit`` and ``predict``.
+
+The following code illustrates how to use DL8.5 in its most basic setting::
+
+    import numpy as np
+    from sklearn.model_selection import train_test_split
+    from dl85 import DL85Classifier 
+
+    dataset = np.genfromtext("anneal.txt", delimiter=" ")
+    X = dataset[:, 1:]
+    y = dataset[:, 0]
+    X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2,random_state=0)
+
+    clf = DL85Classifier(max_depth=3, min_sup=5)
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+
+In this example, we use numpy to read a dataset and scikit-learn to split this dataset in training and test data.
+Subsequently, the DL85Classifier is initialized, where the recommended parameters are specified; a decision tree is learned 
+from the training data, which is applied on the test data.
+
 
 * when the ``fit(X,y)`` method is executed, an optimal decision tree classifier is learned from ``X`` and ``y``, where ``X`` is a set of Boolean training samples and ``y`` is the  vector of target values; the resulting tree is stored in the ``DL85Classifier`` object. For more information on how the results of the learning algorithm are stored, please check the  `API documentation <api.html>`_.
 * when the ``predict(X)`` method is executed, predictions will be computed for the Boolean test samples ``X`` using the tree
@@ -68,24 +88,6 @@ Other parameters that may be useful to tune are:
 .. as input and should return ``self``. It should implement the ``predict``
 .. function which should output the class inferred by the classifier.
 
-The following code illustrates how to use DL8.5 in its most basic setting::
-
-    import numpy as np
-    from sklearn.model_selection import train_test_split
-    from dl85 import DL85Classifier 
-
-    dataset = np.genfromtext("anneal.txt", delimiter=" ")
-    X = dataset[:, 1:]
-    y = dataset[:, 0]
-    X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2,random_state=0)
-
-    clf = DL85Classifier(max_depth=3, min_sup=5)
-    clf.fit(X_train, y_train)
-    y_pred = clf.predict(X_test)
-
-In this example, we use numpy to read a dataset and scikit-learn to split this dataset in training and test data.
-Subsequently, the DL85Classifier is initialized, where the recommended parameters are specified; a decision tree is learned 
-from the training data, which is applied on the test data.
 
 Note that DL8.5 currently only works on boolean data; if the input data is not boolean, the data would have to made boolean first. 
 
