@@ -7,7 +7,7 @@ provides an interface for the implementation of other decision tree learning tas
 The ``DL85Cluster`` class supports a form of predictive clustering. 
  The documentation for these classes is given below. 
 
-.. currentmodule:: dl85.supervised.classifiers
+.. currentmodule:: dl85
 
 Predictors
 ==========
@@ -16,4 +16,7 @@ Predictors
    :toctree: generated/
    :template: class.rst
 
-    DL85Classifier
+    supervised.classifiers.DL85Classifier
+    predictors.predictor.DL85Predictor
+    unsupervised.clustering.DL85Cluster
+
