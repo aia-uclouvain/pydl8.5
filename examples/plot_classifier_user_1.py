@@ -2,6 +2,11 @@
 ===========================================================================
 DL8.5 classifier : user specific error function based on supports per class
 ===========================================================================
+PyDL8.5 allows users to write their own error function for classification tasks. 
+This class shows how to write an error function that operates on supports per class.
+For data that is not supervised, other supervised learning task, the DL85 predictor 
+class should be used; check the plot_classifier_user_2.py and plot_cluster_user.py
+examples.
 """
 import numpy as np
 from sklearn.metrics import confusion_matrix

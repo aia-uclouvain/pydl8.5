@@ -2,7 +2,16 @@
 ========================================================================
 DL8.5 classifier : user specific error function based on transactions ID
 ========================================================================
+PyDL8.5 allows users to write their own error function. This example shows how 
+to write an error function based on transaction identifiers. PyDL8.5 will determine
+these transaction identifiers based on the occurrences of an itemset in the
+training data. 
 
+The error function is called very often, and calculating an error score based
+on tids can be time consuming. For classification tasks, it is highly recommended
+not to write an error function in Python that traverses the tids. 
+check the plot_classifier_user_1.py example for a more efficient user-written
+error function in classification settings.
 """
 import numpy as np
 from sklearn.metrics import confusion_matrix

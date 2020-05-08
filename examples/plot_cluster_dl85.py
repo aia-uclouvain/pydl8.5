@@ -2,7 +2,9 @@
 ===================================
 DL8.5 default predictive clustering
 ===================================
-
+This example illustrates how to use the DL85Cluster class for predictive clustering.
+A second implementation of predictive clustering is provided in the plot_cluster_user.py
+example. 
 """
 import numpy as np
 from sklearn.model_selection import train_test_split

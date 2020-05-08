@@ -2,7 +2,11 @@
 ==========================================
 DL8.5 classifier : native iterative search
 ==========================================
-
+Iterative search is the idea that the algorithm starts with finding an optimal 
+shallow tree, and then uses the quality of this tree to bound the quality of 
+deeper trees. This class shows how to perform this type of search by using 'iterative'
+option of the DL85Classifier class. In this case, an implementation in C++ is used.
+A second implementation is shown in the plot_classifier_iterative_python.py class.
 """
 import numpy as np
 from sklearn.metrics import confusion_matrix
