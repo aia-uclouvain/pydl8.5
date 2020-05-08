@@ -9,7 +9,8 @@ User guide: Using DL8.5
 Optimal Decision Trees
 ----------------------
 
-This project implements the DL8.5 algorithm for learning optimal binary decision trees. 
+This project implements the DL8.5 algorithm for learning optimal binary decision trees, 
+and provides a Python interface for this algorithm. 
 Examples of decision trees are classification trees and regression trees. 
 Classification trees are predictors in which the predictions correspond to class labels; 
 regression trees are predictors in which the predictions are numerical.
@@ -80,6 +81,8 @@ In this example, we use numpy to read a dataset and scikit-learn to split this d
 Subsequently, the DL85Classifier is initialized, where the recommended parameters are specified; a decision tree is learned 
 from the training data, which is applied on the test data.
 
+Note that DL8.5 currently only works on boolean data; if the input data is not boolean, the data would have to made boolean first. 
+
 The following example illustrates how to use our classifier within a scikit-learn pipeline to learn an optimal decision tree classifier::
 
     >>> dataset = np.genfromtxt("binary_dataset.txt", delimiter=' ')
@@ -107,16 +110,100 @@ the accuracy of the classifier::
 Other predictors
 ~~~~~~~~~~~~~~~~
 
-DL8.5 provides an interface that allows other trees than classification trees to be learned, and other scoring functions 
-than training set error to be used. In this case, the user has to implement a new scoring function 
-in Python. Examples of the use of this interface 
-can be found on the page of examples for predictive clustering. 
+Classification trees are one example of decision trees. In their more general form, decision trees
+may also predict other structures in their leafs. To support such other learning tasks, the ``DL85Predictor`` class
+is provided. In contrast to the ``DL85Classifier`` class, the ``DL85Predictor`` class does not require the specification 
+of a vector ``y`` consisting of class labels in the ``fit`` function, and allows for the specification of 
+other optimisation criteria than error.
 
-Note 1: As regression trees are a special case
-of predictive clustering trees, this interface can also be used for regression.
+An example of another type of decision tree is the Predictive Clustering tree. In a Predictive Clustering tree
+the leafs of the tree correspond to clusters in the unlabeled training data. The quality of the tree 
+is determined by the quality of the clusters in the leafs of the tree. Standard measures can be used to
+evaluate the quality of the clusters, such as `within-cluster sum of squares  <https://en.wikipedia.org/wiki/K-means_clustering>`. The predictions in the leafs of the tree then correspond to the centroids of the clusters.
 
-Note 2: While we decided to make this preliminary interface publicly available already, 
-it may still change in the future 
-to make it easier to use. For this reason, the documentation of this interface is currently still short.
+Using DL8.5's ``DL85Predictor`` class, this clustering task can be solved by specifying an error function 
+that evaluates the quality of clusters in the leafs. The full code is given below::
+
+    import numpy as np
+    from sklearn.neighbors import DistanceMetric
+    from dl85 import DL85Predictor
+
+    dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')
+    X = dataset[:, 1:]
+    X = X.astype('int32')
+
+    eucl_dist = DistanceMetric.get_metric('euclidean')
+
+    def error(tids):
+        X_subset = X[list(tids),:]
+        centroid = np.mean(X_subset, axis=0)
+        distances = eucl_dist.pairwise(X_subset, [centroid])
+        return float(sum(distances))
+
+    def leaf_value(tids):
+        return np.mean(X.take(list(tids)))
+
+    clf = DL85Predictor(max_depth=3, min_sup=5, error_function=error, leaf_value_function=leaf_value, time_limit=600)
+
+    clf.fit(X)
+    predicted = clf.predict(X)
+
+The ``error`` function in this example has one argument ``tids``. The ``DL85Predictor`` class will call 
+this function for each candidate leaf, where ``tids`` lists the identifiers of the training examples that would be part of that leaf. The ``error`` function in this example calculates the mean of the training examples in this list,
+and then calculates the euclidian distance of each example in the list towards the mean. The sum of these 
+distance is returned as the score for the candidate leaf.
+
+The ``DL85Predictor`` class is initialized with the function that needs to be called to evaluate the quality of the 
+leafs. 
+
+Other tree learning tasks can be specified by providing an alternative implementation of the ``error`` function. 
+Note that in this example, the ``fit`` function is called on the matrix ``X``, and the error function also operates
+on the matrix ``X``. This is not necessary; the only required to the error function is that for a given list 
+of row identifiers (coming from the matrix ``X``) it can return a quality score. 
+
+In this example, we call the ``predict`` function. For each example given in the parameter of the ``predict`` function,
+``DL85Predictor`` will traverse the tree to determine the prediction specified in the corresponding leaf of the tree. 
+This prediction is provided by the ``leaf_value`` function. The ``leaf_value`` function will be called at the 
+end of the training process to fill in the predictions in the leafs. Also this function will receive a list of 
+identifiers in the training data ``X`` in order to calculate the prediction. In this example, the prediction 
+corresponds to the mean.
+
+In principle, classification trees can also be learned using the ``DL85Predictor`` class. The following
+error function can be used::
+
+    def error(tids):
+        classes, supports = np.unique(y.take(list(tids)), return_counts=True)
+        maxindex = np.argmax(supports)
+        return sum(supports) - supports[maxindex]
+
+Here ``y`` consists of the labels of the examples in ``X``. We use standard NumPy functions to count the 
+number of examples in each class, determine the majority class and finally calculate the error based on this.
+
+However, learning classification trees in this manner is in practice slower than by using the ``DL85Classifier`` class.
+The ``DL85Classifier`` class calculates error using optimized code written in C++, instead of using Python.
+
+For supervised data with class labels, a supplementary interface is provided for writing error functions, illustrated
+in this example::
+
+    def error(sup_iter):
+        supports = list(sup_iter)
+        maxindex = np.argmax(supports)
+        return sum(supports) - supports[maxindex], maxindex
+
+
+    clf = DL85Classifier(max_depth=2, fast_error_function=error, time_limit=600)
+
+In this example, a ``fast_error_function`` is specified. If this function is specified, ``DL85Classifier`` 
+will call the user-specified function with as argument an iterator over  the 
+numbers of examples in each class.
+
+The advantage of this variation is that the calculation of the class distribution is done using optimized C++ code;
+the Python code does not have to traverse the data. Only the final calculation of the score is done in Python.
+This functionality is useful for instance if a different weight should be given to each class.
+
+Finally, we provide a built-in implementation of predictive clustering in the ``DL85Cluster`` class. 
+Using this class, the user does not have to write the example code written above.
+
+
 
 

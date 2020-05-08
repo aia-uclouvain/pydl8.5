@@ -2,10 +2,10 @@
 DL8.5 API
 ####################
 
-This project currently implements the class ``DL85Classifier`` for learning optimal classification trees using the DL8.5 algorithm.
- The documentation for this class is given below. 
- We are working on support for other types of models and documentation for this
- will be added later. A preview of the interface for other models can be found in the examples.
+This project implements the class ``DL85Classifier`` for learning optimal classification trees using the DL8.5 algorithm. Moreover, it provides a ``DL85Predictor`` class that 
+provides an interface for the implementation of other decision tree learning tasks.
+The ``DL85Cluster`` class supports a form of predictive clustering. 
+ The documentation for these classes is given below. 
 
 .. currentmodule:: dl85.supervised.classifiers
 
