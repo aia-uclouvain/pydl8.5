@@ -118,7 +118,8 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
         node->data = query->initData(current_cover, parent_ub, query->minsup);
         //get the upper bound. it will be used for children in for loop
         initUb = ((QueryData_Best *) node->data)->initUb;
-        Logger::showMessageAndReturn("après initialisation du nouveau noeud. parent bound = ", parent_ub," et leaf error = ", ((QueryData_Best *) node->data)->leafError, " init bound = ", initUb);
+        Logger::showMessageAndReturn("après initialisation du nouveau noeud. parent bound = ", parent_ub,
+                " et leaf error = ", ((QueryData_Best *) node->data)->leafError, " init bound = ", initUb);
         //<====================================  END STEP  ==========================================>
 
 
@@ -133,7 +134,8 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
         }
 
         if (depth == query->maxdepth) {
-            Logger::showMessageAndReturn("on a atteint la profondeur maximale. parent boud = ", parent_ub, " et leaf error = ", ((QueryData_Best *) node->data)->leafError);
+            Logger::showMessageAndReturn("on a atteint la profondeur maximale. parent boud = ", parent_ub,
+                    " et leaf error = ", ((QueryData_Best *) node->data)->leafError);
             if ( ((QueryData_Best *) node->data)->leafError < parent_ub ) {
                 ((QueryData_Best *) node->data)->error = ((QueryData_Best *) node->data)->leafError;
                 Logger::showMessageAndReturn("on retourne leaf error = ", ((QueryData_Best *) node->data)->leafError);
