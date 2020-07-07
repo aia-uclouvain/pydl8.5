@@ -61,8 +61,9 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
     printItemset(itemset);
 
     TrieNode *node = trie->insert ( itemset );
+    return node;
 
-    if (node->data) {//node already exists
+    /*if (node->data) {//node already exists
 //        if last solution can be used, we will return it. Otherwise, we will continue the search
         Logger::showMessageAndReturn("le noeud exists");
 
@@ -79,7 +80,7 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
             return node;
         }
 
-        if (!nps)
+        if (cache_lb)
             if ( initUb <= storedInitUb && currentMaxDepth == *solDepth ) { //solution has not been found last time but the result is the same for this time
                 Logger::showMessageAndReturn("y'avait pas de solution pour cette profonceur ", currentMaxDepth, " mais c'est pareil cette fois-ci. Ancien init =",
                                              storedInitUb, " et nouveau = ", initUb);
@@ -301,7 +302,7 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
     if (itemset.size > 0)
         itemset.free();
 
-    return node;
+    return node;*/
 }
 
 

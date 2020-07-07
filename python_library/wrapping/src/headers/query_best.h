@@ -10,8 +10,8 @@ struct QueryData_Best {
   QueryData_Best *left, *right;
   Error leafError;
   Error error;
-  Error initUb = NO_ERR;
-  Error lowerBound;
+//  Error initUb = NO_ERR;
+  Error lowerBound = NO_ERR;
   Size size;
   Depth solutionDepth;
   //Array<pair<bool,Attribute> > successors = nullptr;

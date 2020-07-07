@@ -4,16 +4,26 @@
 #include <climits>
 #include <cfloat>
 
+// type created for decision taken on an attribute (feature)
 typedef int Bool;
+// a class value
 typedef int Class;
+// a transaction id
 typedef int Transaction;
+// a feature number
 typedef int Attribute;
-typedef int Size; // size of a tree
+// number of nodes in the tree
+typedef int Size;
+// depth of the tree
 typedef int Depth;
+// error of the tree
 typedef float Error;
-typedef Attribute Item; // an item is an attribute and its binary value
-typedef Transaction Support;
-typedef Support *Supports;
+// an item is a decision on an attribute (selected or not). n_items = 2 * n_attributes
+typedef int Item;
+// number of transactions covered by an itemset
+typedef int Support;
+// array of supports per class
+typedef int* Supports;
 
 #define NO_SUP INT_MAX // SHRT_MAX
 #define NO_ERR FLT_MAX
@@ -21,8 +31,11 @@ typedef Support *Supports;
 #define NO_ITEM INT_MAX // SHRT_MAX
 #define NO_DEPTH INT_MAX
 
+// compute item value based on the attribute and its decision value
 #define item(attribute, value) ( attribute * 2 + value )
+// compute the attribute value based on the item value
 #define item_attribute(item) ( item / 2 )
+// compute the decision on an attribute based on its item value
 #define item_value(item) ( item % 2 )
 
 #include <iostream>
@@ -33,12 +46,14 @@ typedef Support *Supports;
 template<class A>
 struct Array {
 public:
+    A* elts; //the "array" of elements
+    int size; //the real size of elements in the array while "allocsize" is the allocated size
 
     Array () { }
 
-    Array(A* e, int s) {
-        elts = e;
-        size = s;
+    Array(A* elts, int size) {
+        this->elts = elts;
+        this->size = size;
     }
 
     Array(int allocsize, int size) {
@@ -46,26 +61,23 @@ public:
         elts = new A[allocsize];
     }
 
-    //~Array() {} //desctructor does not do anything. Make sure you call free method after using the object
+    //~Array() {} //destructor does not do anything. Make sure you call free method after using the object
 
-    A *elts;
-    int size;
-
-    void alloc(int size) {
-        this->size = size;
-        elts = new A[size];
+    void alloc(int size_) {
+        this->size = size_;
+        elts = new A[size_];
     }
 
     void free() {
         delete[] elts;
     }
 
-    void resize(int size) { // we don't know its original size any more
-        this->size = size;
+    void resize(int size_) { // we don't know its original size any more
+        this->size = size_;
     }
 
-    void push_back(A a) { // we can walk out of allocated space
-        elts[size] = a;
+    void push_back(A elt) { // we can walk out of allocated space
+        elts[size] = elt;
         ++size;
     }
 
@@ -81,7 +93,7 @@ void merge(Array<Item> src1, Array<Item> src2, Array<Item> dest);
 
 void addItem(Array<Item> src1, Item item, Array<Item> dest);
 
-#define forEach(i, a) for ( int i = 0; i < a.size; ++i )
+#define forEach(index, array) for ( int index = 0; index < array.size; ++index )
 
 // create (dynamic allocation of vector of size = number of classes)
 Supports newSupports();
@@ -89,7 +101,7 @@ Supports newSupports();
 // create (dynamic allocation of vector of size = number of classes) and fill vector of support with zeros
 Supports zeroSupports();
 
-// fill vector of support with zeros
+// fill vector of supports passed in parameter with zeros
 void zeroSupports(Supports supports);
 
 // free the memory
@@ -113,7 +125,6 @@ void plusSupports(Supports src1, Supports src2, Supports dest);
 extern Class nclasses;
 extern Attribute nattributes;
 extern std::map<int, int> attrFeat;
-extern bool nps;
 extern bool verbose;
 
 #define forEachClass(n) for ( Class n = 0; n < nclasses; ++n )

@@ -45,63 +45,27 @@ bool Query_TotalFreq::updateData(QueryData *best, Error upperBound, Attribute at
     return false;
 }
 
-QueryData *Query_TotalFreq::initData(RCover *cover, Error parent_ub, Support minsup, Depth currentMaxDepth) {
-
-    pair <Supports, Support> itemsetSupport;//declare variable of pair type to keep firstly an array of support per class and second the support of the itemset
-    Class maxclass = -1;
-    Error error;
-    int conflict = 0;
-    Error lowerb = 0;
+QueryData *Query_TotalFreq::initData(RCover *cover, Support minsup, Depth currentMaxDepth) {
+    Class maxclass = -1, conflict = 0;
+    Error error, lowerb = 0;
 
     if (error_callback == nullptr && predictor_error_callback == nullptr) {//fast or default error. support will be used
-        itemsetSupport = cover->getSupportPerClass();
-        cover->sup = itemsetSupport.first;
-
         if (fast_error_callback != nullptr) {//python fast error
-            function < vector<float>(RCover * ) > callback = *fast_error_callback;
+            pair <Supports, Support> itemsetSupport = cover->getSupportPerClass();
+            cover->sup = itemsetSupport.first;
+            function < vector<float>(RCover*)> callback = *fast_error_callback;
             vector<float> infos = callback(cover);
             error = infos[0];
             maxclass = int(infos[1]);
+            deleteSupports(itemsetSupport.first);
         } else {//default error
-            Support maxclassval = itemsetSupport.first[0];
-            maxclass = 0;
-            int secondval = -1;
-            for (int i = 1; i < nclasses; ++i) {
-                if (itemsetSupport.first[i] > maxclassval) {
-                    if (maxclassval > secondval)
-                        secondval = maxclassval;
-                    maxclassval = itemsetSupport.first[i];
-                    maxclass = i;
-                    conflict = 0;
-                } else if (itemsetSupport.first[i] == maxclassval) {
-                    secondval = maxclassval;
-                    ++conflict; // two with the same label
-                    if (data->getSupports()[i] > data->getSupports()[maxclass])
-                        maxclass = i;
-                } else{
-                    if (itemsetSupport.first[i] > secondval)
-                        secondval = itemsetSupport.first[i];
-                }
-
-            }
-            error = itemsetSupport.second - maxclassval;
-            int remaining = itemsetSupport.second - (maxclassval + secondval);
-            if (maxclassval >= minsup){
-                if (secondval >= minsup)
-                    lowerb = remaining;
-                else
-                    if (secondval + remaining >= minsup)
-                        lowerb = remaining;
-                    else
-                        lowerb = minsup - secondval;
-            } else
-                if (secondval < minsup)
-                    lowerb = remaining;
-            lowerb = 0;
+            ErrorValues ev = computeErrorValues(cover);
+            error = ev.error;
+            lowerb = ev.lowerb;
+            maxclass = ev.maxclass;
+            conflict = ev.conflict;
         }
-        deleteSupports(itemsetSupport.first);
     } else {//slow error or predictor error function. Not need to compute support
-
         if (predictor_error_callback != nullptr) {
             function<float(RCover * )> callback = *predictor_error_callback;
             error = callback(cover);
@@ -120,7 +84,7 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Error parent_ub, Support min
     data2->error = FLT_MAX;
     data2->error += experror->addError(cover->getSupport(), data2->error, data->getNTransactions());
     data2->size = 1;
-    data2->initUb = parent_ub;
+//    data2->initUb = parent_ub;
     data2->solutionDepth = currentMaxDepth;
     if (conflict > 0)
         data2->right = (QueryData_Best *) 1;
@@ -129,6 +93,55 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Error parent_ub, Support min
     data2->lowerBound = lowerb;
 
     return (QueryData *) data2;
+}
+
+ErrorValues Query_TotalFreq::computeErrorValues(RCover* cover) {
+    pair <Supports, Support> itemsetSupport;//declare variable of pair type to keep firstly an array of support per class and second the support of the itemset
+    Class maxclass;
+    Error error;
+    int conflict = 0;
+    Error lowerb = 0;
+    itemsetSupport = cover->getSupportPerClass();
+    cover->sup = itemsetSupport.first;
+
+    Support maxclassval = itemsetSupport.first[0];
+    maxclass = 0;
+    int secondval = -1;
+    for (int i = 1; i < nclasses; ++i) {
+        if (itemsetSupport.first[i] > maxclassval) {
+            if (maxclassval > secondval)
+                secondval = maxclassval;
+            maxclassval = itemsetSupport.first[i];
+            maxclass = i;
+            conflict = 0;
+        } else if (itemsetSupport.first[i] == maxclassval) {
+            secondval = maxclassval;
+            ++conflict; // two with the same label
+            if (data->getSupports()[i] > data->getSupports()[maxclass])
+                maxclass = i;
+        } else{
+            if (itemsetSupport.first[i] > secondval)
+                secondval = itemsetSupport.first[i];
+        }
+
+    }
+    error = itemsetSupport.second - maxclassval;
+    int remaining = itemsetSupport.second - (maxclassval + secondval);
+    if (maxclassval >= minsup){
+        if (secondval >= minsup)
+            lowerb = remaining;
+        else
+        if (secondval + remaining >= minsup)
+            lowerb = remaining;
+        else
+            lowerb = minsup - secondval;
+    } else
+    if (secondval < minsup)
+        lowerb = remaining;
+    lowerb = 0;
+    deleteSupports(itemsetSupport.first);
+
+    return {error, lowerb, maxclass, conflict};
 }
 
 

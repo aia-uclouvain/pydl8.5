@@ -42,7 +42,6 @@ cdef extern from "src/headers/dl85.h":
                     int timeLimit,
                     map[int, pair[int, int]]* continuousMap,
                     bool save,
-                    bool nps_param,
                     bool verbose_param,
                     bool predict) except +
 
@@ -82,7 +81,6 @@ def solve(data,
           repeat_sort=False,
           continuousMap=None,
           bin_save=False,
-          nps=False,
           predictor=False):
 
     cdef PyErrorWrapper f_user = PyErrorWrapper(func)
@@ -164,7 +162,6 @@ def solve(data,
                  timeLimit = time_limit,
                  continuousMap = NULL,
                  save = bin_save,
-                 nps_param = nps,
                  verbose_param = verb,
                  predict = predictor)
 

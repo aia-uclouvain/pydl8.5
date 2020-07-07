@@ -18,7 +18,6 @@
 
 //using namespace std;
 
-bool nps = false;
 bool verbose = false;
 
 string search(//std::function<float(Array<int>::iterator)> callback,
@@ -44,7 +43,6 @@ string search(//std::function<float(Array<int>::iterator)> callback,
               int timeLimit,
               map<int, pair<int, int>> *continuousMap,
               bool save,
-              bool nps_param,
               bool verbose_param,
               bool predict) {
 
@@ -62,7 +60,6 @@ string search(//std::function<float(Array<int>::iterator)> callback,
         predictor_error_callback_pointer = nullptr;
 
     //cout << "print " << fast_error_callback->pyFunction << endl;
-    nps = nps_param;
     verbose = verbose_param;
     string out = "";
     Trie *trie = new Trie;

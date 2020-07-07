@@ -40,7 +40,6 @@ string search (//std::function<float(int*)> callback,
         int timeLimit = 0,
         map<int, pair<int, int>>* continuousMap = NULL,
         bool save = false,
-        bool nps_param = false,
         bool verbose_param = false,
         bool predict = false);
 

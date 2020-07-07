@@ -26,10 +26,12 @@ LcmPruned::~LcmPruned() {
 
 TrieNode *LcmPruned::recurse(Array<Item> itemset_,
                              Item added,
-                             Array<pair<bool, Attribute> > current_attributes,
-                             RCover* current_cover,
+                             Array<Attribute> attributes_to_visit,
+                             RCover *cover,
                              Depth depth,
-                             float parent_ub) {
+                             float ub) {
+    //lowerbound est la petite valeur possible
+    //upperbound est la grande valeur inatteignable
 
     if (query->timeLimit > 0) {
         float runtime = (clock() - query->startTime) / (float) CLOCKS_PER_SEC;
@@ -39,11 +41,10 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
 
     Array<Item> itemset;
 
-    if (added != NO_ITEM){
+    if (added != NO_ITEM) {
         itemset.alloc(itemset_.size + 1);
         addItem(itemset_, added, itemset);
-    }
-    else{
+    } else {
         itemset.size = 0;
         itemset.elts = nullptr;
     }
@@ -54,7 +55,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
     Logger::showMessage("itemset après ajout : ");
     printItemset(itemset);
 
-    //insert the node in the cache or get it if it already exists
+    //insert the node in the cache or get its info if it already exists
     TrieNode *node = trie->insert(itemset);
 
     if (node->data) {//node already exists
@@ -62,37 +63,37 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
 
         Error leafError = ((QueryData_Best *) node->data)->leafError;
         Error *nodeError = &(((QueryData_Best *) node->data)->error);
-        Error storedInitUb = ((QueryData_Best *) node->data)->initUb;
-        Error initUb = parent_ub;
+        Error *lb = &(((QueryData_Best *) node->data)->lowerBound);
 
         if (*nodeError < FLT_MAX) { //if( nodeError != FLT_MAX ) best solution has been already found
-            Logger::showMessageAndReturn("solution avait été trouvée et vaut : ", *nodeError);
+            Logger::showMessageAndReturn("la solution existe et vaut : ", *nodeError);
             itemset.free();
             return node;
         }
 
-        if (!nps)
-            if (initUb <= storedInitUb) { //solution has not been found last time but the result is the same for this time
-                Logger::showMessageAndReturn("y'avait pas de solution mais c'est pareil cette fois-ci. Ancien init =", storedInitUb, " et nouveau = ", initUb);
-                itemset.free();
-                return node;
-            }
-
-        if (leafError == 0) { // if we have a node already visited with lErr = 0, we can return the last solution
-            Logger::showMessageAndReturn("l'erreur est nulle");
+        if (ub <= *lb) { //solution impossible
+            Logger::showMessageAndReturn("Pas de solution possible car ub < lb. lb =", lb, " et ub = ", ub);
             itemset.free();
             return node;
         }
 
-        if (depth == query->maxdepth) {
-            Logger::showMessageAndReturn("on a atteint la profondeur maximale. parent boud = ", parent_ub, " et leaf error = ", leafError);
+        if (leafError == *lb) { // implicitely, the upper bound constraint is not violated
+            Logger::showMessageAndReturn("l'erreur est minimale");
+            *nodeError = leafError;
+            itemset.free();
+            return node;
+        }
 
-            if (parent_ub <= leafError) {
-                *nodeError = FLT_MAX;
-                Logger::showMessageAndReturn("pas de solution");
-            } else {
+        if (depth == query->maxdepth || cover->getSupport() < 2 * query->minsup) {
+            Logger::showMessageAndReturn("on a atteint la profondeur maximale. ub = ", ub, " et leaf error = ", leafError);
+
+            if (leafError < ub) {
                 *nodeError = leafError;
                 Logger::showMessageAndReturn("on retourne leaf error = ", leafError);
+            } else {
+                *nodeError = FLT_MAX;
+                if (ub > *lb) *lb = ub;
+                Logger::showMessageAndReturn("pas de solution");
             }
             itemset.free();
             return node;
@@ -101,46 +102,53 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
 
     //there are two cases in which the execution attempt here
     //1- when the node did not exist
-    //2- when the node exists but init value of upper bound is higher than the last one and last solution is NO_TREE
+    //2- when the node exists without solution and its upper bound is higher than its lower bound
 
-
-    Array<pair<bool, Attribute> > next_attributes;
-    Error initUb = FLT_MAX;
-
+    Array<Attribute> next_attributes;
 
     if (!node->data) { // case 1 : when the node did not exist
+
+        /*if (query->maxdepth - depth == 2){
+            forEach(i, attributes_to_visit){
+                if (item_attribute(added) == attributes_to_visit[i] or current_cover->getSupport() < 2 * query->minsup)
+                    continue;
+                current_cover->intersect(attributes_to_visit[i], false);
+                forEach(j, attributes_to_visit){
+                    if (item_attribute(added) == attributes_to_visit[j] || j <= i)
+                        continue;
+                }
+                current_cover->backtrack();
+            }
+        }*/
         Logger::showMessageAndReturn("Nouveau noeud");
         latticesize++;
-        //if ( closedsize % 1000 == 0 )
-        //cerr << "--- Searching, lattice size: " << latticesize << "\r" << flush;
 
         //<=================== STEP 1 : Initialize all information about the node ===================>
-        node->data = query->initData(current_cover, parent_ub, query->minsup);
-        //get the upper bound. it will be used for children in for loop
-        initUb = ((QueryData_Best *) node->data)->initUb;
-        Logger::showMessageAndReturn("après initialisation du nouveau noeud. parent bound = ", parent_ub,
-                " et leaf error = ", ((QueryData_Best *) node->data)->leafError, " init bound = ", initUb);
+        node->data = query->initData(cover, query->minsup);
+        Error *lb = &(((QueryData_Best *) node->data)->lowerBound);
+        Error leafError = ((QueryData_Best *) node->data)->leafError;
+        Error *nodeError = &(((QueryData_Best *) node->data)->error);
+        Logger::showMessageAndReturn("après initialisation du nouveau noeud. ub = ", ub, " et leaf error = ", leafError);
         //<====================================  END STEP  ==========================================>
 
 
-
         //<====================== STEP 2 : Case in which we cannot split more =======================>
-        if (((QueryData_Best *) node->data)->leafError == 0) {
-            //when leaf error equals 0 all solution parameters have already been stored by initData apart from node error
-            ((QueryData_Best *) node->data)->error = ((QueryData_Best *) node->data)->leafError;
-            Logger::showMessageAndReturn("l'erreur est nulle. node error = leaf error = ", ((QueryData_Best *) node->data)->error);
+        if (leafError == *lb) {
+            //when leaf error equals to lowerbound all solution parameters have already been stored by initData apart from node error
+            *nodeError = leafError;
+            Logger::showMessageAndReturn("l'erreur est minimale. node error = leaf error = ", *nodeError);
             itemset.free();
             return node;
         }
 
-        if (depth == query->maxdepth) {
-            Logger::showMessageAndReturn("on a atteint la profondeur maximale. parent boud = ", parent_ub,
-                    " et leaf error = ", ((QueryData_Best *) node->data)->leafError);
-            if ( ((QueryData_Best *) node->data)->leafError < parent_ub ) {
-                ((QueryData_Best *) node->data)->error = ((QueryData_Best *) node->data)->leafError;
-                Logger::showMessageAndReturn("on retourne leaf error = ", ((QueryData_Best *) node->data)->leafError);
+        if (depth == query->maxdepth || cover->getSupport() < 2 * query->minsup) {
+            Logger::showMessageAndReturn("on a atteint la profondeur maximale. parent bound = ", ub, " et leaf error = ", leafError);
+            if (leafError < ub) {
+                *nodeError = leafError;
+                Logger::showMessageAndReturn("on retourne leaf error = ", leafError);
             } else {
-                ((QueryData_Best *) node->data)->error = FLT_MAX;
+                *nodeError = FLT_MAX;
+                if (ub > *lb) *lb = ub;
                 Logger::showMessageAndReturn("pas de solution");
             }
             itemset.free();
@@ -148,7 +156,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
         }
 
         if (query->timeLimitReached) {
-            ((QueryData_Best *) node->data)->error = ((QueryData_Best *) node->data)->leafError;
+            *nodeError = leafError;
             itemset.free();
             return node;
         }
@@ -157,25 +165,29 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
 
 
         //<============================= STEP 3 : determine successors ==============================>
-        next_attributes = getSuccessors(current_attributes, current_cover, added);
+        next_attributes = getSuccessors(attributes_to_visit, cover, added);
         //<====================================  END STEP  ==========================================>
 
-    }
-    else {//case 2 : when the node exists but init value of upper bound is higher than the last one and last solution were NO_TREE
-        Error storedInit = ((QueryData_Best *) node->data)->initUb;
-        initUb = parent_ub;
-        ((QueryData_Best *) node->data)->initUb = initUb;
-        Logger::showMessageAndReturn("noeud existant sans solution avec nvelle init bound. leaf error = ", ((QueryData_Best *) node->data)->leafError, " last time: error = ", ((QueryData_Best *) node->data)->error, " and init = ", ((QueryData_Best *) node->data)->initUb, " and stored init = ", storedInit);
+    } else {//case 2 : when the node exists without solution and ub > lb
+//        Error lb = ((QueryData_Best *) node->data)->lowerBound;
+//        initUb = parent_ub;
+//        ((QueryData_Best *) node->data)->initUb = initUb;
+        Error *lb = &(((QueryData_Best *) node->data)->lowerBound);
+        Error leafError = ((QueryData_Best *) node->data)->leafError;
+        Error *nodeError = &(((QueryData_Best *) node->data)->error);
+        Logger::showMessageAndReturn("noeud existant sans solution avec nvelle init bound. leaf error = ",
+                                     leafError, " last time: error = ",
+                                     *nodeError, " and init = ");
+//                                     ((QueryData_Best *) node->data)->initUb, " and stored init = ", storedInit);
 
         if (query->timeLimitReached) {
-            if (((QueryData_Best *) node->data)->error == FLT_MAX)
-                ((QueryData_Best *) node->data)->error = ((QueryData_Best *) node->data)->leafError;
+            if (*nodeError == FLT_MAX) *nodeError = leafError;
             itemset.free();
             return node;
         }
 
         //<=========================== ONLY STEP : determine successors =============================>
-        next_attributes = getSuccessors(current_attributes, current_cover, added);
+        next_attributes = getSuccessors(attributes_to_visit, cover, added);
         // next_attributes = (QueryData_Best *) node->data)->successors //if successors have been cached
         // Array<pair<bool, Attribute>> no_attributes = getExistingSuccessors(node); //get successors from trie
         /*if (next_attributes.size != no_attributes.size){ //print for debug
@@ -194,29 +206,46 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
         //<====================================  END STEP  ==========================================>
     }
 
+    Error *lb = &(((QueryData_Best *) node->data)->lowerBound);
+    Error leafError = ((QueryData_Best *) node->data)->leafError;
+    Error *nodeError = &(((QueryData_Best *) node->data)->error);
 
-    Error ub = initUb;
-    int count = 0;
-    forEach (i, next_attributes) {
-        if (next_attributes[i].first) {
-            count++;
+    if (next_attributes.size == 0) {
+        Logger::showMessageAndReturn("pas d'enfant.");
+        if (leafError < ub) {
+            *nodeError = leafError;
+            Logger::showMessageAndReturn("on retourne leaf error = ", leafError);
+        } else {
+            *nodeError = FLT_MAX;
+            if (ub > *lb) *lb = ub;
+            Logger::showMessageAndReturn("pas de solution");
+        }
+        Logger::showMessageAndReturn("on replie");
+    }
+    else {
+        Error child_ub = ub;
+        bool notree = true;
+        forEach (i, next_attributes) {
 
-            current_cover->intersect(next_attributes[i].second, false);
-            TrieNode *left = recurse(itemset, item(next_attributes[i].second, 0), next_attributes, current_cover, depth + 1, ub);
-            current_cover->backtrack();
+            cover->intersect(next_attributes[i], false);
+            TrieNode *left = recurse(itemset, item(next_attributes[i], 0), next_attributes, cover, depth + 1, child_ub);
+            Error leftError = ((QueryData_Best *) left->data)->error;
+            cover->backtrack();
 
-            if (query->canimprove(left->data, ub)) {
+            if (query->canimprove(left->data, child_ub)) {
+                notree = false;
 
-                float remainUb = ub - ((QueryData_Best *) left->data)->error;
-                current_cover->intersect(next_attributes[i].second);
-                TrieNode *right = recurse(itemset, item(next_attributes[i].second, 1), next_attributes, current_cover, depth + 1, remainUb);
-                current_cover->backtrack();
+                float remainUb = child_ub - leftError;
+                cover->intersect(next_attributes[i]);
+                TrieNode *right = recurse(itemset, item(next_attributes[i], 1), next_attributes, cover, depth + 1, remainUb);
+                Error rightError = ((QueryData_Best *) right->data)->error;
+                cover->backtrack();
 
-                Error feature_error = ((QueryData_Best *) left->data)->error + ((QueryData_Best *) right->data)->error;
-                bool hasUpdated = query->updateData(node->data, ub, next_attributes[i].second, left->data, right->data);
+                Error feature_error = leftError + rightError;
+                bool hasUpdated = query->updateData(node->data, child_ub, next_attributes[i], left->data, right->data);
                 if (hasUpdated) {
-                    ub = feature_error;
-                    Logger::showMessageAndReturn("après cet attribut, node error = ", ((QueryData_Best *) node->data)->error, " et ub = ", ub);
+                    child_ub = feature_error;
+                    Logger::showMessageAndReturn("après cet attribut, node error = ", *nodeError, " et ub = ", child_ub);
                 }
 
                 if (query->canSkip(node->data)) {//lowerBound reached
@@ -225,15 +254,18 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
                 }
             }
 
-        }
-
-        if (query->stopAfterError){
-            if (depth == 0 && parent_ub < FLT_MAX){
-                if ( ( (QueryData_Best*) node->data )->error < parent_ub )
-                    break;
+            if (query->stopAfterError) {
+                if (depth == 0 && ub < FLT_MAX) {
+                    if (*nodeError < ub)
+                        break;
+                }
             }
         }
+        if (*nodeError == FLT_MAX && ub > *lb) //cache successors if solution not found
+             *lb = ub;
     }
+
+
     /*if ((QueryData_Best *) node->data)->error == FLT_MAX) //cache successors if solution not found
         (QueryData_Best *) node->data)->successors = next_attributes;
     else{ //free the cache when solution found
@@ -241,19 +273,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
         (QueryData_Best *) node->data)->successors = nullptr;
     }*/
 
-    if (count == 0) {
-        Logger::showMessageAndReturn("pas d'enfant.");
-        if ( ((QueryData_Best *) node->data)->leafError < parent_ub ) {
-            ((QueryData_Best *) node->data)->error = ((QueryData_Best *) node->data)->leafError;
-            Logger::showMessageAndReturn("on retourne leaf error = ", ((QueryData_Best *) node->data)->leafError);
-        } else {
-            ((QueryData_Best *) node->data)->error = FLT_MAX;
-            Logger::showMessageAndReturn("pas de solution");
-        }
-        Logger::showMessageAndReturn("on replie");
-    }
-    Logger::showMessageAndReturn("depth = ", depth, " and init ub = ", initUb, " and error after search = ", ((QueryData_Best *) node->data)->error);
-
+    Logger::showMessageAndReturn("depth = ", depth, " and init ub = ", ub, " and error after search = ", *nodeError);
 
     next_attributes.free();
     itemset.free();
@@ -264,34 +284,39 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
 
 void LcmPruned::run() {
     query->setStartTime(clock());
-    Array<Item> itemset; //array of items representing an itemset
+
+    //array of items representing an itemset
+    Array<Item> itemset;
     itemset.size = 0;
-    Array<pair<bool, Attribute> > next_attributes(nattributes, 0);
 
-    //int sup[2];
-    RCover* cover = new RCover(dataReader);
-    for (int i = 0; i < nattributes; ++i) {
-        next_attributes.push_back(make_pair(true, i));
+    // array of not yet visited attributes. Each attribute is represented as pair
+    // the first element of the pair represent whether or not
+    Array<Attribute> attributes_to_visit(nattributes, 0);
 
-        /*cover->intersect(i, false);
+    int sup[2];
+    RCover *cover = new RCover(dataReader);
+    for (int attr = 0; attr < nattributes; ++attr) {
+        cover->intersect(attr, false);
         sup[0] = cover->getSupport();
         cover->backtrack();
 
-        cover->intersect(i);
-        sup[1] = cover->getSupport();
-        cover->backtrack();
+        if (query->is_freq(make_pair(nullptr, sup[0]))) {
+            cover->intersect(attr);
+            sup[1] = cover->getSupport();
+            cover->backtrack();
 
-        if (sup[0] >= query->minsup && sup[1] >= query->minsup)
-            next_attributes.push_back(make_pair(true, i));*/
+            if (query->is_freq(make_pair(nullptr, sup[1])))
+                attributes_to_visit.push_back(attr);
+        }
     }
 
     float maxError = NO_ERR;
     if (query->maxError > 0)
         maxError = query->maxError;
 
-    query->realroot = recurse(itemset, NO_ITEM, next_attributes, cover, 0, maxError);
+    query->realroot = recurse(itemset, NO_ITEM, attributes_to_visit, cover, 0, maxError);
 
-    next_attributes.free();
+    attributes_to_visit.free();
     delete cover;
 }
 
@@ -328,134 +353,76 @@ float LcmPruned::informationGain(pair<Supports, Support> notTaken, pair<Supports
 }
 
 
-Array<pair<bool, Attribute> > LcmPruned::getSuccessors(Array<pair<bool, Attribute >> current_attributes,
-                                                       RCover* current_cover,
-                                                       Item added) {
+Array<Attribute> LcmPruned::getSuccessors(Array<Attribute> last_freq_attributes, RCover *cover, Item added) {
 
-    std::multimap<float, pair<bool, Attribute> > gain;
-    Array<pair<bool, Attribute>> a_attributes2(current_attributes.size, 0);
+    std::multimap<float, Attribute> gain;
+    Array<Attribute> a_attributes2(last_freq_attributes.size, 0);
     pair<Supports, Support> supports[2];
     map<int, unordered_set<int, Hash >> control;
     map<int, unordered_map<int, pair<int, float>, Hash>> controle;
     bool to_delete = false;
 
-    forEach (i, current_attributes) {
-        if (item_attribute (added) == current_attributes[i].second)
+    if (cover->getSupport() < 2 * query->minsup)
+        return a_attributes2;
+
+    forEach (i, last_freq_attributes) {
+        if (item_attribute (added) == last_freq_attributes[i])
             continue;
-        else if (current_attributes[i].first) {
+        if (query->error_callback != nullptr || query->predictor_error_callback != nullptr) {//slow or predictor
+            cover->intersect(last_freq_attributes[i], false);
+            supports[0].second = cover->getSupport();
+            cover->backtrack();
 
+            if (query->is_freq(supports[0])){
+                cover->intersect(last_freq_attributes[i]);
+                supports[1].second = cover->getSupport();
+                cover->backtrack();
+            } else continue;
 
-            if (query->error_callback != nullptr || query->predictor_error_callback != nullptr){//slow or predictor
+        } else { // fast or default
+            cover->intersect(last_freq_attributes[i], false);
+            supports[0] = cover->getSupportPerClass();
+            cover->backtrack();
 
-                current_cover->intersect(current_attributes[i].second, false);
-                supports[0].second = current_cover->getSupport();
-                current_cover->backtrack();
-
-                current_cover->intersect(current_attributes[i].second);
-                supports[1].second = current_cover->getSupport();
-                current_cover->backtrack();
-            }
-            else{ // fast or default
-
+            if (query->is_freq(supports[0])){
                 to_delete = true;
-                current_cover->intersect(current_attributes[i].second, false);
-                supports[0] = current_cover->getSupportPerClass();
-                current_cover->backtrack();
-
-                current_cover->intersect(current_attributes[i].second);
-                supports[1] = current_cover->getSupportPerClass();
-                current_cover->backtrack();
-            }
-
-            if (query->is_freq(supports[0]) && query->is_freq(supports[1])) {
-
-                if (query->continuous) {//continuous dataset
-
-                    //when heuristic is used to reorder attribute, use a policy to always select the same attribute
-                    if (infoGain) {
-                        //attribute for this feature did not exist with these transactions
-                        if (controle[attrFeat[current_attributes[i].second]].count(supports[0].second) == 0)
-                            gain.insert(
-                                    std::pair<float, pair<bool, Attribute>>(informationGain(supports[0], supports[1]),
-                                            make_pair(true, current_attributes[i].second)));
-                        else
-                            //attribute of this feature exist with these transactions and the existing attribute is the relevant (low index)
-                        if (controle[attrFeat[current_attributes[i].second]][supports[0].second].first <
-                            current_attributes[i].second)
-                            gain.insert(std::pair<float, pair<bool, Attribute>>(
-                                    controle[attrFeat[current_attributes[i].second]][supports[0].second].second,
-                                            make_pair(false, current_attributes[i].second)));
-                        else {
-                            //attribute of this feature exist with these transactions but this one is more relevant (low index)
-                            for (auto itr = gain.find(
-                                    controle[attrFeat[current_attributes[i].second]][supports[0].second].second);
-                                 itr != gain.end(); itr++)
-                                if (itr->second.second ==
-                                    controle[attrFeat[current_attributes[i].second]][supports[0].second].first) {
-                                    itr->second.first = false;
-                                    gain.insert(std::pair<float, pair<bool, Attribute>>(itr->first, make_pair(true,
-                                                                                                              current_attributes[i].second)));
-                                    break;
-                                }
-                        }
-                    } else { //when there is not heuristic
-
-                        int sizeBefore = int(control[attrFeat[current_attributes[i].second]].size());
-                        control[attrFeat[current_attributes[i].second]].insert(supports[0].second);
-                        int sizeAfter = int(control[attrFeat[current_attributes[i].second]].size());
-
-                        a_attributes2.push_back(make_pair(sizeAfter != sizeBefore, current_attributes[i].second));
-                    }
-                } else {
-
-                    if (infoGain)
-                        gain.insert(std::pair<float, pair<bool, Attribute>>(informationGain(supports[0], supports[1]),
-                                make_pair(true, current_attributes[i].second)));
-                    else a_attributes2.push_back(make_pair(true, current_attributes[i].second));
-
-                }
-
-            }
-            /*else {
-                if (infoGain)
-                    gain.insert(std::pair<float, pair<bool, Attribute>>(NO_GAIN, make_pair(false,
-                                                                                           current_attributes[i].second)));
-                else a_attributes2.push_back(make_pair(false, current_attributes[i].second));
-            }*/
-
-            if (to_delete){
+                cover->intersect(last_freq_attributes[i]);
+                supports[1] = cover->getSupportPerClass();
+                cover->backtrack();
+            } else {
                 deleteSupports(supports[0].first);
-                deleteSupports(supports[1].first);
+                continue;
             }
         }
-        /*else {
-            if (infoGain)
-                gain.insert(
-                        std::pair<float, pair<bool, Attribute>>(NO_GAIN, make_pair(false, current_attributes[i].second)));
-            else a_attributes2.push_back(current_attributes[i]);
-        }*/
-    }
 
+        if (query->is_freq(supports[1])) {
+            if (query->continuous) {//continuous dataset
+            } else {
+                if (infoGain)
+                    gain.insert(std::pair<float, Attribute>(informationGain(supports[0], supports[1]), last_freq_attributes[i]));
+                else a_attributes2.push_back(last_freq_attributes[i]);
+            }
+        }
+        if (to_delete) deleteSupports(supports[1].first);
+    }
 
     if (infoGain) {
         if (infoAsc) { //items with low IG first
-            multimap<float, pair<bool, int>>::iterator it;
+            multimap<float, int>::iterator it;
             for (it = gain.begin(); it != gain.end(); ++it) {
                 a_attributes2.push_back(it->second);
             }
         } else { //items with high IG first
-            multimap<float, pair<bool, int>>::reverse_iterator it;
+            multimap<float, int>::reverse_iterator it;
             for (it = gain.rbegin(); it != gain.rend(); ++it) {
                 a_attributes2.push_back(it->second);
             }
         }
-
     }
     if (!allDepths)
         infoGain = false;
 
     return a_attributes2;
-
 }
 
 void LcmPruned::printItemset(Array<Item> itemset) {
@@ -467,11 +434,11 @@ void LcmPruned::printItemset(Array<Item> itemset) {
     }
 }
 
-Array<pair<bool, Attribute> > LcmPruned::getExistingSuccessors(TrieNode* node) {
-    Array<pair<bool, Attribute>> a_attributes2(node->edges.size(), 0);
-    for(TrieEdge edge : node->edges){
+Array<Attribute> LcmPruned::getExistingSuccessors(TrieNode *node) {
+    Array<Attribute> a_attributes2(node->edges.size(), 0);
+    for (TrieEdge edge : node->edges) {
         if (edge.item % 2 == 0)
-            a_attributes2.push_back(make_pair(true, item_attribute(edge.item)));
+            a_attributes2.push_back(item_attribute(edge.item));
     }
     return a_attributes2;
 }

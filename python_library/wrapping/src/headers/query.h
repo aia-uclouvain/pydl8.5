@@ -16,7 +16,11 @@ using namespace std;
 
 typedef void *QueryData; // using void pointers is much lighter than class derivation
 
-
+struct ErrorValues
+{
+    float error, lowerb;
+    int maxclass, conflict;
+};
 
 class Query {
 public:
@@ -28,7 +32,8 @@ public:
     virtual bool canimprove ( QueryData *left, Error ub ) = 0;
     virtual bool canSkip ( QueryData *actualBest ) = 0;
     //virtual QueryData *initData ( Array<Transaction> tid, Error parent_ub, Support minsup, Depth currentMaxDepth = -1) = 0;
-    virtual QueryData *initData ( RCover* tid, Error parent_ub, Support minsup, Depth currentMaxDepth = -1) = 0;
+    virtual QueryData *initData ( RCover* tid, Support minsup, Depth currentMaxDepth = -1) = 0;
+    virtual ErrorValues computeErrorValues( RCover* cover) = 0;
     virtual bool updateData ( QueryData *best, Error upperBound, Attribute attribute, QueryData *left, QueryData *right ) = 0;
     virtual string printResult ( DataManager *data ) = 0;
     void setStartTime( clock_t sTime ){startTime = sTime;}
