@@ -6,6 +6,9 @@
 #include "query.h"
 #include "dataManager.h"
 #include "rCover.h"
+#include <map>
+#include <unordered_set>
+#include <unordered_map>
 
 class LcmPruned {
 public:
@@ -19,15 +22,21 @@ public:
 
 
 protected:
-    TrieNode* recurse ( Array<Item> itemset, Item added, Array<Attribute> attributes_to_visit, RCover* a_transactions, Depth depth, float priorUbFromParent );
+    TrieNode* recurse ( Array<Item> itemset, Item added, TrieNode* node, Array<Attribute> attributes_to_visit, RCover* a_transactions, Depth depth, Error ub, Error lb = 0 );
 
-    Array<Attribute> getSuccessors(Array<Attribute> last_freq_attributes,RCover* a_transactions, Item added);
+//    TrieNode* getdepthtwotree(RCover* cover, Error ub, Array<Attribute> attributes_to_visit, Item added, Array<Item> itemset, TrieNode* node, Error lb = 0);
 
-    Array<Attribute> getExistingSuccessors(TrieNode* node);
+    TrieNode* getdepthtwotrees(RCover* cover, Error ub, Array<Attribute> attributes_to_visit, Item added, Array<Item> itemset, TrieNode* node, Error lb = 0);
 
-    void printItemset(Array<Item> itemset);
+    Array<Attribute> getSuccessors(Array<Attribute> last_freq_attributes,RCover* a_transactions, Item added, unordered_set<int> frequent_attr = {});
 
-    float informationGain ( pair<Supports,Support> notTaken, pair<Supports,Support> taken);
+    unordered_set<int> getExistingSuccessors(TrieNode* node);
+
+    Error computeLowerBound(RCover* cover, Array<bitset<M>*>& covers, Array<float>& errors);
+
+    void addInfoForLowerBound(RCover* cover, QueryData * node_data, Array<bitset<M>*>& covers, Array<float>& errors);
+
+    float informationGain ( Supports notTaken, Supports taken);
 
     DataManager *dataReader;
     Trie *trie;

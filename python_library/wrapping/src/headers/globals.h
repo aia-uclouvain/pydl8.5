@@ -3,6 +3,13 @@
 
 #include <climits>
 #include <cfloat>
+#include <iostream>
+#include <map>
+#include <iterator>
+#include <thread>
+#include <functional>
+#include <algorithm>
+#include <vector>
 
 // type created for decision taken on an attribute (feature)
 typedef int Bool;
@@ -37,10 +44,6 @@ typedef int* Supports;
 #define item_attribute(item) ( item / 2 )
 // compute the decision on an attribute based on its item value
 #define item_value(item) ( item % 2 )
-
-#include <iostream>
-#include <map>
-#include <iterator>
 
 // the array is a light-weight vector that does not do copying or resizing of storage space.
 template<class A>
@@ -93,6 +96,12 @@ void merge(Array<Item> src1, Array<Item> src2, Array<Item> dest);
 
 void addItem(Array<Item> src1, Item item, Array<Item> dest);
 
+Array<Item> addItem ( Array<Item> src1, Item item );
+
+void printItemset(Array<Item> itemset);
+
+void parallel_for(unsigned nb_elements, std::function<void (int start, int end)> functor, bool use_threads = true);
+
 #define forEach(index, array) for ( int index = 0; index < array.size; ++index )
 
 // create (dynamic allocation of vector of size = number of classes)
@@ -122,10 +131,32 @@ void minSupports(Supports src1, Supports src2, Supports dest);
 // return dest which is array of addition of src2 from src1
 void plusSupports(Supports src1, Supports src2, Supports dest);
 
+// return dest which is array of substraction of src2 from src1
+void subSupports(Supports src1, Supports src2, Supports dest);
+
+template<typename T>
+void my_deleten(T *&ptr) {
+    if (ptr){
+        delete ptr;
+        ptr = nullptr;
+    }
+}
+
+template<typename T>
+void my_deletetab(T *&ptr) {
+    if (ptr){
+        delete[] ptr;
+        ptr = nullptr;
+    }
+}
+
 extern Class nclasses;
 extern Attribute nattributes;
 extern std::map<int, int> attrFeat;
 extern bool verbose;
+extern int ncall;
+extern float spectime;
+extern float comptime;
 
 #define forEachClass(n) for ( Class n = 0; n < nclasses; ++n )
 

@@ -3,13 +3,13 @@
 #include <iostream>
 
 Query_TotalFreq::Query_TotalFreq(Trie *trie,DataManager *data, ExpError *experror, int timeLimit, bool continuous,
-                                 function<vector<float>(RCover * )> *error_callback,
-                                 function<vector<float>(RCover * )> *fast_error_callback,
-                                 function<float(RCover * )> *predictor_error_callback, float maxError,
-                                 bool stopAfterError)
-                                : Query_Best(trie, data, experror, timeLimit, continuous, error_callback,
-                                        fast_error_callback, predictor_error_callback,
-                                        maxError, stopAfterError) {}
+                                 function<vector<float>(RCover* )> *error_callback,
+                                 function<vector<float>(RCover* )> *fast_error_callback,
+                                 function<float(RCover* )> *predictor_error_callback,
+                                 float maxError, bool stopAfterError)
+                                : Query_Best(trie, data, experror, timeLimit, continuous,
+                                        error_callback, fast_error_callback,
+                                        predictor_error_callback, maxError, stopAfterError) {}
 
 
 Query_TotalFreq::~Query_TotalFreq() {}
@@ -40,32 +40,35 @@ bool Query_TotalFreq::updateData(QueryData *best, Error upperBound, Attribute at
         best2->right = right2;
         best2->size = size;
         best2->test = attribute;
+        plusSupports(left2->corrects, right2->corrects, best2->corrects);
+        plusSupports(left2->falses, right2->falses, best2->falses);
         return true;
     }
     return false;
 }
 
-QueryData *Query_TotalFreq::initData(RCover *cover, Support minsup, Depth currentMaxDepth) {
+QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
     Class maxclass = -1, conflict = 0;
     Error error, lowerb = 0;
+    Supports corrects = nullptr, falses = nullptr;
 
-    if (error_callback == nullptr && predictor_error_callback == nullptr) {//fast or default error. support will be used
-        if (fast_error_callback != nullptr) {//python fast error
-            pair <Supports, Support> itemsetSupport = cover->getSupportPerClass();
-            cover->sup = itemsetSupport.first;
+    QueryData_Best *data2 = new QueryData_Best();
+    if (error_callback == nullptr && predictor_error_callback == nullptr) { //fast or default error. support will be used
+        if (fast_error_callback != nullptr) { //python fast error
             function < vector<float>(RCover*)> callback = *fast_error_callback;
             vector<float> infos = callback(cover);
             error = infos[0];
             maxclass = int(infos[1]);
-            deleteSupports(itemsetSupport.first);
-        } else {//default error
+        } else { //default error
             ErrorValues ev = computeErrorValues(cover);
             error = ev.error;
             lowerb = ev.lowerb;
             maxclass = ev.maxclass;
             conflict = ev.conflict;
+            corrects = ev.corrects;
+            falses = ev.falses;
         }
-    } else {//slow error or predictor error function. Not need to compute support
+    } else { //slow error or predictor error function. Not need to compute support
         if (predictor_error_callback != nullptr) {
             function<float(RCover * )> callback = *predictor_error_callback;
             error = callback(cover);
@@ -76,72 +79,101 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Support minsup, Depth curren
             maxclass = int(infos[1]);
         }
     }
-
-    QueryData_Best *data2 = new QueryData_Best();
     data2->test = maxclass;
     data2->left = data2->right = NULL;
     data2->leafError = error;
     data2->error = FLT_MAX;
     data2->error += experror->addError(cover->getSupport(), data2->error, data->getNTransactions());
     data2->size = 1;
-//    data2->initUb = parent_ub;
+    data2->corrects = corrects;
+    data2->falses = falses;
     data2->solutionDepth = currentMaxDepth;
-    if (conflict > 0)
-        data2->right = (QueryData_Best *) 1;
-//    if (minclassval != -1 && nclasses == 2 && minsup > minclassval)
-//        lowerb = min(minclassval, minsup - minclassval);// minsup - maxclassval;
+    if (conflict > 0) data2->right = (QueryData_Best *) 1;
     data2->lowerBound = lowerb;
 
     return (QueryData *) data2;
 }
 
 ErrorValues Query_TotalFreq::computeErrorValues(RCover* cover) {
-    pair <Supports, Support> itemsetSupport;//declare variable of pair type to keep firstly an array of support per class and second the support of the itemset
     Class maxclass;
     Error error;
     int conflict = 0;
     Error lowerb = 0;
-    itemsetSupport = cover->getSupportPerClass();
-    cover->sup = itemsetSupport.first;
+    Supports corrects = zeroSupports(), falses = zeroSupports();
 
-    Support maxclassval = itemsetSupport.first[0];
+    Supports itemsetSupport = cover->getSupportPerClass();
+    Support maxclassval = itemsetSupport[0];
     maxclass = 0;
-    int secondval = -1;
+
+    if (corrects && falses) corrects[0] = itemsetSupport[0];
     for (int i = 1; i < nclasses; ++i) {
-        if (itemsetSupport.first[i] > maxclassval) {
-            if (maxclassval > secondval)
-                secondval = maxclassval;
-            maxclassval = itemsetSupport.first[i];
+        if (itemsetSupport[i] > maxclassval) {
+            maxclassval = itemsetSupport[i];
+            //if (corrects && falses){
+                falses[maxclass] = corrects[maxclass];
+                corrects[maxclass] = 0;
+                corrects[i] = maxclassval;
+            //}
             maxclass = i;
             conflict = 0;
-        } else if (itemsetSupport.first[i] == maxclassval) {
-            secondval = maxclassval;
+        } else if (itemsetSupport[i] == maxclassval) {
             ++conflict; // two with the same label
+            //if (corrects && falses){
+                falses[maxclass] = corrects[maxclass];
+                corrects[maxclass] = 0;
+                corrects[i] = maxclassval;
+            //}
             if (data->getSupports()[i] > data->getSupports()[maxclass])
                 maxclass = i;
-        } else{
-            if (itemsetSupport.first[i] > secondval)
-                secondval = itemsetSupport.first[i];
         }
 
     }
-    error = itemsetSupport.second - maxclassval;
-    int remaining = itemsetSupport.second - (maxclassval + secondval);
-    if (maxclassval >= minsup){
-        if (secondval >= minsup)
-            lowerb = remaining;
-        else
-        if (secondval + remaining >= minsup)
-            lowerb = remaining;
-        else
-            lowerb = minsup - secondval;
-    } else
-    if (secondval < minsup)
-        lowerb = remaining;
-    lowerb = 0;
-    deleteSupports(itemsetSupport.first);
+    error = cover->getSupport() - maxclassval;
 
-    return {error, lowerb, maxclass, conflict};
+    return {error, lowerb, maxclass, conflict, corrects, falses};
+}
+
+
+ErrorValues Query_TotalFreq::computeErrorValues(Supports itemsetSupport, bool onlyerror) {
+    Class maxclass = 0;
+    Error error;
+    Support maxclassval = itemsetSupport[0];
+    Supports corrects = nullptr, falses = nullptr;
+    if (!onlyerror) {
+        corrects = zeroSupports(), falses = zeroSupports();
+        corrects[0] = maxclassval;
+    }
+
+    for (int i = 1; i < nclasses; ++i) {
+        if (itemsetSupport[i] > maxclassval) {
+            maxclassval = itemsetSupport[i];
+            if (!onlyerror){
+                falses[maxclass] = corrects[maxclass];
+                corrects[maxclass] = 0;
+                corrects[i] = maxclassval;
+            }
+            maxclass = i;
+        } else if (itemsetSupport[i] == maxclassval) {
+            if (!onlyerror){
+                falses[maxclass] = corrects[maxclass];
+                corrects[maxclass] = 0;
+                corrects[i] = maxclassval;
+            }
+            if (data->getSupports()[i] > data->getSupports()[maxclass])
+                maxclass = i;
+        } else{
+            falses[i] = itemsetSupport[i];
+        }
+    }
+    error = sumSupports(itemsetSupport) - maxclassval;
+
+    //return {error, 0, maxclass, 0, nullptr, nullptr};
+
+    if (onlyerror) return {error, 0, maxclass, 0, nullptr, nullptr};
+    else {
+        //cout << "ffff " << falses[0] << "  " << falses[1] << endl;
+        return {error, 0, maxclass, 0, corrects, falses};
+    }
 }
 
 

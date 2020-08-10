@@ -11,8 +11,9 @@ public:
     bool is_freq ( pair<Supports,Support> supports );
     bool is_pure ( pair<Supports,Support> supports );
     bool updateData ( QueryData *best, Error upperBound, Attribute attribute, QueryData *left, QueryData *right);
-    QueryData *initData ( RCover* tid, Support minsup, Depth currentMaxDepth = -1);
+    QueryData *initData ( RCover* tid, Depth currentMaxDepth = -1);
     ErrorValues computeErrorValues( RCover* cover);
+    ErrorValues computeErrorValues(Supports itemsetSupport, bool onlyerror = false);
     //QueryData *initData ( Array<Transaction> tid, Error initBound, Support minsup, Depth currentMaxDepth = -1);
     void printAccuracy ( DataManager *data2, QueryData_Best *data, string* );
 protected:

@@ -10,11 +10,15 @@ struct QueryData_Best {
   QueryData_Best *left, *right;
   Error leafError;
   Error error;
-//  Error initUb = NO_ERR;
-  Error lowerBound = NO_ERR;
+  Error lowerBound;
   Size size;
   Depth solutionDepth;
-  //Array<pair<bool,Attribute> > successors = nullptr;
+  Supports corrects, falses;
+//  Array<pair<bool,Attribute>> successors = nullptr;
+    ~QueryData_Best(){
+        if (corrects) deleteSupports(corrects);
+        if (falses) deleteSupports(falses);
+    }
 };
 
 

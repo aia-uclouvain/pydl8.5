@@ -1,4 +1,5 @@
 #include "trie.h"
+#include "query_best.h"
 #include <algorithm>
 
 using namespace std;
@@ -13,7 +14,9 @@ Trie::Trie() {
 TrieNode::~TrieNode () {
   if ( data ){
     //free ( data ); // assumed allocated with malloc
-    delete(data);
+      //delete[] ((QueryData_Best*)data)->corrects;
+      //delete[] ((QueryData_Best*)data)->falses;
+      delete(data);
   }
   for ( vector<TrieEdge>::iterator i = edges.begin (); i != edges.end (); ++i )
     delete i->subtrie;

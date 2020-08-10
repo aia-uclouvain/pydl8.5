@@ -18,6 +18,13 @@ using namespace std;
 
 #define M 64
 
+struct coverSupClassLight
+{
+    bitset<M>* cover;
+    Supports supclass;
+    int* valid;
+};
+
 class RCover {
 
 public:
@@ -26,28 +33,50 @@ public:
     stack<int> limit;
     int nWords;
     DataManager* dm;
-    int* sup = nullptr;
+    Supports sup_class = nullptr;
+    int support = -1;
 
     RCover(DataManager* dmm);
+
+    RCover(bitset<M> *bitset1, int nword);
 
     ~RCover(){
         delete[] coverWords;
         delete[] validWords;
+        delete [] sup_class;
     }
+
+    void intersect1(Attribute attribute, bool positive = true);
 
     void intersect(Attribute attribute, bool positive = true);
 
-    int getSupport();
+    Supports intersectAndClass(Attribute attribute, bool positive = true);
 
-    pair<Supports, Support> getSupportPerClass();
+    int intersectAndSup(Attribute attribute, bool positive = true);
 
-    int* getClassSupport();
+    void intersectAndFillAll(Supports* row, vector<Attribute>& attributes, int start);
+
+    void minus(bitset<M>* cover1);
+
+    Support minusMee(bitset<M>* cover1);
+
+    Supports minusMe(bitset<M>* cover1);
+
+    bitset<M>* getTopBitsetArray();
+
+    Support getSupport();
+
+    Supports getSupportPerClass();
+
+    Supports getClassSupport();
 
     vector<int> getTransactionsID();
 
     void backtrack();
 
     void print();
+
+    string outprint();
 
     class iterator {
     public:
@@ -131,7 +160,7 @@ public:
                     throw std::out_of_range("Out of Range Exception!");
                 }
                 else {
-                    return container->sup[wordIndex];
+                    return container->sup_class[wordIndex];
                 }
             }
 

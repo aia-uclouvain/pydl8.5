@@ -400,11 +400,13 @@ Array<pair<bool, Attribute> > LcmIterative::getSuccessors(Array<pair<bool, Attri
             else{ // fast or default
 
                 current_cover->intersect(current_attributes[i].second, false);
-                supports[0] = current_cover->getSupportPerClass();
+                supports[0].first = current_cover->getSupportPerClass();
+                supports[0].second = current_cover->getSupport();
                 current_cover->backtrack();
 
                 current_cover->intersect(current_attributes[i].second);
-                supports[1] = current_cover->getSupportPerClass();
+                supports[1].first = current_cover->getSupportPerClass();
+                supports[1].second = current_cover->getSupport();
                 current_cover->backtrack();
             }
 

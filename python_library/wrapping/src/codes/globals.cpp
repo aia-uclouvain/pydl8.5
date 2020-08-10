@@ -4,6 +4,9 @@
 Class nclasses;
 Attribute nattributes;
 std::map<int,int> attrFeat;
+int ncall = 0;
+float spectime = 0;
+float comptime = 0;
 
 Supports newSupports () {
   return new Support[nclasses];
@@ -52,6 +55,11 @@ void plusSupports ( Supports src1, Supports src2, Supports dest ) {
     dest[i] = src1[i] + src2[i];
 }
 
+void subSupports ( Supports src1, Supports src2, Supports dest ) {
+    forEachClass ( i )
+        dest[i] = src1[i] - src2[i];
+}
+
 void merge ( Array<Item> src1, Array<Item> src2, Array<Item> dest ) {
   int i = 0, j = 0, k = 0;
   while ( i < src1.size && j < src2.size )
@@ -78,5 +86,36 @@ void addItem ( Array<Item> src1, Item item, Array<Item> dest ) {
     dest[k++] = src1[i++];
   if ( j < 1 )
     dest[k++] = item;
+}
+
+Array<Item> addItem ( Array<Item> src1, Item item ) {
+    Array<Item> dest;
+    dest.alloc(src1.size + 1);
+    int i = 0, j = 0, k = 0;
+    while ( i < src1.size && j < 1 )
+        if ( src1[i] < item )
+            dest[k++] = src1[i++];
+        else{
+            dest[k++] = item;
+            j++;
+        }
+    while ( i < src1.size )
+        dest[k++] = src1[i++];
+    if ( j < 1 )
+        dest[k++] = item;
+
+    if (verbose) std::cout << "\nitemset avant ajout : "; printItemset(src1);
+    if (verbose) std::cout << "Item à ajouter : " << item << std::endl;
+    if (verbose) std::cout << "itemset après ajout : "; printItemset(dest);
+    return dest;
+}
+
+void printItemset(Array<Item> itemset) {
+    if (verbose) {
+        for (int i = 0; i < itemset.size; ++i) {
+            std::cout << itemset[i] << ",";
+        }
+        std::cout << std::endl;
+    }
 }
 
