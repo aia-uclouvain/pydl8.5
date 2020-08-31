@@ -14,6 +14,7 @@ public:
     QueryData *initData ( RCover* tid, Depth currentMaxDepth = -1);
     ErrorValues computeErrorValues( RCover* cover);
     ErrorValues computeErrorValues(Supports itemsetSupport, bool onlyerror = false);
+    Error computeOnlyError(Supports itemsetSupport);
     //QueryData *initData ( Array<Transaction> tid, Error initBound, Support minsup, Depth currentMaxDepth = -1);
     void printAccuracy ( DataManager *data2, QueryData_Best *data, string* );
 protected:

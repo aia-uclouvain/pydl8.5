@@ -177,6 +177,24 @@ ErrorValues Query_TotalFreq::computeErrorValues(Supports itemsetSupport, bool on
 }
 
 
+Error Query_TotalFreq::computeOnlyError(Supports itemsetSupport) {
+    Class maxclass = 0;
+    Error error;
+    Support maxclassval = itemsetSupport[0];
+
+    for (int i = 1; i < nclasses; ++i) {
+        if (itemsetSupport[i] > maxclassval) {
+            maxclassval = itemsetSupport[i];
+            maxclass = i;
+        } else if (itemsetSupport[i] == maxclassval) {
+            if (data->getSupports()[i] > data->getSupports()[maxclass])
+                maxclass = i;
+        }
+    }
+    return sumSupports(itemsetSupport) - maxclassval;
+}
+
+
 void Query_TotalFreq::printAccuracy(DataManager *data2, QueryData_Best *data, string *out) {
     *out += "Accuracy: " + std::to_string((data2->getNTransactions() - data->error) / (double) data2->getNTransactions()) + "\n";
 }

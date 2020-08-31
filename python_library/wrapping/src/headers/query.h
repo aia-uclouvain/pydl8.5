@@ -36,6 +36,7 @@ public:
     virtual QueryData *initData ( RCover* tid, Depth currentMaxDepth = -1) = 0;
     virtual ErrorValues computeErrorValues( RCover* cover) = 0;
     virtual ErrorValues computeErrorValues(Supports itemsetSupport, bool onlyerror = false) = 0;
+    virtual Error computeOnlyError(Supports itemsetSupport) = 0;
     virtual bool updateData ( QueryData *best, Error upperBound, Attribute attribute, QueryData *left, QueryData *right ) = 0;
     virtual string printResult ( DataManager *data ) = 0;
     void setStartTime( clock_t sTime ){startTime = sTime;}

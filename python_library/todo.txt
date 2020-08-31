@@ -1,0 +1,2 @@
+- optimize twothree function in lcmpruned.cpp function
+- assess the case where successors are saved only when solution is not found and free when found

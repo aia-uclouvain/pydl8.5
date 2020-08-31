@@ -14,10 +14,11 @@ struct QueryData_Best {
   Size size;
   Depth solutionDepth;
   Supports corrects, falses;
-//  Array<pair<bool,Attribute>> successors = nullptr;
+  //Array<Attribute> successors;
     ~QueryData_Best(){
         if (corrects) deleteSupports(corrects);
         if (falses) deleteSupports(falses);
+        //if (successors.elts) successors.free();
     }
 };
 

@@ -32,9 +32,15 @@ protected:
 
     unordered_set<int> getExistingSuccessors(TrieNode* node);
 
-    Error computeLowerBound(RCover* cover, Array<bitset<M>*>& covers, Array<float>& errors);
+    Error computeLowerBound(RCover* cover, bitset<M>* covlb1, bitset<M>* covlb2, bitset<M>* covlb3,
+                            Supports sclb1, Supports sclb2, Supports sclb3,
+                            Supports sflb1, Supports sflb2, Supports sflb3);
 
-    void addInfoForLowerBound(RCover* cover, QueryData * node_data, Array<bitset<M>*>& covers, Array<float>& errors);
+    void addInfoForLowerBound(RCover* cover, QueryData * node_data, Error errlb1, Error errlb2, Error errlb3,
+                              bitset<M>*& covlb1, bitset<M>*& covlb2, bitset<M>*& covlb3,
+                              Supports& sclb1, Supports& sclb2, Supports& sclb3,
+                              Supports& sflb1, Supports& sflb2, Supports& sflb3,
+                              Support suplb);
 
     float informationGain ( Supports notTaken, Supports taken);
 
