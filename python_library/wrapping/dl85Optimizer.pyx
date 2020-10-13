@@ -29,21 +29,26 @@ cdef extern from "src/headers/dl85.h":
                     float maxError,
                     bool stopAfterError,
                     bool iterative,
-                    PyErrorWrapper error_callback,
-                    PyFastErrorWrapper fast_error_callback,
-                    PyPredictorErrorWrapper predictor_error_callback,
-                    bool error_is_null,
-                    bool fast_error_is_null,
+                    PyErrorWrapper tids_error_class_callback,
+                    PyFastErrorWrapper supports_error_class_callback,
+                    PyPredictorErrorWrapper tids_error_callback,
+                    PyExampleWeightWrapper example_weight_callback,
+                    # PyTestErrorWrapper predict_error_callback,
+                    bool tids_error_class_is_null,
+                    bool supports_error_class_is_null,
+                    bool tids_error_is_null,
+                    bool example_weight_is_null,
+                    bool predict_error_is_null,
                     int maxdepth,
                     int minsup,
+                    int max_estimators,
                     bool infoGain,
                     bool infoAsc,
                     bool repeatSort,
                     int timeLimit,
                     map[int, pair[int, int]]* continuousMap,
                     bool save,
-                    bool verbose_param,
-                    bool predict) except +
+                    bool verbose_param) except +
 
 cdef extern from "src/headers/py_error_function_wrapper.h":
     cdef cppclass PyErrorWrapper:
@@ -63,14 +68,30 @@ cdef extern from "src/headers/py_predictor_error_function_wrapper.h":
         PyPredictorErrorWrapper(object) # define a constructor that takes a Python object
              # note - doesn't match c++ signature - that's fine!
 
+cdef extern from "src/headers/py_example_weight_function_wrapper.h":
+    cdef cppclass PyExampleWeightWrapper:
+        PyExampleWeightWrapper()
+        PyExampleWeightWrapper(object) # define a constructor that takes a Python object
+             # note - doesn't match c++ signature - that's fine!
+
+# cdef extern from "src/headers/py_test_error_function_wrapper.h":
+    # cdef cppclass PyTestErrorWrapper:
+        # PyTestErrorWrapper()
+        # PyTestErrorWrapper(object) # define a constructor that takes a Python object
+             # note - doesn't match c++ signature - that's fine!
+
+
 
 def solve(data,
           target,
           func=None,
           fast_func=None,
           predictor_func=None,
+          weight_func=None,
+          # test_func=None,
           max_depth=1,
           min_sup=1,
+          max_estimators=1,
           max_error=0,
           stop_after_better=False,
           iterative=False,
@@ -94,6 +115,21 @@ def solve(data,
         fast_error_null_flag = False
 
     cdef PyPredictorErrorWrapper f_user_predictor = PyPredictorErrorWrapper(predictor_func)
+
+    cdef PyExampleWeightWrapper f_example_weight = PyExampleWeightWrapper(weight_func)
+    weight_null_flag = False
+
+    # cdef PyTestErrorWrapper f_test_weight = PyTestErrorWrapper(test_func)
+    # test_null_flag = False
+
+    if max_estimators <= 1:
+            # test_func = None
+            # test_null_flag = True
+            weight_func = None
+            weight_null_flag = True
+
+
+
 
     data = data.astype('int32')
 
@@ -140,6 +176,8 @@ def solve(data,
 
     info_gain = not (desc == False and asc == False)
 
+    pred = not predictor
+
     out = search(&supports_view[0],
                  ntransactions,
                  nattributes,
@@ -149,20 +187,25 @@ def solve(data,
                  max_error,
                  stop_after_better,
                  iterative,
-                 error_callback = f_user,
-                 fast_error_callback = f_user_fast,
-                 predictor_error_callback = f_user_predictor,
-                 error_is_null = error_null_flag,
-                 fast_error_is_null = fast_error_null_flag,
+                 tids_error_class_callback = f_user,
+                 supports_error_class_callback = f_user_fast,
+                 tids_error_callback = f_user_predictor,
+                 example_weight_callback = f_example_weight,
+                 predict_error_callback = f_test_weight,
+                 tids_error_class_is_null = error_null_flag,
+                 supports_error_class_is_null = fast_error_null_flag,
+                 tids_error_is_null = pred,
+                 example_weight_is_null = weight_null_flag,
+                 predict_error_is_null = test_null_flag,
                  maxdepth = max_depth,
                  minsup = min_sup,
+                 max_estimators = max_estimators,
                  infoGain = info_gain,
                  infoAsc = asc,
                  repeatSort = repeat_sort,
                  timeLimit = time_limit,
                  continuousMap = NULL,
                  save = bin_save,
-                 verbose_param = verb,
-                 predict = predictor)
+                 verbose_param = verb)
 
     return out.decode("utf-8")

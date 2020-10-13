@@ -10,6 +10,7 @@
 #include <functional>
 #include <algorithm>
 #include <vector>
+#include <cmath>
 
 // type created for decision taken on an attribute (feature)
 typedef int Bool;
@@ -29,13 +30,16 @@ typedef float Error;
 typedef int Item;
 // number of transactions covered by an itemset
 typedef int Support;
+// weighted support for a class
+typedef float SupportClass;
 // array of supports per class
-typedef int* Supports;
+typedef SupportClass* Supports;
 
 #define NO_SUP INT_MAX // SHRT_MAX
 #define NO_ERR FLT_MAX
 #define NO_GAIN FLT_MAX
 #define NO_ITEM INT_MAX // SHRT_MAX
+#define NO_ATTRIBUTE INT_MAX // SHRT_MAX
 #define NO_DEPTH INT_MAX
 
 // compute item value based on the attribute and its decision value
@@ -89,6 +93,20 @@ public:
     }
 
     A &operator[](int i) { return elts[i]; }
+
+    class iterator {
+    public:
+        iterator(A * ptr): ptr(ptr){}
+        iterator operator++() { ++ptr; return *this; }
+        bool operator!=(const iterator & other) const { return ptr != other.ptr; }
+        // the const is add to only allow read. It is much faster but we lose in read
+        const A& operator*() const { return *ptr; }
+    private:
+        A* ptr;
+    };
+
+    iterator begin() const { return iterator(elts); }
+    iterator end() const { return iterator(elts + size); }
 };
 
 
@@ -134,6 +152,8 @@ void plusSupports(Supports src1, Supports src2, Supports dest);
 // return dest which is array of substraction of src2 from src1
 void subSupports(Supports src1, Supports src2, Supports dest);
 
+bool floatEqual(float f1, float f2);
+
 template<typename T>
 void my_deleten(T *&ptr) {
     if (ptr){
@@ -149,7 +169,7 @@ void my_deletetab(T *&ptr) {
         ptr = nullptr;
     }
 }
-
+extern float epsilon;
 extern Class nclasses;
 extern Attribute nattributes;
 extern std::map<int, int> attrFeat;

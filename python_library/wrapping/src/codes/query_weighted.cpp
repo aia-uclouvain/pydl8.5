@@ -1,16 +1,19 @@
-#include "query_totalfreq.h"
+#include "query_weighted.h"
 #include "trie.h"
 #include <iostream>
 
-Query_TotalFreq::Query_TotalFreq(Trie *trie,
-                                 DataManager *data,
-                                 ExpError *experror,
-                                 int timeLimit,
-                                 bool continuous,
-                                 function<vector<float>(RCover *)> *tids_error_class_callback,
-                                 function<vector<float>(RCover *)> *supports_error_class_callback,
-                                 function<float(RCover *)> *tids_error_callback,
-                                 float maxError, bool stopAfterError) :
+Query_Weighted::Query_Weighted(Trie *trie,
+                               DataManager *data,
+                               ExpError *experror,
+                               int timeLimit,
+                               bool continuous,
+                               function<vector<float>(RCover *)>* tids_error_class_callback,
+                               function<vector<float>(RCover *)>* supports_error_class_callback,
+                               function<float(RCover *)>* tids_error_callback,
+                               function<vector<float>(string)>* example_weight_callback,
+                               function<float(string)>* predict_error_callback,
+                               float maxError,
+                               bool stopAfterError) :
         Query_Best(trie,
                    data,
                    experror,
@@ -20,17 +23,22 @@ Query_TotalFreq::Query_TotalFreq(Trie *trie,
                    supports_error_class_callback,
                    tids_error_callback,
                    maxError,
-                   stopAfterError) {}
+                   stopAfterError),
+        example_weight_callback(example_weight_callback),
+        predict_error_callback(predict_error_callback) {}
 
 
-Query_TotalFreq::~Query_TotalFreq() {}
+Query_Weighted::~Query_Weighted() {
+    delete example_weight_callback;
+    delete predict_error_callback;
+}
 
 
-bool Query_TotalFreq::is_freq(pair<Supports, Support> supports) {
+bool Query_Weighted::is_freq(pair<Supports, Support> supports) {
     return supports.second >= minsup;
 }
 
-bool Query_TotalFreq::is_pure(pair<Supports, Support> supports) {
+bool Query_Weighted::is_pure(pair<Supports, Support> supports) {
     Support majnum = supports.first[0], secmajnum = 0;
     for (int i = 1; i < nclasses; ++i)
         if (supports.first[i] > majnum) {
@@ -42,7 +50,7 @@ bool Query_TotalFreq::is_pure(pair<Supports, Support> supports) {
 }
 
 bool
-Query_TotalFreq::updateData(QueryData *best, Error upperBound, Attribute attribute, QueryData *left, QueryData *right) {
+Query_Weighted::updateData(QueryData *best, Error upperBound, Attribute attribute, QueryData *left, QueryData *right) {
     QueryData_Best *best2 = (QueryData_Best *) best, *left2 = (QueryData_Best *) left, *right2 = (QueryData_Best *) right;
     Error error = left2->error + right2->error;
     Size size = left2->size + right2->size + 1;
@@ -57,30 +65,24 @@ Query_TotalFreq::updateData(QueryData *best, Error upperBound, Attribute attribu
     return false;
 }
 
-QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
-    Class maxclass = -1;// conflict = 0;
+QueryData *Query_Weighted::initData(RCover *cover, Depth currentMaxDepth) {
+    Class maxclass = -1;
     Error error;
 
     QueryData_Best *data = new QueryData_Best();
-
-    //fast or default error. support will be used
-    if (tids_error_class_callback == nullptr && tids_error_callback == nullptr) {
-        //python fast error
-        if (supports_error_class_callback != nullptr) {
+    if (tids_error_class_callback == nullptr &&
+        tids_error_callback == nullptr) { //fast or default error. support will be used
+        if (supports_error_class_callback != nullptr) { //python fast error
             function<vector<float>(RCover *)> callback = *supports_error_class_callback;
             vector<float> infos = callback(cover);
             error = infos[0];
             maxclass = int(infos[1]);
-        }
-        //default error
-        else {
+        } else { //default error
             ErrorValues ev = computeErrorValues(cover);
             error = ev.error;
             maxclass = ev.maxclass;
         }
-    }
-    //slow error or predictor error function. Not need to compute support
-    else {
+    } else { //slow error or predictor error function. Not need to compute support
         if (tids_error_callback != nullptr) {
             function<float(RCover *)> callback = *tids_error_callback;
             error = callback(cover);
@@ -100,11 +102,11 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
     return (QueryData *) data;
 }
 
-ErrorValues Query_TotalFreq::computeErrorValues(RCover *cover) {
+ErrorValues Query_Weighted::computeErrorValues(RCover *cover) {
     Class maxclass;
     Error error;
 
-    Supports itemsetSupport = cover->getSupportPerClass();
+    Supports itemsetSupport = cover->getWeightedSupportPerClass(weights);
     Support maxclassval = itemsetSupport[0];
     maxclass = 0;
 
@@ -122,7 +124,7 @@ ErrorValues Query_TotalFreq::computeErrorValues(RCover *cover) {
 }
 
 
-ErrorValues Query_TotalFreq::computeErrorValues(Supports itemsetSupport, bool onlyerror) {
+ErrorValues Query_Weighted::computeErrorValues(Supports itemsetSupport, bool onlyerror) {
     Class maxclass = 0;
     Error error;
     Support maxclassval = itemsetSupport[0];
@@ -137,13 +139,13 @@ ErrorValues Query_TotalFreq::computeErrorValues(Supports itemsetSupport, bool on
         }
     }
     error = sumSupports(itemsetSupport) - maxclassval;
+
     return {error, maxclass};
 }
 
 
-Error Query_TotalFreq::computeOnlyError(Supports itemsetSupport) {
+Error Query_Weighted::computeOnlyError(Supports itemsetSupport) {
     Class maxclass = 0;
-    Error error;
     Support maxclassval = itemsetSupport[0];
 
     for (int i = 1; i < nclasses; ++i) {
@@ -156,4 +158,9 @@ Error Query_TotalFreq::computeOnlyError(Supports itemsetSupport) {
         }
     }
     return sumSupports(itemsetSupport) - maxclassval;
+}
+
+Error Query_Weighted::getTrainingError(const string& tree_json){
+    function<float(string)> callback = *predict_error_callback;
+    return callback(tree_json);
 }

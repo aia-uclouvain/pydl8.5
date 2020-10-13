@@ -1,4 +1,5 @@
 from libcpp cimport bool
+from libcpp.string cimport string
 from libcpp.vector cimport vector
 from libcpp.stack cimport stack
 from cython.operator cimport dereference as deref, preincrement as inc
@@ -65,4 +66,10 @@ cdef public vector[float] call_python_fast_error_function(python_fast_function, 
 
 cdef public float call_python_predictor_error_function(python_predictor_function, RCover *ar):
     return python_predictor_function(wrap_array(ar, True))
+
+cdef public vector[float] call_python_example_weight_function(python_weight_function, string tree_json):
+    return python_weight_function(tree_json)
+
+cdef public float call_python_test_error_function(python_test_function, float error):
+    return python_test_function(error)
 

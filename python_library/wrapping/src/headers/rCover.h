@@ -46,37 +46,47 @@ public:
         delete [] sup_class;
     }
 
-    void intersect1(Attribute attribute, bool positive = true);
+    void intersect1(Attribute attribute, bool positive = true); //not implemented and not used ==> must be removed
 
-    void intersect(Attribute attribute, bool positive = true);
+    //the two next function must be replace by a virtual abstract function intersect
+    void intersect(Attribute attribute, bool positive = true); //implemented and used for totalfreq intersection
 
-    Supports intersectAndClass(Attribute attribute, bool positive = true);
+    void weightedIntersect(Attribute attribute, const vector<float>& weights, bool positive = true); //implemented and useful for weighted intersection
 
-    int intersectAndSup(Attribute attribute, bool positive = true);
+    //the two next function must be replace by a virtual abstract function temporaryIntersect
+    pair<Supports, Support> temporaryIntersect(Attribute attribute, bool positive = true); //implemented and used for totalfreq intersection to get support without modifying the cover
 
-    void intersectAndFillAll(Supports* row, vector<Attribute>& attributes, int start);
+    pair<Supports, Support> temporaryWeightedIntersect(Attribute attribute, const vector<float>& weights, bool positive = true);  //implemented and useful for weighted intersection to get support without modifying the cover
 
-    void minus(bitset<M>* cover1);
+    Support temporaryIntersectSup(Attribute attribute, bool positive = true); //implemented and used for intersection to get support without modifying the cover (base)
 
-    Support minusMee(bitset<M>* cover1);
+    void intersectAndFillAll(Supports* row, vector<Attribute>& attributes, int start); // implemented but not used. Must be commented
 
-    Supports minusMe(bitset<M>* cover1);
+    void minus(bitset<M>* cover1); // implemented but not used. Must be commented
 
-    bitset<M>* getTopBitsetArray();
+    Support minusMee(bitset<M>* cover1); // implemented but not used. Must be commented
 
-    Support getSupport();
+    Supports minusMe(bitset<M>* cover1); //implmeented and used to compute minus operation. must be kept in the base class
 
-    Supports getSupportPerClass();
+    bitset<M>* getTopBitsetArray(); // must be kept in the base class
 
-    Supports getClassSupport();
+    Support getSupport(); // must be kept in the base class
 
-    vector<int> getTransactionsID();
+    Supports getSupportPerClass(); // must be kept in the base class
 
-    void backtrack();
+    Supports getClassSupport(); //getSupports of each class. Can be removed. Available with dm->getSupports
 
-    void print();
+    vector<int> getTransactionsID(bitset<M>& word, int real_word_index); // must be present in weighted
 
-    string outprint();
+    vector<int> getTransactionsID();  // must be present in weighted
+
+    void backtrack(); // must be kept in the base class
+
+    void print(); // must be kept in the base class
+
+    string outprint(); // must be kept in the base class
+
+    Supports getWeightedSupportPerClass(const vector<float>& weights);
 
     class iterator {
     public:

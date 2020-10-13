@@ -14,6 +14,9 @@
 #include <unordered_map>
 #include "dataContinuous.h"
 #include "rCover.h"
+#include <chrono>
+
+using namespace std::chrono;
 
 
 struct Hash {
@@ -41,7 +44,7 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
     Logger::showMessageAndReturn("\t\tAppel recursif. CMD : ", currentMaxDepth, " and current depth : ", depth);
 
     if ( query->timeLimit > 0 ){
-        float runtime = ( clock () - query->startTime ) / (float) CLOCKS_PER_SEC;
+        float runtime = duration_cast<milliseconds>( high_resolution_clock::now() - query->startTime ).count() / 1000;
         if( runtime >= query->timeLimit )
             query->timeLimitReached = true;
     }
@@ -307,7 +310,7 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
 
 
 void LcmIterative::run () {
-    query->setStartTime(clock());
+//    query->setStartTime(clock());
     Array<Item> itemset; //array of items representing an itemset
     itemset.size = 0;
     Array<pair<bool, Attribute> > next_attributes(nattributes, 0);
@@ -387,7 +390,7 @@ Array<pair<bool, Attribute> > LcmIterative::getSuccessors(Array<pair<bool, Attri
         else if (current_attributes[i].first) {
 
 
-            if (query->error_callback != nullptr || query->predictor_error_callback != nullptr){//slow or predictor
+            if (query->tids_error_class_callback != nullptr || query->tids_error_callback != nullptr){//slow or predictor
 
                 current_cover->intersect(current_attributes[i].second, false);
                 supports[0].second = current_cover->getSupport();

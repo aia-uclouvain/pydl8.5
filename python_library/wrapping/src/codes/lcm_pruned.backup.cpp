@@ -11,6 +11,12 @@
 using namespace std::chrono;
 
 
+/*struct Hash {
+    size_t operator()(const int &vec) const {
+        return vec;
+    }
+};*/
+
 LcmPruned::LcmPruned(DataManager *dataReader, Query *query, Trie *trie, bool infoGain, bool infoAsc, bool repeatSort) :
         dataReader(dataReader), trie(trie), query(query), infoGain(infoGain), infoAsc(infoAsc), repeatSort(repeatSort) {
 }
@@ -82,6 +88,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
         }
 
         Error *saved_lb = &(((QueryData_Best *) node->data)->lowerBound);
+        if (computed_lb > *saved_lb) *saved_lb = computed_lb;
 
         // in case the problem is infeasible
         if (ub <= *saved_lb) {
@@ -103,8 +110,9 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
 
     // in case the solution cannot be derived without computation and remaining depth is 2, we use a specific algorithm
     if (query->maxdepth - depth == 2 && cover->getSupport() >= 2 * query->minsup) {
-//        return getdepthtwotrees(cover, ub, next_candidates, last_added, itemset, node, computed_lb);
-        return computeDepthTwo(cover, ub, next_candidates, last_added, itemset, node, query, computed_lb, trie);
+        // if the node exists, use the max between the saved lb and the similarity computed lb
+        computed_lb = (node->data) ? max(computed_lb, ((QueryData_Best *) node->data)->lowerBound) : computed_lb;
+        return getdepthtwotrees(cover, ub, next_candidates, last_added, itemset, node, computed_lb);
     }
 
     // there are two cases in which the execution attempt here
@@ -125,6 +133,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
         // Initialize data information about the node and get them for the search
         node->data = query->initData(cover);
         Error *saved_lb = &(((QueryData_Best *) node->data)->lowerBound);
+        if (computed_lb > *saved_lb) *saved_lb = computed_lb;
         Error leafError = ((QueryData_Best *) node->data)->leafError;
         Error *nodeError = &(((QueryData_Best *) node->data)->error);
         Logger::showMessageAndReturn("after init of the new node. ub = ", ub, " and leaf error = ", leafError);
@@ -157,8 +166,12 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
 
 
     }
-        //case 2 : the node exists without solution but ub > last ub which is now lb
+    //case 2 : the node exists without solution but ub > last ub which is now lb
     else {
+
+        // update the lower bound if needed
+        Error *saved_lb = &(((QueryData_Best *) node->data)->lowerBound);
+        if (computed_lb > *saved_lb) *saved_lb = computed_lb;
 
         Error leafError = ((QueryData_Best *) node->data)->leafError;
         Error *nodeError = &(((QueryData_Best *) node->data)->error);
@@ -171,18 +184,15 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
         }
 
         // if we can't get solution without computation, we compute the next candidates to perform the search
-         next_attributes = getExistingSuccessors(node);
-//        next_attributes = getSuccessors(next_candidates, cover, last_added);
+        // next_attributes = getSuccessors(attributes_to_visit, cover, added, getExistingSuccessors(node));
+        next_attributes = getSuccessors(next_candidates, cover, last_added);
         //<====================================  END STEP  ==========================================>
     }
-
-    // as the best tree cannot be deducted without computation, we compute the search
 
     Error *lb = &(((QueryData_Best *) node->data)->lowerBound);
     Error leafError = ((QueryData_Best *) node->data)->leafError;
     Error *nodeError = &(((QueryData_Best *) node->data)->error);
 
-    // case in which there is no candidate
     if (next_attributes.size == 0) {
         Logger::showMessageAndReturn("No candidates. nodeError is set to leafError");
         *nodeError = leafError;
@@ -193,110 +203,115 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
         return node;
     }
 
-    // parameters for similarity lower bound
-    bool first_item = false, second_item = true;
-    bitset<M> *b1_cover = nullptr, *b2_cover = nullptr;
-    Error highest_error = 0;
-    Support highest_support = 0;
-    // in case solution, is not found, this value is the minimum of the minimum error
-    // for each attribute. It can be used as a lower bound
-    Error minlb = FLT_MAX;
-
-    //bount for the first child (item)
     Error child_ub = ub;
+    Error minlb = FLT_MAX, sumbound = 0;
+    bool first = false;
+    bitset<M> *covlb1 = nullptr;
+    Supports sclb1 = nullptr;
+    Supports sflb1 = nullptr;
+    Error errlb1 = 0;
+    bitset<M> *covlb2 = nullptr;
+    Supports sclb2 = nullptr;
+    Supports sflb2 = nullptr;
+    Error errlb2 = FLT_MAX;
+    bitset<M> *covlb3 = nullptr;
+    Supports sclb3 = nullptr;
+    Supports sflb3 = nullptr;
+    Support suplb = 0;
+    Error errlb3;
+    forEach (i, next_attributes) {
 
-    // we evaluate the split on each candidate attribute
-    for(auto& next : next_attributes) {
-        Logger::showMessageAndReturn("We are evaluating the attribute : ", next);
-
+//                Attribute last_attrs[2];
         Array<Item> itemsets[2];
         TrieNode *nodes[2];
-        Error first_lb = 0, second_lb = 0;
 
-        //the lower bound is computed for both items. they are used as heuristic to decide
-        // the first item to branch on we branch on item with higher lower to have chance
-        // to get a higher error to violate the ub constraint and prune the second branch
-        // this computation is costly so, in some case can add some overhead. If you don't
-        // want to use it, please comment the next block and uncomment the lowerbound
-        // calculation lines before the two calls to "recurse". 0/1 order is used in this case.
-
-        //=========================== BEGIN BLOCK ==========================//
-        cover->intersect(next, false);
-        first_lb = computeLowerBound(cover, b1_cover, b2_cover);
+        cover->intersect(next_attributes[i], false);
+        Error llb = computeLowerBound(cover, covlb1, covlb2, covlb3, sclb1, sclb2, sclb3, sflb1, sflb2, sflb3);
+//                items[0] = item(next_attributes[i], 0);
+        itemsets[0] = addItem(itemset, item(next_attributes[i], 0));
+        nodes[0] = trie->insert(itemsets[0]);
+        llb = (nodes[0]->data) ? max(((QueryData_Best *) nodes[0]->data)->lowerBound, llb) : llb;
+        //itemsets[0].free();
         cover->backtrack();
 
-        cover->intersect(next);
-        second_lb = computeLowerBound(cover, b1_cover, b2_cover);
+        cover->intersect(next_attributes[i]);
+        Error rlb = computeLowerBound(cover, covlb1, covlb2, covlb3, sclb1, sclb2, sclb3, sflb1, sflb2, sflb3);
+//                items[1] = item(next_attributes[i], 1);
+        itemsets[1] = addItem(itemset, item(next_attributes[i], 1));
+        nodes[1] = trie->insert(itemsets[1]);
+        rlb = (nodes[1]->data) ? max(((QueryData_Best *) nodes[1]->data)->lowerBound, rlb) : rlb;
+        //itemsets[1].free();
         cover->backtrack();
-        //=========================== END BLOCK ==========================//
+        sumbound = llb + rlb;
+        first = rlb > llb;
 
 
-        first_item = second_lb > first_lb;
-        second_item = !first_item;
 
-        // perform search on the first item
-        cover->intersect(next, first_item);
-        itemsets[first_item] = addItem(itemset, item(next, first_item));
-        nodes[first_item] = trie->insert(itemsets[first_item]);
-        // uncomment the next line if the previous block is commented
-        // first_lb = computeLowerBound(cover, b1_cover, b2_cover);
-        // the best lower bound between the computed and the saved is used
-        first_lb = (nodes[first_item]->data) ? max(((QueryData_Best *) nodes[first_item]->data)->lowerBound, first_lb)
-                                             : first_lb;
-        nodes[first_item] = recurse(itemsets[first_item], next, nodes[first_item],
-                                    next_attributes, cover, depth + 1, child_ub, first_lb);
+        /*cover->intersect(next_attributes[i], first);
+        Error llb = computeLowerBound(cover, covlb1, covlb2, covlb3, sclb1, sclb2, sclb3, sflb1, sflb2, sflb3);
+        //cout << "llb : " << llb << endl;
+        Item left_item = item(next_attributes[i], first);
+        Array<Item> left_itemset = addItem(itemset, left_item);
+        TrieNode *left_node = trie->insert(left_itemset);
+        llb = (left_node->data) ? max( ((QueryData_Best *) left_node->data)->lowerBound, llb ) : llb;
+        left_node = recurse(left_itemset, left_item, left_node, next_attributes, cover, depth + 1, child_ub, llb);
+        addInfoForLowerBound(cover, left_node->data, errlb1, errlb2, errlb3, covlb1, covlb2, covlb3, sclb1, sclb2, sclb3, sflb1, sflb2, sflb3, suplb);
+        Error leftError = ((QueryData_Best *) left_node->data)->error;
+        left_itemset.free();
+        cover->backtrack();*/
 
-        // check if the found information is relevant to compute the next similarity bounds
-        addInfoForLowerBound(cover, nodes[first_item]->data, b1_cover, b2_cover, highest_error, highest_support);
-        Error firstError = ((QueryData_Best *) nodes[first_item]->data)->error;
-        itemsets[first_item].free();
+        cover->intersect(next_attributes[i], first);
+        nodes[first] = recurse(itemsets[first], next_attributes[i], nodes[first], next_attributes, cover, depth + 1,
+                               child_ub, llb);
+        addInfoForLowerBound(cover, nodes[first]->data, errlb1, errlb2, errlb3, covlb1, covlb2, covlb3, sclb1,
+                             sclb2, sclb3, sflb1, sflb2, sflb3, suplb);
+        Error leftError = ((QueryData_Best *) nodes[first]->data)->error;
+        itemsets[first].free();
         cover->backtrack();
 
-        if (query->canimprove(nodes[first_item]->data, child_ub)) {
+        //if (query->canimprove(left_node->data, child_ub)) {
+        if (query->canimprove(nodes[first]->data, child_ub)) {
 
-            // perform search on the second item
-            cover->intersect(next, second_item);
-            itemsets[second_item] = addItem(itemset, item(next, second_item));
-            nodes[second_item] = trie->insert(itemsets[second_item]);
-            // uncomment the next line if the previous block is commented
-            // second_lb = computeLowerBound(cover, b1_cover, b2_cover);
-            // the best lower bound between the computed and the saved is used
-            second_lb = (nodes[second_item]->data) ? max(((QueryData_Best *) nodes[second_item]->data)->lowerBound,
-                                                         second_lb) : second_lb;
-            // bound for the second child (item)
-            Error remainUb = child_ub - firstError;
-            nodes[second_item] = recurse(itemsets[second_item], next, nodes[second_item],
-                                         next_attributes, cover, depth + 1, remainUb, second_lb);
+            /*cover->intersect(next_attributes[i], !first);
+            Error rlb = computeLowerBound(cover, covlb1, covlb2, covlb3, sclb1, sclb2, sclb3, sflb1, sflb2, sflb3);
+            //cout << "rlb : " << rlb << endl;
+            Item right_item = item(next_attributes[i], !first);
+            Array<Item> right_itemset = addItem(itemset, right_item);
+            TrieNode *right_node = trie->insert(right_itemset);
+            rlb = (right_node->data) ? max( ((QueryData_Best *) right_node->data)->lowerBound, rlb ) : rlb;
+            float remainUb = child_ub - leftError;
+            right_node = recurse(right_itemset, right_item, right_node, next_attributes, cover, depth + 1, remainUb, rlb);
+            addInfoForLowerBound(cover, right_node->data, errlb1, errlb2, errlb3, covlb1, covlb2, covlb3, sclb1, sclb2, sclb3, sflb1, sflb2, sflb3, suplb);
+            Error rightError = ((QueryData_Best *) right_node->data)->error;
+            right_itemset.free();
+            cover->backtrack();*/
 
-            // check if the found information is relevant to compute the next similarity bounds
-            addInfoForLowerBound(cover, nodes[second_item]->data, b1_cover, b2_cover, highest_error, highest_support);
-            Error secondError = ((QueryData_Best *) nodes[second_item]->data)->error;
-            itemsets[second_item].free();
+
+            cover->intersect(next_attributes[i], !first);
+            float remainUb = child_ub - leftError;
+            nodes[!first] = recurse(itemsets[!first], next_attributes[i], nodes[!first], next_attributes, cover,
+                                    depth + 1, remainUb, rlb);
+            addInfoForLowerBound(cover, nodes[!first]->data, errlb1, errlb2, errlb3, covlb1, covlb2, covlb3, sclb1,
+                                 sclb2, sclb3, sflb1, sflb2, sflb3, suplb);
+            Error rightError = ((QueryData_Best *) nodes[!first]->data)->error;
+            itemsets[!first].free();
             cover->backtrack();
 
-            Error feature_error = firstError + secondError;
-            bool hasUpdated = query->updateData(node->data, child_ub, next,
-                                                nodes[first_item]->data, nodes[second_item]->data);
-            if (hasUpdated) {
-                child_ub = feature_error;
-                Logger::showMessageAndReturn("after this attribute, node error=", *nodeError, " and ub=", child_ub);
-            }
-            // in case we get the real error, we update the minimum possible error
-            else minlb = min(minlb, feature_error);
+            Error feature_error = leftError + rightError;
+            //bool hasUpdated = query->updateData(node->data, child_ub, next_attributes[i], left_node->data, right_node->data);
+            bool hasUpdated = query->updateData(node->data, child_ub, next_attributes[i], nodes[first]->data,
+                                                nodes[!first]->data);
+            if (hasUpdated) child_ub = feature_error;
+            if (hasUpdated)
+                Logger::showMessageAndReturn("après cet attribut, node error = ", *nodeError, " et ub = ",
+                                             child_ub);
 
             if (query->canSkip(node->data)) {//lowerBound reached
-                Logger::showMessageAndReturn("We get the best solution. So, we break the remaining attributes");
+                Logger::showMessageAndReturn("C'est le meilleur. on break le reste");
                 break; //prune remaining attributes not browsed yet
             }
         } else {
-            //we do not attempt the second child, so we use its lower bound
-
-            // if the first error is unknown, we use its lower bound
-            if (floatEqual(firstError, FLT_MAX))
-                minlb = min(minlb, first_lb + second_lb);
-            // otherwise, we use it
-            else
-                minlb = min(minlb, firstError + second_lb);
+            if (sumbound < minlb) minlb = sumbound;
         }
 
         if (query->stopAfterError) {
@@ -306,11 +321,12 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
             }
         }
     }
-    delete[] b1_cover;
-    delete[] b2_cover;
+    delete[] covlb1;
+    delete[] covlb2;
+    delete[] covlb3;
 
-    // we do not get solution and new lower bound is better than the old
-    if (floatEqual(*nodeError, FLT_MAX) && max(ub, minlb) > *lb) {
+    if (floatEqual(*nodeError, FLT_MAX) && max(ub, minlb) > *lb) { //cache successors if solution not found
+        //cout << "minlb = " << minlb << " " << *lb << endl;
         *lb = max(ub, minlb);
     }
 
@@ -331,44 +347,74 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
 }
 
 
-Error LcmPruned::computeLowerBound(RCover *cover, bitset<M> *b1_cover, bitset<M> *b2_cover) {
-    Error bound = 0;
-    for (bitset<M> *cov : {b1_cover, b2_cover}) {
-        Supports supports = cover->getSupportPerClass();
-        if (cov) {
-            Supports dif = cover->minusMe(cov);
-            Error sum = 0;
-            SupportClass max = 0;
-            forEachClass(n) {
-                SupportClass tmp = supports[n] - dif[n];
-                sum += tmp;
-                if (tmp > max) max = tmp;
-            }
-            if (sum - max > bound) bound = sum - max;
-            deleteSupports(dif);
+Error LcmPruned::computeLowerBound(RCover *cover, bitset<M> *covlb1, bitset<M> *covlb2, bitset<M> *covlb3,
+                                   Supports sclb1, Supports sclb2, Supports sclb3,
+                                   Supports sflb1, Supports sflb2, Supports sflb3) {
+    Error tmp1 = 0, tmp2 = 0, tmp3 = 0;
+    if (covlb1) {
+        Error c = 0, f = 0;
+        SupportClass nullerr = 0;
+        Supports dif1 = cover->minusMe(covlb1);
+        forEachClass(n) {
+            c += max(nullerr, sclb1[n] - dif1[n]);
+            f += max(nullerr, sflb1[n] - dif1[n]);
         }
+        tmp1 = min(c, f);
+        deleteSupports(dif1);
     }
-    return bound;
+    /*if (covlb2){
+        Error c = 0, f = 0;
+        Supports dif2 = cover->minusMe(covlb2);
+        forEachClass(n){
+            c += max(0, sclb2[n] - dif2[n]);
+            f += max(0, sflb2[n] - dif2[n]);
+        }
+        tmp2 = min(c, f);
+        deleteSupports(dif2);
+    }*/
+    if (covlb3) {
+        Error c = 0, f = 0;
+        SupportClass nullerr = 0;
+        Supports dif3 = cover->minusMe(covlb3);
+        forEachClass(n) {
+            c += max(nullerr, sclb3[n] - dif3[n]);
+            f += max(nullerr, sflb3[n] - dif3[n]);
+        }
+        tmp3 = min(c, f);
+        deleteSupports(dif3);
+    }
+    //cout << "tmp1 : " << tmp1 << " et tmp2 : " << tmp2 << endl;
+    return max(tmp1, tmp3);
 }
 
-void LcmPruned::addInfoForLowerBound(RCover *cover, QueryData *node_data, bitset<M> *&b1_cover,
-                                     bitset<M> *&b2_cover, Error &highest_error, Support &highest_coversize) {
+void LcmPruned::addInfoForLowerBound(RCover *cover, QueryData *node_data, Error errlb1, Error errlb2, Error errlb3,
+                                     bitset<M> *&covlb1, bitset<M> *&covlb2, bitset<M> *&covlb3,
+                                     Supports &sclb1, Supports &sclb2, Supports &sclb3,
+                                     Supports &sflb1, Supports &sflb2, Supports &sflb3,
+                                     Support suplb) {
     if (((QueryData_Best *) node_data)->error < FLT_MAX) {
-        Error err = (((QueryData_Best *) node_data)->error < FLT_MAX) ?
-                    ((QueryData_Best *) node_data)->error :
-                    ((QueryData_Best *) node_data)->lowerBound;
-        Support sup = cover->getSupport();
-
-        if (err < FLT_MAX && err > highest_error) {
-            delete[] b1_cover;
-            b1_cover = cover->getTopBitsetArray();
-            highest_error = err;
+        Error b = (((QueryData_Best *) node_data)->error < FLT_MAX) ? ((QueryData_Best *) node_data)->error
+                                                                    : ((QueryData_Best *) node_data)->lowerBound;
+        if (b < FLT_MAX && b > errlb1) {
+            delete[] covlb1;
+            covlb1 = cover->getTopBitsetArray();
+            sclb1 = ((QueryData_Best *) node_data)->corrects;
+            sflb1 = ((QueryData_Best *) node_data)->falses;
+            errlb1 = b;
         }
-
-        if (sup > highest_coversize) {
-            delete[] b2_cover;
-            b2_cover = cover->getTopBitsetArray();
-            highest_coversize = sup;
+        /*if (b > 0 && b < errlb2){
+            delete [] covlb2; covlb2 = cover->getTopBitsetArray();
+            sclb2 = ((QueryData_Best *) node_data)->corrects;
+            sflb2 = ((QueryData_Best *) node_data)->falses;
+            errlb2 = b;
+        }*/
+        if (cover->getSupport() > suplb) {
+            delete[] covlb3;
+            covlb3 = cover->getTopBitsetArray();
+            sclb3 = ((QueryData_Best *) node_data)->corrects;
+            sflb3 = ((QueryData_Best *) node_data)->falses;
+            suplb = cover->getSupport();
+            errlb3 = b;
         }
     }
 }
@@ -392,7 +438,7 @@ void LcmPruned::run() {
             attributes_to_visit.push_back(attr);
     } else { // make sure each candidate attribute can be split into two nodes fulfilling the frequency criterion
         for (int attr = 0; attr < nattributes; ++attr) {
-            if (cover->temporaryIntersectSup(attr, false) >= query->minsup && cover->temporaryIntersectSup(attr) >= query->minsup)
+            if (cover->intersectAndSup(attr, false) >= query->minsup && cover->intersectAndSup(attr) >= query->minsup)
                 attributes_to_visit.push_back(attr);
         }
     }
@@ -449,7 +495,8 @@ float LcmPruned::informationGain(Supports notTaken, Supports taken) {
 }
 
 
-Array<Attribute> LcmPruned::getSuccessors(Array<Attribute> last_candidates, RCover *cover, Attribute last_added) {
+Array<Attribute> LcmPruned::getSuccessors(Array<Attribute> last_candidates, RCover *cover, Attribute last_added,
+                                          unordered_set<int> frequent_attr) {
 
     std::multimap<float, Attribute> gain;
     Array<Attribute> next_candidates(last_candidates.size, 0);
@@ -459,16 +506,16 @@ Array<Attribute> LcmPruned::getSuccessors(Array<Attribute> last_candidates, RCov
         return next_candidates;
 
     int current_sup = cover->getSupport();
-    Supports current_sup_class = cover->getSupportPerClass();
+    Supports current_sup_class = copySupports(cover->getClassSupport());
 
     // access each candidate
-    for (auto& candidate : last_candidates) {
+    forEach (i, last_candidates) {
 
         // this attribute is already in the current itemset
-        if (last_added == candidate) continue;
+        if (last_added == last_candidates[i]) continue;
 
         // compute the support of each candidate
-        int sup_left = cover->temporaryIntersectSup(candidate, false);
+        int sup_left = cover->intersectAndSup(last_candidates[i], false);
         int sup_right = current_sup - sup_left; //no need to intersect with negative item to compute its support
 
         // add frequent attributes but if heuristic is used to sort them, compute its value and sort later
@@ -478,17 +525,18 @@ Array<Attribute> LcmPruned::getSuccessors(Array<Attribute> last_candidates, RCov
             else {
                 if (infoGain) {
                     // compute the support per class in each split of the attribute to compute its IG value
-                    Supports sup_class_left = cover->temporaryIntersect(candidate, false).first;
+                    Supports sup_class_left = cover->intersectAndClass(last_candidates[i], false);
                     Supports sup_class_right = newSupports();
                     subSupports(current_sup_class, sup_class_left, sup_class_right);
                     gain.insert(std::pair<float, Attribute>(informationGain(sup_class_left, sup_class_right),
-                                                            candidate));
+                                                            last_candidates[i]));
                     deleteSupports(sup_class_left);
                     deleteSupports(sup_class_right);
-                } else next_candidates.push_back(candidate);
+                } else next_candidates.push_back(last_candidates[i]);
             }
         }
     }
+    deleteSupports(current_sup_class);
 
     // if heuristic is used, add the next candidates given the heuristic order
     if (infoGain) {
@@ -975,38 +1023,45 @@ LcmPruned::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes
 
     vector<Attribute> attr;
     attr.reserve(attributes_to_visit.size - 1);
-    for(auto& attribute : attributes_to_visit) {
-        if (last_added == attribute) continue;
-        attr.push_back(attribute);
+    for (int m = 0; m < attributes_to_visit.size; ++m) {
+        if (last_added == attributes_to_visit[m]) continue;
+        attr.push_back(attributes_to_visit[m]);
     }
-
-    auto start_comp = high_resolution_clock::now();
+    clock_t ttt = clock();
     Supports **sups = new Supports *[attr.size()];
     for (int l = 0; l < attr.size(); ++l) {
         sups[l] = new Supports[attr.size()];
         cover->intersect(attr[l]);
         sups[l][l] = cover->getSupportPerClass();
-        for (int i = l + 1; i < attr.size(); ++i) sups[l][i] = cover->temporaryIntersect(attr[i]).first;
+        for (int i = l + 1; i < attr.size(); ++i) sups[l][i] = cover->intersectAndClass(attr[i]);
         cover->backtrack();
     }
-    auto stop_comp = high_resolution_clock::now();
-    comptime += duration_cast<milliseconds>(stop_comp - start_comp).count() / 1000.0;
+    auto stop = high_resolution_clock::now();
+    comptime += duration_cast<milliseconds>(stop - start).count() / 1000.0;
 //    cout << " temps comp: " << (clock() - ttt) / (float) CLOCKS_PER_SEC << " ";
 //    exit(0);
 
 
     Attribute root = -1, left = -1, right = -1;
     Error best_root_error = ub, best_left_error1 = FLT_MAX, best_left_error2 = FLT_MAX, best_right_error1 = FLT_MAX, best_right_error2 = FLT_MAX, best_left_error = FLT_MAX, best_right_error = FLT_MAX;
+    Supports best_root_corrects = nullptr, best_left_corrects1 = nullptr, best_left_corrects2 = nullptr, best_right_corrects1 = nullptr, best_right_corrects2 = nullptr, best_left_corrects = nullptr, best_right_corrects = nullptr;
+    Supports best_root_falses = nullptr, best_left_falses1 = nullptr, best_left_falses2 = nullptr, best_right_falses1 = nullptr, best_right_falses2 = nullptr, best_left_falses = nullptr, best_right_falses = nullptr;
     Error root_leaf_error = query->computeErrorValues(
             cover).error, best_left_leafError = FLT_MAX, best_right_leafError = FLT_MAX;
     Class best_left_class1 = -1, best_left_class2 = -1, best_right_class1 = -1, best_right_class2 = -1, best_left_class = -1, best_right_class = -1;
     for (int i = 0; i < attr.size(); ++i) {
         if (verbose) cout << "root test: " << attr[i] << endl;
+        if (last_added == attr[i]) {
+            if (verbose) cout << "pareil que le père...suivant" << endl;
+            continue;
+        }
 
         Attribute feat_left = -1, feat_right = -1;
         Error best_feat_left_error = FLT_MAX, best_feat_right_error = FLT_MAX, best_feat_left_error1 = FLT_MAX, best_feat_left_error2 = FLT_MAX, best_feat_right_error1 = FLT_MAX, best_feat_right_error2 = FLT_MAX;
         Error best_feat_left_leafError = FLT_MAX, best_feat_right_leafError = FLT_MAX;
         Class best_feat_left_class1 = -1, best_feat_left_class2 = -1, best_feat_right_class1 = -1, best_feat_right_class2 = -1, best_feat_left_class = -1, best_feat_right_class = -1;
+        Supports best_feat_root_corrects = nullptr, best_feat_left_corrects1 = nullptr, best_feat_left_corrects2 = nullptr, best_feat_right_corrects1 = nullptr, best_feat_right_corrects2 = nullptr, best_feat_left_corrects = nullptr, best_feat_right_corrects = nullptr;
+        Supports best_feat_root_falses = nullptr, best_feat_left_falses1 = nullptr, best_feat_left_falses2 = nullptr, best_feat_right_falses1 = nullptr, best_feat_right_falses2 = nullptr, best_feat_left_falses = nullptr, best_feat_right_falses = nullptr;
         //int parent_sup = sumSupports(sups[i][i]);
 
         Supports idsc = sups[i][i];
@@ -1028,6 +1083,8 @@ LcmPruned::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes
             ErrorValues ev = query->computeErrorValues(igsc);
             best_feat_left_error = ev.error;
             best_feat_left_class = ev.maxclass;
+            best_feat_left_corrects = ev.corrects;
+            best_feat_left_falses = ev.falses;
             if (verbose)
                 cout << "root gauche ne peut théoriquement spliter; donc feuille. erreur gauche = "
                      << best_feat_left_error << " on backtrack" << endl;
@@ -1041,11 +1098,13 @@ LcmPruned::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes
             best_feat_left_error = min(ev.error, best_root_error);
             best_feat_left_leafError = ev.error;
             best_feat_left_class = ev.maxclass;
+            best_feat_left_corrects = ev.corrects;
+            best_feat_left_falses = ev.falses;
             if (!floatEqual(ev.error, lb)) {
                 Error tmp = best_feat_left_error;
                 for (int j = 0; j < attr.size(); ++j) {
                     if (verbose) cout << "left test: " << attr[j] << endl;
-                    if (attr[i] == attr[j]) {
+                    if (last_added == attr[j] || attr[i] == attr[j]) {
                         if (verbose) cout << "left pareil que le parent ou non sup...on essaie un autre left" << endl;
                         continue;
                     }
@@ -1061,9 +1120,13 @@ LcmPruned::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes
                         ev = query->computeErrorValues(igjdsc);
                         Error tmp_left_error2 = ev.error;
                         Class tmp_left_class2 = ev.maxclass;
+                        Supports tmp_left_corrects2 = ev.corrects;
+                        Supports tmp_left_falses2 = ev.falses;
                         if (verbose) cout << "le left a droite produit une erreur de " << tmp_left_error2 << endl;
 
                         if (tmp_left_error2 >= min(best_root_error, best_feat_left_error)) {
+                            deleteSupports(tmp_left_corrects2);
+                            deleteSupports(tmp_left_falses2);
                             if (verbose)
                                 cout << "l'erreur gauche du left montre rien de bon. best root: " << best_root_error
                                      << " best left: " << best_feat_left_error << " Un autre left..." << endl;
@@ -1075,10 +1138,14 @@ LcmPruned::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes
                         ev = query->computeErrorValues(igjgsc);
                         Error tmp_left_error1 = ev.error;
                         Class tmp_left_class1 = ev.maxclass;
+                        Supports tmp_left_corrects1 = ev.corrects;
+                        Supports tmp_left_falses1 = ev.falses;
                         if (verbose) cout << "le left a gauche produit une erreur de " << tmp_left_error1 << endl;
 
                         if (tmp_left_error1 + tmp_left_error2 < min(best_root_error, best_feat_left_error)) {
                             best_feat_left_error = tmp_left_error1 + tmp_left_error2;
+                            plusSupports(tmp_left_corrects1, tmp_left_corrects2, best_feat_left_corrects);
+                            plusSupports(tmp_left_falses1, tmp_left_falses2, best_feat_left_falses);
                             if (verbose)
                                 cout << "ce left ci donne une meilleure erreur que les précédents left: "
                                      << best_feat_left_error << endl;
@@ -1086,9 +1153,23 @@ LcmPruned::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes
                             best_feat_left_error2 = tmp_left_error2;
                             best_feat_left_class1 = tmp_left_class1;
                             best_feat_left_class2 = tmp_left_class2;
+                            if (feat_left != -1) {
+                                deleteSupports(best_feat_left_corrects1);
+                                deleteSupports(best_feat_left_corrects2);
+                                deleteSupports(best_feat_left_falses1);
+                                deleteSupports(best_feat_left_falses2);
+                            }
+                            best_feat_left_corrects1 = tmp_left_corrects1;
+                            best_feat_left_corrects2 = tmp_left_corrects2;
+                            best_feat_left_falses1 = tmp_left_falses1;
+                            best_feat_left_falses2 = tmp_left_falses2;
                             feat_left = attr[j];
                             if (floatEqual(best_feat_left_error, lb)) break;
                         } else {
+                            deleteSupports(tmp_left_corrects1);
+                            deleteSupports(tmp_left_falses1);
+                            deleteSupports(tmp_left_corrects2);
+                            deleteSupports(tmp_left_falses2);
                             if (verbose)
                                 cout << "l'erreur du left = " << tmp_left_error1 + tmp_left_error2
                                      << " n'ameliore pas l'existant. Un autre left..." << endl;
@@ -1117,6 +1198,8 @@ LcmPruned::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes
                 ErrorValues ev = query->computeErrorValues(idsc);
                 best_feat_right_error = ev.error;
                 best_feat_right_class = ev.maxclass;
+                best_feat_right_corrects = ev.corrects;
+                best_feat_right_falses = ev.falses;
                 if (verbose)
                     cout << "root droite ne peut théoriquement spliter; donc feuille. erreur droite = "
                          << best_feat_right_error << " on backtrack" << endl;
@@ -1128,11 +1211,13 @@ LcmPruned::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes
                 best_feat_right_error = min(ev.error, (best_root_error - best_feat_left_error));
                 best_feat_right_leafError = ev.error;
                 best_feat_right_class = ev.maxclass;
+                best_feat_right_corrects = ev.corrects;
+                best_feat_right_falses = ev.falses;
                 Error tmp = best_feat_right_error;
                 if (!floatEqual(ev.error, lb)) {
                     for (int j = 0; j < attr.size(); ++j) {
                         if (verbose) cout << "right test: " << attr[j] << endl;
-                        if (attr[i] == attr[j]) {
+                        if (last_added == attr[j] || attr[i] == attr[j]) {
                             if (verbose)
                                 cout << "right pareil que le parent ou non sup...on essaie un autre right" << endl;
                             continue;
@@ -1148,10 +1233,14 @@ LcmPruned::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes
                             ev = query->computeErrorValues(idjgsc);
                             Error tmp_right_error1 = ev.error;
                             Class tmp_right_class1 = ev.maxclass;
+                            Supports tmp_right_corrects1 = ev.corrects;
+                            Supports tmp_right_falses1 = ev.falses;
                             if (verbose) cout << "le right a gauche produit une erreur de " << tmp_right_error1 << endl;
 
                             if (tmp_right_error1 >=
                                 min((best_root_error - best_feat_left_error), best_feat_right_error)) {
+                                deleteSupports(tmp_right_corrects1);
+                                deleteSupports(tmp_right_falses1);
                                 if (verbose)
                                     cout << "l'erreur gauche du right montre rien de bon. Un autre right..." << endl;
                                 continue;
@@ -1160,10 +1249,14 @@ LcmPruned::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes
                             ev = query->computeErrorValues(idjdsc);
                             Error tmp_right_error2 = ev.error;
                             Class tmp_right_class2 = ev.maxclass;
+                            Supports tmp_right_corrects2 = ev.corrects;
+                            Supports tmp_right_falses2 = ev.falses;
                             if (verbose) cout << "le right a droite produit une erreur de " << tmp_right_error2 << endl;
                             if (tmp_right_error1 + tmp_right_error2 <
                                 min((best_root_error - best_feat_left_error), best_feat_right_error)) {
                                 best_feat_right_error = tmp_right_error1 + tmp_right_error2;
+                                plusSupports(tmp_right_corrects1, tmp_right_corrects2, best_feat_right_corrects);
+                                plusSupports(tmp_right_falses1, tmp_right_falses2, best_feat_right_falses);
                                 if (verbose)
                                     cout << "ce right ci donne une meilleure erreur que les précédents right: "
                                          << best_feat_right_error << endl;
@@ -1171,9 +1264,23 @@ LcmPruned::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes
                                 best_feat_right_error2 = tmp_right_error2;
                                 best_feat_right_class1 = tmp_right_class1;
                                 best_feat_right_class2 = tmp_right_class2;
+                                if (feat_right != -1) {
+                                    deleteSupports(best_feat_right_corrects1);
+                                    deleteSupports(best_feat_right_corrects2);
+                                    deleteSupports(best_feat_right_falses1);
+                                    deleteSupports(best_feat_right_falses2);
+                                }
+                                best_feat_right_corrects1 = tmp_right_corrects1;
+                                best_feat_right_corrects2 = tmp_right_corrects2;
+                                best_feat_right_falses1 = tmp_right_falses1;
+                                best_feat_right_falses2 = tmp_right_falses2;
                                 feat_right = attr[j];
                                 if (floatEqual(best_feat_right_error, lb)) break;
                             } else {
+                                deleteSupports(tmp_right_corrects1);
+                                deleteSupports(tmp_right_falses1);
+                                deleteSupports(tmp_right_corrects2);
+                                deleteSupports(tmp_right_falses2);
                                 if (verbose)
                                     cout << "l'erreur du right = " << tmp_right_error1 + tmp_right_error2
                                          << " n'ameliore pas l'existant. Un autre right..." << endl;
@@ -1213,6 +1320,22 @@ LcmPruned::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes
                 best_left_class2 = best_feat_left_class2;
                 best_right_class1 = best_feat_right_class1;
                 best_right_class2 = best_feat_right_class2;
+                best_left_corrects = best_feat_left_corrects;
+                best_left_falses = best_feat_left_falses;
+                best_right_corrects = best_feat_right_corrects;
+                best_right_falses = best_feat_right_falses;
+                if (feat_left -= -1) {
+                    best_left_corrects1 = best_feat_left_corrects1;
+                    best_left_falses1 = best_feat_left_falses1;
+                    best_left_corrects2 = best_feat_left_corrects2;
+                    best_left_falses2 = best_feat_left_falses2;
+                }
+                if (feat_right -= -1) {
+                    best_right_corrects1 = best_feat_right_corrects1;
+                    best_right_falses1 = best_feat_right_falses1;
+                    best_right_corrects2 = best_feat_right_corrects2;
+                    best_right_falses2 = best_feat_right_falses2;
+                }
             } else {
 //                cout << "o2" << endl;
 //                cout << "feat_left = " << feat_left << " and feat_right = " << feat_right << endl;
@@ -1221,6 +1344,18 @@ LcmPruned::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes
 //                if (best_left_falses) deleteSupports(best_left_falses);
 //                if (best_right_corrects) deleteSupports(best_right_corrects);
 //                if (best_right_falses) deleteSupports(best_right_falses);
+                if (feat_left != -1) {
+                    if (best_feat_left_corrects1) deleteSupports(best_feat_left_corrects1);
+                    if (best_feat_left_falses1) deleteSupports(best_feat_left_falses1);
+                    if (best_feat_left_corrects2) deleteSupports(best_feat_left_corrects2);
+                    if (best_feat_left_corrects2) deleteSupports(best_feat_left_falses2);
+                }
+                if (feat_right != -1) {
+                    if (best_feat_right_corrects1) deleteSupports(best_feat_right_corrects1);
+                    if (best_feat_right_falses1) deleteSupports(best_feat_right_falses1);
+                    if (best_feat_right_corrects2) deleteSupports(best_feat_right_corrects2);
+                    if (best_feat_right_falses2) deleteSupports(best_feat_right_falses2);
+                }
             }
         }
         deleteSupports(igsc);
@@ -1251,6 +1386,8 @@ LcmPruned::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes
         TrieNode *root_neg_node = trie->insert(root_neg);
         root_neg_node->data = (QueryData *) new QueryData_Best();
         ((QueryData_Best *) root_neg_node->data)->error = best_left_error;
+        ((QueryData_Best *) root_neg_node->data)->corrects = best_left_corrects;
+        ((QueryData_Best *) root_neg_node->data)->falses = best_left_falses;
         if (left == -1) {
             ((QueryData_Best *) root_neg_node->data)->test = best_left_class;
             ((QueryData_Best *) root_neg_node->data)->leafError = best_left_error;
@@ -1271,6 +1408,8 @@ LcmPruned::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes
         TrieNode *root_pos_node = trie->insert(root_pos);
         root_pos_node->data = (QueryData *) new QueryData_Best();
         ((QueryData_Best *) root_pos_node->data)->error = best_right_error;
+        ((QueryData_Best *) root_pos_node->data)->corrects = best_right_corrects;
+        ((QueryData_Best *) root_pos_node->data)->falses = best_right_falses;
         if (right == -1) {
             ((QueryData_Best *) root_pos_node->data)->test = best_right_class;
             ((QueryData_Best *) root_pos_node->data)->leafError = best_right_error;
@@ -1297,6 +1436,8 @@ LcmPruned::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes
             ((QueryData_Best *) left_neg_node->data)->error = best_left_error1;
             ((QueryData_Best *) left_neg_node->data)->leafError = best_left_error1;
             ((QueryData_Best *) left_neg_node->data)->test = best_left_class1;
+            ((QueryData_Best *) left_neg_node->data)->corrects = best_left_corrects1;
+            ((QueryData_Best *) left_neg_node->data)->falses = best_left_falses1;
             ((QueryData_Best *) left_neg_node->data)->size = 1;
             ((QueryData_Best *) left_neg_node->data)->left = nullptr;
             ((QueryData_Best *) left_neg_node->data)->right = nullptr;
@@ -1311,6 +1452,8 @@ LcmPruned::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes
             ((QueryData_Best *) left_pos_node->data)->error = best_left_error2;
             ((QueryData_Best *) left_pos_node->data)->leafError = best_left_error2;
             ((QueryData_Best *) left_pos_node->data)->test = best_left_class2;
+            ((QueryData_Best *) left_pos_node->data)->corrects = best_left_corrects2;
+            ((QueryData_Best *) left_pos_node->data)->falses = best_left_falses2;
             ((QueryData_Best *) left_pos_node->data)->size = 1;
             ((QueryData_Best *) left_pos_node->data)->left = nullptr;
             ((QueryData_Best *) left_pos_node->data)->right = nullptr;
@@ -1332,6 +1475,8 @@ LcmPruned::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes
             ((QueryData_Best *) right_neg_node->data)->error = best_right_error1;
             ((QueryData_Best *) right_neg_node->data)->leafError = best_right_error1;
             ((QueryData_Best *) right_neg_node->data)->test = best_right_class1;
+            ((QueryData_Best *) right_neg_node->data)->corrects = best_right_corrects1;
+            ((QueryData_Best *) right_neg_node->data)->falses = best_right_falses1;
             ((QueryData_Best *) right_neg_node->data)->size = 1;
             ((QueryData_Best *) right_neg_node->data)->left = nullptr;
             ((QueryData_Best *) right_neg_node->data)->right = nullptr;
@@ -1346,6 +1491,8 @@ LcmPruned::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes
             ((QueryData_Best *) right_pos_node->data)->error = best_right_error2;
             ((QueryData_Best *) right_pos_node->data)->leafError = best_right_error2;
             ((QueryData_Best *) right_pos_node->data)->test = best_right_class2;
+            ((QueryData_Best *) right_pos_node->data)->corrects = best_right_corrects2;
+            ((QueryData_Best *) right_pos_node->data)->falses = best_right_falses2;
             ((QueryData_Best *) right_pos_node->data)->size = 1;
             ((QueryData_Best *) right_pos_node->data)->left = nullptr;
             ((QueryData_Best *) right_pos_node->data)->right = nullptr;
@@ -1363,10 +1510,16 @@ LcmPruned::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes
                 ((QueryData_Best *) root_neg_node->data)->size + ((QueryData_Best *) root_pos_node->data)->size + 1;
         ((QueryData_Best *) node->data)->left = (QueryData_Best *) root_neg_node->data;
         ((QueryData_Best *) node->data)->right = (QueryData_Best *) root_pos_node->data;
+        ((QueryData_Best *) node->data)->corrects = newSupports();
+        plusSupports(((QueryData_Best *) node->data)->left->corrects, ((QueryData_Best *) node->data)->right->corrects,
+                     ((QueryData_Best *) node->data)->corrects);
+        ((QueryData_Best *) node->data)->falses = newSupports();
+        plusSupports(((QueryData_Best *) node->data)->left->falses, ((QueryData_Best *) node->data)->right->falses,
+                     ((QueryData_Best *) node->data)->falses);
 
 //            cout << "cc1" << endl;
 //        cout << " temps total: " << (clock() - tt) / (float) CLOCKS_PER_SEC << endl;
-        auto stop = high_resolution_clock::now();
+        stop = high_resolution_clock::now();
         spectime += duration_cast<milliseconds>(stop - start).count() / 1000.0;
         return node;
     } else {
@@ -1376,13 +1529,15 @@ LcmPruned::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes
         node->data = (QueryData *) new QueryData_Best();
         ((QueryData_Best *) node->data)->error = FLT_MAX;
         ((QueryData_Best *) node->data)->leafError = ev.error;
+        ((QueryData_Best *) node->data)->corrects = ev.corrects;
+        ((QueryData_Best *) node->data)->falses = ev.falses;
         ((QueryData_Best *) node->data)->test = ev.maxclass;
         ((QueryData_Best *) node->data)->size = 1;
         ((QueryData_Best *) node->data)->left = nullptr;
         ((QueryData_Best *) node->data)->right = nullptr;
 //            cout << "cc2" << endl;
 //        cout << " temps total: " << (clock() - tt) / (float) CLOCKS_PER_SEC << endl;
-        auto stop = high_resolution_clock::now();
+        stop = high_resolution_clock::now();
         spectime += duration_cast<milliseconds>(stop - start).count() / 1000.0;
         return node;
     }

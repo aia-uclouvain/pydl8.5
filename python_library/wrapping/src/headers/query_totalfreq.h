@@ -5,7 +5,16 @@
 
 class Query_TotalFreq : public Query_Best {
 public:
-    Query_TotalFreq( Trie *trie, DataManager *data, ExpError *experror, int timeLimit, bool continuous, function<vector<float>(RCover*)>* error_callback = nullptr, function<vector<float>(RCover*)>* fast_error_callback = nullptr, function<float(RCover*)>*  predictor_error_callback = nullptr, float maxError = NO_ERR, bool stopAfterError = false );
+    Query_TotalFreq( Trie *trie,
+            DataManager *data,
+            ExpError *experror,
+            int timeLimit,
+            bool continuous,
+            function<vector<float>(RCover*)>* tids_error_class_callback = nullptr,
+            function<vector<float>(RCover*)>* supports_error_class_callback = nullptr,
+            function<float(RCover*)>*  tids_error_callback = nullptr,
+            float maxError = NO_ERR,
+            bool stopAfterError = false );
 
     ~Query_TotalFreq();
     bool is_freq ( pair<Supports,Support> supports );
@@ -15,10 +24,8 @@ public:
     ErrorValues computeErrorValues( RCover* cover);
     ErrorValues computeErrorValues(Supports itemsetSupport, bool onlyerror = false);
     Error computeOnlyError(Supports itemsetSupport);
-    //QueryData *initData ( Array<Transaction> tid, Error initBound, Support minsup, Depth currentMaxDepth = -1);
-    void printAccuracy ( DataManager *data2, QueryData_Best *data, string* );
+
 protected:
-    int printResult ( TrieNode *node, int depth, string* );
 };
 
 #endif

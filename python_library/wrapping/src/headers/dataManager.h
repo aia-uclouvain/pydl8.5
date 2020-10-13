@@ -18,7 +18,7 @@ class DataManager {
 public:
     int nWords;
 
-    DataManager(int* supports, int ntransactions, int nattributes, int nclasses, int *b, int *c);
+    DataManager(Supports supports, int ntransactions, int nattributes, int nclasses, int *b, int *c);
 
     ~DataManager(){
         for (int i = 0; i < nattributes; ++i) {
@@ -29,6 +29,7 @@ public:
             delete[] c[j];
         }
         delete[]c;
+        deleteSupports(supports);
     }
 
     bitset<M> * getAttributeCover(int attr);

@@ -13,18 +13,13 @@ struct QueryData_Best {
   Error lowerBound;
   Size size;
   Depth solutionDepth;
+  Supports corrects, falses;
   //Array<Attribute> successors;
-
-  QueryData_Best(){
-      test = -1;
-      left = nullptr;
-      right = nullptr;
-      leafError = FLT_MAX;
-      error = FLT_MAX;
-      lowerBound = 0;
-      size = 1;
-      solutionDepth = -1;
-  }
+    ~QueryData_Best(){
+        if (corrects) deleteSupports(corrects);
+        if (falses) deleteSupports(falses);
+        //if (successors.elts) successors.free();
+    }
 };
 
 
@@ -42,19 +37,17 @@ public:
             bool stopAfterError = false );
 
     virtual ~Query_Best ();
-    inline bool canimprove ( QueryData *left, Error ub ){
-        return ((QueryData_Best *) left)->error < ub;
-    }
-    inline bool canSkip ( QueryData *actualBest){
-        return floatEqual( ((QueryData_Best *) actualBest)->error, ((QueryData_Best *) actualBest)->lowerBound);
-    }
-    void printResult ( Tree* tree );
-//    virtual void printTimeOut(Tree* tree );
-    void printResult ( QueryData_Best *data, Tree* tree );
-    inline QueryData_Best *rootBest () const { return (QueryData_Best*) realroot->data; }
-    virtual Error getTrainingError(const string& tree_json){}
+    bool canimprove ( QueryData *left, Error ub );
+    bool canSkip ( QueryData *actualBest);
+    void printResult ( DataManager *data, Tree* tree );
+    virtual void printTimeOut(Tree* tree );
+    void printResult ( DataManager *data2, QueryData_Best *data, Tree* tree );
+    virtual void printAccuracy ( DataManager *data2, QueryData_Best *data, Tree* );
+    //virtual Class runResult ( DataManager *data, Transaction transaction );
+    //virtual Class runResult ( QueryData_Best *node, DataManager *data, Transaction transaction );
+    QueryData_Best *rootBest () const { return (QueryData_Best*) realroot->data; }
 protected:
-    int printResult ( QueryData_Best *node_data, int depth, Tree* tree );
+    int printResult ( QueryData_Best *node, int depth, Tree* tree );
     ExpError *experror;
 };
 

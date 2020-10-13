@@ -9,10 +9,12 @@
 #include <map>
 #include <unordered_set>
 #include <unordered_map>
+#include "depthTwoComputer.h"
+
 
 class LcmPruned {
 public:
-    LcmPruned ( DataManager *dataReader, Query *query, Trie *trie, bool infoGain, bool infoAsc, bool allDepths );
+    LcmPruned ( DataManager *dataReader, Query *query, Trie *trie, bool infoGain, bool infoAsc, bool repeatSort );
 
     ~LcmPruned();
 
@@ -20,36 +22,32 @@ public:
 
     int latticesize = 0;
 
+    Query *query;
+
 
 protected:
-    TrieNode* recurse ( Array<Item> itemset, Item added, TrieNode* node, Array<Attribute> attributes_to_visit, RCover* a_transactions, Depth depth, Error ub, Error lb = 0 );
+    TrieNode* recurse ( Array<Item> itemset, Attribute last_added, TrieNode* node, Array<Attribute> attributes_to_visit, RCover* a_transactions, Depth depth, Error ub, Error lb = 0 );
 
 //    TrieNode* getdepthtwotree(RCover* cover, Error ub, Array<Attribute> attributes_to_visit, Item added, Array<Item> itemset, TrieNode* node, Error lb = 0);
 
-    TrieNode* getdepthtwotrees(RCover* cover, Error ub, Array<Attribute> attributes_to_visit, Item added, Array<Item> itemset, TrieNode* node, Error lb = 0);
+    TrieNode* getdepthtwotrees(RCover* cover, Error ub, Array<Attribute> attributes_to_visit, Attribute last_added, Array<Item> itemset, TrieNode* node, Error lb = 0);
 
-    Array<Attribute> getSuccessors(Array<Attribute> last_freq_attributes,RCover* a_transactions, Item added, unordered_set<int> frequent_attr = {});
+    Array<Attribute> getSuccessors(Array<Attribute> last_freq_attributes,RCover* a_transactions, Attribute last_added);
 
-    unordered_set<int> getExistingSuccessors(TrieNode* node);
+    Array<Attribute> getExistingSuccessors(TrieNode* node);
 
-    Error computeLowerBound(RCover* cover, bitset<M>* covlb1, bitset<M>* covlb2, bitset<M>* covlb3,
-                            Supports sclb1, Supports sclb2, Supports sclb3,
-                            Supports sflb1, Supports sflb2, Supports sflb3);
+    Error computeLowerBound(RCover *cover, bitset<M> *b1_cover, bitset<M> *b2_cover);
 
-    void addInfoForLowerBound(RCover* cover, QueryData * node_data, Error errlb1, Error errlb2, Error errlb3,
-                              bitset<M>*& covlb1, bitset<M>*& covlb2, bitset<M>*& covlb3,
-                              Supports& sclb1, Supports& sclb2, Supports& sclb3,
-                              Supports& sflb1, Supports& sflb2, Supports& sflb3,
-                              Support suplb);
+    void addInfoForLowerBound(RCover *cover, QueryData *node_data, bitset<M> *&b1_cover,
+                              bitset<M> *&b2_cover, Error &highest_error, Support& highest_coversize);
 
     float informationGain ( Supports notTaken, Supports taken);
 
     DataManager *dataReader;
     Trie *trie;
-    Query *query;
     bool infoGain = false;
     bool infoAsc = false; //if true ==> items with low IG are explored first
-    bool allDepths = false;
+    bool repeatSort = false;
     //bool timeLimitReached = false;
 };
 

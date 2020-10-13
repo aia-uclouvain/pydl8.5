@@ -7,9 +7,10 @@ std::map<int,int> attrFeat;
 int ncall = 0;
 float spectime = 0;
 float comptime = 0;
+float epsilon = 1.0e-05f;
 
 Supports newSupports () {
-  return new Support[nclasses];
+  return new SupportClass[nclasses];
 }
 
 Supports zeroSupports () {
@@ -117,5 +118,12 @@ void printItemset(Array<Item> itemset) {
         }
         std::cout << std::endl;
     }
+}
+
+bool floatEqual(float f1, float f2)
+{
+    if (abs(f1 - f2) <= epsilon)
+        return true;
+    return abs(f1 - f2) <= epsilon * std::max(abs(f1), abs(f2));
 }
 
