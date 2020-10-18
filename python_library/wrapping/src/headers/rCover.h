@@ -18,13 +18,6 @@ using namespace std;
 
 #define M 64
 
-struct coverSupClassLight
-{
-    bitset<M>* cover;
-    Supports supclass;
-    int* valid;
-};
-
 class RCover {
 
 public:
@@ -38,55 +31,61 @@ public:
 
     RCover(DataManager* dmm);
 
+    RCover(RCover&& cover) noexcept ;
+
+//    RCover();
+
     RCover(bitset<M> *bitset1, int nword);
 
-    ~RCover(){
+    RCover();
+
+    virtual ~RCover(){
         delete[] coverWords;
         delete[] validWords;
         delete [] sup_class;
     }
 
-    void intersect1(Attribute attribute, bool positive = true); //not implemented and not used ==> must be removed
+//    void intersect1(Attribute attribute, bool positive = true); //not implemented and not used ==> must be removed
 
+    virtual void intersect(Attribute attribute, const vector<float>* weights, bool positive = true) = 0;
     //the two next function must be replace by a virtual abstract function intersect
-    void intersect(Attribute attribute, bool positive = true); //implemented and used for totalfreq intersection
+//    void intersect(Attribute attribute, bool positive = true); //implemented and used for totalfreq intersection
+//    void weightedIntersect(Attribute attribute, const vector<float>& weights, bool positive = true); //implemented and useful for weighted intersection
 
-    void weightedIntersect(Attribute attribute, const vector<float>& weights, bool positive = true); //implemented and useful for weighted intersection
-
+    virtual pair<Supports, Support> temporaryIntersect(Attribute attribute, const vector<float>* weights, bool positive = true) = 0;
     //the two next function must be replace by a virtual abstract function temporaryIntersect
-    pair<Supports, Support> temporaryIntersect(Attribute attribute, bool positive = true); //implemented and used for totalfreq intersection to get support without modifying the cover
-
-    pair<Supports, Support> temporaryWeightedIntersect(Attribute attribute, const vector<float>& weights, bool positive = true);  //implemented and useful for weighted intersection to get support without modifying the cover
+//    pair<Supports, Support> temporaryIntersect(Attribute attribute, bool positive = true); //implemented and used for totalfreq intersection to get support without modifying the cover
+//    pair<Supports, Support> temporaryWeightedIntersect(Attribute attribute, const vector<float>& weights, bool positive = true);  //implemented and useful for weighted intersection to get support without modifying the cover
 
     Support temporaryIntersectSup(Attribute attribute, bool positive = true); //implemented and used for intersection to get support without modifying the cover (base)
 
-    void intersectAndFillAll(Supports* row, vector<Attribute>& attributes, int start); // implemented but not used. Must be commented
+//    void intersectAndFillAll(Supports* row, vector<Attribute>& attributes, int start); // implemented but not used. Must be commented
 
-    void minus(bitset<M>* cover1); // implemented but not used. Must be commented
+//    void minus(bitset<M>* cover1); // implemented but not used. Must be commented
 
-    Support minusMee(bitset<M>* cover1); // implemented but not used. Must be commented
+//    Support minusMee(bitset<M>* cover1); // implemented but not used. Must be commented
 
-    Supports minusMe(bitset<M>* cover1); //implmeented and used to compute minus operation. must be kept in the base class
+    Supports minusMe(bitset<M>* cover1, const vector<float>* weights); //implmeented and used to compute minus operation. must be kept in the base class
 
-    bitset<M>* getTopBitsetArray(); // must be kept in the base class
+    bitset<M>* getTopBitsetArray() const; // must be kept in the base class
 
     Support getSupport(); // must be kept in the base class
 
-    Supports getSupportPerClass(); // must be kept in the base class
+    virtual Supports getSupportPerClass(const vector<float>* weights) = 0;
+    //the two next function must be replace by a virtual abstract function getSupportPerClass
+//    Supports getSupportPerClass(); // must be kept in the base class
+//    Supports getWeightedSupportPerClass(const vector<float>& weights);  // must be present in weighted
+//    Supports getClassSupport(); //getSupports of each class. Can be removed. Available with dm->getSupports
 
-    Supports getClassSupport(); //getSupports of each class. Can be removed. Available with dm->getSupports
+//    vector<int> getTransactionsID(bitset<M>& word, int real_word_index); // must be present in weighted
 
-    vector<int> getTransactionsID(bitset<M>& word, int real_word_index); // must be present in weighted
-
-    vector<int> getTransactionsID();  // must be present in weighted
+//    vector<int> getTransactionsID();  // must be present in weighted
 
     void backtrack(); // must be kept in the base class
 
     void print(); // must be kept in the base class
 
     string outprint(); // must be kept in the base class
-
-    Supports getWeightedSupportPerClass(const vector<float>& weights);
 
     class iterator {
     public:

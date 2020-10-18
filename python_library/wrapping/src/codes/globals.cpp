@@ -122,8 +122,13 @@ void printItemset(Array<Item> itemset) {
 
 bool floatEqual(float f1, float f2)
 {
+    return fabs(f1 - f2) <= FLT_EPSILON;
+}
+
+/*bool floatEqual(float f1, float f2)
+{
     if (abs(f1 - f2) <= epsilon)
         return true;
     return abs(f1 - f2) <= epsilon * std::max(abs(f1), abs(f2));
-}
+}*/
 

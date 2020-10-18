@@ -3,7 +3,6 @@
 //
 
 #include "rCover.h"
-#include <cmath>
 
 RCover::RCover(DataManager *dmm):dm(dmm) {
     nWords = (int)ceil((float)dm->getNTransactions()/M);
@@ -37,19 +36,22 @@ RCover::RCover(bitset<M> *bitset1, int nword):dm(nullptr) {
         validWords[i] = i;
     }
     int climit = nWords;
-//    for (int j = 0; j < climit; ++j) {
-//        if (coverWords[validWords[j]].top().none()){
-//            int tmp = validWords[climit-1];
-//            validWords[climit-1] = validWords[j];
-//            validWords[j] = tmp;
-//            --climit;
-//            --j;
-//        }
-//    }
     limit.push(climit);
 }
 
-bitset<M>* RCover::getTopBitsetArray(){
+RCover::RCover(RCover &&cover) noexcept {
+    coverWords = cover.coverWords;
+    validWords = cover.validWords;
+    limit = cover.limit;
+    nWords = cover.nWords;
+    dm = cover.dm;
+    sup_class = cover.sup_class;
+    support= cover.support;
+}
+
+/*RCover::RCover() {}*/
+
+bitset<M>* RCover::getTopBitsetArray() const{
     bitset<M>* tmp = new bitset<M>[nWords];
     for (int j = 0; j < nWords; ++j) {
         tmp[j] = coverWords[j].top();
@@ -57,7 +59,7 @@ bitset<M>* RCover::getTopBitsetArray(){
     return tmp;
 }
 
-void RCover::intersect(Attribute attribute, bool positive) {
+/*void RCover::intersect(Attribute attribute, bool positive) {
     int climit = limit.top();
     sup_class = newSupports();
     zeroSupports(sup_class);
@@ -88,10 +90,10 @@ void RCover::intersect(Attribute attribute, bool positive) {
         }
     }
     limit.push(climit);
-}
+}*/
 
 
-void RCover::weightedIntersect(Attribute attribute, const vector<float>& weights, bool positive) {
+/*void RCover::weightedIntersect(Attribute attribute, const vector<float>& weights, bool positive) {
     int climit = limit.top();
     sup_class = zeroSupports();
     support = 0;
@@ -124,7 +126,7 @@ void RCover::weightedIntersect(Attribute attribute, const vector<float>& weights
         }
     }
     limit.push(climit);
-}
+}*/
 
 /**
  * temporaryIntersect - compute a temporary intersection of the current cover with an item
@@ -134,7 +136,7 @@ void RCover::weightedIntersect(Attribute attribute, const vector<float>& weights
  * @param positive - the item of the attribute
  * @return a pair of support per class and support
  */
-pair<Supports, Support> RCover::temporaryIntersect(Attribute attribute, bool positive) {
+/*pair<Supports, Support> RCover::temporaryIntersect(Attribute attribute, bool positive) {
     Supports sc = zeroSupports();
     Support sup = 0;
     for (int i = 0; i < limit.top(); ++i) {
@@ -152,9 +154,9 @@ pair<Supports, Support> RCover::temporaryIntersect(Attribute attribute, bool pos
         }
     }
     return make_pair(sc, sup);
-}
+}*/
 
-pair<Supports, Support> RCover::temporaryWeightedIntersect(Attribute attribute, const vector<float>& weights, bool positive) {
+/*pair<Supports, Support> RCover::temporaryWeightedIntersect(Attribute attribute, const vector<float>& weights, bool positive) {
     Supports sc = zeroSupports();
     Support sup = 0;
     for (int i = 0; i < limit.top(); ++i) {
@@ -173,7 +175,7 @@ pair<Supports, Support> RCover::temporaryWeightedIntersect(Attribute attribute, 
         }
     }
     return make_pair(sc, sup);
-}
+}*/
 
 /**
  * temporaryIntersectSup - this function intersect the cover with an item just to
@@ -199,7 +201,7 @@ Support RCover::temporaryIntersectSup(Attribute attribute, bool positive) {
  * @param cover1 - a cover to perform the minus operation
  * @return the support per class of the resultant cover
  */
-Supports RCover::minusMe(bitset<M>* cover1) {
+Supports RCover::minusMe(bitset<M>* cover1, const vector<float>* weights) {
     int* tmpValid = new int[nWords];
     for (int j = 0; j < nWords; ++j) {
         tmpValid[j] = validWords[j];
@@ -227,7 +229,7 @@ Supports RCover::minusMe(bitset<M>* cover1) {
         }
     }
     limit.push(climit);
-    Supports toreturn = getSupportPerClass();
+    Supports toreturn = getSupportPerClass(weights);
     backtrack();
     limit.pop();
     for (int i = 0; i < nWords; ++i) {
@@ -237,6 +239,8 @@ Supports RCover::minusMe(bitset<M>* cover1) {
     delete [] tmpValid;
     return toreturn;
 }
+
+RCover::RCover() {}
 
 int RCover::getSupport() {
     if (support > -1) return support;
@@ -248,7 +252,7 @@ int RCover::getSupport() {
     return sum;
 }
 
-Supports RCover::getSupportPerClass(){
+/*Supports RCover::getSupportPerClass(){
     if (sup_class != nullptr) return sup_class;
     sup_class = zeroSupports();
     if (nclasses == 2){
@@ -271,12 +275,12 @@ Supports RCover::getSupportPerClass(){
         }
     }
     return sup_class;
-}
+}*/
 
-bool isKthBitSet(u_long n, int k) {
+/*bool isKthBitSet(u_long n, int k) {
     if (n & (1 << (k - 1))) return true;
     else return false;
-}
+}*/
 
 /**
  * getFirstSetBitPos - get the index of the first bit set in a binary number
@@ -284,13 +288,13 @@ bool isKthBitSet(u_long n, int k) {
  * @param number - int value of the binary number
  * @return the index of the first set bit
  */
-unsigned int getFirstSetBitPos(int number) { return log2(number & -number) + 1;}
+/*unsigned int getFirstSetBitPos(int number) { return log2(number & -number) + 1;}*/
 
 /**
  * getTransactionsID
  * @return the list of transactions in the current cover
  */
-vector<int> RCover::getTransactionsID() {
+/*vector<int> RCover::getTransactionsID() {
     vector<int> tid;
     for (int i = 0; i < limit.top(); ++i) {
         int indexForTransactions = nWords - (validWords[i]+1);
@@ -305,7 +309,7 @@ vector<int> RCover::getTransactionsID() {
         }
     }
     return tid;
-}
+}*/
 
 /**
  * getTransactionsID - get list of transactions given an specific word and its index in the words array
@@ -313,7 +317,7 @@ vector<int> RCover::getTransactionsID() {
  * @param real_word_index
  * @return the list of transactions
  */
-vector<int> RCover::getTransactionsID(bitset<M>& word, int real_word_index) {
+/*vector<int> RCover::getTransactionsID(bitset<M>& word, int real_word_index) {
     vector<int> tid;
     int pos = getFirstSetBitPos(word.to_ulong());
     int transInd = pos - 1;
@@ -324,9 +328,9 @@ vector<int> RCover::getTransactionsID(bitset<M>& word, int real_word_index) {
         transInd += pos;
     }
     return tid;
-}
+}*/
 
-Supports RCover::getWeightedSupportPerClass(const vector<float>& weights) {
+/*Supports RCover::getWeightedSupportPerClass(const vector<float>& weights) {
     if (sup_class) return sup_class;
     sup_class = zeroSupports();
     for (int j = 0; j < nclasses; ++j) {
@@ -342,7 +346,7 @@ Supports RCover::getWeightedSupportPerClass(const vector<float>& weights) {
         }
     }
     return sup_class;
-}
+}*/
 
 void RCover::backtrack() {
     limit.pop();

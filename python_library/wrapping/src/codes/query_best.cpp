@@ -12,6 +12,9 @@ Query_Best::Query_Best(Trie* trie,
                        function<vector<float>(RCover *)> *tids_error_class_callback,
                        function<vector<float>(RCover *)> *supports_error_class_callback,
                        function<float(RCover *)> *tids_error_callback,
+                       function<vector<float>(string)> *example_weight_callback,
+                       function<float(string)> *predict_error_callback,
+                       vector<float> *weights,
                        float maxError,
                        bool stopAfterError)
         : Query(trie,
@@ -21,13 +24,15 @@ Query_Best::Query_Best(Trie* trie,
                 tids_error_class_callback,
                 supports_error_class_callback,
                 tids_error_callback,
+                example_weight_callback,
+                predict_error_callback,
+                weights,
                 maxError,
                 stopAfterError), experror(experror) {
 }
 
 
-Query_Best::~Query_Best() {
-}
+Query_Best::~Query_Best() {}
 
 
 void Query_Best::printResult(Tree *tree) {
@@ -39,7 +44,7 @@ void Query_Best::printResult(QueryData_Best *data, Tree *tree) {
     /*string out = "";
     out += "(nItems, nTransactions) : ( " + std::to_string(data2->getNAttributes()*2) + ", " + std::to_string(data2->getNTransactions()) + " )\n";
     out += "Tree: ";*/
-    if (data->size == 0 || (data->size == 1 && data->error == FLT_MAX)) {
+    if (data->size == 0 || (data->size == 1 && floatEqual(data->error, FLT_MAX))) {
         tree->expression = "(No such tree)";
         if (timeLimitReached) tree->timeout = true;
     } else {
@@ -48,8 +53,9 @@ void Query_Best::printResult(QueryData_Best *data, Tree *tree) {
         tree->expression += "}";
         tree->size = data->size;
         tree->depth = depth - 1;
-        if (boosting) tree->trainingError = getTrainingError(tree->expression);
-        else tree->trainingError = data->error;
+//        if (boosting) tree->trainingError = getTrainingError(tree->expression);
+//        else tree->trainingError = data->error;
+        tree->trainingError = data->error;
         tree->accuracy = 1 - tree->trainingError / float(dm->getNTransactions());
         // add first function to predict from python
         /*if (!predict_error_callback) tree->add_accuracy(data2->getNTransactions());

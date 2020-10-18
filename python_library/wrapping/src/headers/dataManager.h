@@ -37,10 +37,10 @@ public:
     bitset<M> * getClassCover(int clas);
 
     /// get number of transactions
-    virtual int getNTransactions () const { return ntransactions; }
+    int getNTransactions () const { return ntransactions; }
 
     /// get number of features
-    virtual int getNAttributes () const { return nattributes; }
+    int getNAttributes () const { return nattributes; }
 
     /// get number of transactions
     int getNClasses () const { return nclasses; }

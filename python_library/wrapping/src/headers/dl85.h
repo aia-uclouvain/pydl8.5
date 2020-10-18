@@ -5,13 +5,29 @@
 #ifndef DL85_DL85_H
 #define DL85_DL85_H
 
+#include <iostream>
+#include <cstdlib>
+#include <cmath>
 #include <string>
+#include <sstream>
 #include <map>
 #include <vector>
 #include <utility>
 #include <functional>
+#include <chrono>
 #include "globals.h"
-#include "rCover.h"
+#include "data.h"
+#include "dataBinary.h"
+#include "dataContinuous.h"
+#include "dataBinaryPython.h"
+#include "dataManager.h"
+#include "experror.h"
+#include "rCoverTotalFreq.h"
+#include "rCoverWeighted.h"
+#include "lcm_pruned.h"
+#include "lcm_iterative.h"
+#include "query_totalfreq.h"
+//#include "query_weighted.h"
 
 using namespace std;
 

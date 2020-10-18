@@ -35,6 +35,17 @@ typedef float SupportClass;
 // array of supports per class
 typedef SupportClass* Supports;
 
+
+extern float epsilon;
+extern Class nclasses;
+extern Attribute nattributes;
+extern std::map<int, int> attrFeat;
+extern bool verbose;
+extern int ncall;
+extern float spectime;
+extern float comptime;
+
+
 #define NO_SUP INT_MAX // SHRT_MAX
 #define NO_ERR FLT_MAX
 #define NO_GAIN FLT_MAX
@@ -42,12 +53,57 @@ typedef SupportClass* Supports;
 #define NO_ATTRIBUTE INT_MAX // SHRT_MAX
 #define NO_DEPTH INT_MAX
 
+
 // compute item value based on the attribute and its decision value
 #define item(attribute, value) ( attribute * 2 + value )
 // compute the attribute value based on the item value
 #define item_attribute(item) ( item / 2 )
 // compute the decision on an attribute based on its item value
 #define item_value(item) ( item % 2 )
+// loop in each class value
+#define forEachClass(n) for ( Class n = 0; n < nclasses; ++n )
+// loop in each index in an array
+#define forEach(index, array) for ( int index = 0; index < array.size; ++index )
+// redefine a class name to make it short
+#define QDB QueryData_Best*
+// redefine a class name to make it short
+#define QTF Query_TotalFreq*
+
+
+// create (dynamic allocation of vector of size = number of classes)
+Supports newSupports();
+
+// create (dynamic allocation of vector of size = number of classes) and fill vector of support with zeros
+Supports zeroSupports();
+
+// fill vector of supports passed in parameter with zeros
+void zeroSupports(Supports supports);
+
+// free the memory
+void deleteSupports(Supports supports);
+
+// copy values of support array src to dest
+void copySupports(Supports src, Supports dest);
+
+// create support array dest, copy values of array in parameter in dest and return dest
+Supports copySupports(Supports supports);
+
+// return sum of value of support
+Support sumSupports(Supports supports);
+
+// return dest which is array of substraction of src2 from src1
+void minSupports(Supports src1, Supports src2, Supports dest);
+
+// return dest which is array of addition of src2 from src1
+void plusSupports(Supports src1, Supports src2, Supports dest);
+
+// return dest which is array of substraction of src2 from src1
+void subSupports(Supports src1, Supports src2, Supports dest);
+
+bool floatEqual(float f1, float f2);
+
+void parallel_for(unsigned nb_elements, std::function<void (int start, int end)> functor, bool use_threads = true);
+
 
 // the array is a light-weight vector that does not do copying or resizing of storage space.
 template<class A>
@@ -56,22 +112,22 @@ public:
     A* elts; //the "array" of elements
     int size; //the real size of elements in the array while "allocsize" is the allocated size
 
-    Array () { }
+    Array(){}
 
-    Array(A* elts, int size) {
-        this->elts = elts;
-        this->size = size;
+    Array(A* elts_, int size_) {
+        elts = elts_;
+        size = size_;
     }
 
-    Array(int allocsize, int size) {
-        this->size = size;
+    Array(int allocsize, int size_) {
+        size = size_;
         elts = new A[allocsize];
     }
 
     //~Array() {} //destructor does not do anything. Make sure you call free method after using the object
 
     void alloc(int size_) {
-        this->size = size_;
+        size = size_;
         elts = new A[size_];
     }
 
@@ -118,66 +174,6 @@ Array<Item> addItem ( Array<Item> src1, Item item );
 
 void printItemset(Array<Item> itemset);
 
-void parallel_for(unsigned nb_elements, std::function<void (int start, int end)> functor, bool use_threads = true);
 
-#define forEach(index, array) for ( int index = 0; index < array.size; ++index )
-
-// create (dynamic allocation of vector of size = number of classes)
-Supports newSupports();
-
-// create (dynamic allocation of vector of size = number of classes) and fill vector of support with zeros
-Supports zeroSupports();
-
-// fill vector of supports passed in parameter with zeros
-void zeroSupports(Supports supports);
-
-// free the memory
-void deleteSupports(Supports supports);
-
-// copy values of support array src to dest
-void copySupports(Supports src, Supports dest);
-
-// create support array dest, copy values of array in parameter in dest and return dest
-Supports copySupports(Supports supports);
-
-// return sum of value of support
-Support sumSupports(Supports supports);
-
-// return dest which is array of substraction of src2 from src1
-void minSupports(Supports src1, Supports src2, Supports dest);
-
-// return dest which is array of addition of src2 from src1
-void plusSupports(Supports src1, Supports src2, Supports dest);
-
-// return dest which is array of substraction of src2 from src1
-void subSupports(Supports src1, Supports src2, Supports dest);
-
-bool floatEqual(float f1, float f2);
-
-template<typename T>
-void my_deleten(T *&ptr) {
-    if (ptr){
-        delete ptr;
-        ptr = nullptr;
-    }
-}
-
-template<typename T>
-void my_deletetab(T *&ptr) {
-    if (ptr){
-        delete[] ptr;
-        ptr = nullptr;
-    }
-}
-extern float epsilon;
-extern Class nclasses;
-extern Attribute nattributes;
-extern std::map<int, int> attrFeat;
-extern bool verbose;
-extern int ncall;
-extern float spectime;
-extern float comptime;
-
-#define forEachClass(n) for ( Class n = 0; n < nclasses; ++n )
 
 #endif

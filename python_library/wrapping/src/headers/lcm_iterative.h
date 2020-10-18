@@ -9,7 +9,7 @@
 #include "trie.h"
 #include "query.h"
 #include "dataManager.h"
-#include "rCover.h"
+#include "rCoverTotalFreq.h"
 
 
 class LcmIterative {

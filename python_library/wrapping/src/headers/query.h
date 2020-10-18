@@ -12,6 +12,7 @@
 #include <chrono>
 
 struct TrieNode;
+
 class Trie;
 
 using namespace std;
@@ -27,8 +28,7 @@ typedef void *QueryData; // using void pointers is much lighter than class deriv
  * @param corrects - special array of support per class; the non-majority classes supports are set to 0
  * @param falses - special array of support per class; the majority class support is set to 0
  */
-struct ErrorValues
-{
+struct ErrorValues {
     Error error;
     Class maxclass;
 };
@@ -46,7 +46,7 @@ struct ErrorValues
 struct Tree {
     string expression;
     int size;
-    Depth  depth;
+    Depth depth;
     Error trainingError;
     int latSize;
     float searchRt;
@@ -54,14 +54,14 @@ struct Tree {
     bool timeout;
 
 
-    string to_str() {
+    string to_str() const {
         string out = "";
         out += "Tree: " + expression + "\n";
         if (expression != "(No such tree)") {
             out += "Size: " + to_string(size) + "\n";
             out += "Depth: " + to_string(depth) + "\n";
             out += "Error: " + to_string(trainingError) + "\n";
-            out += "Accuracy: " + to_string(accuracy ) + "\n";
+            out += "Accuracy: " + to_string(accuracy) + "\n";
         }
         out += "LatticeSize: " + to_string(latSize) + "\n";
         out += "RunTime: " + to_string(searchRt) + "\n";
@@ -72,32 +72,46 @@ struct Tree {
 
 class Query {
 public:
-    Query( Trie * trie,
-            DataManager *dm,
-            int timeLimit,
-            bool continuous,
-            function<vector<float>(RCover*)>* tids_error_class_callback = nullptr,
-            function<vector<float>(RCover*)>* supports_error_class_callback = nullptr,
-            function<float(RCover*)>*  tids_error_callback = nullptr,
-            float maxError = NO_ERR,
-            bool stopAfterError = false );
+    Query(Trie *trie,
+          DataManager *dm,
+          int timeLimit,
+          bool continuous,
+          function<vector<float>(RCover *)> *tids_error_class_callback = nullptr,
+          function<vector<float>(RCover *)> *supports_error_class_callback = nullptr,
+          function<float(RCover *)> *tids_error_callback = nullptr,
+          function<vector<float>(string)> *example_weight_callback = nullptr,
+          function<float(string)> *predict_error_callback = nullptr,
+          vector<float> *weights = nullptr,
+          float maxError = NO_ERR,
+          bool stopAfterError = false);
 
     virtual ~Query();
-    virtual bool is_freq ( pair<Supports,Support> supports ) = 0;
-    virtual bool is_pure ( pair<Supports,Support> supports ) = 0;
-    virtual bool canimprove ( QueryData *left, Error ub ) = 0;
-    virtual bool canSkip ( QueryData *actualBest ) = 0;
-    virtual QueryData *initData ( RCover* tid, Depth currentMaxDepth = -1) = 0;
-    virtual ErrorValues computeErrorValues( RCover* cover) = 0;
-    virtual ErrorValues computeErrorValues(Supports itemsetSupport, bool onlyerror = false) = 0;
-    virtual Error computeOnlyError(Supports itemsetSupport) = 0;
-    virtual bool updateData ( QueryData *best, Error upperBound, Attribute attribute, QueryData *left, QueryData *right ) = 0;
-    virtual void printResult ( Tree* tree ) = 0;
-    void setStartTime(){startTime = high_resolution_clock::now();}
 
-    DataManager* dm; // we need to have information about the data for default predictions
-    Trie* trie;
-    TrieNode* realroot; // as the empty itemset may not have an empty closure
+    virtual bool is_freq(pair<Supports, Support> supports) = 0;
+
+    virtual bool is_pure(pair<Supports, Support> supports) = 0;
+
+    virtual bool canimprove(QueryData *left, Error ub) = 0;
+
+    virtual bool canSkip(QueryData *actualBest) = 0;
+
+    virtual QueryData *initData(RCover *tid, Depth currentMaxDepth = -1) = 0;
+
+    virtual ErrorValues computeErrorValues(RCover *cover) = 0;
+
+    virtual ErrorValues computeErrorValues(Supports itemsetSupport, bool onlyerror = false) = 0;
+
+    virtual Error computeOnlyError(Supports itemsetSupport) = 0;
+
+    virtual bool updateData(QueryData *best, Error upperBound, Attribute attribute, QueryData *left, QueryData *right) = 0;
+
+    virtual void printResult(Tree *tree) = 0;
+
+    void setStartTime() { startTime = high_resolution_clock::now(); }
+
+    DataManager *dm; // we need to have information about the data for default predictions
+    Trie *trie;
+    TrieNode *realroot; // as the empty itemset may not have an empty closure
     Support minsup;
     Depth maxdepth;
     time_point<high_resolution_clock> startTime;
@@ -106,10 +120,14 @@ public:
     bool continuous = false;
     float maxError = NO_ERR;
     bool stopAfterError = false;
-    function<vector<float>(RCover*)>* tids_error_class_callback;
-    function<vector<float>(RCover*)>* supports_error_class_callback;
-    function<float(RCover*)>* tids_error_callback;
-    bool boosting = false;
+    function<vector<float>(RCover *)> *tids_error_class_callback = nullptr;
+    function<vector<float>(RCover *)> *supports_error_class_callback = nullptr;
+    function<float(RCover *)> *tids_error_callback = nullptr;
+    function<vector<float>(string)> *example_weight_callback = nullptr;
+    function<float(string)> *predict_error_callback = nullptr;
+    vector<float> *weights = nullptr;
+//    bool boosting = false;
+
 };
 
 #endif
