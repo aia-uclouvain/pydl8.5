@@ -7,8 +7,6 @@
 
 RCoverTotalFreq::RCoverTotalFreq(DataManager *dmm):RCover(dmm) {}
 
-RCoverTotalFreq::RCoverTotalFreq(bitset<M> *bitset1, int nword):RCover(bitset1, nword) {}
-
 void RCoverTotalFreq::intersect(Attribute attribute, const vector<float>* weights, bool positive) {
     int climit = limit.top();
     sup_class = newSupports();

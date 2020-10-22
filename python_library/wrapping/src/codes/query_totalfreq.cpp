@@ -10,8 +10,8 @@ Query_TotalFreq::Query_TotalFreq(Trie *trie,
                                  function<vector<float>(RCover *)> *tids_error_class_callback,
                                  function<vector<float>(RCover *)> *supports_error_class_callback,
                                  function<float(RCover *)> *tids_error_callback,
-                                 function<vector<float>(string)>* example_weight_callback,
-                                 function<float(string)>* predict_error_callback,
+                                 function<vector<float>()>* example_weight_callback,
+                                 function<vector<float>(string)>* predict_error_callback,
                                  vector<float>* weights,
                                  float maxError, bool stopAfterError) :
         Query_Best(trie,
@@ -25,8 +25,8 @@ Query_TotalFreq::Query_TotalFreq(Trie *trie,
                    example_weight_callback,
                    predict_error_callback,
                    weights,
-                   maxError,
-                   stopAfterError) {}
+                   (maxError <= 0) ? NO_ERR : maxError,
+                   (maxError <= 0) ? false : stopAfterError) {}
 
 
 Query_TotalFreq::~Query_TotalFreq() {}
@@ -63,7 +63,7 @@ bool Query_TotalFreq::updateData(QueryData *best, Error upperBound, Attribute at
 }
 
 QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
-    Class maxclass = -1;// conflict = 0;
+    Class maxclass = -1;
     Error error;
 
     auto *data = new QueryData_Best();
@@ -100,7 +100,6 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
     data->leafError = error;
     data->error += experror->addError(cover->getSupport(), data->error, dm->getNTransactions());
     data->solutionDepth = currentMaxDepth;
-//    if (conflict > 0) data2->right = (QueryData_Best *) 1;
 
     return (QueryData *) data;
 }
@@ -110,7 +109,6 @@ ErrorValues Query_TotalFreq::computeErrorValues(RCover *cover) {
     Error error;
 
     Supports itemsetSupport = cover->getSupportPerClass(weights);
-//    forEachClass(n) cout << itemsetSupport[n] << " " << endl;
     Support maxclassval = itemsetSupport[0];
     maxclass = 0;
 
@@ -124,15 +122,11 @@ ErrorValues Query_TotalFreq::computeErrorValues(RCover *cover) {
         }
     }
     error = sumSupports(itemsetSupport) - maxclassval;
-    /*if (error < 0) {
-        cout << "error = " << error << " ";
-        forEachClass(n) cout << itemsetSupport[n] << " " << endl;
-    }*/
     return {error, maxclass};
 }
 
 
-ErrorValues Query_TotalFreq::computeErrorValues(Supports itemsetSupport, bool onlyerror) {
+ErrorValues Query_TotalFreq::computeErrorValues(Supports itemsetSupport) {
     Class maxclass = 0;
     Error error;
     Support maxclassval = itemsetSupport[0];
@@ -147,36 +141,10 @@ ErrorValues Query_TotalFreq::computeErrorValues(Supports itemsetSupport, bool on
         }
     }
     error = sumSupports(itemsetSupport) - maxclassval;
-    /*if (error < 0) {
-        cout << "error = " << error << " ";
-        forEachClass(n) cout << itemsetSupport[n] << " " << endl;
-    }*/
     return {error, maxclass};
 }
 
-
-Error Query_TotalFreq::computeOnlyError(Supports itemsetSupport) {
-    Class maxclass = 0;
-    Error error;
-    Support maxclassval = itemsetSupport[0];
-
-    for (int i = 1; i < nclasses; ++i) {
-        if (itemsetSupport[i] > maxclassval) {
-            maxclassval = itemsetSupport[i];
-            maxclass = i;
-        } else if (itemsetSupport[i] == maxclassval) {
-            if (dm->getSupports()[i] > dm->getSupports()[maxclass])
-                maxclass = i;
-        }
-    }
-    /*if (sumSupports(itemsetSupport) - maxclassval < 0) {
-        cout << "error = " << sumSupports(itemsetSupport) - maxclassval << " ";
-        forEachClass(n) cout << itemsetSupport[n] << " " << endl;
-    }*/
-    return sumSupports(itemsetSupport) - maxclassval;
-}
-
-Error Query_TotalFreq::getTrainingError(const string& tree_json){
+/*Error Query_TotalFreq::getTrainingError(const string& tree_json){
     function<float(string)> callback = *predict_error_callback;
     return callback(tree_json);
-}
+}*/

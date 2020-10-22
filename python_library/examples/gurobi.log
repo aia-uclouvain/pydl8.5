@@ -1,0 +1,2003 @@
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 16:16:53 2020
+
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 16:29:19 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 1 rows, 1 columns and 0 nonzeros
+Coefficient statistics:
+  Matrix range     [0e+00, 0e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve time: 0.00s
+
+Solved in 0 iterations and 0.00 seconds
+Infeasible or unbounded model
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 16:45:07 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 16:47:03 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: constraint name "weights = 1" has a space
+Optimize a model with 1 rows, 1 columns and 0 nonzeros
+Coefficient statistics:
+  Matrix range     [0e+00, 0e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve time: 0.00s
+
+Solved in 0 iterations and 0.00 seconds
+Infeasible or unbounded model
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 16:54:06 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: constraint name "weights = 1" has a space
+Optimize a model with 1 rows, 1 columns and 0 nonzeros
+Coefficient statistics:
+  Matrix range     [0e+00, 0e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve time: 0.00s
+
+Solved in 0 iterations and 0.00 seconds
+Infeasible or unbounded model
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 16:57:34 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: constraint name "weights = 1" has a space
+Optimize a model with 1 rows, 1 columns and 0 nonzeros
+Coefficient statistics:
+  Matrix range     [0e+00, 0e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve time: 0.00s
+
+Solved in 0 iterations and 0.00 seconds
+Infeasible or unbounded model
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 16:58:03 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: constraint name "weights = 1" has a space
+Optimize a model with 1 rows, 1 columns and 0 nonzeros
+Coefficient statistics:
+  Matrix range     [0e+00, 0e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve time: 0.00s
+
+Solved in 0 iterations and 0.00 seconds
+Infeasible or unbounded model
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 16:58:52 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: constraint name "weights = 1" has a space
+Optimize a model with 1 rows, 1 columns and 0 nonzeros
+Coefficient statistics:
+  Matrix range     [0e+00, 0e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve time: 0.00s
+
+Solved in 0 iterations and 0.00 seconds
+Infeasible or unbounded model
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 16:59:34 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 17:03:34 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 17:05:40 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 17:06:05 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 17:10:04 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      73   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 73 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.01s
+Presolved: 3247 rows, 3249 columns, 6819 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      14   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 14 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 17:23:36 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      73   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 73 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.01s
+Presolved: 3247 rows, 3249 columns, 6819 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      14   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 14 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 17:24:59 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      73   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 73 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3249 columns, 6819 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      14   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 14 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 17:25:37 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      73   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 73 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.01s
+Presolved: 3247 rows, 3249 columns, 6819 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      14   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 14 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 17:34:28 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      73   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 73 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3249 columns, 6819 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      14   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 14 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 17:35:23 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      73   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 73 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3249 columns, 6819 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      14   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 14 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 17:37:52 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      73   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 73 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3249 columns, 6819 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      14   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 14 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 17:41:13 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      73   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 73 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3249 columns, 6819 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      14   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 14 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 20:48:08 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      73   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 73 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 2 rows, 1 columns and 1 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve time: 0.00s
+
+Solved in 0 iterations and 0.00 seconds
+Infeasible or unbounded model
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 20:49:26 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      73   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 73 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.01s
+Presolved: 3247 rows, 3249 columns, 6819 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      14   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 14 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 20:50:53 2020
+
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 20:51:10 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      73   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 73 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 20:53:53 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      73   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 73 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3249 columns, 6819 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      14   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 14 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 20:58:31 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      73   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 73 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3249 columns, 6819 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      14   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 14 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 20:59:07 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      73   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 73 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3249 columns, 6819 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      14   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 14 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 20:59:17 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      73   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 73 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3249 columns, 6819 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      14   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 14 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 20:59:42 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 20:59:50 2020
+
+
+Gurobi 8.1.0 (mac64, Python) logging started Wed Oct 21 21:00:02 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+
+Gurobi 8.1.0 (mac64, Python) logging started Thu Oct 22 00:03:43 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      73   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 73 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Thu Oct 22 00:04:56 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+     228   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 228 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Thu Oct 22 10:43:36 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      73   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 73 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3249 columns, 6819 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      14   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 14 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Thu Oct 22 10:43:47 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+     236   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 236 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Thu Oct 22 10:43:54 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      73   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 73 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+
+Gurobi 8.1.0 (mac64, Python) logging started Thu Oct 22 10:44:08 2020
+
+
+Gurobi 8.1.0 (mac64, Python) logging started Thu Oct 22 10:44:21 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      73   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 73 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3249 columns, 6819 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      14   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 14 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Thu Oct 22 10:44:34 2020
+
+
+Gurobi 8.1.0 (mac64, Python) logging started Thu Oct 22 10:44:51 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+     241   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 241 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3249 columns, 6553 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+     231   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 231 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Thu Oct 22 10:45:05 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      64   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 64 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.01s
+Presolved: 3247 rows, 3249 columns, 6808 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      15   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 15 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Thu Oct 22 10:51:23 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+     228   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 228 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Thu Oct 22 10:54:53 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      64   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 64 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3249 columns, 6808 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      15   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 15 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Thu Oct 22 10:55:22 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      64   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 64 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.01s
+Presolved: 3247 rows, 3249 columns, 6808 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      15   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 15 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 3 rows, 3248 columns and 9743 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 3244 columns
+Presolve time: 0.00s
+Presolved: 2 rows, 4 columns, 6 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   1.000000e+00   0.000000e+00      0s
+       1   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 1 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Thu Oct 22 10:56:10 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      64   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 64 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.01s
+Presolved: 3247 rows, 3249 columns, 6808 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      15   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 15 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 3 rows, 3248 columns and 9743 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 3244 columns
+Presolve time: 0.00s
+Presolved: 2 rows, 4 columns, 6 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   1.000000e+00   0.000000e+00      0s
+       1   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 1 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+
+Gurobi 8.1.0 (mac64, Python) logging started Thu 22 Oct 10:56:57 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      64   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 64 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3249 columns, 6808 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      15   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 15 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 3 rows, 3248 columns and 9743 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 3244 columns
+Presolve time: 0.00s
+Presolved: 2 rows, 4 columns, 6 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   1.000000e+00   0.000000e+00      0s
+       1   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 1 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Thu Oct 22 11:10:15 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      64   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 64 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3249 columns, 6808 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      15   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 15 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 3 rows, 3248 columns and 9743 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 3244 columns
+Presolve time: 0.00s
+Presolved: 2 rows, 4 columns, 6 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   1.000000e+00   0.000000e+00      0s
+       1   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 1 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Thu Oct 22 11:13:06 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      64   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 64 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.01s
+Presolved: 3247 rows, 3249 columns, 6808 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      15   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 15 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 3 rows, 3248 columns and 9743 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 3244 columns
+Presolve time: 0.00s
+Presolved: 2 rows, 4 columns, 6 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   1.000000e+00   0.000000e+00      0s
+       1   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 1 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3251 columns and 16238 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve time: 0.00s
+Presolved: 3248 rows, 3251 columns, 16238 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      66   -0.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 66 iterations and 0.01 seconds
+Optimal objective -0.000000000e+00
+
+Gurobi 8.1.0 (mac64, Python) logging started Thu Oct 22 11:13:22 2020
+
+Academic license - for non-commercial use only
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3249 columns and 9742 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 3247 rows, 3248 columns, 6494 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      64   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 64 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 2 rows, 3248 columns and 6495 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 3248 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 3248 rows, 3250 columns and 12990 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 1 columns
+Presolve time: 0.01s
+Presolved: 3247 rows, 3249 columns, 6808 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                          0s
+      15   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 15 iterations and 0.01 seconds
+Optimal objective -1.000000000e+00
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Warning: variable name "sample_weights 0" has a space
+Warning: constraint name "weights = 1" has a space
+Warning: to let Gurobi read it back, use rlp format
+Optimize a model with 3 rows, 3248 columns and 9743 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [2e-01, 2e-01]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 1 rows and 3244 columns
+Presolve time: 0.00s
+Presolved: 2 rows, 4 columns, 6 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0000000e+00   1.000000e+00   0.000000e+00      0s
+       1   -1.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 1 iterations and 0.00 seconds
+Optimal objective -1.000000000e+00

@@ -61,7 +61,10 @@ EXTENSION_SOURCE_FILES = ['wrapping/src/headers/error_function.pyx',
                 'wrapping/src/codes/query_best.cpp',
                 'wrapping/src/codes/query_totalfreq.cpp',
                 'wrapping/src/codes/trie.cpp',
-                'wrapping/src/codes/dataBinaryPython.cpp']
+                'wrapping/src/codes/dataBinaryPython.cpp',
+                'wrapping/src/codes/depthTwoComputer.cpp',
+                'wrapping/src/codes/rCoverTotalFreq.cpp',
+                'wrapping/src/codes/rCoverWeighted.cpp',]
 EXTENSION_INCLUDE_DIR = ['wrapping/src/headers']
 # EXTENSION_BUILD_ARGS = ['-std=c++11']
 EXTENSION_BUILD_ARGS = ['-std=c++11', '-DCYTHON_PEP489_MULTI_PHASE_INIT=0']

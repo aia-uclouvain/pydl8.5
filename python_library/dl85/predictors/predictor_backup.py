@@ -64,7 +64,6 @@ class DL85Predictor(BaseEstimator):
             max_depth=1,
             min_sup=1,
             max_estimators=1,
-            example_weights=[],
             error_function=None,
             fast_error_function=None,
             example_weight_function=None,
@@ -78,12 +77,11 @@ class DL85Predictor(BaseEstimator):
             asc=False,
             repeat_sort=False,
             leaf_value_function=None,
-            nps=False,
+            # nps=False,
             print_output=False):
         self.max_depth = max_depth
         self.min_sup = min_sup
         self.max_estimators = max_estimators
-        self.example_weights = example_weights
         self.error_function = error_function
         self.fast_error_function = fast_error_function
         self.example_weight_function = example_weight_function
@@ -97,7 +95,7 @@ class DL85Predictor(BaseEstimator):
         self.asc = asc
         self.repeat_sort = repeat_sort
         self.leaf_value_function = leaf_value_function
-        self.nps = nps
+        # self.nps = nps
         self.print_output = print_output
 
     def _more_tags(self):
@@ -120,8 +118,6 @@ class DL85Predictor(BaseEstimator):
             Returns self.
         """
 
-        X = np.asarray(X.tolist()[:])
-        y = np.asarray(y.tolist()[:])
         target_is_need = True if y is not None else False
         opt_func = self.error_function
         opt_fast_func = self.fast_error_function
@@ -154,15 +150,14 @@ class DL85Predictor(BaseEstimator):
         import dl85Optimizer
         solution = dl85Optimizer.solve(data=X,
                                        target=y,
-                                       tec_func_=opt_func,
-                                       sec_func_=opt_fast_func,
-                                       te_func_=opt_pred_func,
-                                       exw_func_=self.example_weight_function,
-                                       pred_func_=self.predict_error_function,
+                                       func=opt_func,
+                                       fast_func=opt_fast_func,
+                                       predictor_func=opt_pred_func,
+                                       weight_func=self.example_weight_function,
+                                       # test_func=self.test_error_function,
                                        max_depth=self.max_depth,
                                        min_sup=self.min_sup,
                                        max_estimators=self.max_estimators,
-                                       example_weights=self.example_weights,
                                        max_error=self.max_error,
                                        stop_after_better=self.stop_after_better,
                                        iterative=self.iterative,
@@ -185,6 +180,7 @@ class DL85Predictor(BaseEstimator):
         #     raise ValueError(solution[0])
 
         if self.sol_size == 8 or self.sol_size == 9:  # solution found
+            # print("solution \n", solution)
             self.tree_ = json.loads(solution[1].split('Tree: ')[1])
             self.size_ = int(solution[2].split(" ")[1])
             self.depth_ = int(solution[3].split(" ")[1])
@@ -227,9 +223,9 @@ class DL85Predictor(BaseEstimator):
                 self.runtime_ = float(solution[8].split(" ")[1])
                 self.timeout_ = True
 
-            # if target_is_need:  # problem with target
-            #     # Store the classes seen during fit
-            #     self.classes_ = unique_labels(y)
+            if target_is_need:  # problem with target
+                # Store the classes seen during fit
+                self.classes_ = unique_labels(y)
 
         elif self.sol_size == 4 or self.sol_size == 5:  # solution not found
             self.tree_ = None
@@ -276,11 +272,10 @@ class DL85Predictor(BaseEstimator):
             print("LatticeSize:", str(self.lattice_size_))
             print("Runtime:", str(self.runtime_))
             print("Timeout:", str(self.timeout_))
-
         # Return the classifier
         # return self
 
-    def predict(self, X):
+    def predict(self, X, tree=None):
         """ Implements the standard predict function for a DL8.5 classifier.
 
         Parameters
@@ -288,26 +283,30 @@ class DL85Predictor(BaseEstimator):
         X : array-like, shape (n_samples, n_features)
             The input samples.
 
+        tree : json object
+            It is used in case of boosting for column generation.
+
         Returns
         -------
         y : ndarray, shape (n_samples,)
             The label for each sample is the label of the closest sample
             seen during fit.
+
         """
 
-        # Check is fit is called
-        # check_is_fitted(self, attributes='tree_') # use of attributes is deprecated. alternative solution is below
+        if tree is None:
+            # Check is fit is called
+            # check_is_fitted(self, attributes='tree_') # use of attributes is deprecated. alternative solution is below
 
-        X = np.asarray(X.tolist()[:])
-        if hasattr(self, 'sol_size') is False:  # fit method has not been called
-            raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
+            if hasattr(self, 'sol_size') is False:  # fit method has not been called
+                raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
 
-        if self.tree_ is None:
-            raise TreeNotFoundError("predict(): ", "Tree not found during training by DL8.5 - "
-                                                   "Check fitting message for more info.")
+            if self.tree_ is None:
+                raise TreeNotFoundError("predict(): ", "Tree not found during training by DL8.5 - "
+                                                       "Check fitting message for more info.")
 
-        if hasattr(self, 'tree_') is False:  # normally this case is not possible.
-            raise SearchFailedError("PredictionError: ", "DL8.5 training has failed. Please contact the developers "
+            if hasattr(self, 'tree_') is False:  # normally this case is not possible.
+                raise SearchFailedError("PredictionError: ", "DL8.5 training has failed. Please contact the developers "
                                                          "if the problem is in the scope supported by the tool.")
 
         # Input validation
@@ -316,12 +315,15 @@ class DL85Predictor(BaseEstimator):
         self.y_ = []
 
         for i in range(X.shape[0]):
-            self.y_.append(self.pred_value_on_dict(X[i, :]))
+            if tree is None:
+                self.y_.append(self.pred_value_on_dict(X[i, :], self.tree_))
+            else:
+                self.y_.append(self.pred_value_on_dict(X[i, :], tree))
 
         return self.y_
 
-    def pred_value_on_dict(self, instance):
-        node = self.tree_
+    def pred_value_on_dict(self, instance, tree):
+        node = tree
         while self.is_leaf_node(node) is not True:
             if instance[node['feat']] == 1:
                 node = node['left']
@@ -377,3 +379,4 @@ class DL85Predictor(BaseEstimator):
         tree = dict(self.tree_)
         recurse(tree)
         return tree
+
