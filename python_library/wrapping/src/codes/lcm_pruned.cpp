@@ -449,30 +449,27 @@ void LcmPruned::run() {
     float maxError = NO_ERR;
     if (query->maxError > 0) maxError = query->maxError;
 
-    // Initialize the cover object. It represents a mask of covered transactions. At this beginning all the transactions are set to 1
-
-
     // Create empty list for candidate attributes
     Array<Attribute> attributes_to_visit(nattributes, 0);
 
     // Update the candidate list based on frequency criterion
     if (query->minsup == 1) { // do not check frequency if minsup = 1
-        for (int attr = 0; attr < nattributes; ++attr)
-            attributes_to_visit.push_back(attr);
-    } else { // make sure each candidate attribute can be split into two nodes fulfilling the frequency criterion
+        for (int attr = 0; attr < nattributes; ++attr) attributes_to_visit.push_back(attr);
+    }
+    else { // make sure each candidate attribute can be split into two nodes fulfilling the frequency criterion
         for (int attr = 0; attr < nattributes; ++attr) {
             if (cover->temporaryIntersectSup(attr, false) >= query->minsup && cover->temporaryIntersectSup(attr) >= query->minsup)
                 attributes_to_visit.push_back(attr);
         }
     }
 
-    //create an empty array of items representing an empty set and insert it
+    //create an empty array of items representing an emptyset and insert it
     Array<Item> itemset;
     itemset.size = 0;
     itemset.elts = nullptr;
-//    cout << "test" << endl;
+
+    // insert the emptyset node
     TrieNode *node = query->trie->insert(itemset);
-//    cout << "yes" << endl;
 
     // call the recursive function to start the search
     query->realroot = recurse(itemset, NO_ATTRIBUTE, node, attributes_to_visit, 0, maxError);
@@ -480,9 +477,10 @@ void LcmPruned::run() {
     // never forget to return back what is not yours. Think to others who need it ;-)
     itemset.free();
     attributes_to_visit.free();
-    //delete cover;
 
-    cout << "ncall: " << ncall << endl;
-    cout << "spectime: " << spectime << endl;
+    /*cout << "ncall: " << ncall << endl;
     cout << "comptime: " << comptime << endl;
+    cout << "searchtime: " << spectime << endl;
+    cout << "totaltime: " << comptime + spectime << endl;
+    ncall = 0; comptime = 0; spectime = 0;*/
 }

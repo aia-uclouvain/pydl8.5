@@ -13,13 +13,7 @@ public:
 
     RCoverWeighted(DataManager* dmm);
 
-    /*RCoverWeighted(RCover&& cover) noexcept ;
-
-    RCoverWeighted();*/
-
-    RCoverWeighted(bitset<M> *bitset1, int nword);
-
-    RCoverWeighted(RCoverWeighted &&cover);
+    RCoverWeighted(RCoverWeighted &&cover)  noexcept ;
 
     ~RCoverWeighted(){}
 
@@ -30,6 +24,8 @@ public:
     Supports getSupportPerClass(const vector<float>* weights);
 
     vector<int> getTransactionsID(bitset<M>& word, int real_word_index);
+
+    pair<SupportClass, Support> getSups(bitset<M>& word, int real_word_index, const vector<float>* weights);
 
     vector<int> getTransactionsID();
 

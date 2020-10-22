@@ -58,18 +58,18 @@ cdef public wrap_array(RCover *ar, bool trans):
     tid_python_object.init_iterator()
     return tid_python_object
 
-cdef public vector[float] call_python_error_function(python_function, RCover *ar):
-    return python_function(wrap_array(ar, True))
+cdef public vector[float] call_python_tid_error_class_function(py_function, RCover *ar):
+    return py_function(wrap_array(ar, True))
 
-cdef public vector[float] call_python_fast_error_function(python_fast_function, RCover *ar):
-    return python_fast_function(wrap_array(ar, False))
+cdef public vector[float] call_python_support_error_class_function(py_function, RCover *ar):
+    return py_function(wrap_array(ar, False))
 
-cdef public float call_python_predictor_error_function(python_predictor_function, RCover *ar):
-    return python_predictor_function(wrap_array(ar, True))
+cdef public float call_python_tid_error_function(py_function, RCover *ar):
+    return py_function(wrap_array(ar, True))
 
-cdef public vector[float] call_python_example_weight_function(python_weight_function, string tree_json):
-    return python_weight_function(tree_json)
+cdef public vector[float] call_python_example_weight_function(py_function):
+    return py_function()
 
-cdef public float call_python_test_error_function(python_test_function, float error):
-    return python_test_function(error)
+cdef public vector[float] call_python_predict_error_function(py_function, string tree_json):
+    return py_function(tree_json)
 

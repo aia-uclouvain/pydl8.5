@@ -14,8 +14,8 @@ public:
                     function<vector<float>(RCover *)> *tids_error_class_callback = nullptr,
                     function<vector<float>(RCover *)> *supports_error_class_callback = nullptr,
                     function<float(RCover *)> *tids_error_callback = nullptr,
-                    function<vector<float>(string)> *example_weight_callback = nullptr,
-                    function<float(string)> *predict_error_callback = nullptr,
+                    function<vector<float>()> *example_weight_callback = nullptr,
+                    function<vector<float>(string)> *predict_error_callback = nullptr,
                     vector<float> *weights = nullptr,
                     float maxError = NO_ERR,
                     bool stopAfterError = false);
@@ -32,11 +32,9 @@ public:
 
     ErrorValues computeErrorValues(RCover *cover);
 
-    ErrorValues computeErrorValues(Supports itemsetSupport, bool onlyerror = false);
+    ErrorValues computeErrorValues(Supports itemsetSupport);
 
-    Error computeOnlyError(Supports itemsetSupport);
-
-    Error getTrainingError(const string& tree_json);
+//    Error getTrainingError(const string& tree_json);
 
 protected:
 };

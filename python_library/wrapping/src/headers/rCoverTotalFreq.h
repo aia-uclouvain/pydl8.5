@@ -13,8 +13,6 @@ public:
 
     RCoverTotalFreq(DataManager* dmm);
 
-    RCoverTotalFreq(bitset<M> *bitset1, int nword);
-
     ~RCoverTotalFreq(){}
 
     void intersect(Attribute attribute, const vector<float>* weights, bool positive = true);

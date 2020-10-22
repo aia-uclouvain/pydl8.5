@@ -78,7 +78,7 @@ class DL85Predictor(BaseEstimator):
             asc=False,
             repeat_sort=False,
             leaf_value_function=None,
-            nps=False,
+            # nps=False,
             print_output=False):
         self.max_depth = max_depth
         self.min_sup = min_sup
@@ -97,7 +97,7 @@ class DL85Predictor(BaseEstimator):
         self.asc = asc
         self.repeat_sort = repeat_sort
         self.leaf_value_function = leaf_value_function
-        self.nps = nps
+        # self.nps = nps
         self.print_output = print_output
 
     def _more_tags(self):
@@ -120,8 +120,6 @@ class DL85Predictor(BaseEstimator):
             Returns self.
         """
 
-        X = np.asarray(X.tolist()[:])
-        y = np.asarray(y.tolist()[:])
         target_is_need = True if y is not None else False
         opt_func = self.error_function
         opt_fast_func = self.fast_error_function
@@ -178,105 +176,106 @@ class DL85Predictor(BaseEstimator):
         # if self.print_output:
         #     print(solution)
 
-        solution = solution.splitlines()
-        self.sol_size = len(solution)
+        if self.example_weight_function is None and self.predict_error_function is None:
+            solution = solution.splitlines()
+            self.sol_size = len(solution)
 
-        # if self.sol_size_ == 1:
-        #     raise ValueError(solution[0])
+            # if self.sol_size_ == 1:
+            #     raise ValueError(solution[0])
 
-        if self.sol_size == 8 or self.sol_size == 9:  # solution found
-            self.tree_ = json.loads(solution[1].split('Tree: ')[1])
-            self.size_ = int(solution[2].split(" ")[1])
-            self.depth_ = int(solution[3].split(" ")[1])
-            self.error_ = float(solution[4].split(" ")[1])
-            if self.size_ < 3 and self.max_error > 0:
+            if self.sol_size == 8 or self.sol_size == 9:  # solution found
+                # print("solution \n", solution)
+                self.tree_ = json.loads(solution[1].split('Tree: ')[1])
+                self.size_ = int(solution[2].split(" ")[1])
+                self.depth_ = int(solution[3].split(" ")[1])
+                self.error_ = float(solution[4].split(" ")[1])
+                if self.size_ < 3 and self.max_error > 0:
+                    self.accuracy_ = -1
+                else:
+                    self.accuracy_ = float(solution[5].split(" ")[1])
+
+                if self.sol_size == 8:  # without timeout
+                    if self.size_ < 3 and self.max_error > 0:  # return just a leaf as fake solution
+                        print("DL8.5 fitting: Solution not found. However, a solution exists with error equal to the "
+                              "max error you specify as unreachable. Please increase your bound if you want to reach it.")
+                        self.tree_ = None
+                        self.size_ = -1
+                        self.depth_ = -1
+                        self.error_ = -1
+                        self.accuracy_ = -1
+                    else:
+                        print("DL8.5 fitting: Solution found")
+
+                    self.lattice_size_ = int(solution[6].split(" ")[1])
+                    self.runtime_ = float(solution[7].split(" ")[1])
+                    self.timeout_ = False
+
+                else:  # timeout reached
+                    if self.size_ < 3 and self.max_error > 0:  # return just a leaf as fake solution
+                        print("DL8.5 fitting: Timeout reached without solution. However, a solution exists with "
+                              "error equal to the max error you specify as unreachable. Please increase "
+                              "your bound if you want to reach it.")
+                        self.tree_ = None
+                        self.size_ = -1
+                        self.depth_ = -1
+                        self.error_ = -1
+                        self.accuracy_ = -1
+                    else:
+                        print("DL8.5 fitting: Timeout reached but solution found")
+
+                    self.lattice_size_ = int(solution[7].split(" ")[1])
+                    self.runtime_ = float(solution[8].split(" ")[1])
+                    self.timeout_ = True
+
+                if target_is_need:  # problem with target
+                    # Store the classes seen during fit
+                    self.classes_ = unique_labels(y)
+
+            elif self.sol_size == 4 or self.sol_size == 5:  # solution not found
+                self.tree_ = None
+                self.size_ = -1
+                self.depth_ = -1
+                self.error_ = -1
                 self.accuracy_ = -1
-            else:
-                self.accuracy_ = float(solution[5].split(" ")[1])
+                if self.sol_size == 4:  # without timeout
+                    print("DL8.5 fitting: Solution not found")
+                    self.lattice_size_ = int(solution[2].split(" ")[1])
+                    self.runtime_ = float(solution[3].split(" ")[1])
+                    self.timeout_ = False
+                else:  # timeout reached
+                    print("DL8.5 fitting: Timeout reached and solution not found")
+                    self.lattice_size_ = int(solution[3].split(" ")[1])
+                    self.runtime_ = float(solution[4].split(" ")[1])
+                    self.timeout_ = True
 
-            if self.sol_size == 8:  # without timeout
-                if self.size_ < 3 and self.max_error > 0:  # return just a leaf as fake solution
-                    print("DL8.5 fitting: Solution not found. However, a solution exists with error equal to the "
-                          "max error you specify as unreachable. Please increase your bound if you want to reach it.")
-                    self.tree_ = None
-                    self.size_ = -1
-                    self.depth_ = -1
-                    self.error_ = -1
-                    self.accuracy_ = -1
+            if self.leaf_value_function is not None:
+                if hasattr(self, 'tree_'):
+                    # add transactions to nodes of the tree
+                    self.tree_dfs(X)
+
+                    if self.leaf_value_function is not None:
+                        def search(node):
+                            if self.is_leaf_node(node) is not True:
+                                search(node['left'])
+                                search(node['right'])
+                            else:
+                                node['value'] = self.leaf_value_function(node['transactions'])
+                        node = self.tree_
+                        search(node)
+
+            if self.print_output:
+                print(solution[0])
+                if self.leaf_value_function is None:
+                    print("Tree:", self.tree_)
                 else:
-                    print("DL8.5 fitting: Solution found")
-
-                self.lattice_size_ = int(solution[6].split(" ")[1])
-                self.runtime_ = float(solution[7].split(" ")[1])
-                self.timeout_ = False
-
-            else:  # timeout reached
-                if self.size_ < 3 and self.max_error > 0:  # return just a leaf as fake solution
-                    print("DL8.5 fitting: Timeout reached without solution. However, a solution exists with "
-                          "error equal to the max error you specify as unreachable. Please increase "
-                          "your bound if you want to reach it.")
-                    self.tree_ = None
-                    self.size_ = -1
-                    self.depth_ = -1
-                    self.error_ = -1
-                    self.accuracy_ = -1
-                else:
-                    print("DL8.5 fitting: Timeout reached but solution found")
-
-                self.lattice_size_ = int(solution[7].split(" ")[1])
-                self.runtime_ = float(solution[8].split(" ")[1])
-                self.timeout_ = True
-
-            # if target_is_need:  # problem with target
-            #     # Store the classes seen during fit
-            #     self.classes_ = unique_labels(y)
-
-        elif self.sol_size == 4 or self.sol_size == 5:  # solution not found
-            self.tree_ = None
-            self.size_ = -1
-            self.depth_ = -1
-            self.error_ = -1
-            self.accuracy_ = -1
-            if self.sol_size == 4:  # without timeout
-                print("DL8.5 fitting: Solution not found")
-                self.lattice_size_ = int(solution[2].split(" ")[1])
-                self.runtime_ = float(solution[3].split(" ")[1])
-                self.timeout_ = False
-            else:  # timeout reached
-                print("DL8.5 fitting: Timeout reached and solution not found")
-                self.lattice_size_ = int(solution[3].split(" ")[1])
-                self.runtime_ = float(solution[4].split(" ")[1])
-                self.timeout_ = True
-
-        if self.leaf_value_function is not None:
-            if hasattr(self, 'tree_'):
-                # add transactions to nodes of the tree
-                self.tree_dfs(X)
-
-                if self.leaf_value_function is not None:
-                    def search(node):
-                        if self.is_leaf_node(node) is not True:
-                            search(node['left'])
-                            search(node['right'])
-                        else:
-                            node['value'] = self.leaf_value_function(node['transactions'])
-                    node = self.tree_
-                    search(node)
-
-        if self.print_output:
-            print(solution[0])
-            if self.leaf_value_function is None:
-                print("Tree:", self.tree_)
-            else:
-                print("Tree:", self.tree_without_transactions())
-            print("Size:", str(self.size_))
-            print("Depth:", str(self.depth_))
-            print("Error:", str(self.error_))
-            # print("Accuracy:", str(self.accuracy_))
-            print("LatticeSize:", str(self.lattice_size_))
-            print("Runtime:", str(self.runtime_))
-            print("Timeout:", str(self.timeout_))
-
+                    print("Tree:", self.tree_without_transactions())
+                print("Size:", str(self.size_))
+                print("Depth:", str(self.depth_))
+                print("Error:", str(self.error_))
+                # print("Accuracy:", str(self.accuracy_))
+                print("LatticeSize:", str(self.lattice_size_))
+                print("Runtime:", str(self.runtime_))
+                print("Timeout:", str(self.timeout_))
         # Return the classifier
         # return self
 
@@ -288,17 +287,20 @@ class DL85Predictor(BaseEstimator):
         X : array-like, shape (n_samples, n_features)
             The input samples.
 
+        tree : json object
+            It is used in case of boosting for column generation.
+
         Returns
         -------
         y : ndarray, shape (n_samples,)
             The label for each sample is the label of the closest sample
             seen during fit.
+
         """
 
         # Check is fit is called
         # check_is_fitted(self, attributes='tree_') # use of attributes is deprecated. alternative solution is below
 
-        X = np.asarray(X.tolist()[:])
         if hasattr(self, 'sol_size') is False:  # fit method has not been called
             raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
 
@@ -308,7 +310,7 @@ class DL85Predictor(BaseEstimator):
 
         if hasattr(self, 'tree_') is False:  # normally this case is not possible.
             raise SearchFailedError("PredictionError: ", "DL8.5 training has failed. Please contact the developers "
-                                                         "if the problem is in the scope supported by the tool.")
+                                                     "if the problem is in the scope supported by the tool.")
 
         # Input validation
         X = check_array(X)
@@ -316,12 +318,12 @@ class DL85Predictor(BaseEstimator):
         self.y_ = []
 
         for i in range(X.shape[0]):
-            self.y_.append(self.pred_value_on_dict(X[i, :]))
+            self.y_.append(self.pred_value_on_dict(X[i, :], self.tree_))
 
         return self.y_
 
-    def pred_value_on_dict(self, instance):
-        node = self.tree_
+    def pred_value_on_dict(self, instance, tree):
+        node = tree
         while self.is_leaf_node(node) is not True:
             if instance[node['feat']] == 1:
                 node = node['left']
@@ -377,3 +379,4 @@ class DL85Predictor(BaseEstimator):
         tree = dict(self.tree_)
         recurse(tree)
         return tree
+

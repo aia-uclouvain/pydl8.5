@@ -79,8 +79,8 @@ public:
           function<vector<float>(RCover *)> *tids_error_class_callback = nullptr,
           function<vector<float>(RCover *)> *supports_error_class_callback = nullptr,
           function<float(RCover *)> *tids_error_callback = nullptr,
-          function<vector<float>(string)> *example_weight_callback = nullptr,
-          function<float(string)> *predict_error_callback = nullptr,
+          function<vector<float>()> *example_weight_callback = nullptr,
+          function<vector<float>(string)> *predict_error_callback = nullptr,
           vector<float> *weights = nullptr,
           float maxError = NO_ERR,
           bool stopAfterError = false);
@@ -99,9 +99,7 @@ public:
 
     virtual ErrorValues computeErrorValues(RCover *cover) = 0;
 
-    virtual ErrorValues computeErrorValues(Supports itemsetSupport, bool onlyerror = false) = 0;
-
-    virtual Error computeOnlyError(Supports itemsetSupport) = 0;
+    virtual ErrorValues computeErrorValues(Supports itemsetSupport) = 0;
 
     virtual bool updateData(QueryData *best, Error upperBound, Attribute attribute, QueryData *left, QueryData *right) = 0;
 
@@ -123,8 +121,8 @@ public:
     function<vector<float>(RCover *)> *tids_error_class_callback = nullptr;
     function<vector<float>(RCover *)> *supports_error_class_callback = nullptr;
     function<float(RCover *)> *tids_error_callback = nullptr;
-    function<vector<float>(string)> *example_weight_callback = nullptr;
-    function<float(string)> *predict_error_callback = nullptr;
+    function<vector<float>()> *example_weight_callback = nullptr;
+    function<vector<float>(string)> *predict_error_callback = nullptr;
     vector<float> *weights = nullptr;
 //    bool boosting = false;
 

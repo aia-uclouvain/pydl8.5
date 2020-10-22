@@ -15,15 +15,15 @@ using namespace std;
 class PyExampleWeightWrapper {
 public:
     // constructors and destructors mostly do reference counting
-    PyExampleWeightWrapper(PyObject* o): pyExampleWeightFunction(o) {
+    PyExampleWeightWrapper(PyObject* o): pyFunction(o) {
         Py_XINCREF(o);
     }
 
-    PyExampleWeightWrapper(const PyExampleWeightWrapper& rhs): PyExampleWeightWrapper(rhs.pyExampleWeightFunction) { // C++11 onwards only
+    PyExampleWeightWrapper(const PyExampleWeightWrapper& rhs): PyExampleWeightWrapper(rhs.pyFunction) { // C++11 onwards only
     }
 
-    PyExampleWeightWrapper(PyExampleWeightWrapper&& rhs): PyExampleWeightWrapper(rhs.pyExampleWeightFunction) {
-        rhs.pyExampleWeightFunction = 0;
+    PyExampleWeightWrapper(PyExampleWeightWrapper&& rhs): PyExampleWeightWrapper(rhs.pyFunction) {
+        rhs.pyFunction = nullptr;
     }
 
     // need no-arg constructor to stack allocate in Cython
@@ -31,7 +31,7 @@ public:
     }
 
     ~PyExampleWeightWrapper() {
-        Py_XDECREF(pyExampleWeightFunction);
+        Py_XDECREF(pyFunction);
     }
 
     PyExampleWeightWrapper& operator=(const PyExampleWeightWrapper& rhs) {
@@ -40,20 +40,20 @@ public:
     }
 
     PyExampleWeightWrapper& operator=(PyExampleWeightWrapper&& rhs) {
-        pyExampleWeightFunction = rhs.pyExampleWeightFunction;
-        rhs.pyExampleWeightFunction = 0;
+        pyFunction = rhs.pyFunction;
+        rhs.pyFunction = nullptr;
         return *this;
     }
 
-    std::vector<float> operator()(string tree_json) {
+    std::vector<float> operator()() {
         PyInit_error_function();
-        if (pyExampleWeightFunction) { // nullptr check
-            return call_python_example_weight_function(pyExampleWeightFunction, tree_json); // note, no way of checking for errors until you return to Python
+        if (pyFunction) { // nullptr check
+            return call_python_example_weight_function(pyFunction); // note, no way of checking for errors until you return to Python
         }
     }
 
 private:
-    PyObject* pyExampleWeightFunction;
+    PyObject* pyFunction;
 };
 
 #endif //DL85_PY_EXAMPLE_WEIGHT_WRAPPER_H

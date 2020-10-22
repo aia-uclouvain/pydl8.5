@@ -66,6 +66,7 @@ class DL85Classifier(DL85Predictor, ClassifierMixin):
             max_depth=1,
             min_sup=1,
             max_estimators=1,
+            example_weights=[],
             error_function=None,
             fast_error_function=None,
             iterative=False,
@@ -79,11 +80,11 @@ class DL85Classifier(DL85Predictor, ClassifierMixin):
             # nps=False,
             print_output=False):
 
-        self.intermediary_test_error = 8
         DL85Predictor.__init__(self,
                                max_depth=max_depth,
                                min_sup=min_sup,
                                max_estimators=max_estimators,
+                               example_weights=example_weights,
                                error_function=error_function,
                                fast_error_function=fast_error_function,
                                example_weight_function=None,
@@ -99,25 +100,3 @@ class DL85Classifier(DL85Predictor, ClassifierMixin):
                                leaf_value_function=None,
                                # nps=nps,
                                print_output=print_output)
-
-    @staticmethod
-    def get_weight(tree):
-        # print("in python tree :", tree)
-        return 1, 2, 9
-
-    @staticmethod
-    def te_function(tree, X, y):
-        print("niveau python voici tree:", tree)
-        return sum(1 for i, j in zip(y, DL85Predictor.predict(X, tree)) if i != j) / len(y)
-
-    def fit(self, X, y=None):
-        if y is None and self.max_estimators > 1:
-            raise ValueError("You need to fit the model with class array if you want to boost the model.")
-        elif y is not None and self.max_estimators > 1:
-            # self.test_error_function = lambda tree: self.te_function(tree, X, y)
-            # self.test_error_function = lambda tree: sum(1 for i, j in zip(y, DL85Predictor.predict(self, X, json.loads(tree.decode("utf-8")))) if i != j) / len(y)
-            self.example_weight_function = lambda tree: self.get_weight(tree)
-        else:
-            # self.test_error_function = None
-            self.example_weight_function = None
-        DL85Predictor.fit(self, X, y)
