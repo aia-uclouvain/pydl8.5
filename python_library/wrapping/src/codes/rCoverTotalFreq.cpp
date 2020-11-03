@@ -7,10 +7,9 @@
 
 RCoverTotalFreq::RCoverTotalFreq(DataManager *dmm):RCover(dmm) {}
 
-void RCoverTotalFreq::intersect(Attribute attribute, const vector<float>* weights, bool positive) {
+void RCoverTotalFreq::intersect(Attribute attribute, bool positive) {
     int climit = limit.top();
-    sup_class = newSupports();
-    zeroSupports(sup_class);
+    sup_class = zeroSupports();
     support = 0;
     for (int i = 0; i < climit; ++i) {
         bitset<M> word;
@@ -46,7 +45,7 @@ void RCoverTotalFreq::intersect(Attribute attribute, const vector<float>* weight
  * @param positive - the item of the attribute
  * @return a pair of support per class and support
  */
-pair<Supports, Support> RCoverTotalFreq::temporaryIntersect(Attribute attribute, const vector<float>* weights, bool positive) {
+pair<Supports, Support> RCoverTotalFreq::temporaryIntersect(Attribute attribute, bool positive) {
     Supports sc = zeroSupports();
     Support sup = 0;
     for (int i = 0; i < limit.top(); ++i) {
@@ -67,7 +66,7 @@ pair<Supports, Support> RCoverTotalFreq::temporaryIntersect(Attribute attribute,
 
 
 
-Supports RCoverTotalFreq::getSupportPerClass(const vector<float>* weights){
+Supports RCoverTotalFreq::getSupportPerClass(){
     if (sup_class != nullptr) return sup_class;
     sup_class = zeroSupports();
     if (nclasses == 2){
@@ -88,4 +87,19 @@ Supports RCoverTotalFreq::getSupportPerClass(const vector<float>* weights){
         }
     }
     return sup_class;
+}
+
+Supports RCoverTotalFreq::getSupportPerClass(bitset<M>** cover, int nValidWords, int* validIndexes){
+    Supports sc = zeroSupports();
+    for (int j = 0; j < nclasses; ++j) {
+        bitset<M> * classCover = dm->getClassCover(j);
+        for (int i = 0; i < nValidWords; ++i) {
+            sc[j] += (*cover[i] & classCover[i]).count();
+        }
+    }
+    return sc;
+}
+
+SupportClass RCoverTotalFreq::countSupportClass(bitset<64> &coverWord, int wordIndex) {
+    return coverWord.count();
 }

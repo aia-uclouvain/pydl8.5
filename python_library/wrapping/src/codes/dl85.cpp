@@ -1,10 +1,8 @@
 #include "dl85.h"
 
-//using namespace std;
 using namespace std::chrono;
 
-bool verbose = false;
-
+//bool verbose = false;
 
 string search(Supports supports,
               Transaction ntransactions,
@@ -26,7 +24,6 @@ string search(Supports supports,
               bool tids_error_is_null,
               bool example_weight_is_null,
               bool predict_error_is_null,
-//              bool in_weights_is_null,
               int maxdepth,
               int minsup,
               int max_estimators,
@@ -39,8 +36,6 @@ string search(Supports supports,
               bool verbose_param) {
 
     auto start = high_resolution_clock::now(); // start the timer
-    /*cout << "nattr = " << nattributes << endl;
-    cout << "ntrans = " << ntransactions << endl;*/
 
     //as cython can't set null to function, we use a flag to set the apropriated functions to null in c++
     function<vector<float>(RCover *)> *tids_error_class_callback_pointer = &tids_error_class_callback;
@@ -58,7 +53,6 @@ string search(Supports supports,
     function<vector<float>(string)> *predict_error_callback_pointer = &predict_error_callback;
     if (predict_error_is_null) predict_error_callback_pointer = nullptr;
 
-    //cout << "print " << fast_error_callback->pyFunction << endl;
     verbose = verbose_param;
     string out = "";
 
@@ -70,50 +64,36 @@ string search(Supports supports,
     ExpError *experror;
     experror = new ExpError_Zero;
 
-    /* set the relevant query for the search. If only one estimator is needed or
-    weighter function is null, use total query. otherwise, use weighted query */
 
-    Query *query = nullptr;
-    Trie *trie = new Trie;
-    RCover *cover = nullptr;
-//    vector<float> weights(3247, 1);
     vector<float> weights;
     if (in_weights) weights = vector<float>(in_weights, in_weights + ntransactions);
+    /*for(auto w : weights)
+        cout << w << ", ";
+    cout << endl;*/
     /*srand(time(0));
-    int n_instances = 3247;
-    weights.reserve(n_instances);
-    for (int i = 0; i < n_instances; ++i) {
+    vector<float> weights(ntransactions, 1);
+    weights.reserve(ntransactions);
+    for (int i = 0; i < ntransactions; ++i) {
         weights.push_back((float) rand()/RAND_MAX);
     }*/
 
+    // create an empty trie for the search space
+    Trie *trie = new Trie;
 
-    query = new Query_TotalFreq(trie,
-                                          dataReader,
-                                          experror,
-                                          timeLimit,
-                                          continuousMap,
-                                          tids_error_class_callback_pointer,
-                                          supports_error_class_callback_pointer,
-                                          tids_error_callback_pointer,
-                                          example_weight_callback_pointer,
-                                          predict_error_callback_pointer,
-                                          &weights,
-                                          maxError,
-                                          stopAfterError);
-
-
-    query->maxdepth = maxdepth;
-    query->minsup = minsup;
+    Query *query = new Query_TotalFreq(minsup, maxdepth, trie, dataReader, experror, timeLimit, continuousMap,
+            tids_error_class_callback_pointer, supports_error_class_callback_pointer, tids_error_callback_pointer,
+            example_weight_callback_pointer, predict_error_callback_pointer, maxError, stopAfterError);
 
     out = "TrainingDistribution: ";
     forEachClass(i) out += std::to_string(dataReader->getSupports()[i]) + " ";
     out += "\n";
-    out = "(nItems, nTransactions) : ( " + std::to_string(dataReader->getNAttributes() * 2) + ", " +
-          std::to_string(dataReader->getNTransactions()) + " )\n";
+    out = "(nItems, nTransactions) : ( " + to_string(dataReader->getNAttributes() * 2) + ", " + to_string(dataReader->getNTransactions()) + " )\n";
     vector<Tree *> trees;
     float old_error_percentage = -1;
 
-    void *lcm;
+    // init variables
+    RCover *cover = nullptr; void *lcm;
+
     if (iterative) {
         lcm = new LcmIterative(dataReader, query, trie, infoGain, infoAsc, repeatSort);
         auto start_tree = high_resolution_clock::now();
@@ -127,10 +107,16 @@ string search(Supports supports,
         trees.push_back(tree_out);
     }
     else {
-        // the first run is always a totalfreq cover. It is used to speed up the error computation
-        if (!in_weights) cover = new RCoverTotalFreq(dataReader);
-        // we use weighted cover in case a weight array is passed as parameter
-        else cover = new RCoverWeighted(dataReader);
+        // use the correct cover depending on whether a weight array is provided or not
+        if (in_weights) {
+//            cout << "run weighted" << endl;
+            cover = new RCoverWeighted(dataReader, &weights);
+        }
+        else {
+//            cout << "run not weighted" << endl;
+            cover = new RCoverTotalFreq(dataReader);
+        }
+
         lcm = new LcmPruned(cover, query, infoGain, infoAsc, repeatSort);
 
         // perform the search
@@ -154,7 +140,6 @@ string search(Supports supports,
             rho = predict_return[1];
         }
 
-
         // print the tree
         // cout << tree_out->to_str() << endl;
 
@@ -163,14 +148,6 @@ string search(Supports supports,
 
         // set old_error_percentage in case of boosting
         old_error_percentage = -FLT_MAX;
-
-        /*cout << "max_estim = " << max_estimators << endl;
-        if (in_weights) cout << "in_weights not null" << in_weights << endl;
-        else cout << "in_weights not null "  << endl;
-        if (example_weight_callback_pointer) cout << "example pointer not null" << endl;
-        else cout << "example pointer null" << endl;
-        if (is_boosting) cout << "boosting actif" << endl;
-        else cout << "boosting inactif" << endl;*/
 
         if (is_boosting) { //use the weighted cover for the next of searches because we are running boosting code
 
@@ -183,11 +160,11 @@ string search(Supports supports,
                 vector<float>&& new_weights = (*example_weight_callback_pointer)();
                 float gamma = new_weights.back();
                 new_weights.pop_back();
-                ((Query_TotalFreq*)query)->weights = &new_weights;
+//                ((Query_TotalFreq*)query)->weights = &new_weights;
                 // clear the trie
                 delete trie; trie = new Trie; query->trie = trie;
                 // create the weighted cover and set it to the search class
-                cover = new RCoverWeighted(std::move(*((RCoverWeighted*)cover)));
+                cover = new RCoverWeighted(std::move(*((RCoverWeighted*)cover)), &new_weights);
                 ((LcmPruned *) lcm)->cover = cover; ((LcmPruned *) lcm)->latticesize = 0;
 
                 // perform the search
@@ -217,19 +194,18 @@ string search(Supports supports,
         }
     }
 
-
-    if (iterative) delete ((LcmIterative *) lcm);
-    else delete ((LcmPruned *) lcm);
     delete trie;
     delete query;
     delete dataReader;
     delete cover;
     delete experror;
+//    if (iterative) delete ((LcmIterative *) lcm);
+//    else delete ((LcmPruned *) lcm);
 //    if (in_weights) delete [] in_weights;
-    for (auto tree : trees) delete tree;
+//    for (auto tree : trees) delete tree;
 
     auto stop = high_resolution_clock::now();
-    cout << "Durée totale de l'algo : " << duration<double>(stop - start).count() << endl;
+//    cout << "Durée totale de l'algo : " << duration<double>(stop - start).count() << endl;
 
     return out;
 }

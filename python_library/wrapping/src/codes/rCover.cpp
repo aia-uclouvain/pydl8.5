@@ -7,7 +7,6 @@
 RCover::RCover(DataManager *dmm):dm(dmm) {
     nWords = (int)ceil((float)dm->getNTransactions()/M);
     coverWords = new stack<bitset<M>>[nWords];
-    cout << "cover basic answers after creating coverwords" << endl;
     validWords = new int[nWords];
     for (int i = 0; i < nWords; ++i) {
         stack<bitset<M>> rword;
@@ -68,7 +67,7 @@ Support RCover::temporaryIntersectSup(Attribute attribute, bool positive) {
  * @param cover1 - a cover to perform the minus operation
  * @return the support per class of the resultant cover
  */
-Supports RCover::minusMe(bitset<M>* cover1, const vector<float>* weights) {
+/*Supports RCover::minusMe(bitset<M>* cover1) {
     int* tmpValid = new int[nWords];
     for (int j = 0; j < nWords; ++j) {
         tmpValid[j] = validWords[j];
@@ -96,7 +95,10 @@ Supports RCover::minusMe(bitset<M>* cover1, const vector<float>* weights) {
         }
     }
     limit.push(climit);
-    Supports toreturn = getSupportPerClass(weights);
+    deleteSupports(sup_class);
+//    Supports tmp = sup_class;
+    sup_class = nullptr;
+    Supports toreturn = copySupports(getSupportPerClass());
     backtrack();
     limit.pop();
     for (int i = 0; i < nWords; ++i) {
@@ -104,7 +106,38 @@ Supports RCover::minusMe(bitset<M>* cover1, const vector<float>* weights) {
         validWords[i] = tmpValid[i];
     }
     delete [] tmpValid;
+//    sup_class = tmp;
     return toreturn;
+}*/
+Supports RCover::minusMe(bitset<M>* cover1) {
+    int maxValidNumber = limit.top();
+    bitset<M>** difcover = new bitset<M>*[maxValidNumber];
+    int* validIndexes = new int[maxValidNumber];
+    int nvalid = 0;
+    for (int i = 0; i < maxValidNumber; ++i) {
+        bitset<M> potential_word = cover1[validWords[i]] & ~coverWords[validWords[i]].top();
+        if (!potential_word.none()){
+            difcover[nvalid] = &potential_word;
+            validIndexes[nvalid] = validWords[i];
+            ++nvalid;
+        }
+    }
+
+    Supports toreturn = getSupportPerClass(difcover, nvalid, validIndexes);
+    delete [] difcover;
+    delete [] validIndexes;
+    return toreturn;
+}
+
+SupportClass RCover::countDif(bitset<M>* cover1) {
+    SupportClass sup = 0;
+    for (int i = 0; i < limit.top(); ++i) {
+        bitset<M> potential_word = cover1[validWords[i]] & ~coverWords[validWords[i]].top();
+        if (!potential_word.none()){
+            sup += countSupportClass(potential_word, validWords[i]);
+        }
+    }
+    return sup;
 }
 
 int RCover::getSupport() {
@@ -124,6 +157,7 @@ void RCover::backtrack() {
         coverWords[validWords[i]].pop();
     }
     support = -1;
+    deleteSupports(sup_class);
     sup_class = nullptr;
 }
 

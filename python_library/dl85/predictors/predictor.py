@@ -120,8 +120,6 @@ class DL85Predictor(BaseEstimator):
             Returns self.
         """
 
-        X = np.asarray(X.tolist()[:])
-        y = np.asarray(y.tolist()[:])
         target_is_need = True if y is not None else False
         opt_func = self.error_function
         opt_fast_func = self.fast_error_function
@@ -152,6 +150,7 @@ class DL85Predictor(BaseEstimator):
 
         # sys.path.insert(0, "../../")
         import dl85Optimizer
+        # print(opt_func)
         solution = dl85Optimizer.solve(data=X,
                                        target=y,
                                        tec_func_=opt_func,
@@ -227,9 +226,9 @@ class DL85Predictor(BaseEstimator):
                 self.runtime_ = float(solution[8].split(" ")[1])
                 self.timeout_ = True
 
-            # if target_is_need:  # problem with target
-            #     # Store the classes seen during fit
-            #     self.classes_ = unique_labels(y)
+            if target_is_need:  # problem with target
+                # Store the classes seen during fit
+                self.classes_ = unique_labels(y)
 
         elif self.sol_size == 4 or self.sol_size == 5:  # solution not found
             self.tree_ = None
@@ -278,7 +277,7 @@ class DL85Predictor(BaseEstimator):
             print("Timeout:", str(self.timeout_))
 
         # Return the classifier
-        # return self
+        return self
 
     def predict(self, X):
         """ Implements the standard predict function for a DL8.5 classifier.
@@ -298,7 +297,6 @@ class DL85Predictor(BaseEstimator):
         # Check is fit is called
         # check_is_fitted(self, attributes='tree_') # use of attributes is deprecated. alternative solution is below
 
-        X = np.asarray(X.tolist()[:])
         if hasattr(self, 'sol_size') is False:  # fit method has not been called
             raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
 
@@ -320,8 +318,8 @@ class DL85Predictor(BaseEstimator):
 
         return self.y_
 
-    def pred_value_on_dict(self, instance):
-        node = self.tree_
+    def pred_value_on_dict(self, instance, tree=None):
+        node = tree if tree is not None else self.tree_
         while self.is_leaf_node(node) is not True:
             if instance[node['feat']] == 1:
                 node = node['left']

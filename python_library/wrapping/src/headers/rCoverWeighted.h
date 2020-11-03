@@ -11,23 +11,29 @@ class RCoverWeighted : public RCover {
 
 public:
 
-    RCoverWeighted(DataManager* dmm);
+    RCoverWeighted(DataManager* dmm, vector<float>* weights);
 
-    RCoverWeighted(RCoverWeighted &&cover)  noexcept ;
+    RCoverWeighted(RCoverWeighted &&cover, vector<float>* weights);
 
     ~RCoverWeighted(){}
 
-    void intersect(Attribute attribute, const vector<float>* weights, bool positive = true);
+    void intersect(Attribute attribute, bool positive = true);
 
-    pair<Supports, Support> temporaryIntersect(Attribute attribute, const vector<float>* weights, bool positive = true);
+    pair<Supports, Support> temporaryIntersect(Attribute attribute, bool positive = true);
 
-    Supports getSupportPerClass(const vector<float>* weights);
+    Supports getSupportPerClass();
+
+    Supports getSupportPerClass(bitset<M>** cover, int nValidWords, int* validIndexes);
+
+    SupportClass countSupportClass(bitset<M>& coverWord, int wordIndex);
 
     vector<int> getTransactionsID(bitset<M>& word, int real_word_index);
 
-    pair<SupportClass, Support> getSups(bitset<M>& word, int real_word_index, const vector<float>* weights);
+    pair<SupportClass, Support> getSups(bitset<M>& word, int real_word_index);
 
     vector<int> getTransactionsID();
+
+    vector<float>* weights;
 
 };
 

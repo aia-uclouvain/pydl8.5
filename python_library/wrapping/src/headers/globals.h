@@ -52,6 +52,7 @@ extern float comptime;
 #define NO_ITEM INT_MAX // SHRT_MAX
 #define NO_ATTRIBUTE INT_MAX // SHRT_MAX
 #define NO_DEPTH INT_MAX
+#define ZERO 0.f
 
 
 // compute item value based on the attribute and its decision value
@@ -89,7 +90,7 @@ void copySupports(Supports src, Supports dest);
 Supports copySupports(Supports supports);
 
 // return sum of value of support
-Support sumSupports(Supports supports);
+SupportClass sumSupports(Supports supports);
 
 // return dest which is array of substraction of src2 from src1
 void minSupports(Supports src1, Supports src2, Supports dest);

@@ -2,7 +2,9 @@
 #include <climits>
 #include <cfloat>
 
-Query::Query(Trie *trie,
+Query::Query(Support minsup,
+             Depth maxdepth,
+             Trie *trie,
              DataManager *dm,
              int timeLimit,
              bool continuous,
@@ -11,11 +13,11 @@ Query::Query(Trie *trie,
              function<float(RCover *)> *tids_error_callback,
              function<vector<float>()> *example_weight_callback,
              function<vector<float>(string)> *predict_error_callback,
-             vector<float> *weights,
              float maxError,
-             bool stopAfterError) : dm(dm),
+             bool stopAfterError) : minsup(minsup),
+                                    maxdepth(maxdepth),
+                                    dm(dm),
                                     trie(trie),
-                                    maxdepth(NO_ITEM),
                                     timeLimit(timeLimit),
                                     continuous(continuous),
                                     maxError(maxError),
@@ -24,9 +26,8 @@ Query::Query(Trie *trie,
                                     supports_error_class_callback(supports_error_class_callback),
                                     tids_error_callback(tids_error_callback),
                                     example_weight_callback(example_weight_callback),
-                                    predict_error_callback(predict_error_callback),
-                                    weights(weights) {
-}
+                                    predict_error_callback(predict_error_callback)//,
+{}
 
 
 Query::~Query() {

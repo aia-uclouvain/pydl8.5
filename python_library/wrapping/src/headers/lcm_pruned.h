@@ -10,6 +10,7 @@
 #include <cassert>
 #include <cmath>
 #include <chrono>
+//#include <algorithm>
 #include "globals.h"
 #include "trie.h"
 #include "query.h"
@@ -44,10 +45,10 @@ protected:
 
     Array<Attribute> getExistingSuccessors(TrieNode* node);
 
-    Error computeLowerBound(bitset<M> *b1_cover, bitset<M> *b2_cover);
+    Error computeSimilarityLowerBound(bitset<M> *b1_cover, bitset<M> *b2_cover, Error b1_error, Error b2_error);
 
-    void addInfoForLowerBound(QueryData *node_data, bitset<M> *&b1_cover,
-                              bitset<M> *&b2_cover, Error &highest_error, Support& highest_coversize);
+    void addInfoForLowerBound(QueryData *node_data, bitset<M> *&b1_cover, bitset<M> *&b2_cover,
+                              Error &b1_error, Error &b2_error, Support &highest_coversize);
 
     float informationGain ( Supports notTaken, Supports taken);
 
@@ -57,5 +58,8 @@ protected:
     bool repeatSort = false;
     //bool timeLimitReached = false;
 };
+
+#define no_python_error !query->tids_error_callback && !query->tids_error_class_callback && !query->supports_error_class_callback
+#define is_python_error query->tids_error_callback || query->tids_error_class_callback || query->supports_error_class_callback
 
 #endif

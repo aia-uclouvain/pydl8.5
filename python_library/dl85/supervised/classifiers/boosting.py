@@ -3,10 +3,10 @@ from ...predictors.predictor import DL85Predictor
 from .classifier import DL85Classifier
 from gurobipy import Model, GRB, quicksum
 import json
+import random
 
 
-# boosting from python ==> max_estimator to 0 to avoid triggering of c++ boosting
-class DL85BoosterP(DL85Predictor, ClassifierMixin):
+class DL85Booster(DL85Predictor, ClassifierMixin):
     """
     An optimal binary decision tree classifier.
 
@@ -59,23 +59,16 @@ class DL85BoosterP(DL85Predictor, ClassifierMixin):
         The classes seen at :meth:`fit`.
     """
 
-    # n_estimators = 0
-    # trees = []
-    # example_weights = []
-    # tree_weights = []
-    # c = []
-    # preds = []
-    # D = 0.2
-
     def __init__(
             self,
             max_depth=1,
             min_sup=1,
-            max_estimators=2,
+            max_estimators=0,
             error_function=None,
             fast_error_function=None,
             iterative=False,
             max_error=0,
+            regulator=-1,
             stop_after_better=False,
             time_limit=0,
             verbose=False,
@@ -99,40 +92,14 @@ class DL85BoosterP(DL85Predictor, ClassifierMixin):
         self.repeat_sort = repeat_sort
         self.print_output = print_output
 
-
-
-        # self.params = dict(**locals())
-        # del self.params['self']
-        # self.max_estimators = self.params["max_estimators"]
-        # print("m = ", self.max_estimators)
-        # self.classifier_params = dict(self.params)
-        # del self.classifier_params["max_estimators"]
         self.trees = []
         self.example_weights = []
         self.tree_weights = []
         self.c = []
         self.preds = []
-        self.D = 0.2
-        # print(self.params)
-        # DL85Predictor.__init__(self, self.params)
-        # DL85Predictor.__init__(self,
-        #                        max_depth=max_depth,
-        #                        min_sup=min_sup,
-        #                        max_estimators=max_estimators,
-        #                        error_function=error_function,
-        #                        fast_error_function=fast_error_function,
-        #                        example_weight_function=None,
-        #                        predict_error_function=None,
-        #                        iterative=iterative,
-        #                        max_error=max_error,
-        #                        stop_after_better=stop_after_better,
-        #                        time_limit=time_limit,
-        #                        verbose=verbose,
-        #                        desc=desc,
-        #                        asc=asc,
-        #                        repeat_sort=repeat_sort,
-        #                        leaf_value_function=None,
-        #                        print_output=print_output)
+        self.D = regulator
+        self.accuracy_ = 0
+
         DL85Predictor.__init__(self,
                                max_depth=self.max_depth,
                                min_sup=self.min_sup,
@@ -152,42 +119,87 @@ class DL85BoosterP(DL85Predictor, ClassifierMixin):
     def fit(self, X, y=None):
         if y is None or len(set(y)) > 2:
             raise ValueError("The \"y\" value is compulsory for boosting and must have two values.")
-        if self.max_estimators <= 1:
-            print("mm", self.max_estimators)
-            raise ValueError("You need at least 2 estimators to perform a boosting")
 
         self.c = [-1 if p == 0 else 1 for p in y]
-        self.y = y
-        rho = gamma = 0
+        if self.D <= 0:
+            self.D = 1/(random.uniform(0, 1) * X.shape[0])
+            # self.D = 0.2
 
-        tree_clf = DL85Classifier(max_depth=self.max_depth, min_sup=self.min_sup, print_output=True)
+        print("search for first tree")
+        tree_clf = DL85Classifier(max_depth=self.max_depth, min_sup=self.min_sup, time_limit=self.time_limit)  # , print_output=True)
         tree_clf.fit(X, y)
+        print(tree_clf.tree_)
         self.trees.append(tree_clf.tree_)
         tree_pred = [-1 if p == 0 else 1 for p in tree_clf.predict(X)]
         self.preds.append(tree_pred)
         self.tree_weights, rho = self.calculate_tree_weights()
 
-        for i in range(self.max_estimators - 1):
-            self.example_weights, gamma = self.calculate_example_weights()
-            print("exw :", self.example_weights)
+        # for i in range(self.max_estimators - 1):
+        while True:
+            if 0 < self.max_estimators <= sum(w > 0 for w in self.tree_weights):
+                print("max_estimators reached!!!")
+                break
 
-            tree_clf = DL85Classifier(max_depth=self.max_depth, min_sup=self.min_sup, print_output=True, example_weights=self.example_weights)
+            self.example_weights, gamma = self.calculate_example_weights()
+
+            print("search for new tree")
+            tree_clf = DL85Classifier(max_depth=self.max_depth, min_sup=self.min_sup, example_weights=self.example_weights, time_limit=self.time_limit)  # , print_output=True)
             tree_clf.fit(X, y)
-            self.trees.append(tree_clf.tree_)
+
+            # Error function for DL8
+            # def weighted_error(tids):
+            #     all_classes = [0, 1]
+            #     supports = [0, 0]
+            #     for tid in tids:
+            #         supports[y[tid]] += self.example_weights[tid]
+            #     maxindex = supports.index(max(supports))
+            #     return sum(supports) - supports[maxindex], all_classes[maxindex]
+            # tree_clf = DL85Classifier(max_depth=self.max_depth, min_sup=self.min_sup, print_output=True, error_function=lambda tree: weighted_error(tree))
+            # tree_clf.fit(X, y)
+
+            print(tree_clf.tree_)
+
+            # compute prediction of the new tree
             tree_pred = [-1 if p == 0 else 1 for p in tree_clf.predict(X)]
+            # compute its accuracy based on the weights of examples
+            accuracy = sum([self.c[i] * self.example_weights[i] * tree_pred[i] for i in range(X.shape[0])])
+            print("tree_accuracy =", accuracy)
+
+            if accuracy <= gamma:
+                print("\n\naccuracy <= gamma", "***END***")
+                break
+
+            self.trees.append(tree_clf.tree_)
             self.preds.append(tree_pred)
             self.tree_weights, rho = self.calculate_tree_weights()
 
+        # compute training accuracy and store it in the variable `accuracy_`
+        weighted_train_pred = [[self.tree_weights[tree] * self.preds[tree][tid] for tid in range(len(self.preds[tree]))] for tree in range(len(self.trees))]
+        train_pred = [0 if sum(tid_predictions) < 0 else 1 for tid_predictions in zip(*weighted_train_pred)]
+        self.accuracy_ = sum(p == y[i] for i, p in enumerate(train_pred))/len(y)
+
+        # Show each non-zero trees with its weight
+        for i, tree_weight in enumerate(sorted([elt for elt in list(zip(self.trees, self.tree_weights)) if elt[1] > 0], key=lambda x: x[1], reverse=True)):
+            print("tree n_", i+1, " ==>\tweight: ", tree_weight[1], " \tjson_string: ", tree_weight[0], sep="")
+        # for i, tree in enumerate(self.trees):
+        #     if self.tree_weights[i] > 0:
+        #         print("tree:",  tree, "weight:", self.tree_weights[i])
+        return self
+
     def predict(self, X, y=None):
-        # Run a (weighted) prediction on all trees
+        # Run a prediction on each tree in term of 0/1
         predict_per_tree = [self.predict_one_tree(X, tree) for tree in self.trees]
+        # Convert 0/1 prediction into -1/1
         predict_per_tree = [[-1 if p == 0 else 1 for p in row] for row in predict_per_tree]
+        # Apply the tree weight on each prediction
         weighted_predict_per_tree = [[self.tree_weights[tree] * predict_per_tree[tree][tid] for tid in range(len(predict_per_tree[tree]))] for tree in range(len(self.trees))]
+        # Compute the prediction based on all trees in term of 0/1
         pred = [0 if sum(tid_predictions) < 0 else 1 for tid_predictions in zip(*weighted_predict_per_tree)]
         return pred
 
     # Primal problem
     def calculate_tree_weights(self):
+        print("\nrun primal_" + str(len(self.trees)))
         # the new tree is already added in get_predict_error before the call to this function
         # initialize the model
         model = Model("tree_weight_optimiser")
@@ -211,10 +223,17 @@ class DL85BoosterP(DL85Predictor, ClassifierMixin):
         model.setObjective(rho - self.D * quicksum(error_margin), GRB.MAXIMIZE)
         model.optimize()
 
-        return [w.X for w in new_tree_weights], rho.X
+        tr_weights = [w.X for w in new_tree_weights]
+        rho_ = rho.X
+
+        opti = rho.X - self.D * sum(e.X for e in error_margin)
+        print("primal opti =", opti, "rho :", rho_, "trees_w :", tr_weights)
+
+        return tr_weights, rho_
 
     # Dual problem
     def calculate_example_weights(self):
+        print("\nrun dual_" + str(len(self.trees)))
         # initialize the model
         model = Model("example_weight_optimiser")
         model.setParam("LogToConsole", 0)
@@ -234,10 +253,14 @@ class DL85BoosterP(DL85Predictor, ClassifierMixin):
 
         # add objective function
         model.setObjective(gamma, GRB.MINIMIZE)
-        model.write("model1.lp")
         model.optimize()
 
-        return [w.X for w in new_example_weights], gamma.X
+        ex_weights = [w.X for w in new_example_weights]
+        gamma_ = gamma.X
+
+        print("gamma :", gamma_, "new_ex :", ex_weights)
+
+        return ex_weights, gamma_
 
     def predict_one_tree(self, X, tree):
         p = []
