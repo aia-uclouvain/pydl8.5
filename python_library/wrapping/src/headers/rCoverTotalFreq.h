@@ -15,11 +15,15 @@ public:
 
     ~RCoverTotalFreq(){}
 
-    void intersect(Attribute attribute, const vector<float>* weights, bool positive = true);
+    void intersect(Attribute attribute, bool positive = true);
 
-    pair<Supports, Support> temporaryIntersect(Attribute attribute, const vector<float>* weights, bool positive = true);
+    pair<Supports, Support> temporaryIntersect(Attribute attribute, bool positive = true);
 
-    Supports getSupportPerClass(const vector<float>* weights);
+    Supports getSupportPerClass();
+
+    Supports getSupportPerClass(bitset<M>** cover, int nValidWords, int* validIndexes);
+
+    SupportClass countSupportClass(bitset<M>& coverWord, int wordIndex);
 
 };
 

@@ -36,7 +36,9 @@ struct QueryData_Best {
 
 class Query_Best : public Query {
 public:
-    Query_Best(Trie *trie,
+    Query_Best(Support minsup,
+               Depth maxdepth,
+               Trie *trie,
                DataManager *data,
                ExpError *experror,
                int timeLimit,
@@ -46,7 +48,6 @@ public:
                function<float(RCover *)> *tids_error_callback = nullptr,
                function<vector<float>()> *example_weight_callback = nullptr,
                function<vector<float>(string)> *predict_error_callback = nullptr,
-               vector<float> *weights = nullptr,
                float maxError = NO_ERR,
                bool stopAfterError = false);
 

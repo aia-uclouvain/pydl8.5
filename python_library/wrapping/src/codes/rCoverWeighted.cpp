@@ -5,11 +5,11 @@
 #include "rCoverWeighted.h"
 
 
-RCoverWeighted::RCoverWeighted(DataManager *dmm):RCover(dmm) {cout << "cover weighted calling cover" << endl;}
+RCoverWeighted::RCoverWeighted(DataManager *dmm, vector<float>* weights):RCover(dmm), weights(weights) {}
 
-RCoverWeighted::RCoverWeighted(RCoverWeighted &&cover)  noexcept : RCover(move(cover)) {}
+RCoverWeighted::RCoverWeighted(RCoverWeighted &&cover, vector<float>* weights): RCover(move(cover)), weights(weights) {}
 
-void RCoverWeighted::intersect(Attribute attribute, const vector<float>* weights, bool positive) {
+void RCoverWeighted::intersect(Attribute attribute, bool positive) {
     int climit = limit.top();
     sup_class = zeroSupports();
     support = 0;
@@ -28,7 +28,7 @@ void RCoverWeighted::intersect(Attribute attribute, const vector<float>* weights
                 support++;
                 sup_class[n] += (*weights)[tid];
             }*/
-            pair<SupportClass, Support>&& r = getSups(intersectedWord, real_word_index, weights);
+            pair<SupportClass, Support>&& r = getSups(intersectedWord, real_word_index);
             support += r.second;
             sup_class[n] += r.first;
         }
@@ -52,7 +52,7 @@ void RCoverWeighted::intersect(Attribute attribute, const vector<float>* weights
  * @param positive - the item of the attribute
  * @return a pair of support per class and support
  */
-pair<Supports, Support> RCoverWeighted::temporaryIntersect(Attribute attribute, const vector<float>* weights, bool positive) {
+pair<Supports, Support> RCoverWeighted::temporaryIntersect(Attribute attribute, bool positive) {
     Supports sc = zeroSupports();
     Support sup = 0;
     for (int i = 0; i < limit.top(); ++i) {
@@ -68,17 +68,22 @@ pair<Supports, Support> RCoverWeighted::temporaryIntersect(Attribute attribute, 
                 sup++;
                 sc[n] += (*weights)[tid];
             }*/
-            pair<SupportClass, Support>&& r = getSups(intersectedWord, real_word_index, weights);
+            pair<SupportClass, Support>&& r = getSups(intersectedWord, real_word_index);
             sup += r.second;
             sc[n] += r.first;
+//            if ( sc[n] < 0) cout << "sup neg" << endl;
         }
     }
+//    cout << sc[0] << " " << sc[1] << endl;
     return make_pair(sc, sup);
 }
 
 
-Supports RCoverWeighted::getSupportPerClass(const vector<float>* weights){
-    if (sup_class) return sup_class;
+Supports RCoverWeighted::getSupportPerClass(){
+    if (sup_class) {
+//        cout << sup_class[0] << " " << sup_class[1] << endl;
+        return sup_class;
+    }
     sup_class = zeroSupports();
     for (int j = 0; j < nclasses; ++j) {
         bitset<M> * classCover = dm->getClassCover(j);
@@ -90,11 +95,33 @@ Supports RCoverWeighted::getSupportPerClass(const vector<float>* weights){
             for (auto tid : tids) {
                 sup_class[j] += (*weights)[tid];
             }*/
-            pair<SupportClass, Support>&& r = getSups(intersectedWord, real_word_index, weights);
+            pair<SupportClass, Support>&& r = getSups(intersectedWord, real_word_index);
             sup_class[j] += r.first;
+//            if ( sup_class[j] < 0) cout << "sup neg" << endl;
         }
     }
+//    cout << sup_class[0] << " " << sup_class[1] << endl;
     return sup_class;
+}
+
+Supports RCoverWeighted::getSupportPerClass(bitset<M>** cover, int nValidWords, int* validIndexes){
+    Supports sc = zeroSupports();
+    for (int j = 0; j < nclasses; ++j) {
+        bitset<M> * classCover = dm->getClassCover(j);
+        for (int i = 0; i < nValidWords; ++i) {
+            // get the real index of the word
+            int real_word_index = nWords - (validIndexes[i] + 1);
+            bitset<M> intersectedWord = *cover[i] & classCover[i];
+            pair<SupportClass, Support>&& r = getSups(intersectedWord, real_word_index);
+            sc[j] += r.first;
+        }
+    }
+    return sc;
+}
+
+SupportClass RCoverWeighted::countSupportClass(bitset<64> &coverWord, int wordIndex) {
+    int real_word_index = nWords - (wordIndex + 1);
+    return getSups(coverWord, real_word_index).first;
 }
 
 /**
@@ -161,17 +188,22 @@ vector<int> RCoverWeighted::getTransactionsID(bitset<M>& word, int real_word_ind
 }
 
 
-pair<SupportClass, Support> RCoverWeighted::getSups(bitset<M>& word, int real_word_index, const vector<float>* weights){
+pair<SupportClass, Support> RCoverWeighted::getSups(bitset<M>& word, int real_word_index){
     pair<SupportClass, Support> result(0, 0);
     int pos = getFirstSetBitPos(word.to_ulong());
     int transInd = pos - 1;
 
     while (pos >= 1){
+        if (real_word_index * M + transInd >= 2597) cout << "mémoire dépassée" << endl;
+        if ((*weights)[real_word_index * M + transInd] < 0) cout << "ind = " << (real_word_index * M + transInd) << " val = " << (*weights)[real_word_index * M + transInd] << endl;
         result.first += (*weights)[real_word_index * M + transInd];
+//        cout << (*weights)[real_word_index * M + transInd] << ", ";
+        //sup[0] = 4.62428e-44, sup[1] = 0.730769 sum = 0.730769 maxclassval = 0.730769 error = 0 class = 1
         result.second++;
         word = (word >> pos);
         pos = getFirstSetBitPos(word.to_ulong());
         transInd += pos;
     }
+//    if (result.first != 0) cout << endl;
     return result;
 }

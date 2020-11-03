@@ -4,7 +4,9 @@
 
 using namespace std;
 
-Query_Best::Query_Best(Trie* trie,
+Query_Best::Query_Best(Support minsup,
+                       Depth maxdepth,
+                       Trie* trie,
                        DataManager *data,
                        ExpError *experror,
                        int timeLimit,
@@ -14,10 +16,11 @@ Query_Best::Query_Best(Trie* trie,
                        function<float(RCover *)> *tids_error_callback,
                        function<vector<float>()> *example_weight_callback,
                        function<vector<float>(string)> *predict_error_callback,
-                       vector<float> *weights,
                        float maxError,
                        bool stopAfterError)
-        : Query(trie,
+        : Query(minsup,
+                maxdepth,
+                trie,
                 data,
                 timeLimit,
                 continuous,
@@ -26,7 +29,6 @@ Query_Best::Query_Best(Trie* trie,
                 tids_error_callback,
                 example_weight_callback,
                 predict_error_callback,
-                weights,
                 maxError,
                 stopAfterError), experror(experror) {
 }

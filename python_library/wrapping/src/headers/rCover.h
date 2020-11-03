@@ -34,25 +34,30 @@ public:
     RCover(RCover&& cover) noexcept ;
 
     virtual ~RCover(){
-        cout << "on m'a appelé pour delete cover" << endl;
         delete[] coverWords;
         delete[] validWords;
         delete [] sup_class;
     }
 
-    virtual void intersect(Attribute attribute, const vector<float>* weights, bool positive = true) = 0;
+    virtual void intersect(Attribute attribute, bool positive = true) = 0;
 
-    virtual pair<Supports, Support> temporaryIntersect(Attribute attribute, const vector<float>* weights, bool positive = true) = 0;
+    virtual pair<Supports, Support> temporaryIntersect(Attribute attribute, bool positive = true) = 0;
 
     Support temporaryIntersectSup(Attribute attribute, bool positive = true);
 
-    Supports minusMe(bitset<M>* cover1, const vector<float>* weights);
+    Supports minusMe(bitset<M>* cover1);
+
+    SupportClass countDif(bitset<M>* cover1);
 
     bitset<M>* getTopBitsetArray() const;
 
     Support getSupport();
 
-    virtual Supports getSupportPerClass(const vector<float>* weights) = 0;
+    virtual Supports getSupportPerClass() = 0;
+
+    virtual SupportClass countSupportClass(bitset<M>& coverWord, int wordIndex) = 0;
+
+    virtual Supports getSupportPerClass(bitset<M>** cover, int nValidWords, int* validIndexes) = 0;
 
     void backtrack();
 

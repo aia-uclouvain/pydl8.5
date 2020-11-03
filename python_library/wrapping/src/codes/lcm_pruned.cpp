@@ -74,7 +74,7 @@ Array<Attribute> LcmPruned::getSuccessors(Array<Attribute> last_candidates, Attr
         return next_candidates;
 
     int current_sup = cover->getSupport();
-    Supports current_sup_class = cover->getSupportPerClass(query->weights);
+    Supports current_sup_class = cover->getSupportPerClass();
 
     // access each candidate
     for (auto& candidate : last_candidates) {
@@ -93,7 +93,7 @@ Array<Attribute> LcmPruned::getSuccessors(Array<Attribute> last_candidates, Attr
             else {
                 if (infoGain) {
                     // compute the support per class in each split of the attribute to compute its IG value
-                    Supports sup_class_left = cover->temporaryIntersect(candidate, query->weights, false).first;
+                    Supports sup_class_left = cover->temporaryIntersect(candidate, false).first;
                     Supports sup_class_right = newSupports();
                     subSupports(current_sup_class, sup_class_left, sup_class_right);
                     gain.insert(std::pair<float, Attribute>(informationGain(sup_class_left, sup_class_right),
@@ -131,41 +131,39 @@ Array<Attribute> LcmPruned::getExistingSuccessors(TrieNode *node) {
     return candidates;
 }
 
-Error LcmPruned::computeLowerBound(bitset<M> *b1_cover, bitset<M> *b2_cover) {
+Error LcmPruned::computeSimilarityLowerBound(bitset<M> *b1_cover, bitset<M> *b2_cover, Error b1_error, Error b2_error) {
+//    return 0;
+    if (is_python_error) return 0;
     Error bound = 0;
-    for (bitset<M> *cov : {b1_cover, b2_cover}) {
-        Supports supports = cover->getSupportPerClass(query->weights);
+    bitset<M>*covers[] = {b1_cover, b2_cover};
+    Error errors[] = {b1_error, b2_error};
+    for (int i : {0, 1}) {
+        bitset<M>* cov = covers[i];
+        Error err = errors[i];
         if (cov) {
-            Supports dif = cover->minusMe(cov, query->weights);
-            Error sum = 0;
-            SupportClass max = 0;
-            forEachClass(n) {
-                SupportClass tmp = supports[n] - dif[n];
-                sum += tmp;
-                if (tmp > max) max = tmp;
-            }
-            if (sum - max > bound) bound = sum - max;
-            deleteSupports(dif);
+            SupportClass sumdif = cover->countDif(cov);
+            if (err - sumdif > bound) bound = err - sumdif;
         }
     }
-    return bound;
+    return (bound > 0) ? bound : 0;
 }
 
-void LcmPruned::addInfoForLowerBound(QueryData *node_data, bitset<M> *&b1_cover,
-                                     bitset<M> *&b2_cover, Error &highest_error, Support &highest_coversize) {
+void LcmPruned::addInfoForLowerBound(QueryData *node_data, bitset<M> *&b1_cover, bitset<M> *&b2_cover,
+                                    Error &b1_error, Error &b2_error, Support &highest_coversize) {
 //    if (((QDB) node_data)->error < FLT_MAX) {
     Error err = (((QDB) node_data)->error < FLT_MAX) ? ((QDB) node_data)->error : ((QDB) node_data)->lowerBound;
     Support sup = cover->getSupport();
 
-    if (err < FLT_MAX && err > highest_error) {
+    if (err < FLT_MAX && err > b1_error) {
         delete[] b1_cover;
         b1_cover = cover->getTopBitsetArray();
-        highest_error = err;
+        b1_error = err;
     }
 
     if (sup > highest_coversize) {
         delete[] b2_cover;
         b2_cover = cover->getTopBitsetArray();
+        b2_error = err;
         highest_coversize = sup;
     }
 //    }
@@ -231,7 +229,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
     }
 
     // in case the solution cannot be derived without computation and remaining depth is 2, we use a specific algorithm
-    if (query->maxdepth - depth == 2 && cover->getSupport() >= 2 * query->minsup) {
+    if (query->maxdepth - depth == 2 && cover->getSupport() >= 2 * query->minsup && no_python_error) {
         return computeDepthTwo(cover, ub, next_candidates, last_added, itemset, node, query, computed_lb, query->trie);
     }
 
@@ -256,6 +254,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
         Error leafError = ((QDB) node->data)->leafError;
         Error *nodeError = &(((QDB) node->data)->error);
         Logger::showMessageAndReturn("after init of the new node. ub = ", ub, " and leaf error = ", leafError);
+//        cover->print();
 
 
         // in case the problem is infeasible
@@ -300,7 +299,6 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
         // if we can't get solution without computation, we compute the next candidates to perform the search
          next_attributes = getExistingSuccessors(node);
 //        next_attributes = getSuccessors(next_candidates, cover, last_added);
-        //<====================================  END STEP  ==========================================>
     }
 
     // as the best tree cannot be deducted without computation, we compute the search
@@ -322,8 +320,9 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
     // parameters for similarity lower bound
     bool first_item = false, second_item = true;
     bitset<M> *b1_cover = nullptr, *b2_cover = nullptr;
-    Error highest_error = 0;
-    Support highest_support = 0;
+//    Supports b1_sc = nullptr, b2_sc = nullptr;
+    Error b1_error = 0, b2_error = 0;
+    Support highest_coversize = 0;
     // in case solution, is not found, this value is the minimum of the minimum error
     // for each attribute. It can be used as a lower bound
     Error minlb = FLT_MAX;
@@ -333,7 +332,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
 
     // we evaluate the split on each candidate attribute
     for(auto& next : next_attributes) {
-        Logger::showMessageAndReturn("We are evaluating the attribute : ", next);
+        Logger::showMessageAndReturn("\n\nWe are evaluating the attribute : ", next);
 
         Array<Item> itemsets[2];
         TrieNode *nodes[2];
@@ -346,12 +345,12 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
         // want to use it, please comment the next block. 0/1 order is used in this case.
 
         //=========================== BEGIN BLOCK ==========================//
-        cover->intersect(next, query->weights, false);
-        first_lb = computeLowerBound(b1_cover, b2_cover);
+        cover->intersect(next, false);
+        first_lb = computeSimilarityLowerBound(b1_cover, b2_cover, b1_error, b2_error);
         cover->backtrack();
 
-        cover->intersect(next, query->weights);
-        second_lb = computeLowerBound(b1_cover, b2_cover);
+        cover->intersect(next);
+        second_lb = computeSimilarityLowerBound(b1_cover, b2_cover, b1_error, b2_error);
         cover->backtrack();
         //=========================== END BLOCK ==========================//
 
@@ -360,45 +359,46 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
         second_item = !first_item;
 
         // perform search on the first item
-        cover->intersect(next, query->weights, first_item);
+        cover->intersect(next, first_item);
         itemsets[first_item] = addItem(itemset, item(next, first_item));
         nodes[first_item] = query->trie->insert(itemsets[first_item]);
-        if (floatEqual(first_lb, -1)) first_lb = computeLowerBound(b1_cover, b2_cover);
+        if (floatEqual(first_lb, -1)) first_lb = computeSimilarityLowerBound(b1_cover, b2_cover, b1_error, b2_error);
         // the best lower bound between the computed and the saved is used
         first_lb = (nodes[first_item]->data) ? max(((QDB) nodes[first_item]->data)->lowerBound, first_lb) : first_lb;
+        // perform the search for the first item
         nodes[first_item] = recurse(itemsets[first_item], next, nodes[first_item], next_attributes,  depth + 1, child_ub, first_lb);
 
         // check if the found information is relevant to compute the next similarity bounds
-        addInfoForLowerBound(nodes[first_item]->data, b1_cover, b2_cover, highest_error, highest_support);
+        addInfoForLowerBound(nodes[first_item]->data, b1_cover, b2_cover, b1_error, b2_error, highest_coversize);
+        //cout << "after good bound 1" << " sc[0] = " << b1_sc[0] << " sc[1] = " << b1_sc[1] << " err = " << ((QDB)nodes[first_item]->data)->error << endl;
         Error firstError = ((QDB) nodes[first_item]->data)->error;
         itemsets[first_item].free();
         cover->backtrack();
 
         if (query->canimprove(nodes[first_item]->data, child_ub)) {
-
             // perform search on the second item
-            cover->intersect(next, query->weights, second_item);
+            cover->intersect(next, second_item);
             itemsets[second_item] = addItem(itemset, item(next, second_item));
             nodes[second_item] = query->trie->insert(itemsets[second_item]);
-            if (floatEqual(second_lb, -1)) second_lb = computeLowerBound(b1_cover, b2_cover);
+            if (floatEqual(second_lb, -1)) second_lb = computeSimilarityLowerBound(b1_cover, b2_cover, b1_error, b2_error);
             // the best lower bound between the computed and the saved is used
             second_lb = (nodes[second_item]->data) ? max(((QDB) nodes[second_item]->data)->lowerBound, second_lb) : second_lb;
             // bound for the second child (item)
             Error remainUb = child_ub - firstError;
+            // perform the search for the second item
             nodes[second_item] = recurse(itemsets[second_item], next, nodes[second_item], next_attributes, depth + 1, remainUb, second_lb);
 
             // check if the found information is relevant to compute the next similarity bounds
-            addInfoForLowerBound(nodes[second_item]->data, b1_cover, b2_cover, highest_error, highest_support);
+            addInfoForLowerBound(nodes[second_item]->data, b1_cover, b2_cover, b1_error, b2_error, highest_coversize);
             Error secondError = ((QDB) nodes[second_item]->data)->error;
             itemsets[second_item].free();
             cover->backtrack();
 
             Error feature_error = firstError + secondError;
-            bool hasUpdated = query->updateData(node->data, child_ub, next,
-                                                nodes[first_item]->data, nodes[second_item]->data);
+            bool hasUpdated = query->updateData(node->data, child_ub, next, nodes[first_item]->data, nodes[second_item]->data);
             if (hasUpdated) {
                 child_ub = feature_error;
-                Logger::showMessageAndReturn("after this attribute, node error=", *nodeError, " and ub=", child_ub);
+                Logger::showMessageAndReturn("-\nafter this attribute, node error=", *nodeError, " and ub=", child_ub);
             }
             // in case we get the real error, we update the minimum possible error
             else minlb = min(minlb, feature_error);

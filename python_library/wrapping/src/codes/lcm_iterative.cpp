@@ -319,11 +319,11 @@ void LcmIterative::run () {
     RCover* cover = new RCoverTotalFreq(dataReader);
     for (int i = 0; i < nattributes; ++i) {
 
-        cover->intersect(i, query->weights, false);
+        cover->intersect(i, false);
         sup[0] = cover->getSupport();
         cover->backtrack();
 
-        cover->intersect(i, query->weights);
+        cover->intersect(i);
         sup[1] = cover->getSupport();
         cover->backtrack();
 
@@ -392,23 +392,23 @@ Array<pair<bool, Attribute> > LcmIterative::getSuccessors(Array<pair<bool, Attri
 
             if (query->tids_error_class_callback != nullptr || query->tids_error_callback != nullptr){//slow or predictor
 
-                current_cover->intersect(current_attributes[i].second, query->weights, false);
+                current_cover->intersect(current_attributes[i].second, false);
                 supports[0].second = current_cover->getSupport();
                 current_cover->backtrack();
 
-                current_cover->intersect(current_attributes[i].second, query->weights);
+                current_cover->intersect(current_attributes[i].second);
                 supports[1].second = current_cover->getSupport();
                 current_cover->backtrack();
             }
             else{ // fast or default
 
-                current_cover->intersect(current_attributes[i].second, query->weights, false);
-                supports[0].first = current_cover->getSupportPerClass(query->weights);
+                current_cover->intersect(current_attributes[i].second, false);
+                supports[0].first = copySupports(current_cover->getSupportPerClass());
                 supports[0].second = current_cover->getSupport();
                 current_cover->backtrack();
 
-                current_cover->intersect(current_attributes[i].second, query->weights);
-                supports[1].first = current_cover->getSupportPerClass(query->weights);
+                current_cover->intersect(current_attributes[i].second);
+                supports[1].first = copySupports(current_cover->getSupportPerClass());
                 supports[1].second = current_cover->getSupport();
                 current_cover->backtrack();
             }

@@ -54,8 +54,10 @@ TrieNode* computeDepthTwo(RCover* cover,
     // infeasible case. Avoid computing useless solution
     if (ub <= lb){
         node->data = query->initData(cover); // no need to update the error
+        if (verbose) cout << "infeasible case. ub = " << ub << " lb = " << lb << endl;
         return node;
     }
+//    cout << "fifi" << endl;
 
     // The fact to not bound the search make it find the best solution in any case and remove the chance to recall this
     // function for the same node with an higher upper bound. Since this function is not exponential, we can afford that.
@@ -67,10 +69,11 @@ TrieNode* computeDepthTwo(RCover* cover,
     auto start = high_resolution_clock::now();
 
     //local variable to make the function verbose or not. Can be improved :-)
-    bool verbose = false;
+    bool local_verbose = false;
+//    if (last_added == 64) local_verbose = true;
 
     // get the support and the support per class of the root node
-    Supports root_sup_clas = copySupports(cover->getSupportPerClass(query->weights));
+    Supports root_sup_clas = copySupports(cover->getSupportPerClass());
     Support root_sup = cover->getSupport();
 
     // update the next candidates list by removing the one already added
@@ -94,13 +97,15 @@ TrieNode* computeDepthTwo(RCover* cover,
         sups[l] = new Support[attr.size()];
 
         // compute values for first level of the tree
-        cover->intersect(attr[l], query->weights);
-        sups_sc[l][l] = cover->getSupportPerClass(query->weights);
+//        cout << "item : " << attr[l] << " ";
+        cover->intersect(attr[l]);
+        sups_sc[l][l] = copySupports(cover->getSupportPerClass());
         sups[l][l] = cover->getSupport();
 
         // compute value for second level
         for (int i = l + 1; i < attr.size(); ++i) {
-            pair<Supports, Support> p = cover->temporaryIntersect(attr[i], query->weights);
+//            cout << "\titem_fils : " << attr[i] << " ";
+            pair<Supports, Support> p = cover->temporaryIntersect(attr[i]);
             sups_sc[l][i] = p.first;
             sups[l][i] = p.second;
         }
@@ -114,10 +119,13 @@ TrieNode* computeDepthTwo(RCover* cover,
 
     // find the best tree for each feature
     for (int i = 0; i < attr.size(); ++i) {
-        if (verbose) cout << "root test: " << attr[i] << endl;
+        if (local_verbose) cout << "root test: " << attr[i] << endl;
 
         TreeTwo feat_best_tree;
         feat_best_tree.root_data->test = attr[i];
+        ErrorValues ev = query->computeErrorValues(cover);
+        feat_best_tree.root_data->leafError = ev.error;
+        // feat_best_tree.root_data->test = ev.maxclass;
 
         Supports idsc = sups_sc[i][i];
         Support ids = sups[i][i]; // Support ids = sumSupports(idsc);
@@ -128,7 +136,8 @@ TrieNode* computeDepthTwo(RCover* cover,
         //feature to left
         // the feature cannot be root since its two children will not fullfill the minsup constraint
         if (igs < query->minsup || ids < query->minsup) {
-            if (verbose) cout << "root impossible de splitter...on backtrack" << endl;
+            if (local_verbose) cout << "root impossible de splitter...on backtrack" << endl;
+            deleteSupports(igsc);
             continue;
         }
 
@@ -140,12 +149,12 @@ TrieNode* computeDepthTwo(RCover* cover,
             ErrorValues ev = query->computeErrorValues(igsc);
             feat_best_tree.left_data->error = ev.error;
             feat_best_tree.left_data->test = ev.maxclass;
-            if (verbose)
+            if (local_verbose)
                 cout << "root gauche ne peut théoriquement spliter; donc feuille. erreur gauche = " << feat_best_tree.left_data->error << " on backtrack" << endl;
         }
         // the root node can theorically be split at left
         else {
-            if (verbose) cout << "root gauche peut théoriquement spliter. Creusons plus..." << endl;
+            if (local_verbose) cout << "root gauche peut théoriquement spliter. Creusons plus..." << endl;
             // at worst it can't in practice and error will be considered as leaf node
             // so the error is initialized at this case
             ErrorValues ev = query->computeErrorValues(igsc);
@@ -156,9 +165,9 @@ TrieNode* computeDepthTwo(RCover* cover,
             if (!floatEqual(ev.error, lb)) {
                 Error tmp = feat_best_tree.left_data->error;
                 for (int j = 0; j < attr.size(); ++j) {
-                    if (verbose) cout << "left test: " << attr[j] << endl;
+                    if (local_verbose) cout << "left test: " << attr[j] << endl;
                     if (attr[i] == attr[j]) {
-                        if (verbose) cout << "left pareil que le parent ou non sup...on essaie un autre left" << endl;
+                        if (local_verbose) cout << "left pareil que le parent ou non sup...on essaie un autre left" << endl;
                         continue;
                     }
                     Supports jdsc = sups_sc[j][j], idjdsc = sups_sc[min(i, j)][max(i, j)], igjdsc = newSupports();
@@ -170,25 +179,26 @@ TrieNode* computeDepthTwo(RCover* cover,
 
                     // the root node can in practice be split into two children
                     if (igjgs >= query->minsup && igjds >= query->minsup) {
-                        if (verbose) cout << "le left testé peut splitter. on le regarde" << endl;
+                        if (local_verbose) cout << "le left testé peut splitter. on le regarde" << endl;
 
                         ErrorValues ev2 = query->computeErrorValues(igjdsc);
-                        if (verbose) cout << "le left a droite produit une erreur de " << ev2.error << endl;
+                        if (local_verbose) cout << "le left a droite produit une erreur de " << ev2.error << endl;
 
                         if (ev2.error >= min(best_tree.root_data->error, feat_best_tree.left_data->error)) {
-                            if (verbose)
+                            if (local_verbose)
                                 cout << "l'erreur gauche du left montre rien de bon. best root: " << best_tree.root_data->error << " best left: " << feat_best_tree.left_data->error << " Un autre left..." << endl;
+                            deleteSupports(igjdsc);
                             continue;
                         }
 
                         Supports igjgsc = newSupports();
                         subSupports(igsc, igjdsc, igjgsc);
                         ErrorValues ev1 = query->computeErrorValues(igjgsc);
-                        if (verbose) cout << "le left a gauche produit une erreur de " << ev1.error << endl;
+                        if (local_verbose) cout << "le left a gauche produit une erreur de " << ev1.error << endl;
 
                         if (ev1.error + ev2.error < min(best_tree.root_data->error, feat_best_tree.left_data->error)) {
                             feat_best_tree.left_data->error = ev1.error + ev2.error;
-                            if (verbose)
+                            if (local_verbose)
                                 cout << "ce left ci donne une meilleure erreur que les précédents left: " << feat_best_tree.left_data->error << endl;
                             feat_best_tree.left1_data->error = ev1.error;
                             feat_best_tree.left1_data->test = ev1.maxclass;
@@ -199,19 +209,23 @@ TrieNode* computeDepthTwo(RCover* cover,
                             feat_best_tree.left_data->right = feat_best_tree.left2_data;
                             feat_best_tree.left_data->size = 3;
 
-                            if (floatEqual(feat_best_tree.left_data->error, lb)) break;
+                            if (floatEqual(feat_best_tree.left_data->error, lb)) {
+                                deleteSupports(igjdsc);
+                                deleteSupports(igjgsc);
+                                break;
+                            }
                         } else {
-                            if (verbose)
+                            if (local_verbose)
                                 cout << "l'erreur du left = " << ev1.error + ev2.error << " n'ameliore pas l'existant. Un autre left..." << endl;
                         }
                         deleteSupports(igjgsc);
-                    } else if (verbose) cout << "le left testé ne peut splitter en pratique...un autre left!!!" << endl;
+                    } else if (local_verbose) cout << "le left testé ne peut splitter en pratique...un autre left!!!" << endl;
                     deleteSupports(igjdsc);
                 }
-                if (floatEqual(feat_best_tree.left_data->error, tmp) && verbose)
+                if (floatEqual(feat_best_tree.left_data->error, tmp) && local_verbose)
                     cout << "aucun left n'a su splitter. on garde le root gauche comme leaf avec erreur: " << feat_best_tree.left_data->error << endl;
             } else {
-                if (verbose)
+                if (local_verbose)
                     cout << "l'erreur du root gauche est minimale. on garde le root gauche comme leaf avec erreur: " << feat_best_tree.left_data->error << endl;
             }
         }
@@ -219,17 +233,17 @@ TrieNode* computeDepthTwo(RCover* cover,
 
         //feature to right
         if (feat_best_tree.left_data->error < best_tree.root_data->error) {
-            if (verbose) cout << "vu l'erreur du root gauche et du left. on peut tenter quelque chose à droite" << endl;
+            if (local_verbose) cout << "vu l'erreur du root gauche et du left. on peut tenter quelque chose à droite" << endl;
 
             // the feature at root cannot be split at right. It is then a leaf node
             if (ids < 2 * query->minsup) {
                 ErrorValues ev = query->computeErrorValues(idsc);
                 feat_best_tree.right_data->error = ev.error;
                 feat_best_tree.right_data->test = ev.maxclass;
-                if (verbose)
+                if (local_verbose)
                     cout << "root droite ne peut théoriquement spliter; donc feuille. erreur droite = " << feat_best_tree.right_data->error << " on backtrack" << endl;
             } else {
-                if (verbose) cout << "root droite peut théoriquement spliter. Creusons plus..." << endl;
+                if (local_verbose) cout << "root droite peut théoriquement spliter. Creusons plus..." << endl;
                 // at worst it can't in practice and error will be considered as leaf node
                 // so the error is initialized at this case
                 ErrorValues ev = query->computeErrorValues(idsc);
@@ -242,9 +256,9 @@ TrieNode* computeDepthTwo(RCover* cover,
 
                 if (!floatEqual(ev.error, lb)) {
                     for (int j = 0; j < attr.size(); ++j) {
-                        if (verbose) cout << "right test: " << attr[j] << endl;
+                        if (local_verbose) cout << "right test: " << attr[j] << endl;
                         if (attr[i] == attr[j]) {
-                            if (verbose)
+                            if (local_verbose)
                                 cout << "right pareil que le parent ou non sup...on essaie un autre right" << endl;
                             continue;
                         }
@@ -256,20 +270,21 @@ TrieNode* computeDepthTwo(RCover* cover,
 
                         // the root node can in practice be split into two children
                         if (idjgs >= query->minsup && idjds >= query->minsup) {
-                            if (verbose) cout << "le right testé peut splitter. on le regarde" << endl;
+                            if (local_verbose) cout << "le right testé peut splitter. on le regarde" << endl;
                             ErrorValues ev1 = query->computeErrorValues(idjgsc);
-                            if (verbose) cout << "le right a gauche produit une erreur de " << ev1.error << endl;
+                            if (local_verbose) cout << "le right a gauche produit une erreur de " << ev1.error << endl;
 
                             if (ev1.error >= min(remainingError, feat_best_tree.right_data->error)) {
-                                if (verbose) cout << "l'erreur gauche du right montre rien de bon. Un autre right..." << endl;
+                                if (local_verbose) cout << "l'erreur gauche du right montre rien de bon. Un autre right..." << endl;
+                                deleteSupports(idjgsc);
                                 continue;
                             }
 
                             ErrorValues ev2 = query->computeErrorValues(idjdsc);
-                            if (verbose) cout << "le right a droite produit une erreur de " << ev2.error << endl;
+                            if (local_verbose) cout << "le right a droite produit une erreur de " << ev2.error << endl;
                             if (ev1.error + ev2.error < min(remainingError, feat_best_tree.right_data->error)) {
                                 feat_best_tree.right_data->error = ev1.error + ev2.error;
-                                if (verbose) cout << "ce right ci donne une meilleure erreur que les précédents right: " << feat_best_tree.right_data->error << endl;
+                                if (local_verbose) cout << "ce right ci donne une meilleure erreur que les précédents right: " << feat_best_tree.right_data->error << endl;
                                 feat_best_tree.right1_data->error = ev1.error;
                                 feat_best_tree.right1_data->test = ev1.maxclass;
                                 feat_best_tree.right2_data->error = ev2.error;
@@ -279,26 +294,29 @@ TrieNode* computeDepthTwo(RCover* cover,
                                 feat_best_tree.right_data->right = feat_best_tree.right2_data;
                                 feat_best_tree.right_data->size = 3;
 
-                                if (floatEqual(feat_best_tree.right_data->error, lb)) break;
+                                if (floatEqual(feat_best_tree.right_data->error, lb)) {
+                                    deleteSupports(idjgsc);
+                                    break;
+                                }
                             } else {
-                                if (verbose) cout << "l'erreur du right = " << ev1.error + ev2.error << " n'ameliore pas l'existant. Un autre right..." << endl;
+                                if (local_verbose) cout << "l'erreur du right = " << ev1.error + ev2.error << " n'ameliore pas l'existant. Un autre right..." << endl;
                             }
-                        } else if (verbose) cout << "le right testé ne peut splitter...un autre right!!!" << endl;
+                        } else if (local_verbose) cout << "le right testé ne peut splitter...un autre right!!!" << endl;
                         deleteSupports(idjgsc);
                     }
                     if (floatEqual(feat_best_tree.right_data->error, tmp))
-                        if (verbose) cout << "aucun right n'a su splitter. on garde le root droite comme leaf avec erreur: " << feat_best_tree.right_data->error << endl;
-                } else if (verbose) cout << "l'erreur du root droite est minimale. on garde le root droite comme leaf avec erreur: " << feat_best_tree.right_data->error << endl;
+                        if (local_verbose) cout << "aucun right n'a su splitter. on garde le root droite comme leaf avec erreur: " << feat_best_tree.right_data->error << endl;
+                } else if (local_verbose) cout << "l'erreur du root droite est minimale. on garde le root droite comme leaf avec erreur: " << feat_best_tree.right_data->error << endl;
             }
 
             if (feat_best_tree.left_data->error + feat_best_tree.right_data->error < best_tree.root_data->error) {
                 feat_best_tree.root_data->error = feat_best_tree.left_data->error + feat_best_tree.right_data->error;
-                feat_best_tree.root_data->size = feat_best_tree.left_data->size + feat_best_tree.right_data->size;
+                feat_best_tree.root_data->size += feat_best_tree.left_data->size + feat_best_tree.right_data->size;
 
-                if (verbose) cout << "ce triple (root, left, right) ci donne une meilleure erreur que les précédents triplets: " << best_tree.root_data->error << endl;
                 best_tree = feat_best_tree;
+                if (local_verbose) cout << "ce triple (root, left, right) ci donne une meilleure erreur que les précédents triplets: " << best_tree.root_data->error << " " << best_tree.root_data->test << endl;
             } else {
-                if (verbose) cout << "cet arbre n'est pas mieux que le meilleur jusque là." << endl;
+                if (local_verbose) cout << "cet arbre n'est pas mieux que le meilleur jusque là." << endl;
             }
         }
         deleteSupports(igsc);
@@ -312,13 +330,27 @@ TrieNode* computeDepthTwo(RCover* cover,
     }
     delete [] sups_sc;
     delete [] sups;
-    if (verbose) cout << "root: " << best_tree.root_data->test << " left: " << best_tree.left_data->test << " right: " << best_tree.right_data->test << endl;
-    if (verbose) cout << "le1: " << best_tree.left1_data->error << " le2: " << best_tree.left2_data->error << " re1: " << best_tree.right1_data->error << " re2: " << best_tree.right2_data->error << endl;
-    if (verbose) cout << "ble: " << best_tree.left_data->error << " bre: " << best_tree.right_data->error << " broe: " << best_tree.root_data->error << endl;
-    if (verbose) cout << "lc1: " << best_tree.left1_data->test << " lc2: " << best_tree.left2_data->test << " rc1: " << best_tree.right1_data->test << " rc2: " << best_tree.right2_data->test << endl;
-    if (verbose) cout << "blc: " << best_tree.left_data->test << " brc: " << best_tree.right_data->test << endl;
+    if (local_verbose) cout << "root: " << best_tree.root_data->test << " left: " << best_tree.left_data->test << " right: " << best_tree.right_data->test << endl;
+    if (local_verbose) cout << "le1: " << best_tree.left1_data->error << " le2: " << best_tree.left2_data->error << " re1: " << best_tree.right1_data->error << " re2: " << best_tree.right2_data->error << endl;
+    if (local_verbose) cout << "ble: " << best_tree.left_data->error << " bre: " << best_tree.right_data->error << " broe: " << best_tree.root_data->error << endl;
+    if (local_verbose) cout << "lc1: " << best_tree.left1_data->test << " lc2: " << best_tree.left2_data->test << " rc1: " << best_tree.right1_data->test << " rc2: " << best_tree.right2_data->test << endl;
+    if (local_verbose) cout << "blc: " << best_tree.left_data->test << " brc: " << best_tree.right_data->test << endl;
 
     if (best_tree.root_data->test != -1) {
+        if (best_tree.root_data->size == 3 && best_tree.root_data->left->test == best_tree.root_data->right->test && floatEqual(best_tree.root_data->leafError, best_tree.root_data->left->error + best_tree.root_data->right->error)) {
+            best_tree.root_data->size = 1;
+            best_tree.root_data->error = best_tree.root_data->leafError;
+            best_tree.root_data->test = best_tree.root_data->right->test;
+            delete best_tree.root_data->left;
+            best_tree.root_data->left = nullptr;
+            delete best_tree.root_data->right;
+            best_tree.root_data->right = nullptr;
+            node->data = (QueryData *)best_tree.root_data;
+            auto stop = high_resolution_clock::now();
+            spectime += duration<double>(stop - stop_comp).count();
+            if (verbose) cout << "best twotree error = " << to_string(best_tree.root_data->error) << endl;
+            return node;
+        }
 
         node->data = (QueryData *) best_tree.root_data;
         setItem((QueryData_Best *) node->data, itemset, trie);
@@ -326,6 +358,7 @@ TrieNode* computeDepthTwo(RCover* cover,
         auto stop = high_resolution_clock::now();
         spectime += duration<double>(stop - stop_comp).count();
 
+        if (verbose) cout << "best twotree error = " << to_string(best_tree.root_data->error) << endl;
         return node;
     } else {
         //error not lower than ub
@@ -336,6 +369,7 @@ TrieNode* computeDepthTwo(RCover* cover,
         ((QueryData_Best *) node->data)->test = ev.maxclass;
         auto stop = high_resolution_clock::now();
         spectime += duration<double>(stop - stop_comp).count();
+        if (verbose) cout << "best twotree error = " << to_string(best_tree.root_data->error) << endl;
         return node;
     }
 

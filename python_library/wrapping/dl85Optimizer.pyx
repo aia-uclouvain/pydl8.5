@@ -176,7 +176,7 @@ def solve(data,
     if not supports.flags['C_CONTIGUOUS']:
         supports = np.ascontiguousarray(supports) # Makes a contiguous copy of the numpy array.
     cdef float [::1] supports_view = supports
-    cdef float * supports_pointer = &supports_view[0]
+    #cdef float *supports_pointer = &supports_view[0]
 
     # get pointer from example weights
     cdef float [::1] ex_weights_view
@@ -202,7 +202,7 @@ def solve(data,
 
     # pred = not predictor
 
-    out = search(supports_pointer,
+    out = search(&supports_view[0],
                  ntransactions,
                  nattributes,
                  nclasses,

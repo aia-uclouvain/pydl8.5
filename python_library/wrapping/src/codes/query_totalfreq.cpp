@@ -2,7 +2,9 @@
 #include "trie.h"
 #include <iostream>
 
-Query_TotalFreq::Query_TotalFreq(Trie *trie,
+Query_TotalFreq::Query_TotalFreq(Support minsup,
+                                 Depth maxdepth,
+                                 Trie *trie,
                                  DataManager *data,
                                  ExpError *experror,
                                  int timeLimit,
@@ -10,11 +12,12 @@ Query_TotalFreq::Query_TotalFreq(Trie *trie,
                                  function<vector<float>(RCover *)> *tids_error_class_callback,
                                  function<vector<float>(RCover *)> *supports_error_class_callback,
                                  function<float(RCover *)> *tids_error_callback,
-                                 function<vector<float>()>* example_weight_callback,
-                                 function<vector<float>(string)>* predict_error_callback,
-                                 vector<float>* weights,
+                                 function<vector<float>()> *example_weight_callback,
+                                 function<vector<float>(string)> *predict_error_callback,
                                  float maxError, bool stopAfterError) :
-        Query_Best(trie,
+        Query_Best(minsup,
+                   maxdepth,
+                   trie,
                    data,
                    experror,
                    timeLimit,
@@ -24,7 +27,6 @@ Query_TotalFreq::Query_TotalFreq(Trie *trie,
                    tids_error_callback,
                    example_weight_callback,
                    predict_error_callback,
-                   weights,
                    (maxError <= 0) ? NO_ERR : maxError,
                    (maxError <= 0) ? false : stopAfterError) {}
 
@@ -65,6 +67,7 @@ bool Query_TotalFreq::updateData(QueryData *best, Error upperBound, Attribute at
 QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
     Class maxclass = -1;
     Error error;
+    //cout << "comp err" << endl;
 
     auto *data = new QueryData_Best();
 
@@ -72,13 +75,15 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
     if (tids_error_class_callback == nullptr && tids_error_callback == nullptr) {
         //python fast error
         if (supports_error_class_callback != nullptr) {
+            //cout << "seriu" << endl;
             function<vector<float>(RCover *)> callback = *supports_error_class_callback;
             vector<float> infos = callback(cover);
             error = infos[0];
             maxclass = int(infos[1]);
         }
-        //default error
+            //default error
         else {
+            //cout << "jjoj" << endl;
             ErrorValues ev = computeErrorValues(cover);
             error = ev.error;
             maxclass = ev.maxclass;
@@ -87,9 +92,11 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
     //slow error or predictor error function. Not need to compute support
     else {
         if (tids_error_callback != nullptr) {
+            //cout << "bbb" << endl;
             function<float(RCover *)> callback = *tids_error_callback;
             error = callback(cover);
         } else {
+            //cout << "devrait appeler" << endl;
             function<vector<float>(RCover *)> callback = *tids_error_class_callback;
             vector<float> infos = callback(cover);
             error = infos[0];
@@ -108,20 +115,21 @@ ErrorValues Query_TotalFreq::computeErrorValues(RCover *cover) {
     Class maxclass;
     Error error;
 
-    Supports itemsetSupport = cover->getSupportPerClass(weights);
-    Support maxclassval = itemsetSupport[0];
+    Supports itemsetSupport = cover->getSupportPerClass();
+    SupportClass maxclassval = itemsetSupport[0];
     maxclass = 0;
 
     for (int i = 1; i < nclasses; ++i) {
         if (itemsetSupport[i] > maxclassval) {
             maxclassval = itemsetSupport[i];
             maxclass = i;
-        } else if (itemsetSupport[i] == maxclassval) {
+        } else if (floatEqual(itemsetSupport[i], maxclassval)) {
             if (dm->getSupports()[i] > dm->getSupports()[maxclass])
                 maxclass = i;
         }
     }
     error = sumSupports(itemsetSupport) - maxclassval;
+//    if (error < 0) cout << "sup[0] = " << itemsetSupport[0] << ", " << "sup[1] = " << itemsetSupport[1] << " sum = " << sumSupports(itemsetSupport) << " maxclassval = " << maxclassval << " error = " << error << " class = " << maxclass << endl;
     return {error, maxclass};
 }
 
@@ -129,22 +137,18 @@ ErrorValues Query_TotalFreq::computeErrorValues(RCover *cover) {
 ErrorValues Query_TotalFreq::computeErrorValues(Supports itemsetSupport) {
     Class maxclass = 0;
     Error error;
-    Support maxclassval = itemsetSupport[0];
+    SupportClass maxclassval = itemsetSupport[0];
 
     for (int i = 1; i < nclasses; ++i) {
         if (itemsetSupport[i] > maxclassval) {
             maxclassval = itemsetSupport[i];
             maxclass = i;
-        } else if (itemsetSupport[i] == maxclassval) {
+        } else if (floatEqual(itemsetSupport[i], maxclassval)) {
             if (dm->getSupports()[i] > dm->getSupports()[maxclass])
                 maxclass = i;
         }
     }
     error = sumSupports(itemsetSupport) - maxclassval;
+//    if (error < 0) cout << "sup[0] = " << itemsetSupport[0] << ", " << "sup[1] = " << itemsetSupport[1] << " sum = " << sumSupports(itemsetSupport) << " maxclassval = " << maxclassval << " error = " << error << " class = " << maxclass << endl;
     return {error, maxclass};
 }
-
-/*Error Query_TotalFreq::getTrainingError(const string& tree_json){
-    function<float(string)> callback = *predict_error_callback;
-    return callback(tree_json);
-}*/

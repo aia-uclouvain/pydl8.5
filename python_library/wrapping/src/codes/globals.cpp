@@ -8,6 +8,7 @@ int ncall = 0;
 float spectime = 0;
 float comptime = 0;
 float epsilon = 1.0e-05f;
+bool verbose = false;
 
 Supports newSupports () {
   return new SupportClass[nclasses];
@@ -39,8 +40,8 @@ Supports copySupports ( Supports supports ) {
   return supports2;
 }
 
-Support sumSupports ( Supports supports ) {
-  Support sum = 0;
+SupportClass sumSupports ( Supports supports ) {
+  SupportClass sum = 0;
   forEachClass ( i )
     sum += supports[i];
   return sum;
@@ -105,7 +106,7 @@ Array<Item> addItem ( Array<Item> src1, Item item ) {
     if ( j < 1 )
         dest[k++] = item;
 
-    if (verbose) std::cout << "\nitemset avant ajout : "; printItemset(src1);
+    if (verbose) std::cout << "-\nitemset avant ajout : "; printItemset(src1);
     if (verbose) std::cout << "Item à ajouter : " << item << std::endl;
     if (verbose) std::cout << "itemset après ajout : "; printItemset(dest);
     return dest;

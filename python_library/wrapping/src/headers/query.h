@@ -72,7 +72,9 @@ struct Tree {
 
 class Query {
 public:
-    Query(Trie *trie,
+    Query(Support minsup,
+          Depth maxdepth,
+          Trie *trie,
           DataManager *dm,
           int timeLimit,
           bool continuous,
@@ -81,7 +83,6 @@ public:
           function<float(RCover *)> *tids_error_callback = nullptr,
           function<vector<float>()> *example_weight_callback = nullptr,
           function<vector<float>(string)> *predict_error_callback = nullptr,
-          vector<float> *weights = nullptr,
           float maxError = NO_ERR,
           bool stopAfterError = false);
 
@@ -123,8 +124,6 @@ public:
     function<float(RCover *)> *tids_error_callback = nullptr;
     function<vector<float>()> *example_weight_callback = nullptr;
     function<vector<float>(string)> *predict_error_callback = nullptr;
-    vector<float> *weights = nullptr;
-//    bool boosting = false;
 
 };
 
