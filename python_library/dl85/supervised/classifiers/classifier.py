@@ -60,7 +60,7 @@ class DL85Classifier(DL85Predictor, ClassifierMixin):
             self,
             max_depth=1,
             min_sup=1,
-            example_weights=[],
+            # example_weights=[],
             error_function=None,
             fast_error_function=None,
             iterative=False,
@@ -72,12 +72,13 @@ class DL85Classifier(DL85Predictor, ClassifierMixin):
             asc=False,
             repeat_sort=False,
             # nps=False,
+            quiet=True,
             print_output=False):
 
         DL85Predictor.__init__(self,
                                max_depth=max_depth,
                                min_sup=min_sup,
-                               example_weights=example_weights,
+                               # example_weights=example_weights,
                                error_function=error_function,
                                fast_error_function=fast_error_function,
                                example_weight_function=None,
@@ -92,4 +93,12 @@ class DL85Classifier(DL85Predictor, ClassifierMixin):
                                repeat_sort=repeat_sort,
                                leaf_value_function=None,
                                # nps=nps,
+                               quiet=quiet,
                                print_output=print_output)
+
+    def fit(self, X, y=None, sample_weight=None):
+        if sample_weight is None:
+            return DL85Predictor.fit(self, X, y)
+        else:
+            self.sample_weight = sample_weight
+            return DL85Predictor.fit(self, X, y)

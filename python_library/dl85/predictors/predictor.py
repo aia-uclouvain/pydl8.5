@@ -64,7 +64,7 @@ class DL85Predictor(BaseEstimator):
             max_depth=1,
             min_sup=1,
             max_estimators=1,
-            example_weights=[],
+            # example_weights=[],
             error_function=None,
             fast_error_function=None,
             example_weight_function=None,
@@ -79,11 +79,12 @@ class DL85Predictor(BaseEstimator):
             repeat_sort=False,
             leaf_value_function=None,
             nps=False,
+            quiet=True,
             print_output=False):
         self.max_depth = max_depth
         self.min_sup = min_sup
         self.max_estimators = max_estimators
-        self.example_weights = example_weights
+        self.sample_weight = []
         self.error_function = error_function
         self.fast_error_function = fast_error_function
         self.example_weight_function = example_weight_function
@@ -98,6 +99,7 @@ class DL85Predictor(BaseEstimator):
         self.repeat_sort = repeat_sort
         self.leaf_value_function = leaf_value_function
         self.nps = nps
+        self.quiet = quiet
         self.print_output = print_output
 
     def _more_tags(self):
@@ -161,7 +163,7 @@ class DL85Predictor(BaseEstimator):
                                        max_depth=self.max_depth,
                                        min_sup=self.min_sup,
                                        max_estimators=self.max_estimators,
-                                       example_weights=self.example_weights,
+                                       example_weights=self.sample_weight,
                                        max_error=self.max_error,
                                        stop_after_better=self.stop_after_better,
                                        iterative=self.iterative,
@@ -203,7 +205,8 @@ class DL85Predictor(BaseEstimator):
                     self.error_ = -1
                     self.accuracy_ = -1
                 else:
-                    print("DL8.5 fitting: Solution found")
+                    if not self.quiet:
+                        print("DL8.5 fitting: Solution found")
 
                 self.lattice_size_ = int(solution[6].split(" ")[1])
                 self.runtime_ = float(solution[7].split(" ")[1])
@@ -220,7 +223,8 @@ class DL85Predictor(BaseEstimator):
                     self.error_ = -1
                     self.accuracy_ = -1
                 else:
-                    print("DL8.5 fitting: Timeout reached but solution found")
+                    if not self.quiet:
+                        print("DL8.5 fitting: Timeout reached but solution found")
 
                 self.lattice_size_ = int(solution[7].split(" ")[1])
                 self.runtime_ = float(solution[8].split(" ")[1])

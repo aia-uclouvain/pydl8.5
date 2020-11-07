@@ -1,12 +1,18 @@
-from sklearn.base import ClassifierMixin
-from ...predictors.predictor import DL85Predictor
-from .classifier import DL85Classifier
-from gurobipy import Model, GRB, quicksum
-import json
+import os
 import random
+import sys
+
+from gurobipy import Model, GRB, quicksum
+from sklearn.base import ClassifierMixin
+
+from .classifier import DL85Classifier
+from ...predictors.predictor import DL85Predictor
+
+from sklearn.base import BaseEstimator
+from copy import deepcopy
 
 
-class DL85Booster(DL85Predictor, ClassifierMixin):
+class DL85Booster(BaseEstimator, ClassifierMixin):
     """
     An optimal binary decision tree classifier.
 
@@ -61,6 +67,7 @@ class DL85Booster(DL85Predictor, ClassifierMixin):
 
     def __init__(
             self,
+            base_estimator=None,
             max_depth=1,
             min_sup=1,
             max_estimators=0,
@@ -75,8 +82,15 @@ class DL85Booster(DL85Predictor, ClassifierMixin):
             desc=False,
             asc=False,
             repeat_sort=False,
-            print_output=False):
+            print_output=False,
+            quiet=True):
+        self.clf_params = dict(locals())
+        del self.clf_params["self"]
+        del self.clf_params["max_estimators"]
+        del self.clf_params["regulator"]
+        del self.clf_params["base_estimator"]
 
+        self.base_estimator = base_estimator
         self.max_depth = max_depth
         self.min_sup = min_sup
         self.max_estimators = max_estimators
@@ -91,60 +105,78 @@ class DL85Booster(DL85Predictor, ClassifierMixin):
         self.asc = asc
         self.repeat_sort = repeat_sort
         self.print_output = print_output
+        self.regulator = regulator
+        self.quiet = quiet
 
-        self.trees = []
-        self.example_weights = []
-        self.tree_weights = []
-        self.c = []
-        self.preds = []
-        self.D = regulator
+        self.estimators_ = []
+        self.estimator_weights_ = []
         self.accuracy_ = 0
-
-        DL85Predictor.__init__(self,
-                               max_depth=self.max_depth,
-                               min_sup=self.min_sup,
-                               max_estimators=self.max_estimators,
-                               error_function=self.error_function,
-                               fast_error_function=self.fast_error_function,
-                               iterative=self.iterative,
-                               max_error=self.max_error,
-                               stop_after_better=self.stop_after_better,
-                               time_limit=self.time_limit,
-                               verbose=self.verbose,
-                               desc=self.desc,
-                               asc=self.asc,
-                               repeat_sort=self.repeat_sort,
-                               print_output=self.print_output)
+        self.n_estimators_ = 0
 
     def fit(self, X, y=None):
-        if y is None or len(set(y)) > 2:
+        if y is None or len(set(y)) != 2:
             raise ValueError("The \"y\" value is compulsory for boosting and must have two values.")
 
-        self.c = [-1 if p == 0 else 1 for p in y]
-        if self.D <= 0:
-            self.D = 1/(random.uniform(0, 1) * X.shape[0])
-            # self.D = 0.2
+        converted_classes = [-1 if p == 0 else 1 for p in y]
+        preds = []
+        sample_weights = []
 
-        print("search for first tree")
-        tree_clf = DL85Classifier(max_depth=self.max_depth, min_sup=self.min_sup, time_limit=self.time_limit)  # , print_output=True)
-        tree_clf.fit(X, y)
-        print(tree_clf.tree_)
-        self.trees.append(tree_clf.tree_)
-        tree_pred = [-1 if p == 0 else 1 for p in tree_clf.predict(X)]
-        self.preds.append(tree_pred)
-        self.tree_weights, rho = self.calculate_tree_weights()
+        if self.regulator <= 0:
+            self.regulator = 1 / (random.uniform(0, 1) * X.shape[0])
+
+        if not self.quiet:
+            print("search for first estimator")
+        # clf = None
+        if self.base_estimator is None:
+            clf = DL85Classifier(**self.clf_params)
+        else:
+            clf = self.base_estimator
+
+        if self.quiet:
+            old_stdout = sys.stdout
+            sys.stdout = open(os.devnull, "w")
+        clf.fit(X, y)
+        if self.quiet:
+            sys.stdout = old_stdout
+
+        # print the tree expression of the estimator if it has
+        if hasattr(clf, "tree_") and isinstance(clf.tree_, dict) and not self.quiet:
+            print(clf.tree_)
+
+        # add the current estimator to the ensemble
+        self.estimators_.append(clf)
+
+        # save the prediction of the estimator
+        preds.append([-1 if p == 0 else 1 for p in clf.predict(X)])
+
+        # compute the weights of the estimator
+        self.estimator_weights_, rho = self.calculate_estimator_weights(converted_classes, preds)
 
         # for i in range(self.max_estimators - 1):
         while True:
-            if 0 < self.max_estimators <= sum(w > 0 for w in self.tree_weights):
-                print("max_estimators reached!!!")
+            # print("n_iter :", len(self.estimator_weights_), "nvalid :", sum(w > 0 for w in self.estimator_weights_), "max :", self.max_estimators)
+            if sum(w > 0 for w in self.estimator_weights_) >= self.max_estimators > 0:  # n_estimators > max_estimators
+                if not self.quiet:
+                    print("max_estimators reached!!!")
                 break
 
-            self.example_weights, gamma = self.calculate_example_weights()
+            # We do not reach the number of max_estimators
+            sample_weights, gamma = self.calculate_sample_weights(sample_weights, converted_classes, preds)
 
-            print("search for new tree")
-            tree_clf = DL85Classifier(max_depth=self.max_depth, min_sup=self.min_sup, example_weights=self.example_weights, time_limit=self.time_limit)  # , print_output=True)
-            tree_clf.fit(X, y)
+            if not self.quiet:
+                print("search for new estimator")
+            if self.base_estimator is None:
+                # clf = DL85Classifier(max_depth=self.max_depth, min_sup=self.min_sup, time_limit=self.time_limit)  # , print_output=True)
+                clf = DL85Classifier(**self.clf_params)  # , print_output=True)
+            else:
+                clf = self.base_estimator
+
+            if self.quiet:
+                old_stdout = sys.stdout
+                sys.stdout = open(os.devnull, "w")
+            clf.fit(X, y, sample_weight=sample_weights)
+            if self.quiet:
+                sys.stdout = old_stdout
 
             # Error function for DL8
             # def weighted_error(tids):
@@ -157,116 +189,141 @@ class DL85Booster(DL85Predictor, ClassifierMixin):
             # tree_clf = DL85Classifier(max_depth=self.max_depth, min_sup=self.min_sup, print_output=True, error_function=lambda tree: weighted_error(tree))
             # tree_clf.fit(X, y)
 
-            print(tree_clf.tree_)
+            # print the tree expression of the estimator if it has
+            if hasattr(clf, "tree_") and isinstance(clf.tree_, dict) and not self.quiet:
+                print(clf.tree_)
 
-            # compute prediction of the new tree
-            tree_pred = [-1 if p == 0 else 1 for p in tree_clf.predict(X)]
-            # compute its accuracy based on the weights of examples
-            accuracy = sum([self.c[i] * self.example_weights[i] * tree_pred[i] for i in range(X.shape[0])])
-            print("tree_accuracy =", accuracy)
+            # compute prediction of the new estimator
+            clf_pred = [-1 if p == 0 else 1 for p in clf.predict(X)]
+            # compute its accuracy based on the weights of samples
+            accuracy = sum([converted_classes[tid] * sample_weights[tid] * clf_pred[tid] for tid in range(X.shape[0])])
+            if not self.quiet:
+                print("estimator_accuracy =", accuracy)
 
             if accuracy <= gamma:
-                print("\n\naccuracy <= gamma", "***END***")
+                if not self.quiet:
+                    print("\n\naccuracy <= gamma", "***END***")
                 break
 
-            self.trees.append(tree_clf.tree_)
-            self.preds.append(tree_pred)
-            self.tree_weights, rho = self.calculate_tree_weights()
+            # if the new estimator is good to enter into the basis
+            self.estimators_.append(clf)
+            preds.append(clf_pred)
+            # print("n_w bef :", len(self.estimator_weights_))
+            self.estimator_weights_, rho = self.calculate_estimator_weights(converted_classes, preds)
+            # print("n_w aft :", len(self.estimator_weights_))
 
-        # compute training accuracy and store it in the variable `accuracy_`
-        weighted_train_pred = [[self.tree_weights[tree] * self.preds[tree][tid] for tid in range(len(self.preds[tree]))] for tree in range(len(self.trees))]
-        train_pred = [0 if sum(tid_predictions) < 0 else 1 for tid_predictions in zip(*weighted_train_pred)]
+        # remove the useless estimators
+        zero_ind = [i for i, val in enumerate(self.estimator_weights_) if val == 0]
+        self.estimator_weights_ = [w for w in self.estimator_weights_ if w != 0]
+        self.estimators_ = [clf for clf_id, clf in enumerate(self.estimators_) if clf_id not in zero_ind]
+        preds = [clf_pred_vals for clf_pred_id, clf_pred_vals in enumerate(preds) if clf_pred_id not in zero_ind]
+
+        # compute training accuracy of the found ensemble and store it in the variable `accuracy_`
+        weighted_train_pred = [[self.estimator_weights_[clf_id] * preds[clf_id][tid] for tid in range(len(y))] for clf_id in range(len(self.estimators_))]
+        train_pred = [0 if sum(tid_pred) < 0 else 1 for tid_pred in zip(*weighted_train_pred)]
         self.accuracy_ = sum(p == y[i] for i, p in enumerate(train_pred))/len(y)
 
-        # Show each non-zero trees with its weight
-        for i, tree_weight in enumerate(sorted([elt for elt in list(zip(self.trees, self.tree_weights)) if elt[1] > 0], key=lambda x: x[1], reverse=True)):
-            print("tree n_", i+1, " ==>\tweight: ", tree_weight[1], " \tjson_string: ", tree_weight[0], sep="")
-        # for i, tree in enumerate(self.trees):
-        #     if self.tree_weights[i] > 0:
-        #         print("tree:",  tree, "weight:", self.tree_weights[i])
+        # save the number of found estimators
+        self.n_estimators_ = len(self.estimators_)
+        # print("n_estim =", self.n_estimators_)
+
+        # Show each non-zero estimator weight and its tree expression if it has
+        if not self.quiet:
+            for i, estimator in enumerate(sorted(zip(self.estimator_weights_, self.estimators_), key=lambda x: x[0], reverse=True)):
+                print("clf n_", i+1, " ==>\tweight: ", estimator[0], sep="", end="")
+                if hasattr(estimator[1], "tree_") and isinstance(estimator[1].tree_, dict):
+                    print(" \tjson_string: ", estimator[1].tree_, sep="")
+                else:
+                    print()
+
         return self
 
     def predict(self, X, y=None):
-        # Run a prediction on each tree in term of 0/1
-        predict_per_tree = [self.predict_one_tree(X, tree) for tree in self.trees]
+        # Run a prediction on each estimator in term of 0/1
+        predict_per_clf = [clf.predict(X) for clf_id, clf in enumerate(self.estimators_)]
         # Convert 0/1 prediction into -1/1
-        predict_per_tree = [[-1 if p == 0 else 1 for p in row] for row in predict_per_tree]
-        # Apply the tree weight on each prediction
-        weighted_predict_per_tree = [[self.tree_weights[tree] * predict_per_tree[tree][tid] for tid in range(len(predict_per_tree[tree]))] for tree in range(len(self.trees))]
-        # Compute the prediction based on all trees in term of 0/1
-        pred = [0 if sum(tid_predictions) < 0 else 1 for tid_predictions in zip(*weighted_predict_per_tree)]
+        predict_per_clf = [[-1 if p == 0 else 1 for p in row] for row in predict_per_clf]
+        # Apply the estimator weight on each prediction
+        weighted_predict_per_clf = [[self.estimator_weights_[clf_id] * predict_per_clf[clf_id][tid] for tid in range(X.shape[0])] for clf_id in range(len(self.estimators_))]
+        # Compute the prediction based on all estimators in term of 0/1
+        pred = [0 if sum(tid_pred) < 0 else 1 for tid_pred in zip(*weighted_predict_per_clf)]
         return pred
 
     # Primal problem
-    def calculate_tree_weights(self):
-        print("\nrun primal_" + str(len(self.trees)))
-        # the new tree is already added in get_predict_error before the call to this function
+    def calculate_estimator_weights(self, c, preds):
+        if not self.quiet:
+            print("\nrun primal_" + str(len(self.estimators_)))
+        # the new estimator is already added in get_predict_error before the call to this function
         # initialize the model
-        model = Model("tree_weight_optimiser")
+        if self.quiet:
+            old_stdout = sys.stdout
+            sys.stdout = open(os.devnull, "w")
+        model = Model("estimator_weight_optimiser")
         model.setParam("LogToConsole", 0)
+        if self.quiet:
+            sys.stdout = old_stdout
 
         # add variables
         rho = model.addVar(vtype=GRB.CONTINUOUS, name="rho", lb=float("-inf"))
-        error_margin = [model.addVar(vtype=GRB.CONTINUOUS, name="error_margin " + str(i)) for i in range(len(self.c))]
-        new_tree_weights = [model.addVar(vtype=GRB.CONTINUOUS, name="tree_weights " + str(i)) for i in range(len(self.trees))]
-        # Use last values of trees weights as warm start
-        if not self.tree_weights:  # not none, not empty
-            for i in range(len(self.tree_weights)):
-                new_tree_weights[i].setAttr("Start", self.tree_weights[i])
+        error_margin = [model.addVar(vtype=GRB.CONTINUOUS, name="error_margin " + str(i)) for i in range(len(c))]
+        new_clf_weights = [model.addVar(vtype=GRB.CONTINUOUS, name="clf_weights " + str(i)) for i in range(len(self.estimators_))]
+        # Use last values of estimators weights as warm start
+        if not self.estimator_weights_:  # not none, not empty
+            for clf_id in range(len(self.estimator_weights_)):
+                new_clf_weights[clf_id].setAttr("Start", self.estimator_weights_[clf_id])
 
         # add constraints
-        model.addConstr(quicksum(new_tree_weights) == 1, name="weights = 1")
-        for tid in range(len(self.c)):
-            model.addConstr(quicksum([self.c[tid] * new_tree_weights[tree] * self.preds[tree][tid] for tree in range(len(self.trees))]) + error_margin[tid] >= rho, name="Constraint on sample " + str(tid))
+        model.addConstr(quicksum(new_clf_weights) == 1, name="weights = 1")
+        for tid in range(len(c)):
+            model.addConstr(quicksum([c[tid] * new_clf_weights[clf_id] * preds[clf_id][tid] for clf_id in range(len(self.estimators_))]) + error_margin[tid] >= rho, name="Constraint on sample " + str(tid))
 
         # add objective function
-        model.setObjective(rho - self.D * quicksum(error_margin), GRB.MAXIMIZE)
+        model.setObjective(rho - self.regulator * quicksum(error_margin), GRB.MAXIMIZE)
         model.optimize()
 
-        tr_weights = [w.X for w in new_tree_weights]
+        clf_weights = [w.X for w in new_clf_weights]
         rho_ = rho.X
+        opti = rho.X - self.regulator * sum(e.X for e in error_margin)
 
-        opti = rho.X - self.D * sum(e.X for e in error_margin)
-        print("primal opti =", opti, "rho :", rho_, "trees_w :", tr_weights)
+        if not self.quiet:
+            print("primal opti =", opti, "rho :", rho_, "clfs_w :", clf_weights)
 
-        return tr_weights, rho_
+        return clf_weights, rho_
 
     # Dual problem
-    def calculate_example_weights(self):
-        print("\nrun dual_" + str(len(self.trees)))
+    def calculate_sample_weights(self, sample_weights, c, preds):
+        if not self.quiet:
+            print("\nrun dual_" + str(len(self.estimators_)))
         # initialize the model
-        model = Model("example_weight_optimiser")
+        if self.quiet:
+            old_stdout = sys.stdout
+            sys.stdout = open(os.devnull, "w")
+        model = Model("sample_weight_optimiser")
         model.setParam("LogToConsole", 0)
+        if self.quiet:
+            sys.stdout = old_stdout
 
         # add variables
         gamma = model.addVar(vtype=GRB.CONTINUOUS, name="gamma", lb=float("-inf"))
-        new_example_weights = [model.addVar(vtype=GRB.CONTINUOUS, name="sample_weights " + str(i), ub=self.D if self.D > 0 else 1) for i in range(len(self.c))]
+        new_sample_weights = [model.addVar(vtype=GRB.CONTINUOUS, name="sample_weights " + str(tid), ub=self.regulator if self.regulator > 0 else 1) for tid in range(len(c))]
         # Use last values of examples weights as warm start
-        if not self.example_weights:  # not none, not empty
-            for i in range(len(self.example_weights)):
-                new_example_weights[i].setAttr("Start", self.example_weights[i])
+        if not sample_weights:  # not none, not empty
+            for tid in range(len(sample_weights)):
+                new_sample_weights[tid].setAttr("Start", sample_weights[tid])
 
         # add constraints
-        model.addConstr(quicksum(new_example_weights) == 1, name="weights = 1")
-        for tree in range(len(self.trees)):
-            model.addConstr(quicksum([self.c[tid] * new_example_weights[tid] * self.preds[tree][tid] for tid in range(len(new_example_weights))]) <= gamma, name="Constraint on tree " + str(tree))
+        model.addConstr(quicksum(new_sample_weights) == 1, name="weights = 1")
+        for clf_id in range(len(self.estimators_)):
+            model.addConstr(quicksum([c[tid] * new_sample_weights[tid] * preds[clf_id][tid] for tid in range(len(new_sample_weights))]) <= gamma, name="Constraint on estimator " + str(clf_id))
 
         # add objective function
         model.setObjective(gamma, GRB.MINIMIZE)
         model.optimize()
 
-        ex_weights = [w.X for w in new_example_weights]
+        ex_weights = [w.X for w in new_sample_weights]
         gamma_ = gamma.X
 
-        print("gamma :", gamma_, "new_ex :", ex_weights)
+        if not self.quiet:
+            print("gamma :", gamma_, "new_ex :", ex_weights)
 
         return ex_weights, gamma_
-
-    def predict_one_tree(self, X, tree):
-        p = []
-        for i in range(X.shape[0]):
-            if tree is None:
-                p.append(self.pred_value_on_dict(X[i, :], tree))
-            else:
-                p.append(self.pred_value_on_dict(X[i, :], tree))
-        return p

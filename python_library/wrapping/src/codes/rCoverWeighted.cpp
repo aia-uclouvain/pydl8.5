@@ -194,8 +194,8 @@ pair<SupportClass, Support> RCoverWeighted::getSups(bitset<M>& word, int real_wo
     int transInd = pos - 1;
 
     while (pos >= 1){
-        if (real_word_index * M + transInd >= 2597) cout << "mémoire dépassée" << endl;
-        if ((*weights)[real_word_index * M + transInd] < 0) cout << "ind = " << (real_word_index * M + transInd) << " val = " << (*weights)[real_word_index * M + transInd] << endl;
+//        if (real_word_index * M + transInd >= 2597) cout << "mémoire dépassée" << endl;
+//        if ((*weights)[real_word_index * M + transInd] < 0) cout << "ind = " << (real_word_index * M + transInd) << " val = " << (*weights)[real_word_index * M + transInd] << endl;
         result.first += (*weights)[real_word_index * M + transInd];
 //        cout << (*weights)[real_word_index * M + transInd] << ", ";
         //sup[0] = 4.62428e-44, sup[1] = 0.730769 sum = 0.730769 maxclassval = 0.730769 error = 0 class = 1
