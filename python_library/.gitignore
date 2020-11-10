@@ -20,3 +20,4 @@ dl85/errors/__pycache__/*
 dl85Optimizer.cpython-36m-darwin.so
 .pytest_cache/*
 .coverage
+examples/gurobi.log
