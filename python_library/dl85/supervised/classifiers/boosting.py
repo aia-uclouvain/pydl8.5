@@ -1,6 +1,7 @@
 import os
 import random
 import sys
+import time
 
 from gurobipy import Model, GRB, quicksum
 from sklearn.base import ClassifierMixin
@@ -71,6 +72,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             max_depth=1,
             min_sup=1,
             max_estimators=0,
+            max_iterations=0,
             error_function=None,
             fast_error_function=None,
             iterative=False,
@@ -89,11 +91,13 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         del self.clf_params["max_estimators"]
         del self.clf_params["regulator"]
         del self.clf_params["base_estimator"]
+        del self.clf_params["max_iterations"]
 
         self.base_estimator = base_estimator
         self.max_depth = max_depth
         self.min_sup = min_sup
         self.max_estimators = max_estimators
+        self.max_iterations = max_iterations
         self.error_function = error_function
         self.fast_error_function = fast_error_function
         self.iterative = iterative
@@ -112,14 +116,18 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         self.estimator_weights_ = []
         self.accuracy_ = 0
         self.n_estimators_ = 0
+        self.optimal_ = True
+        self.n_iterations_ = 0
 
     def fit(self, X, y=None):
         if y is None or len(set(y)) != 2:
             raise ValueError("The \"y\" value is compulsory for boosting and must have two values.")
 
+        start_time = time.perf_counter()
         converted_classes = [-1 if p == 0 else 1 for p in y]
         preds = []
         sample_weights = []
+        time_involve = True if self.time_limit > 0 else False
 
         if self.regulator <= 0:
             self.regulator = 1 / (random.uniform(0, 1) * X.shape[0])
@@ -128,6 +136,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             print("search for first estimator")
         # clf = None
         if self.base_estimator is None:
+            self.clf_params["time_limit"] = self.clf_params["time_limit"] - (time.perf_counter() - start_time)
             clf = DL85Classifier(**self.clf_params)
         else:
             clf = self.base_estimator
@@ -153,11 +162,13 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         self.estimator_weights_, rho = self.calculate_estimator_weights(converted_classes, preds)
 
         # for i in range(self.max_estimators - 1):
+        self.n_iterations_ += 1
         while True:
             # print("n_iter :", len(self.estimator_weights_), "nvalid :", sum(w > 0 for w in self.estimator_weights_), "max :", self.max_estimators)
-            if sum(w > 0 for w in self.estimator_weights_) >= self.max_estimators > 0:  # n_estimators > max_estimators
+            if (sum(w > 0 for w in self.estimator_weights_) >= self.max_estimators > 0) or (self.n_iterations_ >= self.max_iterations > 0) or (time.perf_counter() - start_time >= self.time_limit > 0):
                 if not self.quiet:
-                    print("max_estimators reached!!!")
+                    print("stop condition reached!!!")
+                self.optimal_ = False
                 break
 
             # We do not reach the number of max_estimators
@@ -167,7 +178,8 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
                 print("search for new estimator")
             if self.base_estimator is None:
                 # clf = DL85Classifier(max_depth=self.max_depth, min_sup=self.min_sup, time_limit=self.time_limit)  # , print_output=True)
-                clf = DL85Classifier(**self.clf_params)  # , print_output=True)
+                self.clf_params["time_limit"] = self.clf_params["time_limit"] - (time.perf_counter() - start_time)
+                clf = DL85Classifier(**self.clf_params)
             else:
                 clf = self.base_estimator
 
@@ -211,6 +223,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             # print("n_w bef :", len(self.estimator_weights_))
             self.estimator_weights_, rho = self.calculate_estimator_weights(converted_classes, preds)
             # print("n_w aft :", len(self.estimator_weights_))
+            self.n_iterations_ += 1
 
         # remove the useless estimators
         zero_ind = [i for i, val in enumerate(self.estimator_weights_) if val == 0]
