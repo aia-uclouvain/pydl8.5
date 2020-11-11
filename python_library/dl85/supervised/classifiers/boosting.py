@@ -8,7 +8,8 @@ from sklearn.base import ClassifierMixin
 
 from .classifier import DL85Classifier
 from ...predictors.predictor import DL85Predictor
-
+from ...errors.errors import SearchFailedError, TreeNotFoundError
+from sklearn.exceptions import NotFittedError
 from sklearn.base import BaseEstimator
 from copy import deepcopy
 
@@ -137,6 +138,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         # clf = None
         if self.base_estimator is None:
             self.clf_params["time_limit"] = self.clf_params["time_limit"] - (time.perf_counter() - start_time)
+            #print(self.clf_params["print_output"])
             clf = DL85Classifier(**self.clf_params)
         else:
             clf = self.base_estimator
@@ -206,7 +208,12 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
                 print(clf.tree_)
 
             # compute prediction of the new estimator
-            clf_pred = [-1 if p == 0 else 1 for p in clf.predict(X)]
+            try:
+                clf_pred = [-1 if p == 0 else 1 for p in clf.predict(X)]
+            except (NotFittedError, SearchFailedError, TreeNotFoundError) as error:
+                if not self.quiet:
+                    print("Problem during the search so we stop")
+                break
             # compute its accuracy based on the weights of samples
             accuracy = sum([converted_classes[tid] * sample_weights[tid] * clf_pred[tid] for tid in range(X.shape[0])])
             if not self.quiet:
@@ -252,6 +259,8 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         return self
 
     def predict(self, X, y=None):
+        if self.n_estimators_ == 0:  # fit method has not been called
+            raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
         # Run a prediction on each estimator in term of 0/1
         predict_per_clf = [clf.predict(X) for clf_id, clf in enumerate(self.estimators_)]
         # Convert 0/1 prediction into -1/1

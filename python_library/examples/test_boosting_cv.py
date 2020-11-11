@@ -29,9 +29,9 @@ print("######################################################################\n"
       "######################################################################")
 
 N_FOLDS = 5
-MAX_DEPTH = 1
+MAX_DEPTH = 2
 MIN_SUP = 1
-REGULATOR = 0.5
+REGULATOR = 0.4
 # REGULATOR = 0  # use value lower of equal to 0 for default value
 
 print("LPBoost + DL8.5")

@@ -102,6 +102,17 @@ class DL85Predictor(BaseEstimator):
         self.quiet = quiet
         self.print_output = print_output
 
+        self.tree_ = None
+        self.size_ = -1
+        self.depth_ = -1
+        self.error_ = -1
+        self.accuracy_ = -1
+        self.lattice_size_ = -1
+        self.runtime_ = -1
+        self.timeout_ = False
+        self.classes_ = []
+        self.is_fitted_ = False
+
     def _more_tags(self):
         return {'X_types': 'categorical',
                 'allow_nan': False}
@@ -179,76 +190,52 @@ class DL85Predictor(BaseEstimator):
         # if self.print_output:
         #     print(solution)
 
+        # print(solution)
         solution = solution.splitlines()
-        self.sol_size = len(solution)
+        sol_size = len(solution)
 
         # if self.sol_size_ == 1:
         #     raise ValueError(solution[0])
 
-        if self.sol_size == 8 or self.sol_size == 9:  # solution found
+        if sol_size == 8 or sol_size == 9:  # solution found
             self.tree_ = json.loads(solution[1].split('Tree: ')[1])
             self.size_ = int(solution[2].split(" ")[1])
             self.depth_ = int(solution[3].split(" ")[1])
             self.error_ = float(solution[4].split(" ")[1])
-            if self.size_ < 3 and self.max_error > 0:
-                self.accuracy_ = -1
-            else:
+            self.lattice_size_ = int(solution[6].split(" ")[1])
+            self.runtime_ = float(solution[7].split(" ")[1])
+            if self.size_ >= 3 or self.max_error <= 0:
                 self.accuracy_ = float(solution[5].split(" ")[1])
 
-            if self.sol_size == 8:  # without timeout
+            if sol_size == 8:  # without timeout
                 if self.size_ < 3 and self.max_error > 0:  # return just a leaf as fake solution
                     print("DL8.5 fitting: Solution not found. However, a solution exists with error equal to the "
                           "max error you specify as unreachable. Please increase your bound if you want to reach it.")
-                    self.tree_ = None
-                    self.size_ = -1
-                    self.depth_ = -1
-                    self.error_ = -1
-                    self.accuracy_ = -1
                 else:
                     if not self.quiet:
                         print("DL8.5 fitting: Solution found")
 
-                self.lattice_size_ = int(solution[6].split(" ")[1])
-                self.runtime_ = float(solution[7].split(" ")[1])
-                self.timeout_ = False
-
             else:  # timeout reached
+                self.timeout_ = True
                 if self.size_ < 3 and self.max_error > 0:  # return just a leaf as fake solution
                     print("DL8.5 fitting: Timeout reached without solution. However, a solution exists with "
                           "error equal to the max error you specify as unreachable. Please increase "
                           "your bound if you want to reach it.")
-                    self.tree_ = None
-                    self.size_ = -1
-                    self.depth_ = -1
-                    self.error_ = -1
-                    self.accuracy_ = -1
                 else:
                     if not self.quiet:
                         print("DL8.5 fitting: Timeout reached but solution found")
-
-                self.lattice_size_ = int(solution[7].split(" ")[1])
-                self.runtime_ = float(solution[8].split(" ")[1])
-                self.timeout_ = True
 
             if target_is_need:  # problem with target
                 # Store the classes seen during fit
                 self.classes_ = unique_labels(y)
 
-        elif self.sol_size == 4 or self.sol_size == 5:  # solution not found
-            self.tree_ = None
-            self.size_ = -1
-            self.depth_ = -1
-            self.error_ = -1
-            self.accuracy_ = -1
-            if self.sol_size == 4:  # without timeout
+        elif sol_size == 4 or sol_size == 5:  # solution not found
+            self.lattice_size_ = int(solution[2].split(" ")[1])
+            self.runtime_ = float(solution[3].split(" ")[1])
+            if sol_size == 4:  # without timeout
                 print("DL8.5 fitting: Solution not found")
-                self.lattice_size_ = int(solution[2].split(" ")[1])
-                self.runtime_ = float(solution[3].split(" ")[1])
-                self.timeout_ = False
             else:  # timeout reached
                 print("DL8.5 fitting: Timeout reached and solution not found")
-                self.lattice_size_ = int(solution[3].split(" ")[1])
-                self.runtime_ = float(solution[4].split(" ")[1])
                 self.timeout_ = True
 
         if self.leaf_value_function is not None:
@@ -281,6 +268,7 @@ class DL85Predictor(BaseEstimator):
             print("Timeout:", str(self.timeout_))
 
         # Return the classifier
+        self.is_fitted_ = True
         return self
 
     def predict(self, X):
@@ -301,7 +289,8 @@ class DL85Predictor(BaseEstimator):
         # Check is fit is called
         # check_is_fitted(self, attributes='tree_') # use of attributes is deprecated. alternative solution is below
 
-        if hasattr(self, 'sol_size') is False:  # fit method has not been called
+        # if hasattr(self, 'sol_size') is False:  # fit method has not been called
+        if self.is_fitted_ is False:  # fit method has not been called
             raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
 
         if self.tree_ is None:
@@ -315,12 +304,12 @@ class DL85Predictor(BaseEstimator):
         # Input validation
         X = check_array(X)
 
-        self.y_ = []
+        pred = []
 
         for i in range(X.shape[0]):
-            self.y_.append(self.pred_value_on_dict(X[i, :]))
+            pred.append(self.pred_value_on_dict(X[i, :]))
 
-        return self.y_
+        return pred
 
     def pred_value_on_dict(self, instance, tree=None):
         node = tree if tree is not None else self.tree_
