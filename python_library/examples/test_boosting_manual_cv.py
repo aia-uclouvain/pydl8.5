@@ -221,7 +221,7 @@ for filename in sorted(os.listdir(directory)):
         tmp_to_write = [[n_trees[k], n_trees[k], clf_results['fit_time'][k], True, clf_results['train_score'][k], clf_results['test_score'][k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
-        file_out.write(";".join(map(lambda x: str(x), to_write)))
+        file_out.write(";".join(map(lambda x: str(x), to_write)) + "\n")
         file_out.flush()
         print(to_write)
 file_out.close()
