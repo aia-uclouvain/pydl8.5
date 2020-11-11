@@ -122,7 +122,7 @@ for filename in sorted(os.listdir(directory)):
         print("LPBoost + CART")
         print("Search for the best regulator using grid search...")
         gd_sr = GridSearchCV(estimator=DL85Booster(base_estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH,
-                             min_samples_leaf=MIN_SUP), time_limit=TIME_LIMIT, max_estimators=MAX_TREES), param_grid=parameters,
+                             min_samples_leaf=MIN_SUP), time_limit=TIME_LIMIT, max_estimators=max_estimators), param_grid=parameters,
                              scoring='accuracy', cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL)
         gd_sr.fit(X, y)
         print()
@@ -146,7 +146,7 @@ for filename in sorted(os.listdir(directory)):
         print("Running cross validation")
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=FitFailedWarning)
-            clf_results = cross_validate(estimator=AdaBoostClassifier(base_estimator=DL85Classifier(max_depth=MAX_DEPTH, min_sup=MIN_SUP), algorithm="SAMME",
+            clf_results = cross_validate(estimator=AdaBoostClassifier(base_estimator=DL85Classifier(max_depth=MAX_DEPTH, min_sup=MIN_SUP, time_limit=TIME_LIMIT), algorithm="SAMME",
                                                                       n_estimators=max_estimators), X=X, y=y, scoring='accuracy', cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL, return_train_score=True,
                                          return_estimator=True, error_score=np.nan)
         n_trees = [np.nan if np.isnan(clf_results['train_score'][k]) else len(clf_results['estimator'][k].estimators_) for k in range(N_FOLDS)]
