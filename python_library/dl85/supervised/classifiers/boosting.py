@@ -213,6 +213,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             except (NotFittedError, SearchFailedError, TreeNotFoundError) as error:
                 if not self.quiet:
                     print("Problem during the search so we stop")
+                self.optimal_ = False
                 break
             # compute its accuracy based on the weights of samples
             accuracy = sum([converted_classes[tid] * sample_weights[tid] * clf_pred[tid] for tid in range(X.shape[0])])
