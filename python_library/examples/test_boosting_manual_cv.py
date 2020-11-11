@@ -23,7 +23,7 @@ import sys
 # filename = "letter"
 # dataset = np.genfromtxt("../datasets/" + filename + ".txt", delimiter=' ')
 
-N_FOLDS, MAX_DEPTH, MIN_SUP = 5, sys.argv[1] if len(sys.argv) > 1 else 1, 1
+N_FOLDS, MAX_DEPTH, MIN_SUP = 5, int(sys.argv[1]) if len(sys.argv) > 1 else 1, 1
 MAX_ITERATIONS, MAX_TREES, TIME_LIMIT = 0, 0, 600
 VERBOSE_LEVEL = 10
 
