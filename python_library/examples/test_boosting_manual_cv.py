@@ -27,7 +27,7 @@ N_FOLDS, MAX_DEPTH, MIN_SUP = 5, int(sys.argv[1]) if len(sys.argv) > 1 else 1, 1
 MAX_ITERATIONS, MAX_TREES, TIME_LIMIT = 0, 0, 600
 VERBOSE_LEVEL = 10
 
-file_out = open("out_depth_" + str(MAX_DEPTH) + ".csv", "w+")
+file_out = open("out_depth_" + str(MAX_DEPTH) + ".csv", "a+")
 directory = '../datasets'
 for filename in sorted(os.listdir(directory)):
     if filename.endswith(".txt") and not filename.startswith("paper"):
@@ -61,6 +61,7 @@ for filename in sorted(os.listdir(directory)):
               "######################################################################")
 
         print("DL8.5")
+        print("Dataset :", filename)
         clf_results = cross_validate(estimator=DL85Classifier(max_depth=MAX_DEPTH, min_sup=MIN_SUP, time_limit=TIME_LIMIT), X=X, y=y, scoring='accuracy',
                                      cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL, return_train_score=True, return_estimator=True, error_score=np.nan)
         n_trees = [1 for k in range(N_FOLDS)]
@@ -73,10 +74,11 @@ for filename in sorted(os.listdir(directory)):
         print("list of time :", clf_results['fit_time'])
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
-        tmp_to_write = [[n_trees[k], n_trees[k], clf_results['fit_time'][k], True, clf_results['train_score'][k], clf_results['test_score'][k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
+        tmp_to_write = [[n_trees[k], n_trees[k], clf_results['fit_time'][k], not clf_results['estimator'][k].timeout_, clf_results['train_score'][k], clf_results['test_score'][k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
         print("CART")
+        print("Dataset :", filename)
         clf_results = cross_validate(estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH, min_samples_leaf=MIN_SUP), X=X, y=y, scoring='accuracy',
                                      cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL, return_train_score=True, return_estimator=True, error_score=np.nan)
         n_trees = [1 for k in range(N_FOLDS)]
@@ -93,13 +95,14 @@ for filename in sorted(os.listdir(directory)):
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
         print("LPBoost + DL8.5")
+        print("Dataset :", filename)
         print("Search for the best regulator using grid search...", MAX_TREES)
         # each regulator is tested without constraint on trees numbers
         gd_sr = GridSearchCV(estimator=DL85Booster(max_depth=MAX_DEPTH, min_sup=MIN_SUP, time_limit=TIME_LIMIT, max_estimators=MAX_TREES),
                              param_grid=parameters, scoring='accuracy', cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL)
         gd_sr.fit(X, y)
         print()
-        print("Running cross validation with best regulator =", gd_sr.best_params_["regulator"])
+        print("Running cross validation for LPBoost + DL8.5 with best regulator =", gd_sr.best_params_["regulator"], "on", filename)
         clf_results = cross_validate(estimator=DL85Booster(max_depth=MAX_DEPTH, min_sup=MIN_SUP, time_limit=TIME_LIMIT,
                                      max_estimators=MAX_TREES, regulator=gd_sr.best_params_["regulator"]), X=X, y=y, scoring='accuracy',
                                      cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL, return_train_score=True, return_estimator=True, error_score=np.nan)
@@ -120,13 +123,14 @@ for filename in sorted(os.listdir(directory)):
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
         print("LPBoost + CART")
+        print("Dataset :", filename)
         print("Search for the best regulator using grid search...")
         gd_sr = GridSearchCV(estimator=DL85Booster(base_estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH,
                              min_samples_leaf=MIN_SUP), time_limit=TIME_LIMIT, max_estimators=max_estimators), param_grid=parameters,
                              scoring='accuracy', cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL)
         gd_sr.fit(X, y)
         print()
-        print("Running cross validation with best regulator =", gd_sr.best_params_["regulator"])
+        print("Running cross validation for LPBoost + CART with best regulator =", gd_sr.best_params_["regulator"], "on", filename)
         clf_results = cross_validate(estimator=DL85Booster(base_estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH, min_samples_leaf=MIN_SUP),
                                      time_limit=TIME_LIMIT, max_estimators=max_estimators, regulator=gd_sr.best_params_["regulator"]), X=X, y=y, scoring='accuracy',
                                      cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL, return_train_score=True, return_estimator=True, error_score=np.nan)
@@ -143,6 +147,7 @@ for filename in sorted(os.listdir(directory)):
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
         print("Adaboost + DL8.5")
+        print("Dataset :", filename)
         print("Running cross validation")
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=FitFailedWarning)
@@ -171,6 +176,7 @@ for filename in sorted(os.listdir(directory)):
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
         print("Adaboost + CART")
+        print("Dataset :", filename)
         print("Running cross validation")
         clf_results = cross_validate(estimator=AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH, min_samples_leaf=MIN_SUP),
                                      n_estimators=max_estimators), X=X, y=y, scoring='accuracy', cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL,
@@ -188,6 +194,7 @@ for filename in sorted(os.listdir(directory)):
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
         print("Gradient Boosting")
+        print("Dataset :", filename)
         print("Running cross validation")
         clf_results = cross_validate(estimator=GradientBoostingClassifier(max_depth=MAX_DEPTH, min_samples_leaf=MIN_SUP, n_estimators=max_estimators),
                                      X=X, y=y, scoring='accuracy', cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL, return_train_score=True,
@@ -205,6 +212,7 @@ for filename in sorted(os.listdir(directory)):
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
         print("Random Forest")
+        print("Dataset :", filename)
         print("Running cross validation")
         clf_results = cross_validate(estimator=RandomForestClassifier(max_depth=MAX_DEPTH, min_samples_leaf=MIN_SUP, n_estimators=max_estimators),
                                      X=X, y=y, scoring='accuracy', cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL, return_train_score=True,
