@@ -362,6 +362,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
         cover->intersect(next, first_item);
         itemsets[first_item] = addItem(itemset, item(next, first_item));
         nodes[first_item] = query->trie->insert(itemsets[first_item]);
+        // if lower bound was not computed
         if (floatEqual(first_lb, -1)) first_lb = computeSimilarityLowerBound(b1_cover, b2_cover, b1_error, b2_error);
         // the best lower bound between the computed and the saved is used
         first_lb = (nodes[first_item]->data) ? max(((QDB) nodes[first_item]->data)->lowerBound, first_lb) : first_lb;
@@ -395,7 +396,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
             cover->backtrack();
 
             Error feature_error = firstError + secondError;
-            bool hasUpdated = query->updateData(node->data, child_ub, next, nodes[first_item]->data, nodes[second_item]->data);
+            bool hasUpdated = query->updateData(node->data, child_ub, next, nodes[0]->data, nodes[1]->data);
             if (hasUpdated) {
                 child_ub = feature_error;
                 Logger::showMessageAndReturn("-\nafter this attribute, node error=", *nodeError, " and ub=", child_ub);
