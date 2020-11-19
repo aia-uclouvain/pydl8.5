@@ -21,3 +21,4 @@ dl85Optimizer.cpython-36m-darwin.so
 .pytest_cache/*
 .coverage
 examples/gurobi.log
+test_dl85_cart.py

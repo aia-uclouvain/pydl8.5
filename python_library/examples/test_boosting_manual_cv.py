@@ -13,7 +13,7 @@ from sklearn.model_selection import cross_val_score, cross_validate
 from sklearn.model_selection import GridSearchCV
 import time
 import warnings
-from dl85 import DL85Booster, DL85Classifier
+from dl85 import DL85Booster, DL85Classifier, BOOST_SVM1, BOOST_SVM2
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.exceptions import FitFailedWarning
@@ -54,7 +54,7 @@ for filename in sorted(os.listdir(directory)):
             X_tests.append(X[test_index])
             y_tests.append(y[test_index])
 
-        parameters = {'regulator': np.linspace(0.1, 1, 10)}
+        parameters = {'regulator': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 10, 100, 1000, 10000, 100000, 1000000]}
 
         print("######################################################################\n"
               "#                                START                               #\n"
@@ -98,12 +98,12 @@ for filename in sorted(os.listdir(directory)):
         print("Dataset :", filename)
         print("Search for the best regulator using grid search...", MAX_TREES)
         # each regulator is tested without constraint on trees numbers
-        gd_sr = GridSearchCV(estimator=DL85Booster(max_depth=MAX_DEPTH, min_sup=MIN_SUP, time_limit=TIME_LIMIT, max_estimators=MAX_TREES),
+        gd_sr = GridSearchCV(estimator=DL85Booster(max_depth=MAX_DEPTH, min_sup=MIN_SUP, time_limit=TIME_LIMIT, max_estimators=MAX_TREES, model=BOOST_SVM2),
                              param_grid=parameters, scoring='accuracy', cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL)
         gd_sr.fit(X, y)
         print()
         print("Running cross validation for LPBoost + DL8.5 with best regulator =", gd_sr.best_params_["regulator"], "on", filename)
-        clf_results = cross_validate(estimator=DL85Booster(max_depth=MAX_DEPTH, min_sup=MIN_SUP, time_limit=TIME_LIMIT,
+        clf_results = cross_validate(estimator=DL85Booster(max_depth=MAX_DEPTH, min_sup=MIN_SUP, time_limit=TIME_LIMIT, model=BOOST_SVM2,
                                      max_estimators=MAX_TREES, regulator=gd_sr.best_params_["regulator"]), X=X, y=y, scoring='accuracy',
                                      cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL, return_train_score=True, return_estimator=True, error_score=np.nan)
         n_trees = list(map(lambda clf: clf.n_estimators_, clf_results['estimator']))
@@ -126,12 +126,12 @@ for filename in sorted(os.listdir(directory)):
         print("Dataset :", filename)
         print("Search for the best regulator using grid search...")
         gd_sr = GridSearchCV(estimator=DL85Booster(base_estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH,
-                             min_samples_leaf=MIN_SUP), time_limit=TIME_LIMIT, max_estimators=max_estimators), param_grid=parameters,
+                             min_samples_leaf=MIN_SUP), time_limit=TIME_LIMIT, max_estimators=max_estimators, model=BOOST_SVM2), param_grid=parameters,
                              scoring='accuracy', cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL)
         gd_sr.fit(X, y)
         print()
         print("Running cross validation for LPBoost + CART with best regulator =", gd_sr.best_params_["regulator"], "on", filename)
-        clf_results = cross_validate(estimator=DL85Booster(base_estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH, min_samples_leaf=MIN_SUP),
+        clf_results = cross_validate(estimator=DL85Booster(base_estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH, min_samples_leaf=MIN_SUP), model=BOOST_SVM2,
                                      time_limit=TIME_LIMIT, max_estimators=max_estimators, regulator=gd_sr.best_params_["regulator"]), X=X, y=y, scoring='accuracy',
                                      cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL, return_train_score=True, return_estimator=True, error_score=np.nan)
         n_trees = list(map(lambda clf: clf.n_estimators_, clf_results['estimator']))
@@ -180,6 +180,42 @@ for filename in sorted(os.listdir(directory)):
         print("Running cross validation")
         clf_results = cross_validate(estimator=AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH, min_samples_leaf=MIN_SUP),
                                      n_estimators=max_estimators), X=X, y=y, scoring='accuracy', cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL,
+                                     return_train_score=True, return_estimator=True, error_score=np.nan)
+        n_trees = list(map(lambda clf: len(clf.estimators_), clf_results['estimator']))
+        fps = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 1] if y_tests[k][i] != 1]) for k in range(N_FOLDS)]
+        fns = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 0] if y_tests[k][i] != 0]) for k in range(N_FOLDS)]
+        print("Model built. Avg duration of building =", round(float(np.mean(clf_results['fit_time'])), 4))
+        print("Avg number of trees =", round(float(np.mean(n_trees)), 4))
+        print("Avg accuracy on training set =", round(float(np.mean(clf_results['train_score'])), 4))
+        print("Avg accuracy on test set =", round(float(np.mean(clf_results['test_score'])), 4))
+        print("sum false positives =", sum(fps))
+        print("sum false negatives =", sum(fns), "\n\n\n")
+        tmp_to_write = [[n_trees[k], n_trees[k], clf_results['fit_time'][k], True, clf_results['train_score'][k], clf_results['test_score'][k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
+        to_write += [val for sublist in tmp_to_write for val in sublist]
+
+        print("Adaboost + CART 50")
+        print("Dataset :", filename)
+        print("Running cross validation")
+        clf_results = cross_validate(estimator=AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH, min_samples_leaf=MIN_SUP),
+                                                                  n_estimators=50), X=X, y=y, scoring='accuracy', cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL,
+                                     return_train_score=True, return_estimator=True, error_score=np.nan)
+        n_trees = list(map(lambda clf: len(clf.estimators_), clf_results['estimator']))
+        fps = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 1] if y_tests[k][i] != 1]) for k in range(N_FOLDS)]
+        fns = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 0] if y_tests[k][i] != 0]) for k in range(N_FOLDS)]
+        print("Model built. Avg duration of building =", round(float(np.mean(clf_results['fit_time'])), 4))
+        print("Avg number of trees =", round(float(np.mean(n_trees)), 4))
+        print("Avg accuracy on training set =", round(float(np.mean(clf_results['train_score'])), 4))
+        print("Avg accuracy on test set =", round(float(np.mean(clf_results['test_score'])), 4))
+        print("sum false positives =", sum(fps))
+        print("sum false negatives =", sum(fns), "\n\n\n")
+        tmp_to_write = [[n_trees[k], n_trees[k], clf_results['fit_time'][k], True, clf_results['train_score'][k], clf_results['test_score'][k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
+        to_write += [val for sublist in tmp_to_write for val in sublist]
+
+        print("Adaboost + CART 100")
+        print("Dataset :", filename)
+        print("Running cross validation")
+        clf_results = cross_validate(estimator=AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH, min_samples_leaf=MIN_SUP),
+                                                                  n_estimators=100), X=X, y=y, scoring='accuracy', cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL,
                                      return_train_score=True, return_estimator=True, error_score=np.nan)
         n_trees = list(map(lambda clf: len(clf.estimators_), clf_results['estimator']))
         fps = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 1] if y_tests[k][i] != 1]) for k in range(N_FOLDS)]

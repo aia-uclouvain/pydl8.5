@@ -12,6 +12,11 @@ from ...errors.errors import SearchFailedError, TreeNotFoundError
 from sklearn.exceptions import NotFittedError
 from sklearn.base import BaseEstimator
 from copy import deepcopy
+from sklearn.metrics import accuracy_score
+
+
+BOOST_SVM1 = 1
+BOOST_SVM2 = 2
 
 
 class DL85Booster(BaseEstimator, ClassifierMixin):
@@ -74,6 +79,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             min_sup=1,
             max_estimators=0,
             max_iterations=0,
+            model=BOOST_SVM1,
             error_function=None,
             fast_error_function=None,
             iterative=False,
@@ -93,6 +99,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         del self.clf_params["regulator"]
         del self.clf_params["base_estimator"]
         del self.clf_params["max_iterations"]
+        del self.clf_params["model"]
 
         self.base_estimator = base_estimator
         self.max_depth = max_depth
@@ -112,6 +119,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         self.print_output = print_output
         self.regulator = regulator
         self.quiet = quiet
+        self.model = model
 
         self.estimators_ = []
         self.estimator_weights_ = []
@@ -146,9 +154,11 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         if self.quiet:
             old_stdout = sys.stdout
             sys.stdout = open(os.devnull, "w")
-        clf.fit(X, y)
+        clf.fit(X, y, sample_weight=[1/X.shape[0]] * X.shape[0])
         if self.quiet:
             sys.stdout = old_stdout
+
+        # print("first accur", accuracy_score(y, clf.predict(X)))
 
         # print the tree expression of the estimator if it has
         if hasattr(clf, "tree_") and isinstance(clf.tree_, dict) and not self.quiet:
@@ -161,7 +171,10 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         preds.append([-1 if p == 0 else 1 for p in clf.predict(X)])
 
         # compute the weights of the estimator
-        self.estimator_weights_, rho = self.calculate_estimator_weights(converted_classes, preds)
+        if self.model == BOOST_SVM1:
+            self.estimator_weights_, rho = self.calculate_estimator_weights(converted_classes, preds)
+        elif self.model == BOOST_SVM2:
+            self.estimator_weights_, rho = self.calculate_estimator_weights_(converted_classes, preds)
 
         # for i in range(self.max_estimators - 1):
         self.n_iterations_ += 1
@@ -174,7 +187,10 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
                 break
 
             # We do not reach the number of max_estimators
-            sample_weights, gamma = self.calculate_sample_weights(sample_weights, converted_classes, preds)
+            if self.model == BOOST_SVM1:
+                sample_weights, gamma = self.calculate_sample_weights(sample_weights, converted_classes, preds)
+            elif self.model == BOOST_SVM2:
+                sample_weights, gamma = self.calculate_sample_weights_(sample_weights, converted_classes, preds)
 
             if not self.quiet:
                 print("search for new estimator")
@@ -220,7 +236,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             if not self.quiet:
                 print("estimator_accuracy =", accuracy)
 
-            if accuracy <= gamma:
+            if (self.model == BOOST_SVM1 and accuracy <= gamma) or (self.model == BOOST_SVM2 and accuracy <= 1):
                 if not self.quiet:
                     print("\n\naccuracy <= gamma", "***END***")
                 break
@@ -229,7 +245,10 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             self.estimators_.append(clf)
             preds.append(clf_pred)
             # print("n_w bef :", len(self.estimator_weights_))
-            self.estimator_weights_, rho = self.calculate_estimator_weights(converted_classes, preds)
+            if self.model == BOOST_SVM1:
+                self.estimator_weights_, rho = self.calculate_estimator_weights(converted_classes, preds)
+            elif self.model == BOOST_SVM2:
+                self.estimator_weights_, rho = self.calculate_estimator_weights_(converted_classes, preds)
             # print("n_w aft :", len(self.estimator_weights_))
             self.n_iterations_ += 1
 
@@ -287,7 +306,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             sys.stdout = old_stdout
 
         # add variables
-        rho = model.addVar(vtype=GRB.CONTINUOUS, name="rho", lb=float("-inf"))
+        rho = model.addVar(vtype=GRB.CONTINUOUS, name="rho", lb=-GRB.INFINITY)
         error_margin = [model.addVar(vtype=GRB.CONTINUOUS, name="error_margin " + str(i)) for i in range(len(c))]
         new_clf_weights = [model.addVar(vtype=GRB.CONTINUOUS, name="clf_weights " + str(i)) for i in range(len(self.estimators_))]
         # Use last values of estimators weights as warm start
@@ -308,10 +327,53 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         rho_ = rho.X
         opti = rho.X - self.regulator * sum(e.X for e in error_margin)
 
+        # print("primal opti =", opti)
+
         if not self.quiet:
             print("primal opti =", opti, "rho :", rho_, "clfs_w :", clf_weights)
 
         return clf_weights, rho_
+
+    def calculate_estimator_weights_(self, c, preds):
+        if not self.quiet:
+            print("\nrun primal_" + str(len(self.estimators_)))
+        # the new estimator is already added in get_predict_error before the call to this function
+        # initialize the model
+        if self.quiet:
+            old_stdout = sys.stdout
+            sys.stdout = open(os.devnull, "w")
+        model = Model("estimator_weight_optimiser")
+        model.setParam("LogToConsole", 0)
+        if self.quiet:
+            sys.stdout = old_stdout
+
+        # add variables
+        # rho = model.addVar(vtype=GRB.CONTINUOUS, name="rho", lb=float("-inf"))
+        error_margin = [model.addVar(vtype=GRB.CONTINUOUS, name="error_margin " + str(i)) for i in range(len(c))]
+        new_clf_weights = [model.addVar(vtype=GRB.CONTINUOUS, name="clf_weights " + str(i)) for i in range(len(self.estimators_))]
+        # Use last values of estimators weights as warm start
+        if not self.estimator_weights_:  # not none, not empty
+            for clf_id in range(len(self.estimator_weights_)):
+                new_clf_weights[clf_id].setAttr("Start", self.estimator_weights_[clf_id])
+
+        # add constraints
+        # model.addConstr(quicksum(new_clf_weights) == 1, name="weights = 1")
+        for tid in range(len(c)):
+            model.addConstr(quicksum([c[tid] * new_clf_weights[clf_id] * preds[clf_id][tid] for clf_id in range(len(self.estimators_))]) + error_margin[tid] >= 1, name="Constraint on sample " + str(tid))
+
+        # add objective function
+        model.setObjective(quicksum(new_clf_weights) + self.regulator * quicksum(error_margin), GRB.MINIMIZE)
+        model.optimize()
+
+        clf_weights = [w.X for w in new_clf_weights]
+        opti = sum(e.X for e in new_clf_weights) + self.regulator * sum(e.X for e in error_margin)
+
+        # print("primal opti =", opti)
+
+        if not self.quiet:
+            print("primal opti =", opti, "clfs_w :", clf_weights, "slacks :", [w.X for w in error_margin])
+
+        return clf_weights, None
 
     # Dual problem
     def calculate_sample_weights(self, sample_weights, c, preds):
@@ -327,7 +389,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             sys.stdout = old_stdout
 
         # add variables
-        gamma = model.addVar(vtype=GRB.CONTINUOUS, name="gamma", lb=float("-inf"))
+        gamma = model.addVar(vtype=GRB.CONTINUOUS, name="gamma", lb=-GRB.INFINITY)
         new_sample_weights = [model.addVar(vtype=GRB.CONTINUOUS, name="sample_weights " + str(tid), ub=self.regulator if self.regulator > 0 else 1) for tid in range(len(c))]
         # Use last values of examples weights as warm start
         if not sample_weights:  # not none, not empty
@@ -346,7 +408,48 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         ex_weights = [w.X for w in new_sample_weights]
         gamma_ = gamma.X
 
+        # print("dual opti =", gamma_)
+
         if not self.quiet:
             print("gamma :", gamma_, "new_ex :", ex_weights)
 
         return ex_weights, gamma_
+
+    def calculate_sample_weights_(self, sample_weights, c, preds):
+        if not self.quiet:
+            print("\nrun dual_" + str(len(self.estimators_)))
+        # initialize the model
+        if self.quiet:
+            old_stdout = sys.stdout
+            sys.stdout = open(os.devnull, "w")
+        model = Model("sample_weight_optimiser")
+        model.setParam("LogToConsole", 0)
+        if self.quiet:
+            sys.stdout = old_stdout
+
+        # add variables
+        # gamma = model.addVar(vtype=GRB.CONTINUOUS, name="gamma", lb=float("-inf"))
+        new_sample_weights = [model.addVar(vtype=GRB.CONTINUOUS, name="sample_weights " + str(tid), ub=self.regulator if self.regulator > 0 else 1) for tid in range(len(c))]
+        # Use last values of examples weights as warm start
+        if not sample_weights:  # not none, not empty
+            for tid in range(len(sample_weights)):
+                new_sample_weights[tid].setAttr("Start", sample_weights[tid])
+
+        # add constraints
+        # model.addConstr(quicksum(new_sample_weights) == 1, name="weights = 1")
+        for clf_id in range(len(self.estimators_)):
+            model.addConstr(quicksum([c[tid] * new_sample_weights[tid] * preds[clf_id][tid] for tid in range(len(new_sample_weights))]) <= 1, name="Constraint on estimator " + str(clf_id))
+
+        # add objective function
+        model.setObjective(quicksum(new_sample_weights), GRB.MAXIMIZE)
+        model.optimize()
+
+        ex_weights = [w.X for w in new_sample_weights]
+        opti = sum(e.X for e in new_sample_weights)
+
+        # print("dual opti =", opti)
+
+        if not self.quiet:
+            print("gamma :", opti, "new_ex :", ex_weights)
+
+        return ex_weights, opti
