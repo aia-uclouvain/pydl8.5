@@ -120,7 +120,7 @@ for filename in sorted(os.listdir(directory)):
             n_trees.append(clf.n_estimators_)
             fit_times.append(clf.duration_)
             train_scores.append(accuracy_score(y_train, clf.predict(X_train)))
-            test_scores.append(accuracy_score(y_tests, y_pred))
+            test_scores.append(accuracy_score(y_test, y_pred))
             n_iter.append(clf.n_iterations_)
             regulators.append(gd_sr.best_params_["regulator"])
             n_opti = n_opti + 1 if clf.optimal_ else n_opti
@@ -159,7 +159,7 @@ for filename in sorted(os.listdir(directory)):
             n_trees.append(clf.n_estimators_)
             fit_times.append(clf.duration_)
             train_scores.append(accuracy_score(y_train, clf.predict(X_train)))
-            test_scores.append(accuracy_score(y_tests, y_pred))
+            test_scores.append(accuracy_score(y_test, y_pred))
             n_iter.append(clf.n_iterations_)
             regulators.append(gd_sr.best_params_["regulator"])
             n_opti = n_opti + 1 if clf.optimal_ else n_opti
