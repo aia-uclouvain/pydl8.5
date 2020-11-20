@@ -127,6 +127,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         self.n_estimators_ = 0
         self.optimal_ = True
         self.n_iterations_ = 0
+        self.duration_ = 0
 
     def fit(self, X, y=None):
         if y is None or len(set(y)) != 2:
@@ -252,6 +253,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             # print("n_w aft :", len(self.estimator_weights_))
             self.n_iterations_ += 1
 
+        self.duration_ = time.perf_counter() - start_time
         # remove the useless estimators
         zero_ind = [i for i, val in enumerate(self.estimator_weights_) if val == 0]
         self.estimator_weights_ = [w for w in self.estimator_weights_ if w != 0]
