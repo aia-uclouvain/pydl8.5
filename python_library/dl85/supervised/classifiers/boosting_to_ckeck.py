@@ -13,24 +13,10 @@ from sklearn.exceptions import NotFittedError
 from sklearn.base import BaseEstimator
 from copy import deepcopy
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import StratifiedKFold
 
 
 BOOST_SVM1 = 1
 BOOST_SVM2 = 2
-
-
-def get_validation_data(X_all, y_all, X_train, y_train):
-    comp_x = X_train == X_all
-    comp_y = y_train == y_all
-    if comp_x.all() and comp_y.all():
-        return None, None
-    kf = StratifiedKFold(n_splits=5)
-    for train_index, test_index in kf.split(X_all, y_all):
-        comp_x = X_train == X_all[train_index]
-        comp_y = y_train == y_all[train_index]
-        if comp_x.all() and comp_y.all():
-            return X_all[test_index], y_all[test_index]
 
 
 class DL85Booster(BaseEstimator, ClassifierMixin):
@@ -134,6 +120,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         self.regulator = regulator
         self.quiet = quiet
         self.model = model
+        self.is_soft_margin = True
 
         self.estimators_ = []
         self.estimator_weights_ = []
@@ -143,19 +130,19 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         self.n_iterations_ = 0
         self.duration_ = 0
 
-    def fit(self, X, y=None, X_add=None, y_add=None, valid=True, data_name=None):
-        if y is None or len(set(y)) < 2:
+    def fit(self, X, y=None):
+        if y is None or len(set(y)) != 2:
             raise ValueError("The \"y\" value is compulsory for boosting and must have two values.")
 
-        X_valid, y_valid = (X_add, y_add) if valid else get_validation_data(X_add, y_add, X, y)
-        valid_exist = False if X_valid is None and y_valid is None else True
-        valid_accur = []
+        if self.regulator <= 1/X.shape[0]:
+            self.is_soft_margin = False
+            self.regulator = 0
 
         start_time = time.perf_counter()
-        # converted_classes = [-1 if p == 0 else 1 for p in y]
+        converted_classes = [-1 if p == 0 else 1 for p in y]
         preds = []
         sample_weights = []
-        # time_involve = True if self.time_limit > 0 else False
+        time_involve = True if self.time_limit > 0 else False
 
         if self.regulator <= 0:
             self.regulator = 1 / (random.uniform(0, 1) * X.shape[0])
@@ -186,18 +173,19 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         # add the current estimator to the ensemble
         self.estimators_.append(clf)
 
-        # save the prediction of the estimator : 1 if correct else -1
-        preds.append([-1 if p != y[i] else 1 for i, p in enumerate(clf.predict(X))])
+        # save the prediction of the estimator
+        preds.append([-1 if p == 0 else 1 for p in clf.predict(X)])
 
         # compute the weights of the estimator
         if self.model == BOOST_SVM1:
-            self.estimator_weights_, rho = self.calculate_estimator_weights(y, preds)
+            self.estimator_weights_, rho = self.calculate_estimator_weights(converted_classes, preds)
         elif self.model == BOOST_SVM2:
-            self.estimator_weights_, rho = self.calculate_estimator_weights_(y, preds)
+            self.estimator_weights_, rho = self.calculate_estimator_weights_(converted_classes, preds)
 
         # for i in range(self.max_estimators - 1):
         self.n_iterations_ += 1
         while True:
+            # print("n_iter :", len(self.estimator_weights_), "nvalid :", sum(w > 0 for w in self.estimator_weights_), "max :", self.max_estimators)
             if (sum(w > 0 for w in self.estimator_weights_) >= self.max_estimators > 0) or (self.n_iterations_ >= self.max_iterations > 0) or (time.perf_counter() - start_time >= self.time_limit > 0):
                 if not self.quiet:
                     print("stop condition reached!!!")
@@ -206,13 +194,14 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
 
             # We do not reach the number of max_estimators
             if self.model == BOOST_SVM1:
-                sample_weights, gamma = self.calculate_sample_weights(sample_weights, y, preds)
+                sample_weights, gamma = self.calculate_sample_weights(sample_weights, converted_classes, preds)
             elif self.model == BOOST_SVM2:
-                sample_weights, gamma = self.calculate_sample_weights_(sample_weights, y, preds)
+                sample_weights, gamma = self.calculate_sample_weights_(sample_weights, converted_classes, preds)
 
             if not self.quiet:
                 print("search for new estimator")
             if self.base_estimator is None:
+                # clf = DL85Classifier(max_depth=self.max_depth, min_sup=self.min_sup, time_limit=self.time_limit)  # , print_output=True)
                 self.clf_params["time_limit"] = self.clf_params["time_limit"] - (time.perf_counter() - start_time)
                 clf = DL85Classifier(**self.clf_params)
             else:
@@ -225,21 +214,31 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             if self.quiet:
                 sys.stdout = old_stdout
 
+            # Error function for DL8
+            # def weighted_error(tids):
+            #     all_classes = [0, 1]
+            #     supports = [0, 0]
+            #     for tid in tids:
+            #         supports[y[tid]] += self.example_weights[tid]
+            #     maxindex = supports.index(max(supports))
+            #     return sum(supports) - supports[maxindex], all_classes[maxindex]
+            # tree_clf = DL85Classifier(max_depth=self.max_depth, min_sup=self.min_sup, print_output=True, error_function=lambda tree: weighted_error(tree))
+            # tree_clf.fit(X, y)
+
             # print the tree expression of the estimator if it has
             if hasattr(clf, "tree_") and isinstance(clf.tree_, dict) and not self.quiet:
                 print(clf.tree_)
 
-            # compute the prediction of the new estimator : 1 if correct else -1
+            # compute prediction of the new estimator
             try:
-                clf_pred = [-1 if p != y[i] else 1 for i, p in enumerate(clf.predict(X))]
+                clf_pred = [-1 if p == 0 else 1 for p in clf.predict(X)]
             except (NotFittedError, SearchFailedError, TreeNotFoundError) as error:
                 if not self.quiet:
                     print("Problem during the search so we stop")
                 self.optimal_ = False
                 break
-
-            # compute the accuracy of the new estimator based on the weights of samples
-            accuracy = sum([sample_weights[tid] * clf_pred[tid] for tid in range(X.shape[0])])
+            # compute its accuracy based on the weights of samples
+            accuracy = sum([converted_classes[tid] * sample_weights[tid] * clf_pred[tid] for tid in range(X.shape[0])])
             if not self.quiet:
                 print("estimator_accuracy =", accuracy)
 
@@ -253,22 +252,13 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             preds.append(clf_pred)
             # print("n_w bef :", len(self.estimator_weights_))
             if self.model == BOOST_SVM1:
-                self.estimator_weights_, rho = self.calculate_estimator_weights(y, preds)
+                self.estimator_weights_, rho = self.calculate_estimator_weights(converted_classes, preds)
             elif self.model == BOOST_SVM2:
-                self.estimator_weights_, rho = self.calculate_estimator_weights_(y, preds)
-                # predict of validation set
-                if valid_exist:
-                    valid_pred = self.predict(X_valid)
-                    valid_accur.append(sum(p == y_valid[i] for i, p in enumerate(valid_pred))/len(y_valid))
+                self.estimator_weights_, rho = self.calculate_estimator_weights_(converted_classes, preds)
             # print("n_w aft :", len(self.estimator_weights_))
             self.n_iterations_ += 1
 
-        if valid_exist:
-            file = open(data_name, 'a')
-            file.write(",".join(map(lambda x: str(x), valid_accur)) + "\n")
-
         self.duration_ = time.perf_counter() - start_time
-
         # remove the useless estimators
         zero_ind = [i for i, val in enumerate(self.estimator_weights_) if val == 0]
         self.estimator_weights_ = [w for w in self.estimator_weights_ if w != 0]
@@ -276,9 +266,9 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         preds = [clf_pred_vals for clf_pred_id, clf_pred_vals in enumerate(preds) if clf_pred_id not in zero_ind]
 
         # compute training accuracy of the found ensemble and store it in the variable `accuracy_`
-        weighted_train_pred_correct_or_no = [[self.estimator_weights_[clf_id] * preds[clf_id][tid] for tid in range(len(y))] for clf_id in range(len(self.estimators_))]
-        train_pred_correct_or_not = [0 if sum(tid_pred) < 0 else 1 for tid_pred in zip(*weighted_train_pred_correct_or_no)]
-        self.accuracy_ = sum(train_pred_correct_or_not)/len(y)
+        weighted_train_pred = [[self.estimator_weights_[clf_id] * preds[clf_id][tid] for tid in range(len(y))] for clf_id in range(len(self.estimators_))]
+        train_pred = [0 if sum(tid_pred) < 0 else 1 for tid_pred in zip(*weighted_train_pred)]
+        self.accuracy_ = sum(p == y[i] for i, p in enumerate(train_pred))/len(y)
 
         # save the number of found estimators
         self.n_estimators_ = len(self.estimators_)
@@ -295,31 +285,18 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
 
         return self
 
-    def get_class(self, forest_decision):
-        """
-        compute the class of each transaction in list, based on decision of multiples trees
-        :param forest_decision: list representing the prediciton of each tree
-        :return: the class with highest weight
-        """
-        sums = {}
-        for key, value in zip(forest_decision, self.estimator_weights_):
-            try:
-                sums[key] += value
-            except KeyError:
-                sums[key] = value
-        return list({k: v for k, v in sorted(sums.items(), key=lambda item: item[1], reverse=True)}.keys())[0]
-
-    def get_predictions(self, predict_per_clf):
-        # transpose prediction list to have per row a list of decision for each tree for each transaction
-        predict_per_trans = list(map(list, zip(*predict_per_clf)))
-        return list(map(lambda x: self.get_class(x), predict_per_trans))
-
     def predict(self, X, y=None):
         if self.n_estimators_ == 0:  # fit method has not been called
             raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
-        # Run a prediction on each estimator
+        # Run a prediction on each estimator in term of 0/1
         predict_per_clf = [clf.predict(X) for clf_id, clf in enumerate(self.estimators_)]
-        return self.get_predictions(predict_per_clf)
+        # Convert 0/1 prediction into -1/1
+        predict_per_clf = [[-1 if p == 0 else 1 for p in row] for row in predict_per_clf]
+        # Apply the estimator weight on each prediction
+        weighted_predict_per_clf = [[self.estimator_weights_[clf_id] * predict_per_clf[clf_id][tid] for tid in range(X.shape[0])] for clf_id in range(len(self.estimators_))]
+        # Compute the prediction based on all estimators in term of 0/1
+        pred = [0 if sum(tid_pred) < 0 else 1 for tid_pred in zip(*weighted_predict_per_clf)]
+        return pred
 
     # Primal problem
     def calculate_estimator_weights(self, c, preds):
@@ -336,8 +313,9 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             sys.stdout = old_stdout
 
         # add variables
-        rho = model.addVar(vtype=GRB.CONTINUOUS, name="rho", lb=-GRB.INFINITY)
-        error_margin = [model.addVar(vtype=GRB.CONTINUOUS, name="error_margin " + str(i)) for i in range(len(c))]
+        min_margin = model.addVar(vtype=GRB.CONTINUOUS, name="minimum_margin", lb=-GRB.INFINITY)
+        if self.is_soft_margin:
+            slacks = [model.addVar(vtype=GRB.CONTINUOUS, name="slack_" + str(i)) for i in range(len(c))]
         new_clf_weights = [model.addVar(vtype=GRB.CONTINUOUS, name="clf_weights " + str(i)) for i in range(len(self.estimators_))]
         # Use last values of estimators weights as warm start
         if not self.estimator_weights_:  # not none, not empty
@@ -345,24 +323,23 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
                 new_clf_weights[clf_id].setAttr("Start", self.estimator_weights_[clf_id])
 
         # add constraints
-        model.addConstr(quicksum(new_clf_weights) == 1, name="weights = 1")
+        model.addConstr(quicksum(new_clf_weights) == 1, name="sum of weights = 1")
         for tid in range(len(c)):
-            model.addConstr(quicksum([new_clf_weights[clf_id] * preds[clf_id][tid] for clf_id in range(len(self.estimators_))]) + error_margin[tid] >= rho, name="Constraint on sample " + str(tid))
+            model.addConstr(quicksum([c[tid] * new_clf_weights[clf_id] * preds[clf_id][tid] for clf_id in range(len(self.estimators_))]) + (slacks[tid] if self.is_soft_margin else 0) >= min_margin, name="Constraint on sample " + str(tid))
 
         # add objective function
-        model.setObjective(rho - self.regulator * quicksum(error_margin), GRB.MAXIMIZE)
+        model.setObjective(min_margin - (self.regulator * quicksum(slacks) if self.is_soft_margin else 0), GRB.MAXIMIZE)
         model.optimize()
 
         clf_weights = [w.X for w in new_clf_weights]
-        rho_ = rho.X
-        opti = rho.X - self.regulator * sum(e.X for e in error_margin)
+        opti = min_margin.X - (self.regulator * sum(e.X for e in slacks) if self.is_soft_margin else 0)
 
-        # print("primal opti =", opti)
+        # print("primal opti (soft_margin) =", opti)
 
         if not self.quiet:
-            print("primal opti =", opti, "rho :", rho_, "clfs_w :", clf_weights)
+            print("primal opti (soft_margin) =", opti, "min_margin :", min_margin.X, "clfs_weights :", clf_weights)
 
-        return clf_weights, rho_
+        return clf_weights, min_margin.X
 
     def calculate_estimator_weights_(self, c, preds):
         if not self.quiet:
@@ -389,10 +366,10 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         # add constraints
         # model.addConstr(quicksum(new_clf_weights) == 1, name="weights = 1")
         for tid in range(len(c)):
-            model.addConstr(quicksum([new_clf_weights[clf_id] * preds[clf_id][tid] for clf_id in range(len(self.estimators_))]) + error_margin[tid] >= 1, name="Constraint on sample " + str(tid))
+            model.addConstr(quicksum([c[tid] * new_clf_weights[clf_id] * preds[clf_id][tid] for clf_id in range(len(self.estimators_))]) + error_margin[tid] >= 1, name="Constraint on sample " + str(tid))
 
         # add objective function
-        model.setObjective(quicksum(new_clf_weights) + self.regulator * quicksum(error_margin), GRB.MINIMIZE)
+        model.setObjective(quicksum(new_clf_weights) + (self.regulator * quicksum(error_margin) if self.is_soft_margin else 0), GRB.MINIMIZE)
         model.optimize()
 
         clf_weights = [w.X for w in new_clf_weights]
@@ -420,7 +397,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
 
         # add variables
         gamma = model.addVar(vtype=GRB.CONTINUOUS, name="gamma", lb=-GRB.INFINITY)
-        new_sample_weights = [model.addVar(vtype=GRB.CONTINUOUS, name="sample_weights " + str(tid), ub=self.regulator if self.regulator > 0 else 1) for tid in range(len(c))]
+        new_sample_weights = [model.addVar(vtype=GRB.CONTINUOUS, name="sample_weights " + str(tid), ub=self.regulator if self.is_soft_margin else 1) for tid in range(len(c))]
         # Use last values of examples weights as warm start
         if not sample_weights:  # not none, not empty
             for tid in range(len(sample_weights)):
@@ -429,7 +406,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         # add constraints
         model.addConstr(quicksum(new_sample_weights) == 1, name="weights = 1")
         for clf_id in range(len(self.estimators_)):
-            model.addConstr(quicksum([new_sample_weights[tid] * preds[clf_id][tid] for tid in range(len(new_sample_weights))]) <= gamma, name="Constraint on estimator " + str(clf_id))
+            model.addConstr(quicksum([c[tid] * new_sample_weights[tid] * preds[clf_id][tid] for tid in range(len(new_sample_weights))]) <= gamma, name="Constraint on estimator " + str(clf_id))
 
         # add objective function
         model.setObjective(gamma, GRB.MINIMIZE)
@@ -446,6 +423,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         return ex_weights, gamma_
 
     def calculate_sample_weights_(self, sample_weights, c, preds):
+        print(self.is_soft_margin)
         if not self.quiet:
             print("\nrun dual_" + str(len(self.estimators_)))
         # initialize the model
@@ -459,7 +437,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
 
         # add variables
         # gamma = model.addVar(vtype=GRB.CONTINUOUS, name="gamma", lb=float("-inf"))
-        new_sample_weights = [model.addVar(vtype=GRB.CONTINUOUS, name="sample_weights " + str(tid), ub=self.regulator if self.regulator > 0 else 1) for tid in range(len(c))]
+        new_sample_weights = [model.addVar(vtype=GRB.CONTINUOUS, name="sample_weights " + str(tid), ub=self.regulator if self.is_soft_margin else GRB.INFINITY) for tid in range(len(c))]
         # Use last values of examples weights as warm start
         if not sample_weights:  # not none, not empty
             for tid in range(len(sample_weights)):
@@ -468,10 +446,11 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         # add constraints
         # model.addConstr(quicksum(new_sample_weights) == 1, name="weights = 1")
         for clf_id in range(len(self.estimators_)):
-            model.addConstr(quicksum([new_sample_weights[tid] * preds[clf_id][tid] for tid in range(len(new_sample_weights))]) <= 1, name="Constraint on estimator " + str(clf_id))
+            model.addConstr(quicksum([c[tid] * new_sample_weights[tid] * preds[clf_id][tid] for tid in range(len(new_sample_weights))]) <= 1, name="Constraint on estimator " + str(clf_id))
 
         # add objective function
         model.setObjective(quicksum(new_sample_weights), GRB.MAXIMIZE)
+        model.write("mod1.lp")
         model.optimize()
 
         ex_weights = [w.X for w in new_sample_weights]

@@ -22,3 +22,7 @@ dl85Optimizer.cpython-36m-darwin.so
 .coverage
 examples/gurobi.log
 test_dl85_cart.py
+EH-training-data.csv
+EH-training-labels.csv
+EH-testing-data.csv
+EH-testing-labels.csv
