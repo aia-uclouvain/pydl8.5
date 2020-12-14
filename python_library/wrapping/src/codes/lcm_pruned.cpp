@@ -297,7 +297,8 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
         }
 
         // if we can't get solution without computation, we compute the next candidates to perform the search
-         next_attributes = getExistingSuccessors(node);
+        next_attributes = getSuccessors(next_candidates, last_added);
+//         next_attributes = getExistingSuccessors(node);
 //        next_attributes = getSuccessors(next_candidates, cover, last_added);
     }
 

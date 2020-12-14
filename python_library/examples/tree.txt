@@ -1,0 +1,5 @@
+{"feat": 10, "left": {"feat": 38, "left": {"value": 1, "error": 30.0}, "right": {"value": 0, "error": 3.0}}, "right": {"feat": 38, "left": {"value": 0, "error": 3.0}, "right": {"value": 1, "error": 24.0}}}
+{"feat": 10, "left": {"feat": 38, "left": {"value": 1, "error": 21.0}, "right": {"value": 0, "error": 3.0}}, "right": {"feat": 38, "left": {"value": 0, "error": 3.0}, "right": {"value": 1, "error": 26.0}}}
+{"feat": 10, "left": {"feat": 38, "left": {"value": 1, "error": 25.0}, "right": {"value": 0, "error": 4.0}}, "right": {"feat": 38, "left": {"value": 0, "error": 4.0}, "right": {"value": 1, "error": 26.0}}}
+{"feat": 10, "left": {"feat": 38, "left": {"value": 1, "error": 28.0}, "right": {"value": 0, "error": 5.0}}, "right": {"feat": 38, "left": {"value": 0, "error": 3.0}, "right": {"value": 1, "error": 22.0}}}
+{"feat": 10, "left": {"feat": 38, "left": {"value": 1, "error": 24.0}, "right": {"value": 0, "error": 5.0}}, "right": {"feat": 38, "left": {"value": 0, "error": 3.0}, "right": {"value": 1, "error": 26.0}}}

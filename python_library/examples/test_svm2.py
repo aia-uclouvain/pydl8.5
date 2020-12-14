@@ -1,7 +1,7 @@
 from sklearn.svm import SVC
 from sklearn.datasets import load_iris, load_digits, fetch_openml
 from sklearn.model_selection import train_test_split, cross_validate, GridSearchCV, StratifiedKFold
-from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, LabelBinarizer, KBinsDiscretizer
+from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, LabelBinarizer, KBinsDiscretizer, Binarizer
 from sklearn.metrics import accuracy_score
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
@@ -24,16 +24,67 @@ import sys
 # X = enc.fit_transform(X)
 
 
-X, y = fetch_openml('mnist_784', version=1, return_X_y=True)
-random_state = check_random_state(0)
-permutation = random_state.permutation(X.shape[0])
-X = X[permutation]
-y = y[permutation]
-X = X.reshape((X.shape[0], -1))
-X = X.astype('int32')
-y = y.astype('int32')
-print(X.shape)
-print(y.shape)
+# X, y = fetch_openml('mnist_784', version=1, return_X_y=True)
+# random_state = check_random_state(0)
+# permutation = random_state.permutation(X.shape[0])
+# X = X[permutation]
+# y = y[permutation]
+# X = X.reshape((X.shape[0], -1))
+# X = X.astype('int32')
+# y = y.astype('int32')
+# print(X.shape)
+# print(y.shape)
+# print(X[0, :])
+# sys.exit(0)
+
+
+# train = np.genfromtxt("../datasets/mnist_train.csv", delimiter=",")
+# test = np.genfromtxt("../datasets/mnist_test.csv", delimiter=",")
+# # data = np.concatenate((train, test))
+# X_train, y_train = train[:, 1:], train[:, 0]
+# X_test, y_test = test[:, 1:], test[:, 0]
+# enc = Binarizer(threshold=10)
+# X_train = enc.fit_transform(X_train)
+# X_test = enc.fit_transform(X_test)
+# X_train, y_train = X_train.astype('int32'), y_train.astype('int32')
+# X_test, y_test = X_test.astype('int32'), y_test.astype('int32')
+# print(X_train.shape, X_test.shape)
+# print(y_train.shape, y_test.shape)
+# print(X_train[0, :])
+# print(set(y_train), set(y_test))
+# sys.exit(0)
+
+
+train = np.genfromtxt("../datasets/mnist_train.csv", delimiter=",")
+test = np.genfromtxt("../datasets/mnist_test.csv", delimiter=",")
+data = np.concatenate((train, test))
+X = data[:, 1:]
+y = data[:, 0]
+# enc = KBinsDiscretizer(n_bins=2, encode='ordinal', strategy='uniform')
+# X = enc.fit_transform(X)
+# enc = OneHotEncoder(sparse=False, handle_unknown='ignore')
+# X = enc.fit_transform(X)
+enc = Binarizer(threshold=10)
+X = enc.fit_transform(X)
+X, y = X.astype('int32'), y.astype('int32')
+# print(X.shape)
+# print(y.shape)
+# print(X[0, :])
+# print(set(y))
+# sys.exit(0)
+
+
+# X_train = np.load("../datasets/binary-mnist/original_28x28/all_digits_binary_pixels/x_train.npy", allow_pickle=True)
+# y_train = np.load("../datasets/binary-mnist/original_28x28/all_digits_binary_pixels/y_train.npy", allow_pickle=True)
+# X_test = np.load("../datasets/binary-mnist/original_28x28/all_digits_binary_pixels/x_test.npy", allow_pickle=True)
+# y_test = np.load("../datasets/binary-mnist/original_28x28/all_digits_binary_pixels/y_test.npy", allow_pickle=True)
+# print(X_train.shape, y_train.shape)
+# print(X_test.shape, y_test.shape)
+# X = np.concatenate((X_train, X_test))
+# y = np.concatenate((y_train, y_test))
+# # print(set(y_train))
+# # print(X_train[0, :])
+# # sys.exit(0)
 
 
 # data = pd.read_csv("../datasets/matchmaker.csv", delimiter=",", header=None)
@@ -53,9 +104,11 @@ print(y.shape)
 # y = y.ravel()
 # np.savetxt("../datasets/matchmake.txt", np.concatenate((y.reshape(X.shape[0], 1), X), axis=1), fmt="%d", delimiter=" ")
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-print(X_train.shape)
-print(X.shape)
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+# X_train = X_train.astype('int32')
+# y_train = y_train.astype('int32')
+# print(X_train.shape)
+# print(X.shape)
 
 
 
