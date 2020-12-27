@@ -267,27 +267,29 @@ class DL85Predictor(BaseEstimator):
                 print("DL8.5 fitting: Timeout reached and solution not found")
                 self.timeout_ = True
 
-        if self.leaf_value_function is not None:
-            if hasattr(self, 'tree_'):
-                # add transactions to nodes of the tree
-                self.tree_dfs(X)
+        if hasattr(self, 'tree_'):
+            # add transactions to nodes of the tree
+            self.add_transactions_and_proba(X, y)
 
-                if self.leaf_value_function is not None:
-                    def search(node):
-                        if self.is_leaf_node(node) is not True:
-                            search(node['left'])
-                            search(node['right'])
-                        else:
-                            node['value'] = self.leaf_value_function(node['transactions'])
-                    node = self.tree_
-                    search(node)
+            if self.leaf_value_function is not None:
+                def search(node):
+                    if self.is_leaf_node(node) is not True:
+                        search(node['left'])
+                        search(node['right'])
+                    else:
+                        node['value'] = self.leaf_value_function(node['transactions'])
+                node = self.tree_
+                search(node)
+
+            self.remove_transactions()
 
         if self.print_output:
             print(solution[0])
-            if self.leaf_value_function is None:
-                print("Tree:", self.tree_)
-            else:
-                print("Tree:", self.tree_without_transactions())
+            print("Tree:", self.tree_)
+            # if self.leaf_value_function is None:
+            #     print("Tree:", self.tree_)
+            # else:
+            #     print("Tree:", self.tree_without_transactions())
             print("Size:", str(self.size_))
             print("Depth:", str(self.depth_))
             print("Error:", str(self.error_))
@@ -349,16 +351,76 @@ class DL85Predictor(BaseEstimator):
                 node = node['right']
         return node['value']
 
+    def predict_proba(self, X):
+        """ Implements the standard predict function for a DL8.5 classifier.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            The input samples.
+
+        Returns
+        -------
+        y : ndarray, shape (n_samples,)
+            The label for each sample is the label of the closest sample
+            seen during fit.
+        """
+
+        # Check is fit is called
+        # check_is_fitted(self, attributes='tree_') # use of attributes is deprecated. alternative solution is below
+
+        # if hasattr(self, 'sol_size') is False:  # fit method has not been called
+        if self.is_fitted_ is False:  # fit method has not been called
+            raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
+
+        if self.tree_ is None:
+            raise TreeNotFoundError("predict(): ", "Tree not found during training by DL8.5 - "
+                                                   "Check fitting message for more info.")
+
+        if hasattr(self, 'tree_') is False:  # normally this case is not possible.
+            raise SearchFailedError("PredictionError: ", "DL8.5 training has failed. Please contact the developers "
+                                                         "if the problem is in the scope supported by the tool.")
+
+        # Input validation
+        X = check_array(X)
+
+        pred = []
+
+        for i in range(X.shape[0]):
+            pred.append(self.pred_proba_on_dict(X[i, :]))
+
+        return np.array(pred)
+
+    def pred_proba_on_dict(self, instance, tree=None):
+        node = tree if tree is not None else self.tree_
+        while self.is_leaf_node(node) is not True:
+            if instance[node['feat']] == 1:
+                node = node['left']
+            else:
+                node = node['right']
+        return node['proba']
+
     @staticmethod
     def is_leaf_node(node):
         names = [x[0] for x in node.items()]
         return 'error' in names
 
-    def tree_dfs(self, X):  # explore the decision tree found and add transactions to leaf nodes.
+    def add_transactions_and_proba(self, X, y=None):  # explore the decision tree found and add transactions to leaf nodes.
         def recurse(transactions, node, feature, positive):
             if transactions is None:
                 current_transactions = list(range(0, X.shape[0]))
                 node['transactions'] = current_transactions
+                if y is not None:
+                    unique, counts = np.unique(y[node['transactions']], return_counts=True)
+                    count_dict = dict(zip(unique, counts))
+                    node['proba'] = []
+                    for c in self.classes_:
+                        if c in count_dict:
+                            node['proba'].append(count_dict[c] / sum(counts))
+                        else:
+                            node['proba'].append(0)
+                else:
+                    node['proba'] = None
                 if 'feat' in node.keys():
                     recurse(current_transactions, node['left'], node['feat'], True)
                     recurse(current_transactions, node['right'], node['feat'], False)
@@ -370,6 +432,17 @@ class DL85Predictor(BaseEstimator):
                     positive_vector = positive_vector.tolist()
                     current_transactions = set(transactions).intersection(positive_vector)
                     node['transactions'] = list(current_transactions)
+                    if y is not None:
+                        unique, counts = np.unique(y[node['transactions']], return_counts=True)
+                        count_dict = dict(zip(unique, counts))
+                        node['proba'] = []
+                        for c in self.classes_:
+                            if c in count_dict:
+                                node['proba'].append(count_dict[c] / sum(counts))
+                            else:
+                                node['proba'].append(0)
+                    else:
+                        node['proba'] = None
                     if 'feat' in node.keys():
                         recurse(current_transactions, node['left'], node['feat'], True)
                         recurse(current_transactions, node['right'], node['feat'], False)
@@ -378,6 +451,17 @@ class DL85Predictor(BaseEstimator):
                     negative_vector = negative_vector.tolist()
                     current_transactions = set(transactions).intersection(negative_vector)
                     node['transactions'] = list(current_transactions)
+                    if y is not None:
+                        unique, counts = np.unique(y[node['transactions']], return_counts=True)
+                        count_dict = dict(zip(unique, counts))
+                        node['proba'] = []
+                        for c in self.classes_:
+                            if c in count_dict:
+                                node['proba'].append(count_dict[c] / sum(counts))
+                            else:
+                                node['proba'].append(0)
+                    else:
+                        node['proba'] = None
                     if 'feat' in node.keys():
                         recurse(current_transactions, node['left'], node['feat'], True)
                         recurse(current_transactions, node['right'], node['feat'], False)
@@ -388,7 +472,7 @@ class DL85Predictor(BaseEstimator):
     def tree_without_transactions(self):
 
         def recurse(node):
-            if 'feat' in node.keys() or 'value' in node.keys():
+            if 'transactions' in node and ('feat' in node.keys() or 'value' in node.keys()):
                 del node['transactions']
                 if 'left' in node.keys():
                     recurse(node['left'])
@@ -397,6 +481,15 @@ class DL85Predictor(BaseEstimator):
         tree = dict(self.tree_)
         recurse(tree)
         return tree
+
+    def remove_transactions(self):
+        def recurse(node):
+            if 'transactions' in node and ('feat' in node.keys() or 'value' in node.keys()):
+                del node['transactions']
+                if 'left' in node.keys():
+                    recurse(node['left'])
+                    recurse(node['right'])
+        recurse(self.tree_)
 
     def export_graphviz(self):
         if self.is_fitted_ is False:  # fit method has not been called

@@ -302,7 +302,8 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
 
                 # Greater n_trees. It always means we finished with a regulator value
                 if n_trees > self.max_estimators and end:
-                    print("great", self.regulator, local_opti, n_trees)
+                # if n_trees > self.max_estimators > 0:
+                    print("great", self.regulator, n_trees)
 
                     clear(self)
                     # if local_opti < opti_obj:
@@ -335,7 +336,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
                 # lower and end iteration for a regulator value
                 elif n_trees <= self.max_estimators and end:
 
-                    print("low", self.regulator, local_opti, n_trees)
+                    print("low", self.regulator, n_trees)
                     # print("low", self.regulator, local_opti, opti_obj, n_trees)
                     end = False
 

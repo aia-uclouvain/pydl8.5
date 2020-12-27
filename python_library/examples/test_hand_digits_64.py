@@ -17,8 +17,8 @@ depth, time_limit, N_FOLDS = 2, 0, 5
 
 file = open("../output/nist_" + str(depth) + ".txt", "w")
 
-train = np.genfromtxt("../datasets/optdigits.tra", delimiter=",")
-test = np.genfromtxt("../datasets/optdigits.tes", delimiter=",")
+train = np.genfromtxt("../datasets/boosting/nist/optdigits.tra", delimiter=",")
+test = np.genfromtxt("../datasets/boosting/nist/optdigits.tes", delimiter=",")
 # split features and target
 X_train, y_train = train[:, :-1], train[:, -1]
 X_test, y_test = test[:, :-1], test[:, -1]
@@ -32,10 +32,10 @@ enc = Binarizer(threshold=1)
 X_train = enc.fit_transform(X_train)
 X_test = enc.fit_transform(X_test)
 # create 2 classes even or odd
-biner = lambda x: x % 2
-y_train = biner(y_train)
-y_test = biner(y_test)
-# # another way to create more complex binarization
+# biner = lambda x: x % 2
+# y_train = biner(y_train)
+# y_test = biner(y_test)
+# another way to create more complex binarization
 # def binner(x):
 #    if x in [5, 2]:
 #        return 0
@@ -45,8 +45,15 @@ y_test = biner(y_test)
 #        return 2
 #    elif x in [0, 9, 6]:
 #        return 3
-# y_train = np.array(list(map(binner, y_train)))
-# y_test = np.array(list(map(binner, y_test)))
+def binner(x):
+    if x in [0, 1, 2, 3]:
+        return 0
+    elif x in [4, 5, 6]:
+        return 1
+    elif x in [7, 8, 9]:
+        return 2
+y_train = np.array(list(map(binner, y_train)))
+y_test = np.array(list(map(binner, y_test)))
 print(X_train.shape, X_test.shape)
 print(y_train.shape, y_test.shape)
 print(set(y_train), set(y_test))
@@ -55,6 +62,95 @@ file.write(str(X_test.shape) + " " + str(y_test.shape) + "\n")
 file.write(str(set(y_train)) + " " + str(set(y_test)) + "\n")
 
 print("Optical Recognition of Handwritten Digits Data Set")
+
+from sklearn.metrics import confusion_matrix
+# clf = DL85Booster(max_depth=depth, min_sup=1, max_estimators=3, opti_gap=0, step=.1, tolerance=0.00001, model=BOOST_SVM2, time_limit=time_limit, quiet=True)
+# clf = DL85Booster(max_depth=depth, min_sup=1, max_estimators=2, opti_gap=0, step=.001, tolerance=0.0000001, model=BOOST_SVM2, time_limit=time_limit, quiet=True)
+clf = DL85Booster(max_depth=depth, min_sup=1, regulator=0.2009931035749624, opti_gap=0, step=.006, tolerance=0.000001, model=BOOST_SVM2, time_limit=time_limit, quiet=True)
+# clf = DL85Booster(max_depth=depth, min_sup=1, regulator=0.2, time_limit=time_limit)
+# 0.05099310357496239 4
+# 0.2009931035749624 3
+# 0.07771185357496238 5
+start = time.perf_counter()
+print("Model building...")
+clf.fit(X_train, y_train)
+duration = time.perf_counter() - start
+print("Model built. Duration of building =", round(duration, 4))
+y_pred = clf.predict(X_test)
+print("Confusion Matrix below")
+print(confusion_matrix(y_test, y_pred))
+print("Accuracy DL8.5 on training set =", round(clf.accuracy_, 4))
+print("Accuracy DL8.5 on test set =", round(accuracy_score(y_test, y_pred), 4))
+print(clf.problem)
+print(clf.regulator, clf.n_estimators_)
+for c in clf.estimators_:
+    print(c.tree_)
+
+max_trees = clf.n_estimators_
+
+
+print()
+clf = AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=depth), n_estimators=max_trees)
+# clf = DecisionTreeClassifier(max_depth=depth)
+# clf = DL85Booster(max_depth=depth, min_sup=1, regulator=0.007137981694607998, time_limit=time_limit)
+start = time.perf_counter()
+print("Model building...")
+clf.fit(X_train, y_train)
+duration = time.perf_counter() - start
+print("Model built. Duration of building =", round(duration, 4))
+y_pred = clf.predict(X_test)
+print("Confusion Matrix below")
+print(confusion_matrix(y_test, y_pred))
+print("Accuracy DL8.5 on training set =", round(accuracy_score(y_train, clf.predict(X_train)), 4))
+print("Accuracy DL8.5 on test set =", round(accuracy_score(y_test, y_pred), 4), "\n\n\n")
+
+
+print()
+clf = AdaBoostClassifier(base_estimator=DL85Classifier(max_depth=depth), n_estimators=max_trees)
+# clf = DL85Booster(max_depth=depth, min_sup=1, regulator=0.007137981694607998, time_limit=time_limit)
+start = time.perf_counter()
+print("Model building...")
+clf.fit(X_train, y_train)
+duration = time.perf_counter() - start
+print("Model built. Duration of building =", round(duration, 4))
+y_pred = clf.predict(X_test)
+print("Confusion Matrix below")
+print(confusion_matrix(y_test, y_pred))
+print("Accuracy DL8.5 on training set =", round(accuracy_score(y_train, clf.predict(X_train)), 4))
+print("Accuracy DL8.5 on test set =", round(accuracy_score(y_test, y_pred), 4), "\n\n\n")
+
+
+
+print()
+clf = AdaBoostClassifier(base_estimator=DL85Classifier(max_depth=depth), n_estimators=max_trees, algorithm="SAMME")
+# clf = DL85Booster(max_depth=depth, min_sup=1, regulator=0.007137981694607998, time_limit=time_limit)
+start = time.perf_counter()
+print("Model building...")
+clf.fit(X_train, y_train)
+duration = time.perf_counter() - start
+print("Model built. Duration of building =", round(duration, 4))
+y_pred = clf.predict(X_test)
+print("Confusion Matrix below")
+print(confusion_matrix(y_test, y_pred))
+print("Accuracy DL8.5 on training set =", round(accuracy_score(y_train, clf.predict(X_train)), 4))
+print("Accuracy DL8.5 on test set =", round(accuracy_score(y_test, y_pred), 4), "\n\n\n")
+
+
+
+print()
+clf = GradientBoostingClassifier(max_depth=depth, n_estimators=max_trees)
+# clf = DL85Booster(max_depth=depth, min_sup=1, regulator=0.007137981694607998, time_limit=time_limit)
+start = time.perf_counter()
+print("Model building...")
+clf.fit(X_train, y_train)
+duration = time.perf_counter() - start
+print("Model built. Duration of building =", round(duration, 4))
+y_pred = clf.predict(X_test)
+print("Confusion Matrix below")
+print(confusion_matrix(y_test, y_pred))
+print("Accuracy DL8.5 on training set =", round(accuracy_score(y_train, clf.predict(X_train)), 4))
+print("Accuracy DL8.5 on test set =", round(accuracy_score(y_test, y_pred), 4), "\n\n\n")
+sys.exit(0)
 
 
 for d in range(1, depth+1):
