@@ -24,7 +24,7 @@ import sys
 # dataset = np.genfromtxt("../datasets/" + filename + ".txt", delimiter=' ')
 
 N_FOLDS, N_FOLDS_TUNING, MAX_DEPTH, MIN_SUP = 5, 4, int(sys.argv[1]) if len(sys.argv) > 1 else 1, 1
-MAX_ITERATIONS, MAX_TREES, TIME_LIMIT = 10000000000, 0, 0
+MAX_ITERATIONS, MAX_TREES, TIME_LIMIT = 0, 0, 0
 VERBOSE_LEVEL = 10
 
 file_out = open("../output/out_depth_" + str(MAX_DEPTH) + ".csv", "a+")
@@ -71,7 +71,7 @@ for filename in sorted(os.listdir(directory)):
 
         print("DL8.5")
         print("Dataset :", filename)
-        clf_results = cross_validate(estimator=DL85Classifier(max_depth=MAX_DEPTH, min_sup=MIN_SUP, time_limit=TIME_LIMIT), X=X, y=y, scoring='accuracy',
+        clf_results = cross_validate(estimator=DL85Classifier(max_depth=MAX_DEPTH), X=X, y=y, scoring='accuracy',
                                      cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL, return_train_score=True, return_estimator=True, error_score=np.nan)
         n_trees = [1 for k in range(N_FOLDS)]
         fps = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 1] if y_tests[k][i] != 1]) for k in range(N_FOLDS)]
@@ -88,7 +88,7 @@ for filename in sorted(os.listdir(directory)):
 
         print("CART")
         print("Dataset :", filename)
-        clf_results = cross_validate(estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH, min_samples_leaf=MIN_SUP), X=X, y=y, scoring='accuracy',
+        clf_results = cross_validate(estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH), X=X, y=y, scoring='accuracy',
                                      cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL, return_train_score=True, return_estimator=True, error_score=np.nan)
         n_trees = [1 for k in range(N_FOLDS)]
         fps = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 1] if y_tests[k][i] != 1]) for k in range(N_FOLDS)]
@@ -109,13 +109,11 @@ for filename in sorted(os.listdir(directory)):
         for k in range(N_FOLDS):
             X_train, X_test, y_train, y_test = X_trains[k], X_tests[k], y_trains[k], y_tests[k]
             print("Fold", k+1, "- Search for the best regulator using grid search...", MAX_TREES)
-            gd_sr = GridSearchCV(estimator=DL85Boostera(max_depth=MAX_DEPTH, min_sup=MIN_SUP, time_limit=TIME_LIMIT, max_estimators=MAX_TREES),
+            gd_sr = GridSearchCV(estimator=DL85Boostera(max_depth=MAX_DEPTH),
                                  param_grid=parameters, scoring='accuracy', cv=N_FOLDS_TUNING, n_jobs=-1, verbose=VERBOSE_LEVEL)
             gd_sr.fit(X_train, y_train)
             print()
             print("Fold", k+1, "- Running cross validation for LPBoost + DL8.5 with best regulator =", gd_sr.best_params_["regulator"], "on", filename)
-            # clf = DL85Booster(max_depth=MAX_DEPTH, min_sup=MIN_SUP, time_limit=TIME_LIMIT, model=BOOST_SVM2, max_estimators=MAX_TREES, regulator=gd_sr.best_params_["regulator"])
-            # clf.fit(X_train, y_train)
             clf = gd_sr.best_estimator_
             y_pred = clf.predict(X_test)
             n_trees.append(clf.n_estimators_)
@@ -129,10 +127,10 @@ for filename in sorted(os.listdir(directory)):
             fns.append(len([i for i in [j for j, val in enumerate(y_pred) if val == 0] if y_test[i] != 0]))
             to_write += [n_iter[-1], n_trees[-1], fit_times[-1], clf.optimal_, train_scores[-1], test_scores[-1], fps[-1], fns[-1], regulators[-1]]
             print("fold :", k+1, "train_acc :", train_scores[k], "test acc :", test_scores[k])
-        max_estimators = int(sum(n_trees)/len(n_trees))
-        # max_estimators = n_trees[:]
+        # max_estimators = int(sum(n_trees)/len(n_trees))
+        max_estimators = n_trees[:]
         print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
-        print("Number of trees =", n_trees, max_estimators)
+        print("Number of trees =", n_trees, np.mean(n_trees))
         print("Avg accuracy on training set =", round(float(np.mean(train_scores)), 4))
         print("Avg accuracy on test set =", round(float(np.mean(test_scores)), 4))
         print("number of optimality :", n_opti)
@@ -148,15 +146,11 @@ for filename in sorted(os.listdir(directory)):
         for k in range(N_FOLDS):
             X_train, X_test, y_train, y_test = X_trains[k], X_tests[k], y_trains[k], y_tests[k]
             print("Fold", k+1, "- Search for the best regulator using grid search...", MAX_TREES)
-            gd_sr = GridSearchCV(estimator=DL85Boostera(base_estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH,
-                                 min_samples_leaf=MIN_SUP), time_limit=TIME_LIMIT, max_estimators=max_estimators[k]),
+            gd_sr = GridSearchCV(estimator=DL85Boostera(base_estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH), max_iterations=max_estimators[k]),
                                  param_grid=parameters, scoring='accuracy', cv=N_FOLDS_TUNING, n_jobs=-1, verbose=VERBOSE_LEVEL)
             gd_sr.fit(X_train, y_train)
             print()
             print("Fold", k+1, "- Running training for LPBoost + CART with best regulator =", gd_sr.best_params_["regulator"], "on", filename)
-            # clf = DL85Booster(base_estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH, min_samples_leaf=MIN_SUP), model=BOOST_SVM2,
-            #                   time_limit=TIME_LIMIT, max_estimators=max_estimators, regulator=gd_sr.best_params_["regulator"])
-            # clf.fit(X_train, y_train)
             clf = gd_sr.best_estimator_
             y_pred = clf.predict(X_test)
             n_trees.append(clf.n_estimators_)
@@ -184,112 +178,151 @@ for filename in sorted(os.listdir(directory)):
         print("Adaboost + DL8.5")
         print("Dataset :", filename)
         print("Running cross validation")
-        clf_results = cross_validate(estimator=AdaBoostClassifier(base_estimator=DL85Classifier(max_depth=MAX_DEPTH, min_sup=MIN_SUP, time_limit=TIME_LIMIT),
-                                                                  algorithm="SAMME", n_estimators=max_estimators), X=X, y=y, scoring='accuracy', cv=N_FOLDS,
-                                     n_jobs=-1, verbose=VERBOSE_LEVEL, return_train_score=True, return_estimator=True, error_score=np.nan)
-        n_trees = [np.nan if np.isnan(clf_results['train_score'][k]) else len(clf_results['estimator'][k].estimators_) for k in range(N_FOLDS)]
-        fps = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 1] if y_tests[k][i] != 1]) for k in range(N_FOLDS)]
-        fns = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 0] if y_tests[k][i] != 0]) for k in range(N_FOLDS)]
-
-        print("Model built. Avg duration of building =", round(float(np.mean(clf_results['fit_time'])), 4))
+        train_accs, test_accs, n_trees, fps, fns, fit_times = [], [], [], [], [], []
+        for k in range(N_FOLDS):
+            X_train, X_test, y_train, y_test = X_trains[k], X_tests[k], y_trains[k], y_tests[k]
+            clf = AdaBoostClassifier(base_estimator=DL85Classifier(max_depth=MAX_DEPTH), n_estimators=max_estimators[k])
+            start = time.perf_counter()
+            clf.fit(X_train, y_train)
+            fit_times.append(time.perf_counter() - start)
+            y_pred = clf.predict(X_test)
+            n_trees.append(len(clf.estimators_))
+            train_accs.append(accuracy_score(y_train, clf.predict(X_train)))
+            test_accs.append(accuracy_score(y_test, y_pred))
+            fps[k].append(len([i for i in [j for j, val in enumerate(clf.predict(X_test)) if val == 1] if y_test[i] != 1]))
+            fns[k].append(len([i for i in [j for j, val in enumerate(clf.predict(X_test)) if val == 0] if y_test[i] != 0]))
+        print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
         print("Avg number of trees =", round(float(np.mean(n_trees)), 4))
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=RuntimeWarning)
-            print("Avg accuracy on training set =", np.nan if np.isnan(fps[0]) and len(set(fps)) == 1 else round(float(np.nanmean(clf_results['train_score'])), 4))
-            print("Avg accuracy on test set =", np.nan if np.isnan(fps[0]) and len(set(fps)) == 1 else round(float(np.nanmean(clf_results['test_score'])), 4))
-        print("sum false positives =", np.nan if np.isnan(fps[0]) and len(set(fps)) == 1 else np.nansum(fps))
+        print("Avg accuracy on training set =", round(float(np.nanmean(clf_results['train_score'])), 4))
+        print("Avg accuracy on test set =", round(float(np.nanmean(clf_results['test_score'])), 4))
+        print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
-        tmp_to_write = [[n_trees[k], n_trees[k], clf_results['fit_time'][k], True, clf_results['train_score'][k], clf_results['test_score'][k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
+        tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
         print("Adaboost + CART")
         print("Dataset :", filename)
         print("Running cross validation")
-        clf_results = cross_validate(estimator=AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH, min_samples_leaf=MIN_SUP),
-                                     n_estimators=max_estimators), X=X, y=y, scoring='accuracy', cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL,
-                                     return_train_score=True, return_estimator=True, error_score=np.nan)
-        n_trees = list(map(lambda clf: len(clf.estimators_), clf_results['estimator']))
-        fps = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 1] if y_tests[k][i] != 1]) for k in range(N_FOLDS)]
-        fns = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 0] if y_tests[k][i] != 0]) for k in range(N_FOLDS)]
-        print("Model built. Avg duration of building =", round(float(np.mean(clf_results['fit_time'])), 4))
+        train_accs, test_accs, n_trees, fps, fns, fit_times = [], [], [], [], [], []
+        for k in range(N_FOLDS):
+            X_train, X_test, y_train, y_test = X_trains[k], X_tests[k], y_trains[k], y_tests[k]
+            clf = AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH), n_estimators=max_estimators[k])
+            start = time.perf_counter()
+            clf.fit(X_train, y_train)
+            fit_times.append(time.perf_counter() - start)
+            y_pred = clf.predict(X_test)
+            n_trees.append(len(clf.estimators_))
+            train_accs.append(accuracy_score(y_train, clf.predict(X_train)))
+            test_accs.append(accuracy_score(y_test, y_pred))
+            fps[k].append(len([i for i in [j for j, val in enumerate(clf.predict(X_test)) if val == 1] if y_test[i] != 1]))
+            fns[k].append(len([i for i in [j for j, val in enumerate(clf.predict(X_test)) if val == 0] if y_test[i] != 0]))
+        print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
         print("Avg number of trees =", round(float(np.mean(n_trees)), 4))
-        print("Avg accuracy on training set =", round(float(np.mean(clf_results['train_score'])), 4))
-        print("Avg accuracy on test set =", round(float(np.mean(clf_results['test_score'])), 4))
+        print("Avg accuracy on training set =", round(float(np.nanmean(clf_results['train_score'])), 4))
+        print("Avg accuracy on test set =", round(float(np.nanmean(clf_results['test_score'])), 4))
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
-        tmp_to_write = [[n_trees[k], n_trees[k], clf_results['fit_time'][k], True, clf_results['train_score'][k], clf_results['test_score'][k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
+        tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
         print("Adaboost + CART 50")
         print("Dataset :", filename)
         print("Running cross validation")
-        clf_results = cross_validate(estimator=AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH, min_samples_leaf=MIN_SUP),
-                                                                  n_estimators=50), X=X, y=y, scoring='accuracy', cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL,
-                                     return_train_score=True, return_estimator=True, error_score=np.nan)
-        n_trees = list(map(lambda clf: len(clf.estimators_), clf_results['estimator']))
-        fps = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 1] if y_tests[k][i] != 1]) for k in range(N_FOLDS)]
-        fns = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 0] if y_tests[k][i] != 0]) for k in range(N_FOLDS)]
-        print("Model built. Avg duration of building =", round(float(np.mean(clf_results['fit_time'])), 4))
+        train_accs, test_accs, n_trees, fps, fns, fit_times = [], [], [], [], [], []
+        for k in range(N_FOLDS):
+            X_train, X_test, y_train, y_test = X_trains[k], X_tests[k], y_trains[k], y_tests[k]
+            clf = AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH), n_estimators=50)
+            start = time.perf_counter()
+            clf.fit(X_train, y_train)
+            fit_times.append(time.perf_counter() - start)
+            y_pred = clf.predict(X_test)
+            n_trees.append(len(clf.estimators_))
+            train_accs.append(accuracy_score(y_train, clf.predict(X_train)))
+            test_accs.append(accuracy_score(y_test, y_pred))
+            fps[k].append(len([i for i in [j for j, val in enumerate(clf.predict(X_test)) if val == 1] if y_test[i] != 1]))
+            fns[k].append(len([i for i in [j for j, val in enumerate(clf.predict(X_test)) if val == 0] if y_test[i] != 0]))
+        print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
         print("Avg number of trees =", round(float(np.mean(n_trees)), 4))
-        print("Avg accuracy on training set =", round(float(np.mean(clf_results['train_score'])), 4))
-        print("Avg accuracy on test set =", round(float(np.mean(clf_results['test_score'])), 4))
+        print("Avg accuracy on training set =", round(float(np.nanmean(clf_results['train_score'])), 4))
+        print("Avg accuracy on test set =", round(float(np.nanmean(clf_results['test_score'])), 4))
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
-        tmp_to_write = [[n_trees[k], n_trees[k], clf_results['fit_time'][k], True, clf_results['train_score'][k], clf_results['test_score'][k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
+        tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
         print("Adaboost + CART 100")
         print("Dataset :", filename)
         print("Running cross validation")
-        clf_results = cross_validate(estimator=AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH, min_samples_leaf=MIN_SUP),
-                                                                  n_estimators=100), X=X, y=y, scoring='accuracy', cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL,
-                                     return_train_score=True, return_estimator=True, error_score=np.nan)
-        n_trees = list(map(lambda clf: len(clf.estimators_), clf_results['estimator']))
-        fps = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 1] if y_tests[k][i] != 1]) for k in range(N_FOLDS)]
-        fns = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 0] if y_tests[k][i] != 0]) for k in range(N_FOLDS)]
-        print("Model built. Avg duration of building =", round(float(np.mean(clf_results['fit_time'])), 4))
+        train_accs, test_accs, n_trees, fps, fns, fit_times = [], [], [], [], [], []
+        for k in range(N_FOLDS):
+            X_train, X_test, y_train, y_test = X_trains[k], X_tests[k], y_trains[k], y_tests[k]
+            clf = AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH), n_estimators=100)
+            start = time.perf_counter()
+            clf.fit(X_train, y_train)
+            fit_times.append(time.perf_counter() - start)
+            y_pred = clf.predict(X_test)
+            n_trees.append(len(clf.estimators_))
+            train_accs.append(accuracy_score(y_train, clf.predict(X_train)))
+            test_accs.append(accuracy_score(y_test, y_pred))
+            fps[k].append(len([i for i in [j for j, val in enumerate(clf.predict(X_test)) if val == 1] if y_test[i] != 1]))
+            fns[k].append(len([i for i in [j for j, val in enumerate(clf.predict(X_test)) if val == 0] if y_test[i] != 0]))
+        print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
         print("Avg number of trees =", round(float(np.mean(n_trees)), 4))
-        print("Avg accuracy on training set =", round(float(np.mean(clf_results['train_score'])), 4))
-        print("Avg accuracy on test set =", round(float(np.mean(clf_results['test_score'])), 4))
+        print("Avg accuracy on training set =", round(float(np.nanmean(clf_results['train_score'])), 4))
+        print("Avg accuracy on test set =", round(float(np.nanmean(clf_results['test_score'])), 4))
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
-        tmp_to_write = [[n_trees[k], n_trees[k], clf_results['fit_time'][k], True, clf_results['train_score'][k], clf_results['test_score'][k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
+        tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
         print("Gradient Boosting")
         print("Dataset :", filename)
         print("Running cross validation")
-        clf_results = cross_validate(estimator=GradientBoostingClassifier(max_depth=MAX_DEPTH, min_samples_leaf=MIN_SUP, n_estimators=max_estimators),
-                                     X=X, y=y, scoring='accuracy', cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL, return_train_score=True,
-                                     return_estimator=True, error_score=np.nan)
-        n_trees = list(map(lambda clf: clf.n_estimators_, clf_results['estimator']))
-        fps = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 1] if y_tests[k][i] != 1]) for k in range(N_FOLDS)]
-        fns = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 0] if y_tests[k][i] != 0]) for k in range(N_FOLDS)]
-        print("Model built. Avg duration of building =", round(float(np.mean(clf_results['fit_time'])), 4))
+        train_accs, test_accs, n_trees, fps, fns, fit_times = [], [], [], [], [], []
+        for k in range(N_FOLDS):
+            X_train, X_test, y_train, y_test = X_trains[k], X_tests[k], y_trains[k], y_tests[k]
+            clf = GradientBoostingClassifier(max_depth=MAX_DEPTH, n_estimators=max_estimators[k])
+            start = time.perf_counter()
+            clf.fit(X_train, y_train)
+            fit_times.append(time.perf_counter() - start)
+            y_pred = clf.predict(X_test)
+            n_trees.append(clf.n_estimators_)
+            train_accs.append(accuracy_score(y_train, clf.predict(X_train)))
+            test_accs.append(accuracy_score(y_test, y_pred))
+            fps[k].append(len([i for i in [j for j, val in enumerate(clf.predict(X_test)) if val == 1] if y_test[i] != 1]))
+            fns[k].append(len([i for i in [j for j, val in enumerate(clf.predict(X_test)) if val == 0] if y_test[i] != 0]))
+        print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
         print("Avg number of trees =", round(float(np.mean(n_trees)), 4))
-        print("Avg accuracy on training set =", round(float(np.mean(clf_results['train_score'])), 4))
-        print("Avg accuracy on test set =", round(float(np.mean(clf_results['test_score'])), 4))
+        print("Avg accuracy on training set =", round(float(np.nanmean(clf_results['train_score'])), 4))
+        print("Avg accuracy on test set =", round(float(np.nanmean(clf_results['test_score'])), 4))
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
-        tmp_to_write = [[n_trees[k], n_trees[k], clf_results['fit_time'][k], True, clf_results['train_score'][k], clf_results['test_score'][k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
+        tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
         print("Random Forest")
         print("Dataset :", filename)
         print("Running cross validation")
-        clf_results = cross_validate(estimator=RandomForestClassifier(max_depth=MAX_DEPTH, min_samples_leaf=MIN_SUP, n_estimators=max_estimators),
-                                     X=X, y=y, scoring='accuracy', cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL, return_train_score=True,
-                                     return_estimator=True, error_score=np.nan)
-        n_trees = list(map(lambda clf: len(clf.estimators_), clf_results['estimator']))
-        fps = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 1] if y_tests[k][i] != 1]) for k in range(N_FOLDS)]
-        fns = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 0] if y_tests[k][i] != 0]) for k in range(N_FOLDS)]
-        print("Model built. Avg duration of building =", round(float(np.mean(clf_results['fit_time'])), 4))
+        train_accs, test_accs, n_trees, fps, fns, fit_times = [], [], [], [], [], []
+        for k in range(N_FOLDS):
+            X_train, X_test, y_train, y_test = X_trains[k], X_tests[k], y_trains[k], y_tests[k]
+            clf = RandomForestClassifier(max_depth=MAX_DEPTH, n_estimators=max_estimators[k])
+            start = time.perf_counter()
+            clf.fit(X_train, y_train)
+            fit_times.append(time.perf_counter() - start)
+            y_pred = clf.predict(X_test)
+            n_trees.append(len(clf.estimators_))
+            train_accs.append(accuracy_score(y_train, clf.predict(X_train)))
+            test_accs.append(accuracy_score(y_test, y_pred))
+            fps[k].append(len([i for i in [j for j, val in enumerate(clf.predict(X_test)) if val == 1] if y_test[i] != 1]))
+            fns[k].append(len([i for i in [j for j, val in enumerate(clf.predict(X_test)) if val == 0] if y_test[i] != 0]))
+        print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
         print("Avg number of trees =", round(float(np.mean(n_trees)), 4))
-        print("Avg accuracy on training set =", round(float(np.mean(clf_results['train_score'])), 4))
-        print("Avg accuracy on test set =", round(float(np.mean(clf_results['test_score'])), 4))
+        print("Avg accuracy on training set =", round(float(np.nanmean(clf_results['train_score'])), 4))
+        print("Avg accuracy on test set =", round(float(np.nanmean(clf_results['test_score'])), 4))
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
-        tmp_to_write = [[n_trees[k], n_trees[k], clf_results['fit_time'][k], True, clf_results['train_score'][k], clf_results['test_score'][k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
+        tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
         file_out.write(";".join(map(lambda x: str(x), to_write)) + "\n")

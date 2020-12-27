@@ -12,7 +12,7 @@ import numpy as np
 from sklearn.metrics import confusion_matrix
 import subprocess
 
-depth, time_limit, N_FOLDS = 2, 0, 5
+depth, time_limit, N_FOLDS = 1, 0, 5
 
 dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=" ")
 # dataset = np.genfromtxt("../datasets/paper.txt", delimiter=" ")
@@ -21,7 +21,7 @@ y = dataset[:, 0]
 
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.2, random_state=0)
-clf = DL85Boostera(max_depth=depth, min_sup=1, max_iterations=100000, regulator=25, time_limit=time_limit, quiet=False)
+clf = DL85Boostera(max_depth=depth, min_sup=1, max_iterations=100000, regulator=120, time_limit=time_limit, quiet=False)
 start = time.perf_counter()
 print("Model building...")
 # clf.fit(X, y)
