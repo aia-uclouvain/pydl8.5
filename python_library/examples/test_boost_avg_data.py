@@ -13,27 +13,15 @@ from sklearn.metrics import confusion_matrix
 import subprocess
 
 depth, time_limit, N_FOLDS = 2, 0, 5
-pr = subprocess.Popen("pwd", stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-print(pr.stderr.read().decode("utf-8"))
-print(pr.stdout.read().decode("utf-8"))
 
-dataset = np.genfromtxt("../datasets/boosting/mm/clean_mm_1.csv", delimiter=",", skip_header=1)
-X = dataset[:, :-1]
-y = dataset[:, -1]
-
-# dataset = np.genfromtxt("../datasets/paper_test.txt", delimiter=" ")
-# # dataset = np.genfromtxt("../datasets/paper.txt", delimiter=" ")
-# X = dataset[:, 1:]
-# y = dataset[:, 0]
-
-enc = KBinsDiscretizer(n_bins=8, encode='ordinal', strategy='uniform')
-X = enc.fit_transform(X)
-enc = OneHotEncoder(sparse=False, handle_unknown='ignore')
-X = enc.fit_transform(X)
+dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=" ")
+# dataset = np.genfromtxt("../datasets/paper.txt", delimiter=" ")
+X = dataset[:, 1:]
+y = dataset[:, 0]
 
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.2, random_state=0)
-clf = DL85Boostera(max_depth=depth, min_sup=1, max_iterations=100000, regulator=5, time_limit=time_limit, quiet=False)
+clf = DL85Boostera(max_depth=depth, min_sup=1, max_iterations=100000, regulator=25, time_limit=time_limit, quiet=False)
 start = time.perf_counter()
 print("Model building...")
 # clf.fit(X, y)
@@ -49,3 +37,21 @@ print(clf.problem)
 print(clf.regulator, clf.n_estimators_)
 for c in clf.estimators_:
     print(c.tree_)
+
+
+print()
+print("Adaboost")
+clf = AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=depth), n_estimators=clf.n_estimators_)
+# clf = DecisionTreeClassifier(max_depth=depth)
+# clf = DL85Booster(max_depth=depth, min_sup=1, regulator=0.007137981694607998, time_limit=time_limit)
+start = time.perf_counter()
+print("Model building...")
+clf.fit(X_train, y_train)
+duration = time.perf_counter() - start
+print("Model built. Duration of building =", round(duration, 4))
+y_pred = clf.predict(X_test)
+print("Confusion Matrix below")
+print(confusion_matrix(y_test, y_pred))
+print("Accuracy DL8.5 on training set =", round(accuracy_score(y_train, clf.predict(X_train)), 4))
+print("Accuracy DL8.5 on test set =", round(accuracy_score(y_test, y_pred), 4), "\n\n\n")
+

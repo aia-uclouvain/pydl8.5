@@ -269,7 +269,7 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
 
         return self
 
-    def compute_dual(self, r, u, A_inv, predictions):
+    def compute_dual_(self, r, u, A_inv, predictions):
 
         # A scalar variable.
         r_ = cp.Variable()
@@ -283,11 +283,11 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
         constr = [predictions[:, i] @ u_ <= r_ for i in range(predictions.shape[1])]
 
         problem = cp.Problem(obj, constr)
-        opti = problem.solve(solver=cp.GUROBI)
+        opti = problem.solve(solver=cp.GUROBI, GURO_PAR_DUMP=1)
 
         return r_.value, u_.value, opti, [x.dual_value for x in problem.constraints]
 
-    def compute_dual_(self, r, u, A_inv, predictions):
+    def compute_dual(self, r, u, A_inv, predictions):
         # initialize the model
         if self.quiet:
             old_stdout = sys.stdout
@@ -302,7 +302,7 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
         u_ = [model.addVar(vtype=GRB.CONTINUOUS, name="sample_weights " + str(i), lb=float("-inf")) for i in range(u.shape[0])]
 
         for clf_id in range(len(self.estimators_)):
-            model.addConstr(quicksum([u_[tid] * predictions[tid, clf_id] for tid in range(u.shape[0])]) <= r_, name="Constraint on estimator " + str(clf_id))
+            model.addConstr(-quicksum([u_[tid] * predictions[tid, clf_id] for tid in range(u.shape[0])]) >= -r_, name="Constraint on estimator " + str(clf_id))
 
         uta = [quicksum([A_inv[i, j] * (u_[j] - 1) for j in range(A_inv[i, :].shape[0])]) for i in range(A_inv.shape[0])]
         utau = quicksum([uta[i] * (u_[i] - 1) for i in range(len(uta))])
@@ -310,7 +310,11 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
         # model.setObjective(r_ + (1/2 * self.regulator) * quicksum([[quicksum([A_inv[i, j] * (u_[j] - 1) for j in range(A_inv[i, :].shape[0])]) for i in range(A_inv.shape[0])][i] * (u_[i] - 1) for i in range(A_inv.shape[0])]), GRB.MINIMIZE)
 
         # model.write("model_" + str(random.random()) + ".lp")
-        model.write("model.lp")
+        # model.write("model.rew")
+        if r is not None:
+            r_.start = r
+        for i, val in enumerate(u):
+            u_[i].start = val
         model.optimize()
 
         return r_.X, np.array([w.X for w in u_]), model.objVal, [c.pi for c in model.getConstrs()]
