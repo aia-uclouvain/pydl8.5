@@ -164,7 +164,7 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
         # initialize variables
         n_instances, n_features = X.shape
         sample_weights = np.array([1/n_instances] * n_instances)
-        predictions, r, n_iter, constant = None, None, 1, 0.0001
+        predictions, r, self.n_iterations_, constant = None, None, 1, 0.0001
 
         # Build positive semidefinite A matrix
         A_inv = np.full((n_instances, n_instances), -1/(n_instances - 1))
@@ -187,9 +187,9 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
             print("A_inv")
             print(A_inv)
 
-        while (self.max_iterations > 0 and n_iter <= self.max_iterations) or self.max_iterations <= 0:
+        while (self.max_iterations > 0 and self.n_iterations_ <= self.max_iterations) or self.max_iterations <= 0:
             if not self.quiet:
-                print("n_iter", n_iter)
+                print("n_iter", self.n_iterations_)
 
             # initialize the classifier
             # self.clf_params["time_limit"] = self.clf_params["time_limit"] - (time.perf_counter() - start_time)
@@ -223,14 +223,14 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
                 print("r", r)
 
             # check if optimal condition is met
-            if n_iter > 1:
+            if self.n_iterations_ > 1:
                 if pred @ sample_weights < r + self.opti_gap:
                     if not self.quiet:
                         print("p@w < r ==> finished")
                     self.optimal_ = True
                     break
 
-            # add new prediction to all predictions matrix. Each colum represents predictions of a tree for all examples
+            # add new prediction to all prediction matrix. Each column represents predictions of a tree for all examples
             predictions = pred.reshape((-1, 1)) if predictions is None else np.concatenate((predictions, pred.reshape(-1, 1)), axis=1)
 
             if not self.quiet:
@@ -248,7 +248,7 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
                 print("len tree w", len(self.estimator_weights_), "w:", self.estimator_weights_)
                 print()
 
-            n_iter += 1
+            self.n_iterations_ += 1
 
         self.duration_ = time.perf_counter() - start_time
         # self.estimator_weights_ = np.dot(self.estimator_weights_, -1)
