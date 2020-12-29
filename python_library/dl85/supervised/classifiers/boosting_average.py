@@ -251,7 +251,7 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
             self.n_iterations_ += 1
 
         self.duration_ = time.perf_counter() - start_time
-        # self.estimator_weights_ = np.dot(self.estimator_weights_, -1)
+        self.n_iterations_ -= 1
 
         # remove the useless estimators
         zero_ind = [i for i, val in enumerate(self.estimator_weights_) if val == 0]

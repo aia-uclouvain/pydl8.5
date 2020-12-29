@@ -267,7 +267,7 @@ class DL85Predictor(BaseEstimator):
                 print("DL8.5 fitting: Timeout reached and solution not found")
                 self.timeout_ = True
 
-        if hasattr(self, 'tree_'):
+        if hasattr(self, 'tree_') and self.tree_ is not None:
             # add transactions to nodes of the tree
             self.add_transactions_and_proba(X, y)
 

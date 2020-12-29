@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import KFold, StratifiedKFold
+from sklearn.model_selection import KFold, StratifiedKFold, StratifiedShuffleSplit
 from sklearn.model_selection import cross_val_score, cross_validate
 from sklearn.model_selection import GridSearchCV
 import time
@@ -23,14 +23,14 @@ import sys
 # filename = "letter"
 # dataset = np.genfromtxt("../datasets/" + filename + ".txt", delimiter=' ')
 
-N_FOLDS, N_FOLDS_TUNING, MAX_DEPTH, MIN_SUP = 5, 4, int(sys.argv[1]) if len(sys.argv) > 1 else 1, 1
+N_FOLDS, N_FOLDS_TUNING, MAX_DEPTH, MIN_SUP = 10, 4, int(sys.argv[1]) if len(sys.argv) > 1 else 1, 1
 MAX_ITERATIONS, MAX_TREES, TIME_LIMIT = 0, 0, 0
 VERBOSE_LEVEL = 10
 
 file_out = open("../output/out_depth_" + str(MAX_DEPTH) + ".csv", "a+")
 directory = '../datasets'
 for filename in sorted(os.listdir(directory)):
-    if filename.endswith("german-credit.txt") and not filename.startswith("paper"):
+    if filename.endswith(".txt") and not filename.startswith("paper"):
         dataset = np.genfromtxt("../datasets/" + filename, delimiter=' ')
 
         X = dataset[:, 1:]
@@ -40,7 +40,7 @@ for filename in sorted(os.listdir(directory)):
         # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
         X_trains, X_tests, y_trains, y_tests = [], [], [], []
-        kf = StratifiedKFold(n_splits=5)
+        kf = StratifiedShuffleSplit(train_size=500) if X.shape[0] >= 625 else StratifiedShuffleSplit(train_size=.8)
         for train_index, test_index in kf.split(X, y):
             X_trains.append(X[train_index])
             y_trains.append(y[train_index])
