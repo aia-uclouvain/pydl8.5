@@ -40,7 +40,7 @@ for filename in sorted(os.listdir(directory)):
         # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
         X_trains, X_tests, y_trains, y_tests = [], [], [], []
-        kf = StratifiedShuffleSplit(train_size=500) if X.shape[0] >= 625 else StratifiedShuffleSplit(train_size=.8)
+        kf = StratifiedShuffleSplit(train_size=500, random_state=0) if X.shape[0] >= 625 else StratifiedShuffleSplit(train_size=.8, random_state=0)
         for train_index, test_index in kf.split(X, y):
             X_trains.append(X[train_index])
             y_trains.append(y[train_index])
@@ -78,8 +78,8 @@ for filename in sorted(os.listdir(directory)):
         fns = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 0] if y_tests[k][i] != 0]) for k in range(N_FOLDS)]
         print("Model built. Avg duration of building =", round(float(np.mean(clf_results['fit_time'])), 4))
         print("Avg number of trees =", round(float(np.mean(n_trees)), 4))
-        print("Avg accuracy on training set =", round(float(np.mean(clf_results['train_score'])), 4))
-        print("Avg accuracy on test set =", round(float(np.mean(clf_results['test_score'])), 4))
+        print("Accuracy on training set =", clf_results['train_score'], round(float(np.mean(clf_results['train_score'])), 4))
+        print("Avg accuracy on test set =", clf_results['test_score'], round(float(np.mean(clf_results['test_score'])), 4))
         print("list of time :", clf_results['fit_time'])
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
@@ -95,8 +95,8 @@ for filename in sorted(os.listdir(directory)):
         fns = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 0] if y_tests[k][i] != 0]) for k in range(N_FOLDS)]
         print("Model built. Avg duration of building =", round(float(np.mean(clf_results['fit_time'])), 4))
         print("Avg number of trees =", round(float(np.mean(n_trees)), 4))
-        print("Avg accuracy on training set =", round(float(np.mean(clf_results['train_score'])), 4))
-        print("Avg accuracy on test set =", round(float(np.mean(clf_results['test_score'])), 4))
+        print("Accuracy on training set =", clf_results['train_score'], round(float(np.mean(clf_results['train_score'])), 4))
+        print("Avg accuracy on test set =", clf_results['test_score'], round(float(np.mean(clf_results['test_score'])), 4))
         print("list of time :", clf_results['fit_time'])
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
@@ -131,8 +131,8 @@ for filename in sorted(os.listdir(directory)):
         max_estimators = n_trees[:]
         print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
         print("Number of trees =", n_trees, np.mean(n_trees))
-        print("Avg accuracy on training set =", round(float(np.mean(train_scores)), 4))
-        print("Avg accuracy on test set =", round(float(np.mean(test_scores)), 4))
+        print("Accuracy on training set =", train_scores, round(float(np.mean(train_scores)), 4))
+        print("Accuracy on test set =", test_scores, round(float(np.mean(test_scores)), 4))
         print("number of optimality :", n_opti)
         print("list of iterations :", n_iter)
         print("list of time :", fit_times)
@@ -166,8 +166,8 @@ for filename in sorted(os.listdir(directory)):
         #     print("fold :", k+1, "n_trees :", n_trees[k], "train_acc :", train_scores[k], "test acc :", test_scores[k], "\n")
         # print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
         # print("Number of trees =", n_trees)
-        # print("Avg accuracy on training set =", round(float(np.mean(train_scores)), 4))
-        # print("Avg accuracy on test set =", round(float(np.mean(test_scores)), 4))
+        # print("Accuracy on training set =", train_scores, round(float(np.mean(train_scores)), 4))
+        # print("Accuracy on test set =", test_scores, round(float(np.mean(test_scores)), 4))
         # print("number of optimality :", n_opti)
         # print("list of iterations :", n_iter)
         # print("list of time :", fit_times)
@@ -194,8 +194,8 @@ for filename in sorted(os.listdir(directory)):
             fns.append(len([i for i in [j for j, val in enumerate(y_pred) if val == 0] if y_test[i] != 0]))
         print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
         print("Number of trees =", n_trees, np.mean(n_trees))
-        print("Avg accuracy on training set =", round(float(np.mean(train_accs)), 4))
-        print("Avg accuracy on test set =", round(float(np.mean(test_accs)), 4))
+        print("Accuracy on training set =", train_accs, round(float(np.mean(train_accs)), 4))
+        print("Accuracy on test set =", test_accs, round(float(np.mean(test_accs)), 4))
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
         tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
@@ -219,8 +219,8 @@ for filename in sorted(os.listdir(directory)):
             fns.append(len([i for i in [j for j, val in enumerate(y_pred) if val == 0] if y_test[i] != 0]))
         print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
         print("Number of trees =", n_trees, np.mean(n_trees))
-        print("Avg accuracy on training set =", round(float(np.mean(train_accs)), 4))
-        print("Avg accuracy on test set =", round(float(np.mean(test_accs)), 4))
+        print("Accuracy on training set =", train_accs, round(float(np.mean(train_accs)), 4))
+        print("Accuracy on test set =", test_accs, round(float(np.mean(test_accs)), 4))
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
         tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
@@ -244,8 +244,8 @@ for filename in sorted(os.listdir(directory)):
             fns.append(len([i for i in [j for j, val in enumerate(y_pred) if val == 0] if y_test[i] != 0]))
         print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
         print("Number of trees =", n_trees, np.mean(n_trees))
-        print("Avg accuracy on training set =", round(float(np.mean(train_accs)), 4))
-        print("Avg accuracy on test set =", round(float(np.mean(test_accs)), 4))
+        print("Accuracy on training set =", train_accs, round(float(np.mean(train_accs)), 4))
+        print("Accuracy on test set =", test_accs, round(float(np.mean(test_accs)), 4))
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
         tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
@@ -269,8 +269,8 @@ for filename in sorted(os.listdir(directory)):
             fns.append(len([i for i in [j for j, val in enumerate(y_pred) if val == 0] if y_test[i] != 0]))
         print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
         print("Number of trees =", n_trees, np.mean(n_trees))
-        print("Avg accuracy on training set =", round(float(np.mean(train_accs)), 4))
-        print("Avg accuracy on test set =", round(float(np.mean(test_accs)), 4))
+        print("Accuracy on training set =", train_accs, round(float(np.mean(train_accs)), 4))
+        print("Accuracy on test set =", test_accs, round(float(np.mean(test_accs)), 4))
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
         tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
@@ -294,8 +294,8 @@ for filename in sorted(os.listdir(directory)):
             fns.append(len([i for i in [j for j, val in enumerate(y_pred) if val == 0] if y_test[i] != 0]))
         print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
         print("Number of trees =", n_trees, np.mean(n_trees))
-        print("Avg accuracy on training set =", round(float(np.mean(train_accs)), 4))
-        print("Avg accuracy on test set =", round(float(np.mean(test_accs)), 4))
+        print("Accuracy on training set =", train_accs, round(float(np.mean(train_accs)), 4))
+        print("Accuracy on test set =", test_accs, round(float(np.mean(test_accs)), 4))
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
         tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
@@ -319,8 +319,8 @@ for filename in sorted(os.listdir(directory)):
             fns.append(len([i for i in [j for j, val in enumerate(y_pred) if val == 0] if y_test[i] != 0]))
         print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
         print("Number of trees =", n_trees, np.mean(n_trees))
-        print("Avg accuracy on training set =", round(float(np.mean(train_accs)), 4))
-        print("Avg accuracy on test set =", round(float(np.mean(test_accs)), 4))
+        print("Accuracy on training set =", train_accs, round(float(np.mean(train_accs)), 4))
+        print("Accuracy on test set =", test_accs, round(float(np.mean(test_accs)), 4))
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
         tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
