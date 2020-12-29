@@ -102,6 +102,7 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
             tolerance=0.00001,
             max_error=0,
             regulator=5,
+            gamma=None,
             stop_after_better=False,
             time_limit=0,
             verbose=False,
@@ -121,6 +122,7 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
         del self.clf_params["opti_gap"]
         del self.clf_params["step"]
         del self.clf_params["tolerance"]
+        del self.clf_params["gamma"]
 
         self.base_estimator = base_estimator
         self.max_depth = max_depth
@@ -145,6 +147,7 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
         self.problem = None
         self.step = step
         self.tolerance = tolerance
+        self.gamma = gamma
 
         self.estimators_ = []
         self.estimator_weights_ = []
@@ -166,11 +169,30 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
         sample_weights = np.array([1/n_instances] * n_instances)
         predictions, r, self.n_iterations_, constant = None, None, 1, 0.0001
 
-        # Build positive semidefinite A matrix
-        A_inv = np.full((n_instances, n_instances), -1/(n_instances - 1))
-        np.fill_diagonal(A_inv, 1)
-        # regularize A to make sure it is really PSD
-        A_inv = np.add(A_inv, np.dot(np.eye(n_instances), constant))
+        A_inv = None
+        if self.gamma is None:
+            # Build positive semidefinite A matrix
+            A_inv = np.full((n_instances, n_instances), -1/(n_instances - 1))
+            np.fill_diagonal(A_inv, 1)
+            # regularize A to make sure it is really PSD
+            A_inv = np.add(A_inv, np.dot(np.eye(n_instances), constant))
+        else:
+            if self.gamma == 'auto':
+                self.gamma = 1 / n_instances
+            elif self.gamma == 'scale':
+                self.gamma = 1 / (n_instances * X.var())
+            elif self.gamma == 'nscale':
+                self.gamma = 1 / X.var()
+            A_inv = np.full((n_instances, n_instances), 1)
+            for i in range(n_instances):
+                for j in range(n_instances):
+                    if i != j:
+                        A_inv[i, j] = np.exp(-self.gamma * np.linalg.norm(np.subtract(X[i, :], X[j, :]))**2)
+                    else:
+                        A_inv[i, j] = 0
+                        for k in range(n_instances):
+                            if k != i:
+                                A_inv[i, j] += np.exp(-self.gamma * np.linalg.norm(np.subtract(X[i, :], X[k, :]))**2)
 
         if not self.quiet:
             print(A_inv)

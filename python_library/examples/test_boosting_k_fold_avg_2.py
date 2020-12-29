@@ -63,7 +63,8 @@ for filename in sorted(os.listdir(directory)):
         #     X_tests.append(X[test_index])
         #     y_tests.append(y[test_index])
 
-        parameters = {'regulator': [2, 5, 8, 10, 12, 15, 20, 30, 40, 50, 70, 90, 100, 120]}
+        # parameters = {'regulator': [2, 5, 8, 10, 12, 15, 20, 30, 40, 50, 70, 90, 100, 120]}
+        parameters = {'regulator': [2, 5, 8, 10, 12, 15, 20, 30, 40, 50, 70, 90, 100, 120], 'gamma': [None, 'auto', 'scale', 'nscale', 1, 0.1, 0.01, 0.001, 0.0001]}
 
         print("######################################################################\n"
               "#                                START                               #\n"
