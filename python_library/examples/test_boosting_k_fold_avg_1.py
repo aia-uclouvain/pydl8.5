@@ -106,7 +106,7 @@ for filename in sorted(os.listdir(directory)):
 
         print("LPBoost + DL8.5")
         print("Dataset :", filename)
-        n_trees, fps, fns, fit_times, train_scores, test_scores, n_iter, regulators, n_opti = [], [], [], [], [], [], [], [], 0
+        n_trees, fps, fns, fit_times, train_scores, test_scores, n_iter, regulators, gammas, n_opti = [], [], [], [], [], [], [], [], [], 0
         for k in range(N_FOLDS):
             X_train, X_test, y_train, y_test = X_trains[k], X_tests[k], y_trains[k], y_tests[k]
             print("Fold", k+1, "- Search for the best regulator using grid search...", MAX_TREES)
@@ -127,7 +127,7 @@ for filename in sorted(os.listdir(directory)):
             fps.append(len([i for i in [j for j, val in enumerate(y_pred) if val == 1] if y_test[i] != 1]))
             fns.append(len([i for i in [j for j, val in enumerate(y_pred) if val == 0] if y_test[i] != 0]))
             to_write += [n_iter[-1], n_trees[-1], fit_times[-1], clf.optimal_, train_scores[-1], test_scores[-1], fps[-1], fns[-1], regulators[-1]]
-            print("fold :", k+1, "n_trees :", n_trees[k], "train_acc :", train_scores[k], "test acc :", test_scores[k], "\n")
+            print("fold :", k+1, "n_trees :", n_trees[k], "train_acc :", train_scores[k], "test acc :", test_scores[k], "regu :", regulators[k], "gamma :", gammas[k], "\n")
         # max_estimators = int(sum(n_trees)/len(n_trees))
         max_estimators = n_trees[:]
         print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
@@ -138,12 +138,13 @@ for filename in sorted(os.listdir(directory)):
         print("list of iterations :", n_iter)
         print("list of time :", fit_times)
         print("list of regulator :", regulators)
+        print("list of gammas :", gammas)
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
 
         print("LPBoost + CART")
         print("Dataset :", filename)
-        n_trees, fps, fns, fit_times, train_scores, test_scores, n_iter, regulators, n_opti = [], [], [], [], [], [], [], [], 0
+        n_trees, fps, fns, fit_times, train_scores, test_scores, n_iter, regulators, gammas, n_opti = [], [], [], [], [], [], [], [], [], 0
         for k in range(N_FOLDS):
             X_train, X_test, y_train, y_test = X_trains[k], X_tests[k], y_trains[k], y_tests[k]
             print("Fold", k+1, "- Search for the best regulator using grid search...", MAX_TREES)
@@ -164,7 +165,7 @@ for filename in sorted(os.listdir(directory)):
             fps.append(len([i for i in [j for j, val in enumerate(y_pred) if val == 1] if y_test[i] != 1]))
             fns.append(len([i for i in [j for j, val in enumerate(y_pred) if val == 0] if y_test[i] != 0]))
             to_write += [n_iter[-1], n_trees[-1], fit_times[-1], clf.optimal_, train_scores[-1], test_scores[-1], fps[-1], fns[-1], regulators[-1]]
-            print("fold :", k+1, "n_trees :", n_trees[k], "train_acc :", train_scores[k], "test acc :", test_scores[k], "\n")
+            print("fold :", k+1, "n_trees :", n_trees[k], "train_acc :", train_scores[k], "test acc :", test_scores[k], "regu :", regulators[k], "gamma :", gammas[k], "\n")
         print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
         print("Number of trees =", n_trees)
         print("Accuracy on training set =", train_scores, round(float(np.mean(train_scores)), 4))
@@ -173,6 +174,7 @@ for filename in sorted(os.listdir(directory)):
         print("list of iterations :", n_iter)
         print("list of time :", fit_times)
         print("list of regulator :", regulators)
+        print("list of gammas :", gammas)
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
 
