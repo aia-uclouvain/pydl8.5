@@ -172,7 +172,7 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
         A_inv = None
         if self.gamma is None:
             # Build positive semidefinite A matrix
-            A_inv = np.full((n_instances, n_instances), -1/(n_instances - 1))
+            A_inv = np.full((n_instances, n_instances), -1/(n_instances - 1), dtype=np.float64)
             np.fill_diagonal(A_inv, 1)
             # regularize A to make sure it is really PSD
             A_inv = np.add(A_inv, np.dot(np.eye(n_instances), constant))
@@ -183,13 +183,12 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
                 self.gamma = 1 / (n_instances * X.var())
             elif self.gamma == 'nscale':
                 self.gamma = 1 / X.var()
-            A_inv = np.full((n_instances, n_instances), 1)
+            A_inv = np.full((n_instances, n_instances), 0, dtype=np.float64)
             for i in range(n_instances):
                 for j in range(n_instances):
                     if i != j:
                         A_inv[i, j] = np.exp(-self.gamma * np.linalg.norm(np.subtract(X[i, :], X[j, :]))**2)
                     else:
-                        A_inv[i, j] = 0
                         for k in range(n_instances):
                             if k != i:
                                 A_inv[i, j] += np.exp(-self.gamma * np.linalg.norm(np.subtract(X[i, :], X[k, :]))**2)

@@ -17,7 +17,7 @@ depth, time_limit, N_FOLDS = 1, 0, 5
 dataset = np.genfromtxt("../datasets/paper_test.txt", delimiter=" ")
 X, y = dataset[:, 1:], dataset[:, 0]
 
-clf = DL85Boostera(max_depth=depth, regulator=.5)
+clf = DL85Boostera(max_depth=depth, regulator=.5, quiet=True, gamma='auto')
 start = time.perf_counter()
 print("Model building...")
 clf.fit(X, y)
