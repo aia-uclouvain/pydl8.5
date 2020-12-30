@@ -92,17 +92,14 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
             base_estimator=None,
             max_depth=1,
             min_sup=1,
-            max_estimators=0,
             max_iterations=0,
             error_function=None,
             fast_error_function=None,
             iterative=False,
-            min_trans_cost=0,
-            opti_gap=0.01,
-            step=1,
-            tolerance=0.00001,
+            opti_gap=0.00001,
             max_error=0,
             regulator=5,
+            model='cvxpy',
             gamma=None,
             stop_after_better=False,
             time_limit=0,
@@ -114,21 +111,16 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
             quiet=True):
         self.clf_params = dict(locals())
         del self.clf_params["self"]
-        del self.clf_params["max_estimators"]
         del self.clf_params["regulator"]
         del self.clf_params["base_estimator"]
         del self.clf_params["max_iterations"]
-        # del self.clf_params["model"]
-        del self.clf_params["min_trans_cost"]
+        del self.clf_params["model"]
         del self.clf_params["opti_gap"]
-        del self.clf_params["step"]
-        del self.clf_params["tolerance"]
         del self.clf_params["gamma"]
 
         self.base_estimator = base_estimator
         self.max_depth = max_depth
         self.min_sup = min_sup
-        self.max_estimators = max_estimators
         self.max_iterations = max_iterations
         self.error_function = error_function
         self.fast_error_function = fast_error_function
@@ -143,11 +135,9 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
         self.print_output = print_output
         self.regulator = regulator
         self.quiet = quiet
-        self.min_trans_cost = min_trans_cost
+        self.model = model
         self.opti_gap = opti_gap
         self.problem = None
-        self.step = step
-        self.tolerance = tolerance
         self.gamma = gamma
 
         self.estimators_ = []
@@ -262,7 +252,10 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
 
             # add the new estimator and compute the dual to find new sample weights for another estimator to add
             self.estimators_.append(clf)
-            r, sample_weights, opti, self.estimator_weights_ = self.compute_dual(r, sample_weights, A_inv, predictions)
+            if self.model == 'cvxpy':
+                r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_cvxpy(r, sample_weights, A_inv, predictions)
+            elif self.model == 'gurobi':
+                r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_gurobi(r, sample_weights, A_inv, predictions)
 
             if not self.quiet:
                 print("sample w", sample_weights)
@@ -307,7 +300,7 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
 
         return self
 
-    def compute_dual_(self, r, u, A_inv, predictions):
+    def compute_dual_cvxpy(self, r, u, A_inv, predictions):
         r_ = cp.Variable()
         u_ = cp.Variable(u.shape[0])
 
@@ -315,11 +308,17 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
         constr = [predictions[:, i] @ u_ <= r_ for i in range(predictions.shape[1])]
 
         problem = cp.Problem(obj, constr)
-        opti = problem.solve(solver=cp.GUROBI, GURO_PAR_DUMP=1)
+
+        if self.quiet:
+            old_stdout = sys.stdout
+            sys.stdout = open(os.devnull, "w")
+        opti = problem.solve(solver=cp.GUROBI)
+        if self.quiet:
+            sys.stdout = old_stdout
 
         return r_.value, u_.value, opti, [x.dual_value for x in problem.constraints]
 
-    def compute_dual(self, r, u, A_inv, predictions):
+    def compute_dual_gurobi(self, r, u, A_inv, predictions):
         # initialize the model
         if self.quiet:
             old_stdout = sys.stdout
