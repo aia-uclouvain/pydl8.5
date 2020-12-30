@@ -30,7 +30,7 @@ VERBOSE_LEVEL = 10
 file_out = open("../output/out_depth_" + str(MAX_DEPTH) + ".csv", "a+")
 directory = '../datasets'
 for filename in sorted(os.listdir(directory)):
-    if filename.endswith(".txt") and not filename.startswith("paper"):
+    if filename.endswith(".txt") and not filename.startswith("paper") and not filename.startswith("anneal") and not filename.startswith("audiology"):
         dataset = np.genfromtxt("../datasets/" + filename, delimiter=' ')
 
         X = dataset[:, 1:]
@@ -75,7 +75,7 @@ for filename in sorted(os.listdir(directory)):
         print("list of time :", clf_results['fit_time'])
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
-        tmp_to_write = [[n_trees[k], n_trees[k], clf_results['fit_time'][k], not clf_results['estimator'][k].timeout_, clf_results['train_score'][k], clf_results['test_score'][k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
+        tmp_to_write = [[n_trees[k], n_trees[k], clf_results['fit_time'][k], not clf_results['estimator'][k].timeout_, clf_results['train_score'][k], clf_results['test_score'][k], fps[k], fns[k], -1, -1] for k in range(N_FOLDS)]
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
         print("CART")
@@ -92,7 +92,7 @@ for filename in sorted(os.listdir(directory)):
         print("list of time :", clf_results['fit_time'])
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
-        tmp_to_write = [[n_trees[k], n_trees[k], clf_results['fit_time'][k], True, clf_results['train_score'][k], clf_results['test_score'][k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
+        tmp_to_write = [[n_trees[k], n_trees[k], clf_results['fit_time'][k], True, clf_results['train_score'][k], clf_results['test_score'][k], fps[k], fns[k], -1, -1] for k in range(N_FOLDS)]
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
         print("LPBoost + DL8.5")
@@ -194,7 +194,7 @@ for filename in sorted(os.listdir(directory)):
         print("Accuracy on test set =", test_accs, round(float(np.mean(test_accs)), 4))
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
-        tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
+        tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1, -1] for k in range(N_FOLDS)]
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
         print("Adaboost + CART")
@@ -219,7 +219,7 @@ for filename in sorted(os.listdir(directory)):
         print("Accuracy on test set =", test_accs, round(float(np.mean(test_accs)), 4))
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
-        tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
+        tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1, -1] for k in range(N_FOLDS)]
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
         print("Adaboost + CART 50")
@@ -244,7 +244,7 @@ for filename in sorted(os.listdir(directory)):
         print("Accuracy on test set =", test_accs, round(float(np.mean(test_accs)), 4))
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
-        tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
+        tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1, -1] for k in range(N_FOLDS)]
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
         print("Adaboost + CART 100")
@@ -269,7 +269,7 @@ for filename in sorted(os.listdir(directory)):
         print("Accuracy on test set =", test_accs, round(float(np.mean(test_accs)), 4))
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
-        tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
+        tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1, -1] for k in range(N_FOLDS)]
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
         print("Gradient Boosting")
@@ -294,7 +294,7 @@ for filename in sorted(os.listdir(directory)):
         print("Accuracy on test set =", test_accs, round(float(np.mean(test_accs)), 4))
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
-        tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
+        tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1, -1] for k in range(N_FOLDS)]
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
         print("Random Forest")
@@ -319,7 +319,7 @@ for filename in sorted(os.listdir(directory)):
         print("Accuracy on test set =", test_accs, round(float(np.mean(test_accs)), 4))
         print("sum false positives =", sum(fps))
         print("sum false negatives =", sum(fns), "\n\n\n")
-        tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1] for k in range(N_FOLDS)]
+        tmp_to_write = [[n_trees[k], n_trees[k], fit_times[k], True, train_accs[k], test_accs[k], fps[k], fns[k], -1, -1] for k in range(N_FOLDS)]
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
         file_out.write(";".join(map(lambda x: str(x), to_write)) + "\n")
