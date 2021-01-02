@@ -45,7 +45,7 @@ for filename in ['zoo-1.txt', 'hepatitis.txt', 'lymph.txt', 'audiology.txt', 'he
         # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
         X_trains, X_tests, y_trains, y_tests = [], [], [], []
-
+        # kf = StratifiedShuffleSplit(train_size=500, random_state=0) if X.shape[0] >= 625 else StratifiedShuffleSplit(train_size=.8, random_state=0)
         kf = StratifiedKFold(n_splits=N_FOLDS)
         for train_index, test_index in kf.split(X, y):
             if X.shape[0] <= 1500:  # 80% tr - 20% te
@@ -65,9 +65,8 @@ for filename in ['zoo-1.txt', 'hepatitis.txt', 'lymph.txt', 'audiology.txt', 'he
 
         to_write = [filename.split(".")[0], X.shape[1], X.shape[0], y.tolist().count(0), y.tolist().count(1)]
 
-        # parameters = {'regulator': [2, 5, 8, 10, 12, 15, 20, 30, 40, 50, 70, 90, 100, 120]}
+        parameters = {'regulator': [2, 5, 8, 10, 12, 15, 20, 30, 40, 50, 70, 90, 100, 120]}
         # parameters = {'regulator': [2, 5, 8, 10, 12, 15, 20, 30, 40, 50, 70, 90, 100, 120], 'gamma': [None, 'auto', 'scale', 'nscale', 1, 0.1, 0.01, 0.001, 0.0001]}
-        parameters = {'regulator': list(map(lambda x: pow(2, x), list(range(-5, 16)))), 'gamma': [None, list(map(lambda x: pow(2, x), list(range(-15, 4))))]}
         # parameters = {'regulator': [2, 5, 10, 20, 40, 70, 100, 150], 'gamma': ['auto', 'scale', 'nscale']}
 
         print("######################################################################\n"
@@ -108,7 +107,7 @@ for filename in ['zoo-1.txt', 'hepatitis.txt', 'lymph.txt', 'audiology.txt', 'he
         tmp_to_write = [[n_trees[k], n_trees[k], clf_results['fit_time'][k], True, clf_results['train_score'][k], clf_results['test_score'][k], fps[k], fns[k], -1, -1] for k in range(N_FOLDS)]
         to_write += [val for sublist in tmp_to_write for val in sublist]
 
-        print("LPBoost + DL8.5")
+        print("LPBoost + DL8.5 None")
         print("Dataset :", filename)
         n_trees, fps, fns, fit_times, train_scores, test_scores, n_iter, regulators, gammas, n_opti = [], [], [], [], [], [], [], [], [], 0
         for k in range(N_FOLDS):
@@ -139,12 +138,165 @@ for filename in ['zoo-1.txt', 'hepatitis.txt', 'lymph.txt', 'audiology.txt', 'he
             test_scores.append(accuracy_score(y_test, y_pred))
             n_iter.append(clf.n_iterations_)
             regulators.append(gd_sr.best_params_["regulator"])
-            gammas.append(gd_sr.best_params_["gamma"])
+            # gammas.append(gd_sr.best_params_["gamma"])
             n_opti = n_opti + 1 if clf.optimal_ else n_opti
             fps.append(len([i for i in [j for j, val in enumerate(y_pred) if val == 1] if y_test[i] != 1]))
             fns.append(len([i for i in [j for j, val in enumerate(y_pred) if val == 0] if y_test[i] != 0]))
-            to_write += [n_iter[-1], n_trees[-1], fit_times[-1], clf.optimal_, train_scores[-1], test_scores[-1], fps[-1], fns[-1], regulators[-1], gammas[-1]]
-            print("fold :", k+1, "n_trees :", n_trees[k], "train_acc :", train_scores[k], "test acc :", test_scores[k], "regu :", regulators[k], "gamma :", gammas[k], "\n")
+            to_write += [n_iter[-1], n_trees[-1], fit_times[-1], clf.optimal_, train_scores[-1], test_scores[-1], fps[-1], fns[-1], regulators[-1], -1]
+            print("fold :", k+1, "n_trees :", n_trees[k], "train_acc :", train_scores[k], "test acc :", test_scores[k], "regu :", regulators[k], "gamma :", -1, "\n")
+        # max_estimators = int(sum(n_trees)/len(n_trees))
+        max_estimators = n_trees[:]
+        print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
+        print("Number of trees =", n_trees, np.mean(n_trees))
+        print("Accuracy on training set =", train_scores, round(float(np.mean(train_scores)), 4))
+        print("Accuracy on test set =", test_scores, round(float(np.mean(test_scores)), 4))
+        print("number of optimality :", n_opti)
+        print("list of iterations :", n_iter)
+        print("list of time :", fit_times)
+        print("list of regulator :", regulators)
+        print("list of gammas :", gammas)
+        print("sum false positives =", sum(fps))
+        print("sum false negatives =", sum(fns), "\n\n\n")
+
+        print("LPBoost + DL8.5 auto")
+        print("Dataset :", filename)
+        n_trees, fps, fns, fit_times, train_scores, test_scores, n_iter, regulators, gammas, n_opti = [], [], [], [], [], [], [], [], [], 0
+        for k in range(N_FOLDS):
+            X_train, X_test, y_train, y_test = X_trains[k], X_tests[k], y_trains[k], y_tests[k]
+
+            train_indices, valid_indices = [], []
+            kf = StratifiedKFold(n_splits=N_FOLDS_TUNING)
+            for train_index, test_index in kf.split(X_train, y_train):
+                if X.shape[0] <= 1500:  # 3/4 tr - 1/4 te
+                    train_indices.append(train_index)
+                    valid_indices.append(test_index)
+                else:  # 1/4 tr - 3/4 te
+                    train_indices.append(test_index)
+                    valid_indices.append(train_index)
+            custom_cv = zip(train_indices, valid_indices)
+
+            print("Fold", k+1, "- Search for the best regulator using grid search...", MAX_TREES)
+            gd_sr = GridSearchCV(estimator=DL85Boostera(max_depth=MAX_DEPTH, model=MODEL, gamma='auto'),
+                                 param_grid=parameters, scoring='accuracy', cv=custom_cv, n_jobs=-1, verbose=VERBOSE_LEVEL)
+            gd_sr.fit(X_train, y_train)
+            print()
+            print("Fold", k+1, "- Running cross validation for LPBoost + DL8.5 with best regulator =", gd_sr.best_params_["regulator"], "on", filename)
+            clf = gd_sr.best_estimator_
+            y_pred = clf.predict(X_test)
+            n_trees.append(clf.n_estimators_)
+            fit_times.append(clf.duration_)
+            train_scores.append(accuracy_score(y_train, clf.predict(X_train)))
+            test_scores.append(accuracy_score(y_test, y_pred))
+            n_iter.append(clf.n_iterations_)
+            regulators.append(gd_sr.best_params_["regulator"])
+            # gammas.append(gd_sr.best_params_["gamma"])
+            n_opti = n_opti + 1 if clf.optimal_ else n_opti
+            fps.append(len([i for i in [j for j, val in enumerate(y_pred) if val == 1] if y_test[i] != 1]))
+            fns.append(len([i for i in [j for j, val in enumerate(y_pred) if val == 0] if y_test[i] != 0]))
+            to_write += [n_iter[-1], n_trees[-1], fit_times[-1], clf.optimal_, train_scores[-1], test_scores[-1], fps[-1], fns[-1], regulators[-1], -1]
+            print("fold :", k+1, "n_trees :", n_trees[k], "train_acc :", train_scores[k], "test acc :", test_scores[k], "regu :", regulators[k], "gamma :", -1, "\n")
+        # max_estimators = int(sum(n_trees)/len(n_trees))
+        max_estimators = n_trees[:]
+        print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
+        print("Number of trees =", n_trees, np.mean(n_trees))
+        print("Accuracy on training set =", train_scores, round(float(np.mean(train_scores)), 4))
+        print("Accuracy on test set =", test_scores, round(float(np.mean(test_scores)), 4))
+        print("number of optimality :", n_opti)
+        print("list of iterations :", n_iter)
+        print("list of time :", fit_times)
+        print("list of regulator :", regulators)
+        print("list of gammas :", gammas)
+        print("sum false positives =", sum(fps))
+        print("sum false negatives =", sum(fns), "\n\n\n")
+
+        print("LPBoost + DL8.5 scale")
+        print("Dataset :", filename)
+        n_trees, fps, fns, fit_times, train_scores, test_scores, n_iter, regulators, gammas, n_opti = [], [], [], [], [], [], [], [], [], 0
+        for k in range(N_FOLDS):
+            X_train, X_test, y_train, y_test = X_trains[k], X_tests[k], y_trains[k], y_tests[k]
+
+            train_indices, valid_indices = [], []
+            kf = StratifiedKFold(n_splits=N_FOLDS_TUNING)
+            for train_index, test_index in kf.split(X_train, y_train):
+                if X.shape[0] <= 1500:  # 3/4 tr - 1/4 te
+                    train_indices.append(train_index)
+                    valid_indices.append(test_index)
+                else:  # 1/4 tr - 3/4 te
+                    train_indices.append(test_index)
+                    valid_indices.append(train_index)
+            custom_cv = zip(train_indices, valid_indices)
+
+            print("Fold", k+1, "- Search for the best regulator using grid search...", MAX_TREES)
+            gd_sr = GridSearchCV(estimator=DL85Boostera(max_depth=MAX_DEPTH, model=MODEL, gamma='scale'),
+                                 param_grid=parameters, scoring='accuracy', cv=custom_cv, n_jobs=-1, verbose=VERBOSE_LEVEL)
+            gd_sr.fit(X_train, y_train)
+            print()
+            print("Fold", k+1, "- Running cross validation for LPBoost + DL8.5 with best regulator =", gd_sr.best_params_["regulator"], "on", filename)
+            clf = gd_sr.best_estimator_
+            y_pred = clf.predict(X_test)
+            n_trees.append(clf.n_estimators_)
+            fit_times.append(clf.duration_)
+            train_scores.append(accuracy_score(y_train, clf.predict(X_train)))
+            test_scores.append(accuracy_score(y_test, y_pred))
+            n_iter.append(clf.n_iterations_)
+            regulators.append(gd_sr.best_params_["regulator"])
+            # gammas.append(gd_sr.best_params_["gamma"])
+            n_opti = n_opti + 1 if clf.optimal_ else n_opti
+            fps.append(len([i for i in [j for j, val in enumerate(y_pred) if val == 1] if y_test[i] != 1]))
+            fns.append(len([i for i in [j for j, val in enumerate(y_pred) if val == 0] if y_test[i] != 0]))
+            to_write += [n_iter[-1], n_trees[-1], fit_times[-1], clf.optimal_, train_scores[-1], test_scores[-1], fps[-1], fns[-1], regulators[-1], -1]
+            print("fold :", k+1, "n_trees :", n_trees[k], "train_acc :", train_scores[k], "test acc :", test_scores[k], "regu :", regulators[k], "gamma :", -1, "\n")
+        # max_estimators = int(sum(n_trees)/len(n_trees))
+        max_estimators = n_trees[:]
+        print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
+        print("Number of trees =", n_trees, np.mean(n_trees))
+        print("Accuracy on training set =", train_scores, round(float(np.mean(train_scores)), 4))
+        print("Accuracy on test set =", test_scores, round(float(np.mean(test_scores)), 4))
+        print("number of optimality :", n_opti)
+        print("list of iterations :", n_iter)
+        print("list of time :", fit_times)
+        print("list of regulator :", regulators)
+        print("list of gammas :", gammas)
+        print("sum false positives =", sum(fps))
+        print("sum false negatives =", sum(fns), "\n\n\n")
+
+        print("LPBoost + DL8.5 nscale")
+        print("Dataset :", filename)
+        n_trees, fps, fns, fit_times, train_scores, test_scores, n_iter, regulators, gammas, n_opti = [], [], [], [], [], [], [], [], [], 0
+        for k in range(N_FOLDS):
+            X_train, X_test, y_train, y_test = X_trains[k], X_tests[k], y_trains[k], y_tests[k]
+
+            train_indices, valid_indices = [], []
+            kf = StratifiedKFold(n_splits=N_FOLDS_TUNING)
+            for train_index, test_index in kf.split(X_train, y_train):
+                if X.shape[0] <= 1500:  # 3/4 tr - 1/4 te
+                    train_indices.append(train_index)
+                    valid_indices.append(test_index)
+                else:  # 1/4 tr - 3/4 te
+                    train_indices.append(test_index)
+                    valid_indices.append(train_index)
+            custom_cv = zip(train_indices, valid_indices)
+
+            print("Fold", k+1, "- Search for the best regulator using grid search...", MAX_TREES)
+            gd_sr = GridSearchCV(estimator=DL85Boostera(max_depth=MAX_DEPTH, model=MODEL, gamma='nscale'),
+                                 param_grid=parameters, scoring='accuracy', cv=custom_cv, n_jobs=-1, verbose=VERBOSE_LEVEL)
+            gd_sr.fit(X_train, y_train)
+            print()
+            print("Fold", k+1, "- Running cross validation for LPBoost + DL8.5 with best regulator =", gd_sr.best_params_["regulator"], "on", filename)
+            clf = gd_sr.best_estimator_
+            y_pred = clf.predict(X_test)
+            n_trees.append(clf.n_estimators_)
+            fit_times.append(clf.duration_)
+            train_scores.append(accuracy_score(y_train, clf.predict(X_train)))
+            test_scores.append(accuracy_score(y_test, y_pred))
+            n_iter.append(clf.n_iterations_)
+            regulators.append(gd_sr.best_params_["regulator"])
+            # gammas.append(gd_sr.best_params_["gamma"])
+            n_opti = n_opti + 1 if clf.optimal_ else n_opti
+            fps.append(len([i for i in [j for j, val in enumerate(y_pred) if val == 1] if y_test[i] != 1]))
+            fns.append(len([i for i in [j for j, val in enumerate(y_pred) if val == 0] if y_test[i] != 0]))
+            to_write += [n_iter[-1], n_trees[-1], fit_times[-1], clf.optimal_, train_scores[-1], test_scores[-1], fps[-1], fns[-1], regulators[-1], -1]
+            print("fold :", k+1, "n_trees :", n_trees[k], "train_acc :", train_scores[k], "test acc :", test_scores[k], "regu :", regulators[k], "gamma :", -1, "\n")
         # max_estimators = int(sum(n_trees)/len(n_trees))
         max_estimators = n_trees[:]
         print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
