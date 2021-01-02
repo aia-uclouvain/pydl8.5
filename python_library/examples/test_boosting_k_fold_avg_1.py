@@ -126,7 +126,7 @@ for filename in ['zoo-1.txt', 'hepatitis.txt', 'lymph.txt', 'audiology.txt', 'he
             custom_cv = zip(train_indices, valid_indices)
 
             print("Fold", k+1, "- Search for the best regulator using grid search...", MAX_TREES)
-            gd_sr = GridSearchCV(estimator=DL85Boostera(max_depth=MAX_DEPTH, model=MODEL, gamma=None),
+            gd_sr = GridSearchCV(estimator=DL85Boostera(max_depth=MAX_DEPTH, model=MODEL), error_score=np.nan,
                                  param_grid=parameters, scoring='accuracy', cv=custom_cv, n_jobs=-1, verbose=VERBOSE_LEVEL)
             gd_sr.fit(X_train, y_train)
             print()

@@ -15,7 +15,7 @@ import subprocess
 depth, time_limit, N_FOLDS = 2, 0, 5
 
 # dataset = np.genfromtxt("../datasets/paper_test.txt", delimiter=" ")
-dataset = np.genfromtxt("../datasets/tic-tac-toe.txt", delimiter=" ")
+dataset = np.genfromtxt("../datasets/zoo-1.txt", delimiter=" ")
 # dataset = np.genfromtxt("../datasets/kr-vs-kp.txt", delimiter=" ")
 X, y = dataset[:, 1:], dataset[:, 0]
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
@@ -30,7 +30,7 @@ print("Accuracy DL8.5 on training set =", accuracy_score(y_train, clf.predict(X_
 print("Accuracy DL8.5 on test set =", accuracy_score(y_test, y_pred))
 
 
-clf_results = cross_validate(estimator=DL85Boostera(max_depth=depth, regulator=15, max_iterations=-1, quiet=True, gamma='nscale'), X=X, y=y, scoring='accuracy',
+clf_results = cross_validate(estimator=DL85Boostera(max_depth=depth, regulator=0.03125, max_iterations=-1, quiet=True, gamma=None), X=X, y=y, scoring='accuracy',
                              cv=N_FOLDS, n_jobs=-1, verbose=10, return_train_score=True, return_estimator=True, error_score=np.nan)
 n_trees = [1 for k in range(N_FOLDS)]
 # fps = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 1] if y_tests[k][i] != 1]) for k in range(N_FOLDS)]
