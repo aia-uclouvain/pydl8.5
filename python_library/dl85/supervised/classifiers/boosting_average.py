@@ -173,8 +173,9 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
             elif self.gamma == 'scale':
                 self.gamma = 1 / (n_features * X.var())
             elif self.gamma == 'nscale':
-                scaler = MinMaxScaler(feature_range=(-10, 10))
-                self.gamma = 1 / scaler.fit_transform(X).var()
+                # scaler = MinMaxScaler(feature_range=(-10, 10))
+                # self.gamma = 1 / scaler.fit_transform(X).var()
+                self.gamma = 1 / X.var()
             A_inv = np.full((n_instances, n_instances), 0, dtype=np.float64)
             for i in range(n_instances):
                 for j in range(n_instances):

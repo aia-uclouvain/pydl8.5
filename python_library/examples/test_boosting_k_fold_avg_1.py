@@ -67,8 +67,8 @@ for filename in ['zoo-1.txt', 'hepatitis.txt', 'lymph.txt', 'audiology.txt', 'he
 
         # parameters = {'regulator': [2, 5, 8, 10, 12, 15, 20, 30, 40, 50, 70, 90, 100, 120]}
         # parameters = {'regulator': [2, 5, 8, 10, 12, 15, 20, 30, 40, 50, 70, 90, 100, 120], 'gamma': [None, 'auto', 'scale', 'nscale', 1, 0.1, 0.01, 0.001, 0.0001]}
-        parameters = {'regulator': list(map(lambda x: pow(2, x), list(range(-5, 16)))), 'gamma': [None] + list(map(lambda x: pow(2, x), list(range(-15, 4))))}
-        # parameters = {'regulator': [2, 5, 10, 20, 40, 70, 100, 150], 'gamma': ['auto', 'scale', 'nscale']}
+        # parameters = {'regulator': list(map(lambda x: pow(2, x), list(range(-5, 16)))), 'gamma': [None] + list(map(lambda x: pow(2, x), list(range(-15, 4))))}
+        parameters = {'regulator': [0.01, 0.1, 1, 2, 5, 10, 20, 40, 70, 100, 150], 'gamma': [None, 'auto', 'scale', 'nscale']}
 
         print("######################################################################\n"
               "#                                START                               #\n"
@@ -131,6 +131,7 @@ for filename in ['zoo-1.txt', 'hepatitis.txt', 'lymph.txt', 'audiology.txt', 'he
             gd_sr.fit(X_train, y_train)
             print()
             print("Fold", k+1, "- Running cross validation for LPBoost + DL8.5 with best regulator =", gd_sr.best_params_["regulator"], "on", filename)
+            print("best estimator", gd_sr.best_estimator_)
             clf = gd_sr.best_estimator_
             y_pred = clf.predict(X_test)
             n_trees.append(clf.n_estimators_)
