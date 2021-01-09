@@ -23,17 +23,21 @@ import sys
 # filename = "letter"
 # dataset = np.genfromtxt("../datasets/" + filename + ".txt", delimiter=' ')
 
-N_FOLDS, N_FOLDS_TUNING, MAX_DEPTH, MIN_SUP, MODEL = 5, 4, int(sys.argv[1]) if len(sys.argv) > 1 else 1, 1, 'gurobi' if len(sys.argv) > 2 else 'cvxpy'
-MAX_ITERATIONS, MAX_TREES, TIME_LIMIT = 0, 0, 0
+N_FOLDS, N_FOLDS_TUNING, MAX_DEPTH, MIN_SUP, MODEL = 5, 4, int(sys.argv[1]) if len(sys.argv) > 1 else 1, 1, 'gurobi' if len(sys.argv) > 4 else 'cvxpy'
+MAX_ITERATIONS, MAX_TREES, TIME_LIMIT = int(sys.argv[2]) if len(sys.argv) > 2 else 0, 0, 0
 VERBOSE_LEVEL = 10
+first_file = sys.argv[3] + '.txt' if len(sys.argv) > 3 else 'zoo-1.txt'
+
+# depth max_iter first_file model
 
 file_out = open("../output/out_depth_" + str(MAX_DEPTH) + ".csv", "a+")
 directory = '../datasets'
+files = ['zoo-1.txt', 'hepatitis.txt', 'lymph.txt', 'audiology.txt', 'heart-cleveland.txt', 'primary-tumor.txt', 'tic-tac-toe.txt', 'vote.txt', 'soybean.txt',
+         'anneal.txt', 'yeast.txt', 'australian-credit.txt', 'breast-wisconsin.txt', 'diabetes.txt', 'german-credit.txt', 'kr-vs-kp.txt', 'hypothyroid.txt',
+         'mushroom.txt', 'vehicle.txt', 'ionosphere.txt', 'segment.txt', 'splice-1.txt', 'pendigits.txt', 'letter.txt']
 # for filename in sorted(os.listdir(directory)):
-# for filename in ['zoo-1', 'hepatitis', 'lymph', 'audiology', 'heart-cleveland', 'primary-tumor', 'tic-tac-toe', 'anneal', 'yeast', 'australian-credit', 'breast-wisconsin', 'diabetes', 'german-credit', 'kr-vs-kp', 'hypothyroid', 'mushroom', 'ionosphere', 'vote', 'soybean', 'vehicle', 'segment', 'splice-1', 'pendigits', 'letter']:
-for filename in ['zoo-1.txt', 'hepatitis.txt', 'lymph.txt', 'audiology.txt', 'heart-cleveland.txt', 'primary-tumor.txt', 'tic-tac-toe.txt', 'vote.txt', 'soybean.txt',
-                 'anneal.txt', 'yeast.txt', 'australian-credit.txt', 'breast-wisconsin.txt', 'diabetes.txt', 'german-credit.txt', 'kr-vs-kp.txt', 'hypothyroid.txt',
-                 'mushroom.txt', 'vehicle.txt', 'ionosphere.txt', 'segment.txt', 'splice-1.txt', 'pendigits.txt', 'letter.txt']:
+
+for filename in files[files.index(first_file)]:
     # if filename.endswith(".txt") and not filename.startswith("paper") and not filename.startswith("anneal") and not filename.startswith("audiology"):
     if True:
         dataset = np.genfromtxt("../datasets/" + filename, delimiter=' ')
@@ -44,20 +48,27 @@ for filename in ['zoo-1.txt', 'hepatitis.txt', 'lymph.txt', 'audiology.txt', 'he
         y = y.astype('int32')
         # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
-        X_trains, X_tests, y_trains, y_tests = [], [], [], []
-
         kf = StratifiedKFold(n_splits=N_FOLDS)
+        X_trains, X_tests, y_trains, y_tests = [], [], [], []
+        train_indices, test_indices = [], []
         for train_index, test_index in kf.split(X, y):
-            if X.shape[0] <= 1500:  # 80% tr - 20% te
+            if X.shape[0] <= 1000:  # 80%(tr) - 20%(te)
+                train_indices.append(train_index)
+                test_indices.append(test_index)
                 X_trains.append(X[train_index])
                 y_trains.append(y[train_index])
                 X_tests.append(X[test_index])
                 y_tests.append(y[test_index])
-            else:  # 40% tr - 60% te
-                X_trains.append(X[train_index[:len(train_index)//2]])
-                y_trains.append(y[train_index[:len(train_index)//2]])
-                X_tests.append(X[np.concatenate((train_index[-len(train_index)//2:], test_index))])
-                y_tests.append(y[np.concatenate((train_index[-len(train_index)//2:], test_index))])
+            else:  # 700(tr) - remaining(te)
+                # X_trains.append(X[train_index[:len(train_index)//2]])
+                train_indices.append(train_index[:700])
+                test_indices.append(np.concatenate((train_index[-700:], test_index)))
+                X_trains.append(X[train_index[:700]])
+                y_trains.append(y[train_index[:700]])
+                X_tests.append(X[np.concatenate((train_index[-700:], test_index))])
+                y_tests.append(y[np.concatenate((train_index[-700:], test_index))])
+        custom_cv_dl85 = zip(train_indices, test_indices)
+        custom_cv_cart = zip(train_indices, test_indices)
 
         print("Dataset :", filename)
         print("size of 0 :", y.tolist().count(0), "size of 1 :", y.tolist().count(1))
@@ -68,7 +79,7 @@ for filename in ['zoo-1.txt', 'hepatitis.txt', 'lymph.txt', 'audiology.txt', 'he
         # parameters = {'regulator': [2, 5, 8, 10, 12, 15, 20, 30, 40, 50, 70, 90, 100, 120]}
         # parameters = {'regulator': [2, 5, 8, 10, 12, 15, 20, 30, 40, 50, 70, 90, 100, 120], 'gamma': [None, 'auto', 'scale', 'nscale', 1, 0.1, 0.01, 0.001, 0.0001]}
         # parameters = {'regulator': list(map(lambda x: pow(2, x), list(range(-5, 16)))), 'gamma': [None] + list(map(lambda x: pow(2, x), list(range(-15, 4))))}
-        parameters = {'regulator': [0.01, 0.1, 1, 2, 5, 10, 20, 40, 70, 100, 150], 'gamma': [None, 'auto', 'scale', 'nscale']}
+        parameters = {'regulator': [0.01, 0.1, 1, 2, 5, 8, 10, 20, 40, 70, 100, 150], 'gamma': [None, 'auto', 'scale', 'nscale']}
 
         print("######################################################################\n"
               "#                                START                               #\n"
@@ -77,7 +88,7 @@ for filename in ['zoo-1.txt', 'hepatitis.txt', 'lymph.txt', 'audiology.txt', 'he
         print("DL8.5")
         print("Dataset :", filename)
         clf_results = cross_validate(estimator=DL85Classifier(max_depth=MAX_DEPTH), X=X, y=y, scoring='accuracy',
-                                     cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL, return_train_score=True, return_estimator=True, error_score=np.nan)
+                                     cv=custom_cv_dl85, n_jobs=-1, verbose=VERBOSE_LEVEL, return_train_score=True, return_estimator=True, error_score=np.nan)
         n_trees = [1 for k in range(N_FOLDS)]
         fps = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 1] if y_tests[k][i] != 1]) for k in range(N_FOLDS)]
         fns = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 0] if y_tests[k][i] != 0]) for k in range(N_FOLDS)]
@@ -94,7 +105,7 @@ for filename in ['zoo-1.txt', 'hepatitis.txt', 'lymph.txt', 'audiology.txt', 'he
         print("CART")
         print("Dataset :", filename)
         clf_results = cross_validate(estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH), X=X, y=y, scoring='accuracy',
-                                     cv=N_FOLDS, n_jobs=-1, verbose=VERBOSE_LEVEL, return_train_score=True, return_estimator=True, error_score=np.nan)
+                                     cv=custom_cv_cart, n_jobs=-1, verbose=VERBOSE_LEVEL, return_train_score=True, return_estimator=True, error_score=np.nan)
         n_trees = [1 for k in range(N_FOLDS)]
         fps = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 1] if y_tests[k][i] != 1]) for k in range(N_FOLDS)]
         fns = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 0] if y_tests[k][i] != 0]) for k in range(N_FOLDS)]
@@ -117,7 +128,7 @@ for filename in ['zoo-1.txt', 'hepatitis.txt', 'lymph.txt', 'audiology.txt', 'he
             train_indices, valid_indices = [], []
             kf = StratifiedKFold(n_splits=N_FOLDS_TUNING)
             for train_index, test_index in kf.split(X_train, y_train):
-                if X.shape[0] <= 1500:  # 3/4 tr - 1/4 te
+                if X.shape[0] <= 1000:  # 3/4 tr - 1/4 te
                     train_indices.append(train_index)
                     valid_indices.append(test_index)
                 else:  # 1/4 tr - 3/4 te
@@ -126,7 +137,7 @@ for filename in ['zoo-1.txt', 'hepatitis.txt', 'lymph.txt', 'audiology.txt', 'he
             custom_cv = zip(train_indices, valid_indices)
 
             print("Fold", k+1, "- Search for the best regulator using grid search...", MAX_TREES)
-            gd_sr = GridSearchCV(estimator=DL85Boostera(max_depth=MAX_DEPTH, model=MODEL), error_score=np.nan,
+            gd_sr = GridSearchCV(estimator=DL85Boostera(max_depth=MAX_DEPTH, model=MODEL, max_iterations=MAX_ITERATIONS), error_score=np.nan,
                                  param_grid=parameters, scoring='accuracy', cv=custom_cv, n_jobs=-1, verbose=VERBOSE_LEVEL)
             gd_sr.fit(X_train, y_train)
             print()

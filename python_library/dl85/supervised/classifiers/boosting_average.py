@@ -26,7 +26,7 @@ SUITABLE_TREES_PROBLEM = 2
 
 
 def is_pos_def(x):
-    print(np.linalg.eigvals(x))
+    # print(np.linalg.eigvals(x))
     return np.all(np.linalg.eigvals(x) > 0)
 
 
@@ -160,13 +160,13 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
         sample_weights = np.array([1/n_instances] * n_instances)
         predictions, r, self.n_iterations_, constant = None, None, 1, 0.0001
 
-        A_inv = None
+        # A_inv = None
         if self.gamma is None:
             # Build positive semidefinite A matrix
             A_inv = np.full((n_instances, n_instances), -1/(n_instances - 1), dtype=np.float64)
             np.fill_diagonal(A_inv, 1)
             # regularize A to make sure it is really PSD
-            A_inv = np.add(A_inv, np.dot(np.eye(n_instances), constant))
+            # A_inv = np.add(A_inv, np.dot(np.eye(n_instances), constant))
         else:
             if self.gamma == 'auto':
                 self.gamma = 1 / n_instances
@@ -176,15 +176,18 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
                 # scaler = MinMaxScaler(feature_range=(-10, 10))
                 # self.gamma = 1 / scaler.fit_transform(X).var()
                 self.gamma = 1 / X.var()
-            A_inv = np.full((n_instances, n_instances), 0, dtype=np.float64)
+            A_inv = np.identity(n_instances, dtype=np.float64)
             for i in range(n_instances):
                 for j in range(n_instances):
                     if i != j:
                         A_inv[i, j] = np.exp(-self.gamma * np.linalg.norm(np.subtract(X[i, :], X[j, :]))**2)
-                    else:
-                        for k in range(n_instances):
-                            if k != i:
-                                A_inv[i, j] += np.exp(-self.gamma * np.linalg.norm(np.subtract(X[i, :], X[k, :]))**2)
+                    # else:
+                    #     A_inv[i, j] = 1
+                        # for k in range(n_instances):
+                        #     if k != i:
+                        #         A_inv[i, j] += np.exp(-self.gamma * np.linalg.norm(np.subtract(X[i, :], X[k, :]))**2)
+        if not is_pos_def(A_inv) and not is_semipos_def(A_inv):
+            A_inv = np.add(A_inv, np.dot(np.eye(n_instances), constant))
 
         if not self.quiet:
             print(A_inv)
@@ -200,6 +203,8 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
         if not self.quiet:
             print("A_inv")
             print(A_inv)
+            print("is psd", is_pos_def(A_inv))
+            print("is semi psd", is_semipos_def(A_inv))
 
         while (self.max_iterations > 0 and self.n_iterations_ <= self.max_iterations) or self.max_iterations <= 0:
             if not self.quiet:

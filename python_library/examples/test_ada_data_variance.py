@@ -17,20 +17,18 @@ depth, time_limit, N_FOLDS = 2, 0, 5
 # dataset = np.genfromtxt("../datasets/paper_test.txt", delimiter=" ")
 # dataset = np.genfromtxt("../datasets/zoo-1.txt", delimiter=" ")
 # dataset = np.genfromtxt("../datasets/kr-vs-kp.txt", delimiter=" ")
-dataset = np.genfromtxt("../datasets/yeast.txt", delimiter=" ")
+dataset = np.genfromtxt("../datasets/tic-tac-toe.txt", delimiter=" ")
 X, y = dataset[:, 1:], dataset[:, 0]
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-# X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=525)
 
-
-clf = DL85Boostera(max_depth=depth, regulator=0.1, max_iterations=-1, quiet=False, gamma='scale', model='cvxpy')
-start = time.perf_counter()
-print("Model building...")
-clf.fit(X_train, y_train)
-print("Model built in ", time.perf_counter() - start, "second(s)")
-y_pred = clf.predict(X_test)
-print("Accuracy DL8.5 on training set =", accuracy_score(y_train, clf.predict(X_train)))
-print("Accuracy DL8.5 on test set =", accuracy_score(y_test, y_pred))
+# clf = DL85Boostera(max_depth=depth, regulator=1, max_iterations=-1, quiet=False, gamma=None, model='gurobi')
+# start = time.perf_counter()
+# print("Model building...")
+# clf.fit(X_train, y_train)
+# print("Model built in ", time.perf_counter() - start, "second(s)")
+# y_pred = clf.predict(X_test)
+# print("Accuracy DL8.5 on training set =", accuracy_score(y_train, clf.predict(X_train)))
+# print("Accuracy DL8.5 on test set =", accuracy_score(y_test, y_pred))
 
 
 # clf_results = cross_validate(estimator=DL85Boostera(max_depth=depth, regulator=0.03125, max_iterations=-1, quiet=True, gamma=None), X=X, y=y, scoring='accuracy',
@@ -47,21 +45,34 @@ print("Accuracy DL8.5 on test set =", accuracy_score(y_test, y_pred))
 # # print("sum false negatives =", sum(fns), "\n\n\n")
 
 
-clf = AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=depth), n_estimators=clf.n_estimators_)
+# clf = AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=depth), n_estimators=clf.n_estimators_)
+clf = AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=depth), n_estimators=50)
 start = time.perf_counter()
 print("Model building...")
 clf.fit(X_train, y_train)
-print("Model built in", time.perf_counter() - start, "second(s)")
-y_pred = clf.predict(X_test)
-print("Accuracy Adaboost on training set =", accuracy_score(y_train, clf.predict(X_train)))
-print("Accuracy Adaboost on test set =", accuracy_score(y_test, y_pred))
 
+pred = np.array([-clf.estimator_weights_[0] if p != y[i] else clf.estimator_weights_[0] for i, p in enumerate(clf.estimators_[0].predict(X))])
+margins = pred.reshape((-1, 1))
 
-clf = DecisionTreeClassifier(max_depth=depth)
-start = time.perf_counter()
-print("Model building...")
-clf.fit(X_train, y_train)
-print("Model built in", time.perf_counter() - start, "second(s)")
-y_pred = clf.predict(X_test)
-print("Accuracy Cart on training set =", accuracy_score(y_train, clf.predict(X_train)))
-print("Accuracy Cart on test set =", accuracy_score(y_test, y_pred))
+for i in range(1, len(clf.estimators_)):
+    pred = np.array([-clf.estimator_weights_[i] if p != y[j] else clf.estimator_weights_[i] for j, p in enumerate(clf.estimators_[i].predict(X))])
+    margins = np.concatenate((margins, pred.reshape(-1, 1)), axis=1)
+
+margins = np.sum(margins, axis=1)
+
+np.histogram(margins)
+
+# print("Model built in", time.perf_counter() - start, "second(s)")
+# y_pred = clf.predict(X_test)
+# print("Accuracy Adaboost on training set =", accuracy_score(y_train, clf.predict(X_train)))
+# print("Accuracy Adaboost on test set =", accuracy_score(y_test, y_pred))
+#
+#
+# clf = DecisionTreeClassifier(max_depth=depth)
+# start = time.perf_counter()
+# print("Model building...")
+# clf.fit(X_train, y_train)
+# print("Model built in", time.perf_counter() - start, "second(s)")
+# y_pred = clf.predict(X_test)
+# print("Accuracy Cart on training set =", accuracy_score(y_train, clf.predict(X_train)))
+# print("Accuracy Cart on test set =", accuracy_score(y_test, y_pred))

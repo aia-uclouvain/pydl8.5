@@ -19,18 +19,44 @@ depth, time_limit, N_FOLDS = 2, 0, 5
 # dataset = np.genfromtxt("../datasets/kr-vs-kp.txt", delimiter=" ")
 dataset = np.genfromtxt("../datasets/yeast.txt", delimiter=" ")
 X, y = dataset[:, 1:], dataset[:, 0]
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 # X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=525)
 
+i, j = 0, 1
+n_train = 90
 
-clf = DL85Boostera(max_depth=depth, regulator=0.1, max_iterations=-1, quiet=False, gamma='scale', model='cvxpy')
+X_trainss, X_tests, y_trainss, y_tests = [], [], [], []
+kf = StratifiedKFold(n_splits=N_FOLDS)
+train_indices, test_indices = [], []
+for train_index, test_index in kf.split(X, y):
+    X_trainss.append(X[train_index[:n_train]])
+    y_trainss.append(y[train_index[:n_train]])
+    X_tests.append(X[np.concatenate((train_index[-n_train:], test_index))])
+    y_tests.append(y[np.concatenate((train_index[-n_train:], test_index))])
+
+X_trains, X_valids, y_trains, y_valids = [], [], [], []
+kf = StratifiedKFold(n_splits=N_FOLDS - 1)
+for train_index, test_index in kf.split(X_trainss[i], y_trainss[i]):
+    if X.shape[0] <= 1500:  # 3/4 tr - 1/4 te
+        X_trains.append(X[train_index])
+        y_trains.append(y[train_index])
+        X_valids.append(X[test_index])
+        y_valids.append(y[test_index])
+    else:  # 1/4 tr - 3/4 te
+        X_trains.append(X[test_index])
+        y_trains.append(y[test_index])
+        X_valids.append(X[train_index])
+        y_valids.append(y[train_index])
+
+
+clf = DL85Boostera(max_depth=depth, regulator=2.5, max_iterations=-1, quiet=True, gamma='nscale', model='cvxpy')
 start = time.perf_counter()
 print("Model building...")
-clf.fit(X_train, y_train)
+clf.fit(X_trains[j], y_trains[j])
 print("Model built in ", time.perf_counter() - start, "second(s)")
-y_pred = clf.predict(X_test)
-print("Accuracy DL8.5 on training set =", accuracy_score(y_train, clf.predict(X_train)))
-print("Accuracy DL8.5 on test set =", accuracy_score(y_test, y_pred))
+y_pred = clf.predict(X_tests[i])
+print("Accuracy DL8.5 on training set =", accuracy_score(y_trains[j], clf.predict(X_trains[j])))
+print("Accuracy DL8.5 on test set =", accuracy_score(y_tests[i], y_pred))
 
 
 # clf_results = cross_validate(estimator=DL85Boostera(max_depth=depth, regulator=0.03125, max_iterations=-1, quiet=True, gamma=None), X=X, y=y, scoring='accuracy',
@@ -47,21 +73,21 @@ print("Accuracy DL8.5 on test set =", accuracy_score(y_test, y_pred))
 # # print("sum false negatives =", sum(fns), "\n\n\n")
 
 
-clf = AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=depth), n_estimators=clf.n_estimators_)
-start = time.perf_counter()
-print("Model building...")
-clf.fit(X_train, y_train)
-print("Model built in", time.perf_counter() - start, "second(s)")
-y_pred = clf.predict(X_test)
-print("Accuracy Adaboost on training set =", accuracy_score(y_train, clf.predict(X_train)))
-print("Accuracy Adaboost on test set =", accuracy_score(y_test, y_pred))
-
-
-clf = DecisionTreeClassifier(max_depth=depth)
-start = time.perf_counter()
-print("Model building...")
-clf.fit(X_train, y_train)
-print("Model built in", time.perf_counter() - start, "second(s)")
-y_pred = clf.predict(X_test)
-print("Accuracy Cart on training set =", accuracy_score(y_train, clf.predict(X_train)))
-print("Accuracy Cart on test set =", accuracy_score(y_test, y_pred))
+# clf = AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=depth), n_estimators=clf.n_estimators_)
+# start = time.perf_counter()
+# print("Model building...")
+# clf.fit(X_train, y_train)
+# print("Model built in", time.perf_counter() - start, "second(s)")
+# y_pred = clf.predict(X_test)
+# print("Accuracy Adaboost on training set =", accuracy_score(y_train, clf.predict(X_train)))
+# print("Accuracy Adaboost on test set =", accuracy_score(y_test, y_pred))
+#
+#
+# clf = DecisionTreeClassifier(max_depth=depth)
+# start = time.perf_counter()
+# print("Model building...")
+# clf.fit(X_train, y_train)
+# print("Model built in", time.perf_counter() - start, "second(s)")
+# y_pred = clf.predict(X_test)
+# print("Accuracy Cart on training set =", accuracy_score(y_train, clf.predict(X_train)))
+# print("Accuracy Cart on test set =", accuracy_score(y_test, y_pred))
