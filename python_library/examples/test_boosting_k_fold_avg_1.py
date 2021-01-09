@@ -37,7 +37,7 @@ files = ['zoo-1.txt', 'hepatitis.txt', 'lymph.txt', 'audiology.txt', 'heart-clev
          'mushroom.txt', 'vehicle.txt', 'ionosphere.txt', 'segment.txt', 'splice-1.txt', 'pendigits.txt', 'letter.txt']
 # for filename in sorted(os.listdir(directory)):
 
-for filename in files[files.index(first_file)]:
+for filename in files[files.index(first_file):]:
     # if filename.endswith(".txt") and not filename.startswith("paper") and not filename.startswith("anneal") and not filename.startswith("audiology"):
     if True:
         dataset = np.genfromtxt("../datasets/" + filename, delimiter=' ')
