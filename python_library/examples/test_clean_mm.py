@@ -65,7 +65,7 @@ depth, time_limit, N_FOLDS = 2, 0, 5
 file = open("../output/match_maker_" + str(depth) + "_.txt", "w")
 
 # split features and target
-dataset = np.genfromtxt("../datasets/clean_mm_1.csv", delimiter=",", skip_header=1)
+dataset = np.genfromtxt("../datasets/boosting/mm/clean_mm_1.csv", delimiter=",", skip_header=1)
 X = dataset[:, :-1]
 y = dataset[:, -1]
 # for each feature, create at most 8 categories of equal width for discretization
@@ -80,8 +80,8 @@ print(X.shape, y.shape)
 print(set(y))
 file.write(str(X.shape) + " " + str(y.shape) + "\n")
 file.write(str(set(y)) + "\n")
-# np.savetxt("../datasets/matchmaker.txt", np.concatenate((y.reshape(X.shape[0], 1), X), axis=1), fmt="%d", delimiter=" ")
-
+# np.savetxt("../datasets/boosting/mm/matchmaker.txt", np.concatenate((y.reshape(-1, 1), X), axis=1), fmt="%d", delimiter=" ")
+# sys.exit(0)
 print("matchmaker")
 
 kf = StratifiedKFold(n_splits=5)

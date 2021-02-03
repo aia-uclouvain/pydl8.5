@@ -34,6 +34,67 @@ def is_semipos_def(x):
     return np.all(np.linalg.eigvals(x) >= 0)
 
 
+def isPD(B):
+    """Returns true when input is positive-definite, via Cholesky"""
+    try:
+        _ = np.linalg.cholesky(B)
+        return True
+    except np.linalg.LinAlgError:
+        return False
+
+
+def nearestPD(A):
+    """Find the nearest positive-definite matrix to input
+
+    A Python/Numpy port of John D'Errico's `nearestSPD` MATLAB code [1], which
+    credits [2].
+
+    [1] https://www.mathworks.com/matlabcentral/fileexchange/42885-nearestspd
+
+    [2] N.J. Higham, "Computing a nearest symmetric positive semidefinite
+    matrix" (1988): https://doi.org/10.1016/0024-3795(88)90223-6
+    """
+
+    B = (A + A.T) / 2
+    _, s, V = np.linalg.svd(B)
+
+    H = np.dot(V.T, np.dot(np.diag(s), V))
+
+    A2 = (B + H) / 2
+
+    A3 = (A2 + A2.T) / 2
+
+    if isPD(A3):
+        return A3
+
+    spacing = np.spacing(np.linalg.norm(A))
+    # The above is different from [1]. It appears that MATLAB's `chol` Cholesky
+    # decomposition will accept matrixes with exactly 0-eigenvalue, whereas
+    # Numpy's will not. So where [1] uses `eps(mineig)` (where `eps` is Matlab
+    # for `np.spacing`), we use the above definition. CAVEAT: our `spacing`
+    # will be much larger than [1]'s `eps(mineig)`, since `mineig` is usually on
+    # the order of 1e-16, and `eps(1e-16)` is on the order of 1e-34, whereas
+    # `spacing` will, for Gaussian random matrixes of small dimension, be on
+    # othe order of 1e-16. In practice, both ways converge, as the unit test
+    # below suggests.
+    I = np.eye(A.shape[0])
+    k = 1
+    while not isPD(A3):
+        mineig = np.min(np.real(np.linalg.eigvals(A3)))
+        A3 += I * (-mineig * k**2 + spacing)
+        k += 1
+
+    return A3
+
+
+def get_near_psd(A):
+    C = (A + A.T)/2
+    eigval, eigvec = np.linalg.eig(C)
+    eigval[eigval < 0] = 0
+
+    return eigvec.dot(np.diag(eigval)).dot(eigvec.T)
+
+
 class DL85Boostera(BaseEstimator, ClassifierMixin):
     """
     An optimal binary decision tree classifier.
@@ -166,7 +227,7 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
             A_inv = np.full((n_instances, n_instances), -1/(n_instances - 1), dtype=np.float64)
             np.fill_diagonal(A_inv, 1)
             # regularize A to make sure it is really PSD
-            # A_inv = np.add(A_inv, np.dot(np.eye(n_instances), constant))
+            A_inv = np.add(A_inv, np.dot(np.eye(n_instances), constant))
         else:
             if self.gamma == 'auto':
                 self.gamma = 1 / n_instances
@@ -186,25 +247,33 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
                         # for k in range(n_instances):
                         #     if k != i:
                         #         A_inv[i, j] += np.exp(-self.gamma * np.linalg.norm(np.subtract(X[i, :], X[k, :]))**2)
-        if not is_pos_def(A_inv) and not is_semipos_def(A_inv):
-            A_inv = np.add(A_inv, np.dot(np.eye(n_instances), constant))
+        # if not is_pos_def(A_inv) and not is_semipos_def(A_inv):
+        # A_inv = np.add(A_inv, np.dot(np.eye(n_instances), constant))
 
         if not self.quiet:
             print(A_inv)
             print("is psd", is_pos_def(A_inv))
             print("is semi psd", is_semipos_def(A_inv))
 
+        # if isPD(A_inv) is False:
+        #     A_inv = nearestPD(A_inv)
+
         # invert A matrix
-        try:
-            A_inv = np.linalg.inv(A_inv)
-        except:
-            A_inv = np.linalg.pinv(A_inv)
+        # try:
+        #     A_inv = np.linalg.inv(A_inv)
+        # except:
+        A_inv = np.linalg.pinv(A_inv)
+
+        if isPD(A_inv) is False:
+            A_inv = nearestPD(A_inv)
 
         if not self.quiet:
             print("A_inv")
-            print(A_inv)
+            # print(A_inv)
+            print("is psd", isPD(A_inv))
             print("is psd", is_pos_def(A_inv))
             print("is semi psd", is_semipos_def(A_inv))
+            print("is semi psd", is_pos_def(nearestPD(A_inv)))
 
         while (self.max_iterations > 0 and self.n_iterations_ <= self.max_iterations) or self.max_iterations <= 0:
             if not self.quiet:
@@ -262,6 +331,8 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
                 r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_cvxpy(r, sample_weights, A_inv, predictions)
             elif self.model == 'gurobi':
                 r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_gurobi(r, sample_weights, A_inv, predictions)
+            elif self.model == 5:
+                r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_test(r, sample_weights, A_inv, predictions)
 
             if not self.quiet:
                 print("sample w", sample_weights)
@@ -304,6 +375,9 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
                 else:
                     print()
 
+        if self.n_estimators_ == 0:
+            raise NotFittedError("No tree selected")
+
         return self
 
     def compute_dual_cvxpy(self, r, u, A_inv, predictions):
@@ -312,6 +386,7 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
 
         obj = cp.Minimize(r_ + 1/(2*self.regulator) * cp.quad_form((u_ - 1), A_inv))
         constr = [predictions[:, i] @ u_ <= r_ for i in range(predictions.shape[1])]
+        # constr = [predictions[i, :] @ u_ <= r_ for i in range(predictions.shape[0])]
 
         problem = cp.Problem(obj, constr)
 
@@ -323,6 +398,51 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
             sys.stdout = old_stdout
 
         return r_.value, u_.value, opti, [x.dual_value for x in problem.constraints]
+
+    def compute_dual_test2(self, r, u, A_inv, predictions):
+        r_ = cp.Variable()
+        u_ = cp.Variable(u.shape[0])
+        v_ = cp.Variable(u.shape[0])
+
+        # obj = cp.Minimize((self.regulator * r_) - (1/2 * cp.quad_form((v_ - u_ - 1), A_inv)) - (A_inv @ (v_ - u_ + 1)) - (A_inv @ (v_ - u_ + 1) @ (u_ - v_)))
+        # obj = cp.Minimize((self.regulator * r_) - (1/2 * cp.quad_form((v_ - u_ + 1), A_inv)) - ((u_ - 1).T @ A_inv @ (v_ - u_ + 1)) - (v_.T @ A_inv @ (v_ - u_ + 1)))
+        obj = cp.Minimize(r_ + 1/(2*self.regulator) * cp.quad_form((v_ - u_ + 1), A_inv))
+        constr = [predictions[:, i] @ u_ <= r_ for i in range(predictions.shape[1])]
+        constr.append(cp.sum(v_) == 1)
+
+        problem = cp.Problem(obj, constr)
+
+        if self.quiet:
+            old_stdout = sys.stdout
+            sys.stdout = open(os.devnull, "w")
+        opti = problem.solve(solver=cp.GUROBI)
+        if self.quiet:
+            sys.stdout = old_stdout
+
+        print(r_.value, u_.value, opti)
+        return r_.value, u_.value, opti, [x.dual_value for x in problem.constraints[:predictions.shape[1]]]
+
+    def compute_dual_test(self, r, u, A_inv, predictions):
+        r_ = cp.Variable()
+        u_ = cp.Variable(u.shape[0])
+
+        obj = cp.Minimize(r_)
+        constr = [predictions[:, i] @ u_ <= r_ for i in range(predictions.shape[1])]
+        constr.append(-u_ <= 0)
+        # constr.append(u_ <= self.regulator)
+        constr.append(cp.sum(u_) == self.regulator)
+
+        problem = cp.Problem(obj, constr)
+
+        if self.quiet:
+            old_stdout = sys.stdout
+            sys.stdout = open(os.devnull, "w")
+        opti = problem.solve(solver=cp.GUROBI)
+        if self.quiet:
+            sys.stdout = old_stdout
+
+        # print(r_.value, u_.value, opti)
+        return r_.value, u_.value, opti, [x.dual_value for x in problem.constraints[:predictions.shape[1]]]
 
     def compute_dual_gurobi(self, r, u, A_inv, predictions):
         # initialize the model
@@ -385,3 +505,8 @@ class DL85Boostera(BaseEstimator, ClassifierMixin):
         # Run a prediction on each estimator
         predict_per_clf = [clf.predict(X) for clf_id, clf in enumerate(self.estimators_)]
         return self.get_predictions(predict_per_clf)
+
+    def get_nodes_count(self):
+        if self.n_estimators_ == 0:  # fit method has not been called
+            raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
+        return sum([clf.get_nodes_count() for clf in self.estimators_])

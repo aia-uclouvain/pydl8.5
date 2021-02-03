@@ -6,7 +6,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, GradientBoostingClassifier
 from sklearn.tree import DecisionTreeClassifier, export_graphviz
 from sklearn.utils import check_random_state
-from dl85 import DL85Boostera
+from dl85 import DL85Boostera, DL85Classifier
 import time
 import numpy as np
 from sklearn.metrics import confusion_matrix
@@ -17,12 +17,12 @@ depth, time_limit, N_FOLDS = 2, 0, 5
 # dataset = np.genfromtxt("../datasets/paper_test.txt", delimiter=" ")
 # dataset = np.genfromtxt("../datasets/zoo-1.txt", delimiter=" ")
 # dataset = np.genfromtxt("../datasets/kr-vs-kp.txt", delimiter=" ")
-dataset = np.genfromtxt("../datasets/yeast.txt", delimiter=" ")
+dataset = np.genfromtxt("../datasets/kr-vs-kp.txt", delimiter=" ")
 X, y = dataset[:, 1:], dataset[:, 0]
 # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 # X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=525)
 
-i, j = 0, 1
+i, j = 3, 1
 n_train = 90
 
 X_trainss, X_tests, y_trainss, y_tests = [], [], [], []
@@ -49,7 +49,14 @@ for train_index, test_index in kf.split(X_trainss[i], y_trainss[i]):
         y_valids.append(y[train_index])
 
 
-clf = DL85Boostera(max_depth=depth, regulator=2.5, max_iterations=-1, quiet=True, gamma='nscale', model='cvxpy')
+# clf = DL85Classifier(max_depth=depth, print_output=True, verbose=True, quiet=False)
+# clf.fit(X_trains[j], y_trains[j])
+#
+# print(y_trains[j])
+# print(len(y_trains[j]))
+
+
+clf = DL85Boostera(max_depth=depth, regulator=2.5, max_iterations=5, quiet=True, gamma='nscale', model='cvxpy', print_output=True)
 start = time.perf_counter()
 print("Model building...")
 clf.fit(X_trains[j], y_trains[j])

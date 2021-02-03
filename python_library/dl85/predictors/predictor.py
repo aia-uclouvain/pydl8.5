@@ -400,6 +400,21 @@ class DL85Predictor(BaseEstimator):
                 node = node['right']
         return node['proba']
 
+    def get_nodes_count(self):
+        if self.is_fitted_ is False:  # fit method has not been called
+            raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
+
+        if self.tree_ is None:
+            raise TreeNotFoundError("predict(): ", "Tree not found during training by DL8.5 - "
+                                                   "Check fitting message for more info.")
+
+        if hasattr(self, 'tree_') is False:  # normally this case is not possible.
+            raise SearchFailedError("PredictionError: ", "DL8.5 training has failed. Please contact the developers "
+                                                         "if the problem is in the scope supported by the tool.")
+
+        tree_str = json.dumps(self.tree_)
+        return tree_str.count('feat') + tree_str.count('value')
+
     @staticmethod
     def is_leaf_node(node):
         names = [x[0] for x in node.items()]

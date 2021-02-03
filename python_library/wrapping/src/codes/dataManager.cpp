@@ -6,6 +6,7 @@
 
 
 DataManager::DataManager(Supports supports, int ntransactions, int nattributes, int nclasses, int *data, int *target):supports(supports), ntransactions(ntransactions), nattributes(nattributes), nclasses(nclasses) {
+    nclasses = (nclasses == 1) ? 2 : nclasses;
     nWords = (int)ceil((float)ntransactions/M);
     b = new bitset<M> *[nattributes];
     c = new bitset<M> *[nclasses];
