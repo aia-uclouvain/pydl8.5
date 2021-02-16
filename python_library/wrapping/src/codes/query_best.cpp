@@ -14,8 +14,6 @@ Query_Best::Query_Best(Support minsup,
                        function<vector<float>(RCover *)> *tids_error_class_callback,
                        function<vector<float>(RCover *)> *supports_error_class_callback,
                        function<float(RCover *)> *tids_error_callback,
-                       function<vector<float>()> *example_weight_callback,
-                       function<vector<float>(string)> *predict_error_callback,
                        float maxError,
                        bool stopAfterError)
         : Query(minsup,
@@ -27,8 +25,6 @@ Query_Best::Query_Best(Support minsup,
                 tids_error_class_callback,
                 supports_error_class_callback,
                 tids_error_callback,
-                example_weight_callback,
-                predict_error_callback,
                 maxError,
                 stopAfterError), experror(experror) {
 }

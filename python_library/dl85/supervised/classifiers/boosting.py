@@ -19,9 +19,80 @@ from sklearn.model_selection import StratifiedKFold
 import numpy as np
 import cvxpy as cp
 
-MODEL_RATSCH = 1  # regulator of ratsch is between ]0; 1]
-MODEL_DEMIRIZ = 2  # regulator of demiriz is between ]1/n_instances; +\infty]
-MODEL_AGLIN = 3  # regulator of aglin is between [0; 1]
+MODEL_LP_RATSCH = 1  # regulator of ratsch is between ]0; 1]
+MODEL_LP_DEMIRIZ = 2  # regulator of demiriz is between ]1/n_instances; +\infty]
+MODEL_LP_AGLIN = 3  # regulator of aglin is between [0; 1]
+MODEL_QP_MDBOOST = 4
+
+
+def is_pos_def(x):
+    # print(np.linalg.eigvals(x))
+    return np.all(np.linalg.eigvals(x) > 0)
+
+
+def is_semipos_def(x):
+    return np.all(np.linalg.eigvals(x) >= 0)
+
+
+def isPD(B):
+    """Returns true when input is positive-definite, via Cholesky"""
+    try:
+        _ = np.linalg.cholesky(B)
+        return True
+    except np.linalg.LinAlgError:
+        return False
+
+
+def nearestPD(A):
+    """Find the nearest positive-definite matrix to input
+
+    A Python/Numpy port of John D'Errico's `nearestSPD` MATLAB code [1], which
+    credits [2].
+
+    [1] https://www.mathworks.com/matlabcentral/fileexchange/42885-nearestspd
+
+    [2] N.J. Higham, "Computing a nearest symmetric positive semidefinite
+    matrix" (1988): https://doi.org/10.1016/0024-3795(88)90223-6
+    """
+
+    B = (A + A.T) / 2
+    _, s, V = np.linalg.svd(B)
+
+    H = np.dot(V.T, np.dot(np.diag(s), V))
+
+    A2 = (B + H) / 2
+
+    A3 = (A2 + A2.T) / 2
+
+    if isPD(A3):
+        return A3
+
+    spacing = np.spacing(np.linalg.norm(A))
+    # The above is different from [1]. It appears that MATLAB's `chol` Cholesky
+    # decomposition will accept matrixes with exactly 0-eigenvalue, whereas
+    # Numpy's will not. So where [1] uses `eps(mineig)` (where `eps` is Matlab
+    # for `np.spacing`), we use the above definition. CAVEAT: our `spacing`
+    # will be much larger than [1]'s `eps(mineig)`, since `mineig` is usually on
+    # the order of 1e-16, and `eps(1e-16)` is on the order of 1e-34, whereas
+    # `spacing` will, for Gaussian random matrixes of small dimension, be on
+    # othe order of 1e-16. In practice, both ways converge, as the unit test
+    # below suggests.
+    I = np.eye(A.shape[0])
+    k = 1
+    while not isPD(A3):
+        mineig = np.min(np.real(np.linalg.eigvals(A3)))
+        A3 += I * (-mineig * k**2 + spacing)
+        k += 1
+
+    return A3
+
+
+def get_near_psd(A):
+    C = (A + A.T)/2
+    eigval, eigvec = np.linalg.eig(C)
+    eigval[eigval < 0] = 0
+
+    return eigvec.dot(np.diag(eigval)).dot(eigvec.T)
 
 
 class DL85Booster(BaseEstimator, ClassifierMixin):
@@ -83,7 +154,8 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             max_depth=1,
             min_sup=1,
             max_iterations=0,
-            model=MODEL_DEMIRIZ,
+            model=MODEL_LP_DEMIRIZ,
+            gamma=None,
             error_function=None,
             fast_error_function=None,
             iterative=False,
@@ -105,6 +177,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         del self.clf_params["base_estimator"]
         del self.clf_params["max_iterations"]
         del self.clf_params["model"]
+        del self.clf_params["gamma"]
         del self.clf_params["min_trans_cost"]
         del self.clf_params["opti_gap"]
 
@@ -126,16 +199,15 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         self.regulator = regulator
         self.quiet = quiet
         self.model = model
+        self.gamma = gamma
         self.min_trans_cost = min_trans_cost
         self.opti_gap = opti_gap
+        self.n_instances = None
+        self.A_inv = None
 
-        self.estimators_ = []
-        self.estimator_weights_ = []
-        self.accuracy_ = 0
-        self.n_estimators_ = 0
         self.optimal_ = True
-        self.n_iterations_ = 0
-        self.duration_ = 0
+        self.estimators_, self.estimator_weights_ = [], []
+        self.accuracy_ = self.duration_ = self.n_estimators_ = self.n_iterations_ = 0
 
     def fit(self, X, y=None):
         if y is None:
@@ -144,9 +216,64 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         start_time = time.perf_counter()
 
         # initialize variables
-        n_instances, n_features = X.shape
-        sample_weights = np.array([1/n_instances] * n_instances)
-        predictions, r, self.n_iterations_ = None, None, 1
+        self.n_instances, _ = X.shape
+        sample_weights = np.array([1/self.n_instances] * self.n_instances)
+        predictions, r, self.n_iterations_, constant = None, None, 1, 0.0001
+
+        if self.model == MODEL_QP_MDBOOST:
+            # A_inv = None
+            if self.gamma is None:
+                # Build positive semidefinite A matrix
+                self.A_inv = np.full((self.n_instances, self.n_instances), -1/(self.n_instances - 1), dtype=np.float64)
+                np.fill_diagonal(self.A_inv, 1)
+                # regularize A to make sure it is really PSD
+                self.A_inv = np.add(self.A_inv, np.dot(np.eye(self.n_instances), constant))
+            else:
+                if self.gamma == 'auto':
+                    self.gamma = 1 / self.n_instances
+                elif self.gamma == 'scale':
+                    self.gamma = 1 / (self.n_features * X.var())
+                elif self.gamma == 'nscale':
+                    # scaler = MinMaxScaler(feature_range=(-10, 10))
+                    # self.gamma = 1 / scaler.fit_transform(X).var()
+                    self.gamma = 1 / X.var()
+                self.A_inv = np.identity(self.n_instances, dtype=np.float64)
+                for i in range(self.n_instances):
+                    for j in range(self.n_instances):
+                        if i != j:
+                            self.A_inv[i, j] = np.exp(-self.gamma * np.linalg.norm(np.subtract(X[i, :], X[j, :]))**2)
+                        # else:
+                        #     self.A_inv[i, j] = 1
+                        # for k in range(n_instances):
+                        #     if k != i:
+                        #         self.A_inv[i, j] += np.exp(-self.gamma * np.linalg.norm(np.subtract(X[i, :], X[k, :]))**2)
+            # if not is_pos_def(self.A_inv) and not is_semipos_def(self.A_inv):
+            # A_inv = np.add(self.A_inv, np.dot(np.eye(n_instances), constant))
+
+            if not self.quiet:
+                print(self.A_inv)
+                print("is psd", is_pos_def(self.A_inv))
+                print("is semi psd", is_semipos_def(self.A_inv))
+
+            # if isPD(A_inv) is False:
+            #     A_inv = nearestPD(A_inv)
+
+            # invert A matrix
+            # try:
+            #     A_inv = np.linalg.inv(A_inv)
+            # except:
+            self.A_inv = np.linalg.pinv(self.A_inv)
+
+            if isPD(self.A_inv) is False:
+                self.A_inv = nearestPD(self.A_inv)
+
+            if not self.quiet:
+                print("A_inv")
+                # print(A_inv)
+                print("is psd", isPD(self.A_inv))
+                print("is psd", is_pos_def(self.A_inv))
+                print("is semi psd", is_semipos_def(self.A_inv))
+                print("is semi psd", is_pos_def(nearestPD(self.A_inv)))
 
         while (self.max_iterations > 0 and self.n_iterations_ <= self.max_iterations) or self.max_iterations <= 0:
             if not self.quiet:
@@ -197,12 +324,14 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
 
             # add the new estimator and compute the dual to find new sample weights for another estimator to add
             self.estimators_.append(clf)
-            if self.model == MODEL_RATSCH:
-                r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_ratsch(r, sample_weights, predictions)
-            elif self.model == MODEL_DEMIRIZ:
-                r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_demiriz(r, sample_weights, predictions)
-            elif self.model == MODEL_AGLIN:
-                r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_aglin(r, sample_weights, predictions)
+            if self.model == MODEL_LP_RATSCH:
+                r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_ratsch(predictions)
+            elif self.model == MODEL_LP_DEMIRIZ:
+                r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_demiriz(predictions)
+            elif self.model == MODEL_LP_AGLIN:
+                r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_aglin(predictions)
+            elif self.model == MODEL_QP_MDBOOST:
+                r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_mdboost(predictions)
 
             if not self.quiet:
                 print("sample w", sample_weights, "\n", "r", r, "\n", "opti", opti)
@@ -244,67 +373,68 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
 
         return self
 
-    def compute_dual_ratsch(self, r, u, predictions):
+    def compute_dual_ratsch(self, predictions):
         r_ = cp.Variable()
-        u_ = cp.Variable(u.shape[0])
-
+        u_ = cp.Variable(self.n_instances)
         obj = cp.Minimize(r_)
         constr = [predictions[:, i] @ u_ <= r_ for i in range(predictions.shape[1])]
         constr.append(-u_ <= 0)
         constr.append(u_ <= self.regulator)
         constr.append(cp.sum(u_) == 1)
-
         problem = cp.Problem(obj, constr)
-
         if self.quiet:
             old_stdout = sys.stdout
             sys.stdout = open(os.devnull, "w")
         opti = problem.solve(solver=cp.GUROBI)
         if self.quiet:
             sys.stdout = old_stdout
-
         return r_.value, u_.value, opti, [x.dual_value for x in problem.constraints[:predictions.shape[1]]]
 
-    def compute_dual_demiriz(self, r, u, predictions):
-        u_ = cp.Variable(u.shape[0])
-
+    def compute_dual_demiriz(self, predictions):
+        u_ = cp.Variable(self.n_instances)
         obj = cp.Maximize(cp.sum(u_))
         constr = [predictions[:, i] @ u_ <= 1 for i in range(predictions.shape[1])]
         constr.append(-u_ <= 0)
         constr.append(u_ <= self.regulator)
-
         problem = cp.Problem(obj, constr)
-
         if self.quiet:
             old_stdout = sys.stdout
             sys.stdout = open(os.devnull, "w")
         opti = problem.solve(solver=cp.GUROBI)
         if self.quiet:
             sys.stdout = old_stdout
-
         return 1, u_.value, opti, [x.dual_value for x in problem.constraints[:predictions.shape[1]]]
 
-    def compute_dual_aglin(self, r, u, predictions):
+    def compute_dual_aglin(self, predictions):
         r_ = cp.Variable()
-        u_ = cp.Variable(u.shape[0])
-
+        u_ = cp.Variable(self.n_instances)
         obj = cp.Minimize(r_)
         constr = [predictions[:, i] @ u_ <= r_ for i in range(predictions.shape[1])]
         constr.append(-u_ <= 0)
         # constr.append(u_ <= self.regulator)
         constr.append(cp.sum(u_) == self.regulator)
-
         problem = cp.Problem(obj, constr)
-
         if self.quiet:
             old_stdout = sys.stdout
             sys.stdout = open(os.devnull, "w")
         opti = problem.solve(solver=cp.GUROBI)
         if self.quiet:
             sys.stdout = old_stdout
-
-        # print(r_.value, u_.value, opti)
         return r_.value, u_.value, opti, [x.dual_value for x in problem.constraints[:predictions.shape[1]]]
+
+    def compute_dual_mdboost(self, predictions):
+        r_ = cp.Variable()
+        u_ = cp.Variable(self.n_instances)
+        obj = cp.Minimize(r_ + 1/(2*self.regulator) * cp.quad_form((u_ - 1), self.A_inv))
+        constr = [predictions[:, i] @ u_ <= r_ for i in range(predictions.shape[1])]
+        problem = cp.Problem(obj, constr)
+        if self.quiet:
+            old_stdout = sys.stdout
+            sys.stdout = open(os.devnull, "w")
+        opti = problem.solve(solver=cp.GUROBI)
+        if self.quiet:
+            sys.stdout = old_stdout
+        return r_.value, u_.value, opti, [x.dual_value for x in problem.constraints]
 
     def get_class(self, forest_decision):
         """

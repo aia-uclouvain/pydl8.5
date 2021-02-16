@@ -92,11 +92,11 @@ class DL85Predictor(BaseEstimator):
             self,
             max_depth=1,
             min_sup=1,
-            max_estimators=1,
+            # max_estimators=1,
             # example_weights=[],
             error_function=None,
             fast_error_function=None,
-            example_weight_function=None,
+            # example_weight_function=None,
             predict_error_function=None,
             iterative=False,
             max_error=0,
@@ -112,12 +112,12 @@ class DL85Predictor(BaseEstimator):
             print_output=False):
         self.max_depth = max_depth
         self.min_sup = min_sup
-        self.max_estimators = max_estimators
+        # self.max_estimators = max_estimators
         self.sample_weight = []
         self.error_function = error_function
         self.fast_error_function = fast_error_function
-        self.example_weight_function = example_weight_function
-        self.predict_error_function = predict_error_function
+        # self.example_weight_function = example_weight_function
+        # self.predict_error_function = predict_error_function
         self.iterative = iterative
         self.max_error = max_error
         self.stop_after_better = stop_after_better
@@ -198,11 +198,11 @@ class DL85Predictor(BaseEstimator):
                                        tec_func_=opt_func,
                                        sec_func_=opt_fast_func,
                                        te_func_=opt_pred_func,
-                                       exw_func_=self.example_weight_function,
-                                       pred_func_=self.predict_error_function,
+                                       # exw_func_=self.example_weight_function,
+                                       # pred_func_=self.predict_error_function,
                                        max_depth=self.max_depth,
                                        min_sup=self.min_sup,
-                                       max_estimators=self.max_estimators,
+                                       # max_estimators=self.max_estimators,
                                        example_weights=self.sample_weight,
                                        max_error=self.max_error,
                                        stop_after_better=self.stop_after_better,

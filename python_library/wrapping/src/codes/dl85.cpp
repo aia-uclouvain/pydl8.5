@@ -16,17 +16,17 @@ string search(Supports supports,
               function<vector<float>(RCover *)> tids_error_class_callback,
               function<vector<float>(RCover *)> supports_error_class_callback,
               function<float(RCover *)> tids_error_callback,
-              function<vector<float>()> example_weight_callback,
-              function<vector<float>(string)> predict_error_callback,
+//              function<vector<float>()> example_weight_callback,
+//              function<vector<float>(string)> predict_error_callback,
               float* in_weights,
               bool tids_error_class_is_null,
               bool supports_error_class_is_null,
               bool tids_error_is_null,
-              bool example_weight_is_null,
-              bool predict_error_is_null,
+//              bool example_weight_is_null,
+//              bool predict_error_is_null,
               int maxdepth,
               int minsup,
-              int max_estimators,
+//              int max_estimators,
               bool infoGain,
               bool infoAsc,
               bool repeatSort,
@@ -47,11 +47,11 @@ string search(Supports supports,
     function<float(RCover *)> *tids_error_callback_pointer = &tids_error_callback;
     if (tids_error_is_null) tids_error_callback_pointer = nullptr;
 
-    function<vector<float>()> *example_weight_callback_pointer = &example_weight_callback;
+    /*function<vector<float>()> *example_weight_callback_pointer = &example_weight_callback;
     if (example_weight_is_null) example_weight_callback_pointer = nullptr;
 
     function<vector<float>(string)> *predict_error_callback_pointer = &predict_error_callback;
-    if (predict_error_is_null) predict_error_callback_pointer = nullptr;
+    if (predict_error_is_null) predict_error_callback_pointer = nullptr;*/
 
     verbose = verbose_param;
     string out = "";
@@ -67,29 +67,21 @@ string search(Supports supports,
 
     vector<float> weights;
     if (in_weights) weights = vector<float>(in_weights, in_weights + ntransactions);
-    /*for(auto w : weights)
-        cout << w << ", ";
-    cout << endl;*/
-    /*srand(time(0));
-    vector<float> weights(ntransactions, 1);
-    weights.reserve(ntransactions);
-    for (int i = 0; i < ntransactions; ++i) {
-        weights.push_back((float) rand()/RAND_MAX);
-    }*/
 
     // create an empty trie for the search space
     Trie *trie = new Trie;
 
     Query *query = new Query_TotalFreq(minsup, maxdepth, trie, dataReader, experror, timeLimit, continuousMap,
             tids_error_class_callback_pointer, supports_error_class_callback_pointer, tids_error_callback_pointer,
-            example_weight_callback_pointer, predict_error_callback_pointer, maxError, stopAfterError);
+//            example_weight_callback_pointer, predict_error_callback_pointer,
+            maxError, stopAfterError);
 
     out = "TrainingDistribution: ";
     forEachClass(i) out += std::to_string(dataReader->getSupports()[i]) + " ";
     out += "\n";
     out = "(nItems, nTransactions) : ( " + to_string(dataReader->getNAttributes() * 2) + ", " + to_string(dataReader->getNTransactions()) + " )\n";
-    vector<Tree *> trees;
-    float old_error_percentage = -1;
+//    vector<Tree *> trees;
+//    float old_error_percentage = -1;
 
     // init variables
     RCover *cover = nullptr; void *lcm;
@@ -104,58 +96,47 @@ string search(Supports supports,
         tree_out->latSize = ((LcmIterative *) lcm)->latticesize;
         tree_out->searchRt = duration<double>(stop_tree - start_tree).count();
         out += tree_out->to_str();
-        trees.push_back(tree_out);
+//        trees.push_back(tree_out);
     }
     else {
         // use the correct cover depending on whether a weight array is provided or not
-        if (in_weights) {
-//            cout << "run weighted" << endl;
-            cover = new RCoverWeighted(dataReader, &weights);
-        }
-        else {
-//            cout << "run not weighted" << endl;
-            cover = new RCoverTotalFreq(dataReader);
-        }
-
+        if (in_weights) cover = new RCoverWeighted(dataReader, &weights); // weighted cover
+        else cover = new RCoverTotalFreq(dataReader); // non-weighted cover
         lcm = new LcmPruned(cover, query, infoGain, infoAsc, repeatSort);
-
-        // perform the search
         auto start_tree = high_resolution_clock::now();
-        ((LcmPruned *) lcm)->run();
+        ((LcmPruned *) lcm)->run(); // perform the search
         auto stop_tree = high_resolution_clock::now();
-
-        // build the tree model
         Tree *tree_out = new Tree();
-        query->printResult(tree_out);
+        query->printResult(tree_out); // build the tree model
         tree_out->latSize = ((LcmPruned *) lcm)->latticesize;
         tree_out->searchRt = duration<double>(stop_tree - start_tree).count();
         out += tree_out->to_str();
 
-        float accuracy;
+        /*float accuracy;
         float rho;
         vector<float>&& predict_return = vector<float>();
         if (predict_error_callback_pointer){
             predict_return = (*predict_error_callback_pointer)(tree_out->expression);
             accuracy = predict_return[0];
             rho = predict_return[1];
-        }
+        }*/
 
         // print the tree
         // cout << tree_out->to_str() << endl;
 
         // add the tree to trees collection
-        trees.push_back(tree_out);
+//        trees.push_back(tree_out);
 
         // set old_error_percentage in case of boosting
-        old_error_percentage = -FLT_MAX;
+//        old_error_percentage = -FLT_MAX;
 
-        if (is_boosting) { //use the weighted cover for the next of searches because we are running boosting code
+        /*if (is_boosting) { //use the weighted cover for the next of searches because we are running boosting code
 
             for (int i = 1; i < max_estimators; ++i) {
 
                 // set the delta value as big as possible to let the first iteration pass
                 float delta_error_percentage = accuracy - old_error_percentage;
-                /*if (delta_error_percentage < 5) break;*/
+                *//*if (delta_error_percentage < 5) break;*//*
 
                 vector<float>&& new_weights = (*example_weight_callback_pointer)();
                 float gamma = new_weights.back();
@@ -191,7 +172,7 @@ string search(Supports supports,
                 accuracy = predict_return[0];
                 rho = predict_return[1];
             }
-        }
+        }*/
     }
 
     delete trie;

@@ -147,6 +147,7 @@ public:
                     throw std::out_of_range("Out of Range Exception!");
                 }
                 else {
+//                    cout << "word ind " << wordIndex << endl;
                     return container->sup_class[wordIndex];
                 }
             }

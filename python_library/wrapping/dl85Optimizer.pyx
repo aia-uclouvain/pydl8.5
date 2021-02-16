@@ -36,18 +36,6 @@ cdef extern from "src/headers/py_tid_error_function_wrapper.h":
         PyTidErrorWrapper(object) # define a constructor that takes a Python object
              # note - doesn't match c++ signature - that's fine!
 
-cdef extern from "src/headers/py_example_weight_function_wrapper.h":
-    cdef cppclass PyExampleWeightWrapper:
-        PyExampleWeightWrapper()
-        PyExampleWeightWrapper(object) # define a constructor that takes a Python object
-             # note - doesn't match c++ signature - that's fine!
-
-cdef extern from "src/headers/py_predict_error_function_wrapper.h":
-    cdef cppclass PyPredictErrorWrapper:
-        PyPredictErrorWrapper()
-        PyPredictErrorWrapper(object) # define a constructor that takes a Python object
-             # note - doesn't match c++ signature - that's fine!
-
 
 cdef extern from "src/headers/dl85.h":
     string search ( float* supports,
@@ -62,18 +50,12 @@ cdef extern from "src/headers/dl85.h":
                     PyTidErrorClassWrapper tids_error_class_callback,
                     PySupportErrorClassWrapper supports_error_class_callback,
                     PyTidErrorWrapper tids_error_callback,
-                    PyExampleWeightWrapper example_weight_callback,
-                    PyPredictErrorWrapper predict_error_callback,
                     float* in_weights,
                     bool tids_error_class_is_null,
                     bool supports_error_class_is_null,
                     bool tids_error_is_null,
-                    bool example_weight_is_null,
-                    bool predict_error_is_null,
-                    # bool in_weights_is_null,
                     int maxdepth,
                     int minsup,
-                    int max_estimators,
                     bool infoGain,
                     bool infoAsc,
                     bool repeatSort,
@@ -83,23 +65,13 @@ cdef extern from "src/headers/dl85.h":
                     bool verbose_param) except +
 
 
-#cdef get_pointer(object):
-#    if object is None:
-#        return NULL
-#    else:
-#        return &object
-
-
 def solve(data,
           target,
-          tec_func_=None,
-          sec_func_=None,
-          te_func_=None,
-          exw_func_=None,
-          pred_func_=None,
+          tec_func_=None, # tec means that it takes "t"ransaction_ids as param and return "e"rror and "c"lass
+          sec_func_=None, # sec means that it takes "s"upports as param and return "e"rror and "c"lass
+          te_func_=None, # tec means that it takes "t"ransaction_ids as param and return "e"rror
           max_depth=1,
           min_sup=1,
-          max_estimators=1,
           example_weights=[],
           max_error=0,
           stop_after_better=False,
@@ -127,22 +99,6 @@ def solve(data,
     te_null_flag = True
     if te_func_ is not None:
         te_null_flag = False
-
-    cdef PyExampleWeightWrapper exw_func = PyExampleWeightWrapper(exw_func_)
-    exw_null_flag = True
-    if exw_func_ is not None:
-        exw_null_flag = False
-
-    cdef PyPredictErrorWrapper pred_func = PyPredictErrorWrapper(pred_func_)
-    pred_null_flag = True
-    if pred_func_ is not None:
-        pred_null_flag = False
-
-    if max_estimators <= 1:
-            # test_func = None
-            # test_null_flag = True
-            weight_func = None
-            weight_null_flag = True
 
     data = data.astype('int32')
     ntransactions, nattributes = data.shape
@@ -214,17 +170,12 @@ def solve(data,
                  tids_error_class_callback = tec_func,
                  supports_error_class_callback = sec_func,
                  tids_error_callback = te_func,
-                 example_weight_callback = exw_func,
-                 predict_error_callback = pred_func,
                  in_weights = ex_weights_pointer,
                  tids_error_class_is_null = tec_null_flag,
                  supports_error_class_is_null = sec_null_flag,
                  tids_error_is_null = te_null_flag,
-                 example_weight_is_null = exw_null_flag,
-                 predict_error_is_null = pred_null_flag,
                  maxdepth = max_depth,
                  minsup = min_sup,
-                 max_estimators = max_estimators,
                  infoGain = info_gain,
                  infoAsc = asc,
                  repeatSort = repeat_sort,

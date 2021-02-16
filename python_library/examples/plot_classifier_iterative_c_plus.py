@@ -27,6 +27,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 print("##########################################################################\n"
       "#            DL8.5 default classifier using iterative search             #\n"
       "##########################################################################")
+print("!!! This code is not currently supported !!!")
 clf = DL85Classifier(max_depth=2, iterative=True, time_limit=600)
 start = time.perf_counter()
 print("Model building...")

@@ -46,8 +46,6 @@ public:
                function<vector<float>(RCover *)> *tids_error_class_callback = nullptr,
                function<vector<float>(RCover *)> *supports_error_class_callback = nullptr,
                function<float(RCover *)> *tids_error_callback = nullptr,
-               function<vector<float>()> *example_weight_callback = nullptr,
-               function<vector<float>(string)> *predict_error_callback = nullptr,
                float maxError = NO_ERR,
                bool stopAfterError = false);
 

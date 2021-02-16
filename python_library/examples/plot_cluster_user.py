@@ -47,7 +47,7 @@ def leaf_value(tids):
     return np.mean(X.take(list(tids)))
 
 # Change the parameters of the algorithm as desired.
-clf = DL85Predictor(max_depth=3, min_sup=5, error_function=error, leaf_value_function=leaf_value, time_limit=600)
+clf = DL85Predictor(max_depth=2, min_sup=5, error_function=error, leaf_value_function=leaf_value, time_limit=600)
 
 start = time.perf_counter()
 print("Model building...")

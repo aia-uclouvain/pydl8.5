@@ -67,9 +67,3 @@ cdef public vector[float] call_python_support_error_class_function(py_function, 
 cdef public float call_python_tid_error_function(py_function, RCover *ar):
     return py_function(wrap_array(ar, True))
 
-cdef public vector[float] call_python_example_weight_function(py_function):
-    return py_function()
-
-cdef public vector[float] call_python_predict_error_function(py_function, string tree_json):
-    return py_function(tree_json)
-

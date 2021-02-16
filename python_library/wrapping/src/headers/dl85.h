@@ -99,19 +99,19 @@ string search(Supports supports,
               // wrapping done in cython, this pointer in python is seen as a list of tids in the cover
               function<float(RCover *)> tids_error_callback = nullptr,
               //get a string as param and return a vector of float as new weights of examples
-              function<vector<float>()> example_weight_callback = nullptr,
+//              function<vector<float>()> example_weight_callback = nullptr,
               //get a string as param and return a float as prediction error
-              function<vector<float>(string)> predict_error_callback = nullptr,
+//              function<vector<float>(string)> predict_error_callback = nullptr,
               float *in_weights = nullptr,
               bool tids_error_class_is_null = true,
               bool supports_error_class_is_null = true,
               bool tids_error_is_null = true,
-              bool example_weight_is_null = true,
-              bool predict_error_is_null = true,
+//              bool example_weight_is_null = true,
+//              bool predict_error_is_null = true,
 //              bool in_weights_is_null = true,
               int maxdepth = 1,
               int minsup = 1,
-              int max_estimators = 1,
+//              int max_estimators = 1,
               bool infoGain = false,
               bool infoAsc = true,
               bool repeatSort = false,
@@ -120,6 +120,6 @@ string search(Supports supports,
               bool save = false,
               bool verbose_param = false);
 
-#define is_boosting max_estimators > 1 && (!in_weights) && example_weight_callback_pointer && predict_error_callback_pointer
+//#define is_boosting max_estimators > 1 && (!in_weights) && example_weight_callback_pointer && predict_error_callback_pointer
 
 #endif //DL85_DL85_H

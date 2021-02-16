@@ -12,8 +12,6 @@ Query_TotalFreq::Query_TotalFreq(Support minsup,
                                  function<vector<float>(RCover *)> *tids_error_class_callback,
                                  function<vector<float>(RCover *)> *supports_error_class_callback,
                                  function<float(RCover *)> *tids_error_callback,
-                                 function<vector<float>()> *example_weight_callback,
-                                 function<vector<float>(string)> *predict_error_callback,
                                  float maxError, bool stopAfterError) :
         Query_Best(minsup,
                    maxdepth,
@@ -25,8 +23,6 @@ Query_TotalFreq::Query_TotalFreq(Support minsup,
                    tids_error_class_callback,
                    supports_error_class_callback,
                    tids_error_callback,
-                   example_weight_callback,
-                   predict_error_callback,
                    (maxError <= 0) ? NO_ERR : maxError,
                    (maxError <= 0) ? false : stopAfterError) {}
 
@@ -67,7 +63,6 @@ bool Query_TotalFreq::updateData(QueryData *best, Error upperBound, Attribute at
 QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
     Class maxclass = -1;
     Error error;
-    //cout << "comp err" << endl;
 
     auto *data = new QueryData_Best();
 
@@ -75,15 +70,14 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
     if (tids_error_class_callback == nullptr && tids_error_callback == nullptr) {
         //python fast error
         if (supports_error_class_callback != nullptr) {
-            //cout << "seriu" << endl;
             function<vector<float>(RCover *)> callback = *supports_error_class_callback;
+            cover->getSupportPerClass(); // allocate the sup_array if not and compute the frequency counts
             vector<float> infos = callback(cover);
             error = infos[0];
             maxclass = int(infos[1]);
         }
-            //default error
+        //default error
         else {
-            //cout << "jjoj" << endl;
             ErrorValues ev = computeErrorValues(cover);
             error = ev.error;
             maxclass = ev.maxclass;
@@ -92,11 +86,9 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
     //slow error or predictor error function. Not need to compute support
     else {
         if (tids_error_callback != nullptr) {
-            //cout << "bbb" << endl;
             function<float(RCover *)> callback = *tids_error_callback;
             error = callback(cover);
         } else {
-            //cout << "devrait appeler" << endl;
             function<vector<float>(RCover *)> callback = *tids_error_class_callback;
             vector<float> infos = callback(cover);
             error = infos[0];
@@ -129,7 +121,6 @@ ErrorValues Query_TotalFreq::computeErrorValues(RCover *cover) {
         }
     }
     error = sumSupports(itemsetSupport) - maxclassval;
-//    if (error < 0) cout << "sup[0] = " << itemsetSupport[0] << ", " << "sup[1] = " << itemsetSupport[1] << " sum = " << sumSupports(itemsetSupport) << " maxclassval = " << maxclassval << " error = " << error << " class = " << maxclass << endl;
     return {error, maxclass};
 }
 
@@ -149,6 +140,5 @@ ErrorValues Query_TotalFreq::computeErrorValues(Supports itemsetSupport) {
         }
     }
     error = sumSupports(itemsetSupport) - maxclassval;
-//    if (error < 0) cout << "sup[0] = " << itemsetSupport[0] << ", " << "sup[1] = " << itemsetSupport[1] << " sum = " << sumSupports(itemsetSupport) << " maxclassval = " << maxclassval << " error = " << error << " class = " << maxclass << endl;
     return {error, maxclass};
 }

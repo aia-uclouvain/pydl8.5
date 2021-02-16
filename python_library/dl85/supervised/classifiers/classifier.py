@@ -81,7 +81,7 @@ class DL85Classifier(DL85Predictor, ClassifierMixin):
                                # example_weights=example_weights,
                                error_function=error_function,
                                fast_error_function=fast_error_function,
-                               example_weight_function=None,
+                               # example_weight_function=None,
                                # test_error_function=self.intermediary_test_error_function,
                                iterative=iterative,
                                max_error=max_error,

@@ -164,8 +164,8 @@ class DL85Cluster(DL85Predictor, ClusterMixin):
             seen during fit.
         """
 
-        DL85Predictor.predict(self, X)
+        return DL85Predictor.predict(self, X)
 
-        return self.y_
+        # return self.y_
 
 
