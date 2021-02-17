@@ -71,14 +71,14 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
         //python fast error
         if (supports_error_class_callback != nullptr) {
             function<vector<float>(RCover *)> callback = *supports_error_class_callback;
-            cover->getSupportPerClass(); // allocate the sup_array if not and compute the frequency counts
+            cover->getSupportPerClass(); // allocate the sup_array if it does not exist yet and compute the frequency counts
             vector<float> infos = callback(cover);
             error = infos[0];
             maxclass = int(infos[1]);
         }
         //default error
         else {
-            ErrorValues ev = computeErrorValues(cover);
+            LeafInfo ev = computeLeafInfo(cover);
             error = ev.error;
             maxclass = ev.maxclass;
         }
@@ -103,7 +103,7 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
     return (QueryData *) data;
 }
 
-ErrorValues Query_TotalFreq::computeErrorValues(RCover *cover) {
+LeafInfo Query_TotalFreq::computeLeafInfo(RCover *cover) {
     Class maxclass;
     Error error;
 
@@ -125,7 +125,7 @@ ErrorValues Query_TotalFreq::computeErrorValues(RCover *cover) {
 }
 
 
-ErrorValues Query_TotalFreq::computeErrorValues(Supports itemsetSupport) {
+LeafInfo Query_TotalFreq::computeLeafInfo(Supports itemsetSupport) {
     Class maxclass = 0;
     Error error;
     SupportClass maxclassval = itemsetSupport[0];

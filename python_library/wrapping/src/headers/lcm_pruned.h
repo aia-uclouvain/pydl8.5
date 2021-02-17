@@ -59,7 +59,10 @@ protected:
     //bool timeLimitReached = false;
 };
 
+// a variable to express whether the error computation is not performed in python or not
 #define no_python_error !query->tids_error_callback && !query->tids_error_class_callback && !query->supports_error_class_callback
+
+// a variable to express whether the error computation is performed in python or not
 #define is_python_error query->tids_error_callback || query->tids_error_class_callback || query->supports_error_class_callback
 
 #endif

@@ -28,7 +28,7 @@ typedef void *QueryData; // using void pointers is much lighter than class deriv
  * @param corrects - special array of support per class; the non-majority classes supports are set to 0
  * @param falses - special array of support per class; the majority class support is set to 0
  */
-struct ErrorValues {
+struct LeafInfo {
     Error error;
     Class maxclass;
 };
@@ -96,9 +96,9 @@ public:
 
     virtual QueryData *initData(RCover *tid, Depth currentMaxDepth = -1) = 0;
 
-    virtual ErrorValues computeErrorValues(RCover *cover) = 0;
+    virtual LeafInfo computeLeafInfo(RCover *cover) = 0;
 
-    virtual ErrorValues computeErrorValues(Supports itemsetSupport) = 0;
+    virtual LeafInfo computeLeafInfo(Supports itemsetSupport) = 0;
 
     virtual bool updateData(QueryData *best, Error upperBound, Attribute attribute, QueryData *left, QueryData *right) = 0;
 

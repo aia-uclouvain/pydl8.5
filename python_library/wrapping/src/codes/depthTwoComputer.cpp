@@ -126,7 +126,7 @@ TrieNode* computeDepthTwo(RCover* cover,
         // set the root to the current feature
         feat_best_tree.root_data->test = attr[i];
         // compute its error and set it as initial error
-        ErrorValues ev = query->computeErrorValues(cover);
+        LeafInfo ev = query->computeLeafInfo(cover);
         feat_best_tree.root_data->leafError = ev.error;
         // feat_best_tree.root_data->test = ev.maxclass;
 
@@ -149,7 +149,7 @@ TrieNode* computeDepthTwo(RCover* cover,
 
         // the feature at root cannot be splitted at left. It is then a leaf node
         if (igs < 2 * query->minsup) {
-            ErrorValues ev = query->computeErrorValues(igsc);
+            LeafInfo ev = query->computeLeafInfo(igsc);
             feat_best_tree.left_data->error = ev.error;
             feat_best_tree.left_data->test = ev.maxclass;
             if (local_verbose)
@@ -160,7 +160,7 @@ TrieNode* computeDepthTwo(RCover* cover,
             if (local_verbose) cout << "root gauche peut théoriquement spliter. Creusons plus..." << endl;
             // at worst it can't in practice and error will be considered as leaf node
             // so the error is initialized at this case
-            ErrorValues ev = query->computeErrorValues(igsc);
+            LeafInfo ev = query->computeLeafInfo(igsc);
             feat_best_tree.left_data->error = min(ev.error, best_tree.root_data->error);
             feat_best_tree.left_data->leafError = ev.error;
             feat_best_tree.left_data->test = ev.maxclass;
@@ -184,7 +184,7 @@ TrieNode* computeDepthTwo(RCover* cover,
                     if (igjgs >= query->minsup && igjds >= query->minsup) {
                         if (local_verbose) cout << "le left testé peut splitter. on le regarde" << endl;
 
-                        ErrorValues ev2 = query->computeErrorValues(igjdsc);
+                        LeafInfo ev2 = query->computeLeafInfo(igjdsc);
                         if (local_verbose) cout << "le left a droite produit une erreur de " << ev2.error << endl;
 
                         if (ev2.error >= min(best_tree.root_data->error, feat_best_tree.left_data->error)) {
@@ -196,7 +196,7 @@ TrieNode* computeDepthTwo(RCover* cover,
 
                         Supports igjgsc = newSupports();
                         subSupports(igsc, igjdsc, igjgsc);
-                        ErrorValues ev1 = query->computeErrorValues(igjgsc);
+                        LeafInfo ev1 = query->computeLeafInfo(igjgsc);
                         if (local_verbose) cout << "le left a gauche produit une erreur de " << ev1.error << endl;
 
                         if (ev1.error + ev2.error < min(best_tree.root_data->error, feat_best_tree.left_data->error)) {
@@ -243,7 +243,7 @@ TrieNode* computeDepthTwo(RCover* cover,
 
             // the feature at root cannot be split at right. It is then a leaf node
             if (ids < 2 * query->minsup) {
-                ErrorValues ev = query->computeErrorValues(idsc);
+                LeafInfo ev = query->computeLeafInfo(idsc);
                 feat_best_tree.right_data->error = ev.error;
                 feat_best_tree.right_data->test = ev.maxclass;
                 if (local_verbose)
@@ -252,7 +252,7 @@ TrieNode* computeDepthTwo(RCover* cover,
                 if (local_verbose) cout << "root droite peut théoriquement spliter. Creusons plus..." << endl;
                 // at worst it can't in practice and error will be considered as leaf node
                 // so the error is initialized at this case
-                ErrorValues ev = query->computeErrorValues(idsc);
+                LeafInfo ev = query->computeLeafInfo(idsc);
                 Error remainingError = best_tree.root_data->error - feat_best_tree.left_data->error;
                 feat_best_tree.right_data->error = min(ev.error, remainingError);
                 feat_best_tree.right_data->leafError = ev.error;
@@ -277,7 +277,7 @@ TrieNode* computeDepthTwo(RCover* cover,
                         // the root node can in practice be split into two children
                         if (idjgs >= query->minsup && idjds >= query->minsup) {
                             if (local_verbose) cout << "le right testé peut splitter. on le regarde" << endl;
-                            ErrorValues ev1 = query->computeErrorValues(idjgsc);
+                            LeafInfo ev1 = query->computeLeafInfo(idjgsc);
                             if (local_verbose) cout << "le right a gauche produit une erreur de " << ev1.error << endl;
 
                             if (ev1.error >= min(remainingError, feat_best_tree.right_data->error)) {
@@ -286,7 +286,7 @@ TrieNode* computeDepthTwo(RCover* cover,
                                 continue;
                             }
 
-                            ErrorValues ev2 = query->computeErrorValues(idjdsc);
+                            LeafInfo ev2 = query->computeLeafInfo(idjdsc);
                             if (local_verbose) cout << "le right a droite produit une erreur de " << ev2.error << endl;
                             if (ev1.error + ev2.error < min(remainingError, feat_best_tree.right_data->error)) {
                                 feat_best_tree.right_data->error = ev1.error + ev2.error;
@@ -371,7 +371,7 @@ TrieNode* computeDepthTwo(RCover* cover,
         return node;
     } else {
         //error not lower than ub
-        ErrorValues ev = query->computeErrorValues(cover);
+        LeafInfo ev = query->computeLeafInfo(cover);
         node->data = (QueryData *) new QueryData_Best();
         ((QueryData_Best *) node->data)->error = ev.error;
         ((QueryData_Best *) node->data)->leafError = ev.error;

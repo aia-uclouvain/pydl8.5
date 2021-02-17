@@ -9,11 +9,13 @@ LcmPruned::LcmPruned(RCover *cover, Query *query, bool infoGain, bool infoAsc, b
 
 LcmPruned::~LcmPruned(){}
 
+// the solution already exists for this node
 TrieNode *existingsolution(TrieNode *node, Error *nodeError) {
     Logger::showMessageAndReturn("the solution exists and it is worth : ", *nodeError);
     return node;
 }
 
+// the node does not fullfil the constraints to be splitted (minsup, depth, etc.)
 TrieNode *cannotsplitmore(TrieNode *node, Error ub, Error *nodeError, Error leafError) {
     Logger::showMessageAndReturn("max depth reached. ub = ", ub, " and leaf error = ", leafError);
     // we return the leaf error as node error without checking the upperbound constraint. The parent will do it
@@ -21,19 +23,54 @@ TrieNode *cannotsplitmore(TrieNode *node, Error ub, Error *nodeError, Error leaf
     return node;
 }
 
+// the node error is equal to the lower bound
 TrieNode *reachlowest(TrieNode *node, Error *nodeError, Error leafError) {
     *nodeError = leafError;
     Logger::showMessageAndReturn("lowest error. node error = leaf error = ", *nodeError);
     return node;
 }
 
+// the upper bound of the node is lower than the lower bound
 TrieNode *infeasiblecase(TrieNode *node, Error *saved_lb, Error ub) {
     Logger::showMessageAndReturn("no solution bcoz ub < lb. lb =", *saved_lb, " and ub = ", ub);
     return node;
 }
 
-float LcmPruned::informationGain(Supports notTaken, Supports taken) {
+TrieNode *getSolutionIfExists(TrieNode *node, RCover* cover, Query* query, Error ub, Depth depth){
+    Error *nodeError = &(((QDB) node->data)->error);
+    // in case the solution exists because the error of a newly created node is set to FLT_MAX
+    if (*nodeError < FLT_MAX) {
+        return existingsolution(node, nodeError);
+    }
 
+    Error *saved_lb = &(((QDB) node->data)->lowerBound);
+    // in case the problem is infeasible
+    if (ub <= *saved_lb) {
+        return infeasiblecase(node, saved_lb, ub);
+    }
+
+    Error leafError = ((QDB) node->data)->leafError;
+    // we reach the lowest value possible. implicitely, the upper bound constraint is not violated
+    if (floatEqual(leafError, *saved_lb)) {
+        return reachlowest(node, nodeError, leafError);
+    }
+
+    // we cannot split tne node
+    if (depth == query->maxdepth || cover->getSupport() < 2 * query->minsup) {
+        return cannotsplitmore(node, ub, nodeError, leafError);
+    }
+
+    // if time limit is reached we backtrack
+    if (query->timeLimitReached) {
+        *nodeError = leafError;
+        return node;
+    }
+
+    return nullptr;
+}
+
+// information gain calculation
+float LcmPruned::informationGain(Supports notTaken, Supports taken) {
     int sumSupNotTaken = sumSupports(notTaken);
     int sumSupTaken = sumSupports(taken);
     int actualDBSize = sumSupNotTaken + sumSupTaken;
@@ -57,9 +94,7 @@ float LcmPruned::informationGain(Supports notTaken, Supports taken) {
         baseEntropy += -p * newlog;
     }
     condEntropy = priorProbNotTaken * e0 + priorProbTaken * e1;
-
     float actualGain = baseEntropy - condEntropy;
-
     return actualGain; //high error to low error when it will be put in the map. If you want to have the reverse, just return the negative value of the entropy
 }
 
@@ -116,6 +151,7 @@ Array<Attribute> LcmPruned::getSuccessors(Array<Attribute> last_candidates, Attr
     return next_candidates;
 }
 
+// find the successors of a node when it has been already visited in the past
 Array<Attribute> LcmPruned::getExistingSuccessors(TrieNode *node) {
     // use an hashset to reduce the insert time. a basic int hasher is ok
     unordered_set<int> candidates_checker;
@@ -131,6 +167,7 @@ Array<Attribute> LcmPruned::getExistingSuccessors(TrieNode *node) {
     return candidates;
 }
 
+// compute the similarity lower bound based on the best ever seen node or the node with the highest coversize
 Error LcmPruned::computeSimilarityLowerBound(bitset<M> *b1_cover, bitset<M> *b2_cover, Error b1_error, Error b2_error) {
 //    return 0;
     if (is_python_error) return 0;
@@ -148,6 +185,7 @@ Error LcmPruned::computeSimilarityLowerBound(bitset<M> *b1_cover, bitset<M> *b2_
     return (bound > 0) ? bound : 0;
 }
 
+// store the node with lowest error as well as the one with the largest cover in order to find a similarity lower bound
 void LcmPruned::addInfoForLowerBound(QueryData *node_data, bitset<M> *&b1_cover, bitset<M> *&b2_cover,
                                     Error &b1_error, Error &b2_error, Support &highest_coversize) {
 //    if (((QDB) node_data)->error < FLT_MAX) {
@@ -170,7 +208,10 @@ void LcmPruned::addInfoForLowerBound(QueryData *node_data, bitset<M> *&b1_cover,
 }
 
 /** recurse - this method finds the best tree given an itemset and its cover and update
- * the information of the node representing the itemset
+ * the information of the node representing the itemset. Each itemset is represented by a node and info about the
+ * tree structure is wrapped into a variable data in the node object. Each itemset (the node) is inserted into the
+ * trie (if it had not been inserted) before the call to the current function. When it has not been evaluated, the
+ * data variable is set to null otherwise it contains info wrapped into QDB object
  *
  * @param itemset - the itemset for which we are looking for the best tree
  * @param last_added - the last added attribute
@@ -197,35 +238,11 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
             query->timeLimitReached = true;
     }
 
-    // the node already exists
+    // the node data already exists because it is not null like how it is when it is just created
     if (node->data) {
         Logger::showMessageAndReturn("the node exists");
-
-        Error *nodeError = &(((QDB) node->data)->error);
-
-        // in case the solution exists
-        if (*nodeError < FLT_MAX) {
-            return existingsolution(node, nodeError);
-        }
-
-        Error *saved_lb = &(((QDB) node->data)->lowerBound);
-
-        // in case the problem is infeasible
-        if (ub <= *saved_lb) {
-            return infeasiblecase(node, saved_lb, ub);
-        }
-
-        Error leafError = ((QDB) node->data)->leafError;
-
-        // we reach the lowest value possible. implicitely, the upper bound constraint is not violated
-        if (floatEqual(leafError, *saved_lb)) {
-            return reachlowest(node, nodeError, leafError);
-        }
-
-        // we cannot split more
-        if (depth == query->maxdepth || cover->getSupport() < 2 * query->minsup) {
-            return cannotsplitmore(node, ub, nodeError, leafError);
-        }
+        TrieNode* result = getSolutionIfExists(node, cover, query, ub, depth);
+        if (result) return result;
     }
 
     // in case the solution cannot be derived without computation and remaining depth is 2, we use a specific algorithm
@@ -233,60 +250,33 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
         return computeDepthTwo(cover, ub, next_candidates, last_added, itemset, node, query, computed_lb, query->trie);
     }
 
-    // there are two cases in which the execution attempt here
-    // 1- when the node did not exist
-    // 2- when the node exists without solution and its upper bound is higher than its lower bound
+    /* there are two cases in which the execution attempt here
+     1- when the node data did not exist
+     2- when the node data exists without solution and its upper bound is higher than its lower bound*/
 
 
-    // at this stage, we will probably make a search, so we create empty array. It will be replaced
-    // by the good one after calling getSuccessors function
+    /* at this stage, we will probably make a search through successors, so we create empty array of them.
+     It will be replaced by the good one after calling getSuccessors function*/
     Array<Attribute> next_attributes;
 
-    // case 1 : the node did not exist
-    // no need to create it. It was just created before the call to this function. we will just create it data information
+    /* case 1 : the node data did not exist
+     no need to insert the node into the trie. It has just been created and inserted into the trie
+     before the call to this function. we will just the data object (QDB) and its information*/
     if (!node->data) {
         Logger::showMessageAndReturn("New node");
         latticesize++;
 
-        // Initialize data information about the node and get them for the search
+        // Create data object and initialize its variables, then get them for the search
         node->data = query->initData(cover);
-        Error *saved_lb = &(((QDB) node->data)->lowerBound);
-        Error leafError = ((QDB) node->data)->leafError;
-        Error *nodeError = &(((QDB) node->data)->error);
-        Logger::showMessageAndReturn("after init of the new node. ub = ", ub, " and leaf error = ", leafError);
-//        cover->print();
-
-
-        // in case the problem is infeasible
-        if (ub <= *saved_lb) {
-            return infeasiblecase(node, saved_lb, ub);
-        }
-
-        // we reach the lowest value possible. implicitely, the upper bound constraint is not violated
-        // at this stage, all solution parameters have already been stored by initData apart from node error
-        if (floatEqual(leafError, *saved_lb)) {
-            return reachlowest(node, nodeError, leafError);
-        }
-
-        // we cannot split more
-        if (depth == query->maxdepth || cover->getSupport() < 2 * query->minsup) {
-            return cannotsplitmore(node, ub, nodeError, leafError);
-        }
-
-        // if time limit is reached we backtrack
-        if (query->timeLimitReached) {
-            *nodeError = leafError;
-            return node;
-        }
+        Logger::showMessageAndReturn("after init of the new node. ub = ", ub, " and leaf error = ", ((QDB) node->data)->leafError);
+        TrieNode* result = getSolutionIfExists(node, cover, query, ub, depth);
+        if (result) return result;
 
         // if we can't get solution without computation, we compute the next candidates to perform the search
         next_attributes = getSuccessors(next_candidates, last_added);
-
-
     }
-        //case 2 : the node exists without solution but ub > last ub which is now lb
+    //case 2 : the node data exists without solution but ub > last ub which is now lb
     else {
-
         Error leafError = ((QDB) node->data)->leafError;
         Error *nodeError = &(((QDB) node->data)->error);
         Logger::showMessageAndReturn("existing node without solution and higher bound. leaf error = ", leafError, " new ub = ", ub);
@@ -298,8 +288,8 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
 
         // if we can't get solution without computation, we compute the next candidates to perform the search
         next_attributes = getSuccessors(next_candidates, last_added);
-//         next_attributes = getExistingSuccessors(node);
-//        next_attributes = getSuccessors(next_candidates, cover, last_added);
+        // next_attributes = getExistingSuccessors(node);
+        // next_attributes = getSuccessors(next_candidates, cover, last_added);
     }
 
     // as the best tree cannot be deducted without computation, we compute the search
@@ -321,7 +311,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
     // parameters for similarity lower bound
     bool first_item = false, second_item = true;
     bitset<M> *b1_cover = nullptr, *b2_cover = nullptr;
-//    Supports b1_sc = nullptr, b2_sc = nullptr;
+    // Supports b1_sc = nullptr, b2_sc = nullptr;
     Error b1_error = 0, b2_error = 0;
     Support highest_coversize = 0;
     // in case solution, is not found, this value is the minimum of the minimum error
@@ -339,11 +329,11 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
         TrieNode *nodes[2];
         Error first_lb = -1, second_lb = -1;
 
-        //the lower bound is computed for both items. they are used as heuristic to decide
-        // the first item to branch on. We branch on item with higher lower bound to have chance
-        // to get a higher error to violate the ub constraint and prune the second branch
-        // this computation is costly so, in some case can add some overhead. If you don't
-        // want to use it, please comment the next block. 0/1 order is used in this case.
+        /* the lower bound is computed for both items. they are used as heuristic to decide
+         the first item to branch on. We branch on item with higher lower bound to have chance
+         to get a higher error to violate the ub constraint and prune the second branch
+         this computation is costly so, in some case can add some overhead. If you don't
+         want to use it, please comment the next block. 0/1 order is used in this case.*/
 
         //=========================== BEGIN BLOCK ==========================//
         cover->intersect(next, false);
@@ -409,15 +399,12 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
                 Logger::showMessageAndReturn("We get the best solution. So, we break the remaining attributes");
                 break; //prune remaining attributes not browsed yet
             }
-        } else {
-            //we do not attempt the second child, so we use its lower bound
+        } else { //we do not attempt the second child, so we use its lower bound
 
             // if the first error is unknown, we use its lower bound
-            if (floatEqual(firstError, FLT_MAX))
-                minlb = min(minlb, first_lb + second_lb);
+            if (floatEqual(firstError, FLT_MAX)) minlb = min(minlb, first_lb + second_lb);
             // otherwise, we use it
-            else
-                minlb = min(minlb, firstError + second_lb);
+            else minlb = min(minlb, firstError + second_lb);
         }
 
         if (query->stopAfterError) {

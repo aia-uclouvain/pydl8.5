@@ -29,9 +29,9 @@ public:
 
     QueryData *initData(RCover *tid, Depth currentMaxDepth = -1);
 
-    ErrorValues computeErrorValues(RCover *cover);
+    LeafInfo computeLeafInfo(RCover *cover);
 
-    ErrorValues computeErrorValues(Supports itemsetSupport);
+    LeafInfo computeLeafInfo(Supports itemsetSupport);
 
 protected:
 };
