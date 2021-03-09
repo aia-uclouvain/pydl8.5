@@ -26,3 +26,4 @@ examples/test_dl85_cart.py
 datasets/boosting/eharmony/*
 datasets/boosting/mnist/*
 datasets/boosting/usps/*
+notebooks/*
