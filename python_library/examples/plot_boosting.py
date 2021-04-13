@@ -26,7 +26,6 @@ print("######################################################################\n"
 for i, mod in enumerate(models):
     print("<<=== Optiboost ===>>")
     clf = DL85Booster(max_depth=depth, regulator=reguls[i], model=mod)
-    # clf = DL85Classifier(max_depth=2, time_limit=600, desc=True)
     start = time.perf_counter()
     print("Model building...")
     clf.fit(X_train, y_train)

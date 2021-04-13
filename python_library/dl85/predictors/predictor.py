@@ -3,6 +3,7 @@ from sklearn.utils.validation import assert_all_finite, check_X_y, check_array, 
 from sklearn.utils.multiclass import unique_labels
 from sklearn.exceptions import NotFittedError
 from ..errors.errors import SearchFailedError, TreeNotFoundError
+from distutils.util import strtobool
 import json
 import numpy as np
 import uuid
@@ -219,53 +220,64 @@ class DL85Predictor(BaseEstimator):
         # if self.print_output:
         #     print(solution)
 
+        # print("sol")
         # print(solution)
-        solution = solution.splitlines()
+        # print("end")
+        solution = solution.rstrip("\n").splitlines()
         sol_size = len(solution)
 
         # if self.sol_size_ == 1:
         #     raise ValueError(solution[0])
 
-        if sol_size == 8 or sol_size == 9:  # solution found
+        if sol_size == 9:  # solution found
             self.tree_ = json.loads(solution[1].split('Tree: ')[1])
             self.size_ = int(solution[2].split(" ")[1])
             self.depth_ = int(solution[3].split(" ")[1])
             self.error_ = float(solution[4].split(" ")[1])
             self.lattice_size_ = int(solution[6].split(" ")[1])
             self.runtime_ = float(solution[7].split(" ")[1])
+            self.timeout_ = bool(strtobool(solution[8].split(" ")[1]))
             if self.size_ >= 3 or self.max_error <= 0:
                 self.accuracy_ = float(solution[5].split(" ")[1])
 
-            if sol_size == 8:  # without timeout
-                if self.size_ < 3 and self.max_error > 0:  # return just a leaf as fake solution
+            # if sol_size == 8:  # without timeout
+            if self.size_ < 3 and self.max_error > 0:  # return just a leaf as fake solution
+                if not self.timeout_:
                     print("DL8.5 fitting: Solution not found. However, a solution exists with error equal to the "
-                          "max error you specify as unreachable. Please increase your bound if you want to reach it.")
+                      "max error you specify as unreachable. Please increase your bound if you want to reach it.")
                 else:
-                    if not self.quiet:
-                        print("DL8.5 fitting: Solution found")
-
-            else:  # timeout reached
-                self.timeout_ = True
-                if self.size_ < 3 and self.max_error > 0:  # return just a leaf as fake solution
                     print("DL8.5 fitting: Timeout reached without solution. However, a solution exists with "
                           "error equal to the max error you specify as unreachable. Please increase "
                           "your bound if you want to reach it.")
-                else:
-                    if not self.quiet:
+            else:
+                if not self.quiet:
+                    if not self.timeout_:
+                        print("DL8.5 fitting: Solution found")
+                    else:
                         print("DL8.5 fitting: Timeout reached but solution found")
+
+            # else:  # timeout reached
+            #     self.timeout_ = True
+            #     if self.size_ < 3 and self.max_error > 0:  # return just a leaf as fake solution
+            #         print("DL8.5 fitting: Timeout reached without solution. However, a solution exists with "
+            #               "error equal to the max error you specify as unreachable. Please increase "
+            #               "your bound if you want to reach it.")
+            #     else:
+            #         if not self.quiet:
+            #             print("DL8.5 fitting: Timeout reached but solution found")
 
             if target_is_need:  # problem with target
                 # Store the classes seen during fit
                 self.classes_ = unique_labels(y)
 
-        elif sol_size == 4 or sol_size == 5:  # solution not found
+        elif sol_size == 5:  # solution not found
             self.lattice_size_ = int(solution[2].split(" ")[1])
             self.runtime_ = float(solution[3].split(" ")[1])
-            if sol_size == 4:  # without timeout
+            self.timeout_ = bool(strtobool(solution[4].split(" ")[1]))
+            if not self.timeout_:
                 print("DL8.5 fitting: Solution not found")
             else:  # timeout reached
                 print("DL8.5 fitting: Timeout reached and solution not found")
-                self.timeout_ = True
 
         if hasattr(self, 'tree_') and self.tree_ is not None:
             # add transactions to nodes of the tree

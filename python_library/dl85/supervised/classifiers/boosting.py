@@ -12,12 +12,14 @@ from .classifier import DL85Classifier
 from ...predictors.predictor import DL85Predictor
 from ...errors.errors import SearchFailedError, TreeNotFoundError
 from sklearn.exceptions import NotFittedError
+from sklearn.utils.multiclass import unique_labels
 from sklearn.base import BaseEstimator
 from copy import deepcopy
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import StratifiedKFold
 import numpy as np
 import cvxpy as cp
+import math
 
 MODEL_LP_RATSCH = 1  # regulator of ratsch is between ]0; 1]
 MODEL_LP_DEMIRIZ = 2  # regulator of demiriz is between ]1/n_instances; +\infty]
@@ -208,6 +210,9 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         self.optimal_ = True
         self.estimators_, self.estimator_weights_ = [], []
         self.accuracy_ = self.duration_ = self.n_estimators_ = self.n_iterations_ = 0
+        self.margins_ = []
+        self.margins_norm_ = []
+        self.classes_ = []
 
     def fit(self, X, y=None):
         if y is None:
@@ -275,6 +280,8 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
                 print("is semi psd", is_semipos_def(self.A_inv))
                 print("is semi psd", is_pos_def(nearestPD(self.A_inv)))
 
+        if not self.quiet:
+            print()
         while (self.max_iterations > 0 and self.n_iterations_ <= self.max_iterations) or self.max_iterations <= 0:
             if not self.quiet:
                 print("n_iter", self.n_iterations_)
@@ -284,7 +291,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             clf = DL85Classifier(**self.clf_params) if self.base_estimator is None else self.base_estimator
 
             # fit the model
-            if self.quiet:
+            if self.quiet or True:
                 old_stdout = sys.stdout
                 sys.stdout = open(os.devnull, "w")
                 clf.fit(X, y, sample_weight=sample_weights.tolist())
@@ -293,37 +300,50 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
                 clf.fit(X, y, sample_weight=sample_weights.tolist())
 
             # print the tree expression of the estimator if it has
-            if hasattr(clf, "tree_") and isinstance(clf.tree_, dict) and not self.quiet:
-                print(clf.tree_)
+            if not self.quiet:
+                print("A new tree has been learnt based on previous found sample weights")
+                if hasattr(clf, "tree_") and isinstance(clf.tree_, dict):
+                    pass
+                    # print(clf.tree_)
 
             # compute the prediction of the new estimator : 1 if correct else -1
             try:
                 pred = np.array([-1 if p != y[i] else 1 for i, p in enumerate(clf.predict(X))])
+                # pred = np.array([2*p[y[i]]-1 for i, p in enumerate(clf.predict_proba(X))])
+                # pred = np.array([.5 * y[i] * math.log(p[1]/(p[0]+.00000001)) for i, p in enumerate(clf.predict_proba(X))])
+                # if not self.quiet:
+                #     print("entering tree value", pred @ sample_weights)
             except (NotFittedError, SearchFailedError, TreeNotFoundError) as error:
                 if not self.quiet:
                     print("Problem during the search so we stop")
                 break
 
             if not self.quiet:
-                print("sum pred", pred.sum(), "\n", "sample weights", sample_weights, "\n", "p@w more plus or moins", pred @ sample_weights)
+                print("correct predictions - incorrect predictions =", pred.sum())
+                print("np.dot(predictions, sample_weigths) =", pred @ sample_weights)
+                # print("sum pred", pred.sum(), "\n", "sample weights inline", sample_weights.tolist(), "\nsample weights", sample_weights, "\n", "p@w more plus or moins", pred @ sample_weights)
 
             # check if optimal condition is met
             if self.n_iterations_ > 1:
                 if pred @ sample_weights < r + self.opti_gap:
                     if not self.quiet:
-                        print("p@w < r ==> finished")
+                        print("np.dot(predictions, sample_weigths) < r + espsilon ==> we cannot add the new tree. End of iterations")
+                        print("Objective value at end is", opti)
                     self.optimal_ = True
                     break
+                if not self.quiet:
+                    print("np.dot(predictions, sample_weigths) >= r + epsilon. We can add the new tree.")
 
             # add new prediction to all prediction matrix. Each column represents predictions of a tree for all examples
             predictions = pred.reshape((-1, 1)) if predictions is None else np.concatenate((predictions, pred.reshape(-1, 1)), axis=1)
 
             if not self.quiet:
-                print("pred shape", predictions.shape)
-                print(predictions)
+                print("whole predictions shape", predictions.shape)
+                print("run dual...")
+                # print(predictions)
 
             # add the new estimator and compute the dual to find new sample weights for another estimator to add
-            self.estimators_.append(clf)
+            self.estimators_.append(deepcopy(clf))
             if self.model == MODEL_LP_RATSCH:
                 r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_ratsch(predictions)
             elif self.model == MODEL_LP_DEMIRIZ:
@@ -333,9 +353,21 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             elif self.model == MODEL_QP_MDBOOST:
                 r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_mdboost(predictions)
 
+            self.margins_ = (predictions @ np.array(self.estimator_weights_).reshape(-1, 1)).transpose().tolist()[0]
+            self.margins_norm_ = (predictions @ np.array([float(i)/sum(self.estimator_weights_) for i in self.estimator_weights_]).reshape(-1, 1)).transpose().tolist()[0] if sum(self.estimator_weights_) > 0 else None
+
             if not self.quiet:
-                print("sample w", sample_weights, "\n", "r", r, "\n", "opti", opti)
-                print("len tree w", len(self.estimator_weights_), "w:", self.estimator_weights_, "\n")
+                print("after dual")
+                print("We got", len(self.estimator_weights_), "trees with weights w:", self.estimator_weights_)
+                print("Objective value at this stage is", opti)
+                print("Value of r is", r)
+                print("The sorted margin at this stage is", sorted(self.margins_))
+                mean = sum(self.margins_) / len(self.margins_)
+                variance = sum([((x - mean) ** 2) for x in self.margins_]) / len(self.margins_)
+                std = variance ** 0.5
+                print("min margin:", min(self.margins_), "\tmax margin:", max(self.margins_), "\tavg margin:", mean, "\tstd margin:", std, "\tsum:", sum(self.margins_))
+                print("number of neg margins:", len([marg for marg in self.margins_ if marg < 0]), "\tnumber of pos margins:", len([marg for marg in self.margins_ if marg >= 0]))
+                print("The new sample weight for the next iteration is", sample_weights.tolist(), "\n")
 
             self.n_iterations_ += 1
         self.duration_ = time.perf_counter() - start_time
@@ -344,12 +376,13 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         # remove the useless estimators
         zero_ind = [i for i, val in enumerate(self.estimator_weights_) if val == 0]
         if not self.quiet:
-            print("all tree w", self.estimator_weights_, "\n", "zero ind", zero_ind)
+            print("\nall tree w", self.estimator_weights_, "\n", "zero ind", zero_ind)
         self.estimator_weights_ = np.delete(self.estimator_weights_, np.s_[zero_ind], axis=0)
         self.estimators_ = [clf for clf_id, clf in enumerate(self.estimators_) if clf_id not in zero_ind]
         predictions = np.delete(predictions, np.s_[zero_ind], axis=1)
         if not self.quiet:
-            print("final pred shape", predictions.shape, "\n", predictions)
+            print("final pred shape", predictions.shape)
+            # print(predictions)
 
         # compute training accuracy of the found ensemble and store it in the variable `accuracy_`
         forest_pred_val = np.dot(predictions, np.array(self.estimator_weights_))
@@ -371,15 +404,18 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         if self.n_estimators_ == 0:
             raise NotFittedError("No tree selected")
 
+        self.classes_ = unique_labels(y)
+
         return self
 
-    def compute_dual_ratsch(self, predictions):
+    def compute_dual_ratsch(self, predictions):  # primal is maximization
         r_ = cp.Variable()
         u_ = cp.Variable(self.n_instances)
         obj = cp.Minimize(r_)
         constr = [predictions[:, i] @ u_ <= r_ for i in range(predictions.shape[1])]
         constr.append(-u_ <= 0)
-        constr.append(u_ <= self.regulator)
+        if self.regulator > 0:
+            constr.append(u_ <= self.regulator)
         constr.append(cp.sum(u_) == 1)
         problem = cp.Problem(obj, constr)
         if self.quiet:
@@ -388,9 +424,46 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         opti = problem.solve(solver=cp.GUROBI)
         if self.quiet:
             sys.stdout = old_stdout
-        return r_.value, u_.value, opti, [x.dual_value for x in problem.constraints[:predictions.shape[1]]]
+        return r_.value, u_.value, opti, [x.dual_value.tolist() for x in problem.constraints[:predictions.shape[1]]]
 
-    def compute_dual_demiriz(self, predictions):
+    def compute_dual_aglin(self, predictions):  # primal is maximization
+        r_ = cp.Variable()
+        u_ = cp.Variable(self.n_instances)
+        v_ = cp.Variable(self.n_instances)
+        obj = cp.Minimize(r_)
+        constr = [-(predictions[:, t] @ u_) <= r_ for t in range(predictions.shape[1])]
+        constr.append(u_ + v_ == -1)
+        constr.append(cp.sum(v_) == self.regulator)
+        constr.append(-v_ <= 0)
+        problem = cp.Problem(obj, constr)
+        if self.quiet:
+            old_stdout = sys.stdout
+            sys.stdout = open(os.devnull, "w")
+        opti = problem.solve(solver=cp.GUROBI)
+        if self.quiet:
+            sys.stdout = old_stdout
+        # print(predictions.shape[1])
+        # print(problem.constraints)
+        # print("size cons", len([x.dual_value for x in problem.constraints[:predictions.shape[1]]]))
+        # print("size cons", len([x.dual_value for x in problem.constraints]))
+        # print("type cons", type([x.dual_value for x in problem.constraints][1]))
+        # print("size cons", [x.dual_value for x in problem.constraints][0].shape)
+        # print("size cons", [x.dual_value for x in problem.constraints][0])
+        # print("size cons", [x.dual_value for x in problem.constraints][1].shape)
+        # print("size cons", [x.dual_value for x in problem.constraints][2].shape)
+        # print("size cons", [x.dual_value for x in problem.constraints][3].shape)
+        # print("size cons", len([x.dual_value for x in problem.constraints[0]]))
+        # print("size cons", len(problem.constraints[1]))
+        # print("size cons", len(problem.constraints[2]))
+        # print("size cons", len(problem.constraints[3]))
+        # print(type([x.dual_value for x in problem.constraints[predictions.shape[1]:predictions.shape[1] + 1]]))
+        # print(type([x.dual_value for x in problem.constraints[predictions.shape[1]:predictions.shape[1] + 1]][0]))
+        # print(type(np.array([x.dual_value for x in problem.constraints[predictions.shape[1]:predictions.shape[1] + 1]])))
+        # print([x.dual_value for x in problem.constraints[predictions.shape[1]:predictions.shape[1] + 1]])
+        # return r_.value, [x.dual_value for x in problem.constraints[predictions.shape[1]:predictions.shape[1] + 1]][0], opti, [x.dual_value.tolist() for x in problem.constraints[:predictions.shape[1]]]
+        return r_.value, v_.value, opti, [x.dual_value.tolist() for x in problem.constraints[:predictions.shape[1]]]
+
+    def compute_dual_demiriz(self, predictions):  # primal is minimization
         u_ = cp.Variable(self.n_instances)
         obj = cp.Maximize(cp.sum(u_))
         constr = [predictions[:, i] @ u_ <= 1 for i in range(predictions.shape[1])]
@@ -403,26 +476,9 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         opti = problem.solve(solver=cp.GUROBI)
         if self.quiet:
             sys.stdout = old_stdout
-        return 1, u_.value, opti, [x.dual_value for x in problem.constraints[:predictions.shape[1]]]
+        return 1, u_.value, opti, [x.dual_value.tolist() for x in problem.constraints[:predictions.shape[1]]]
 
-    def compute_dual_aglin(self, predictions):
-        r_ = cp.Variable()
-        u_ = cp.Variable(self.n_instances)
-        obj = cp.Minimize(r_)
-        constr = [predictions[:, i] @ u_ <= r_ for i in range(predictions.shape[1])]
-        constr.append(-u_ <= 0)
-        # constr.append(u_ <= self.regulator)
-        constr.append(cp.sum(u_) == self.regulator)
-        problem = cp.Problem(obj, constr)
-        if self.quiet:
-            old_stdout = sys.stdout
-            sys.stdout = open(os.devnull, "w")
-        opti = problem.solve(solver=cp.GUROBI)
-        if self.quiet:
-            sys.stdout = old_stdout
-        return r_.value, u_.value, opti, [x.dual_value for x in problem.constraints[:predictions.shape[1]]]
-
-    def compute_dual_mdboost(self, predictions):
+    def compute_dual_mdboost(self, predictions):  # primal is maximization
         r_ = cp.Variable()
         u_ = cp.Variable(self.n_instances)
         obj = cp.Minimize(r_ + 1/(2*self.regulator) * cp.quad_form((u_ - 1), self.A_inv))
@@ -434,35 +490,75 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         opti = problem.solve(solver=cp.GUROBI)
         if self.quiet:
             sys.stdout = old_stdout
-        return r_.value, u_.value, opti, [x.dual_value for x in problem.constraints]
+        return r_.value, u_.value, opti, [x.dual_value.tolist() for x in problem.constraints]
 
-    def get_class(self, forest_decision):
-        """
-        compute the class of each transaction in list, based on decision of multiples trees
-        :param forest_decision: list representing the prediction of each tree
-        :return: the class with highest weight
-        """
-        sums = {}
-        for key, value in zip(forest_decision, self.estimator_weights_):
-            try:
-                sums[key] += value
-            except KeyError:
-                sums[key] = value
-        return list({k: v for k, v in sorted(sums.items(), key=lambda item: item[1], reverse=True)}.keys())[0]
+    # def compute_dual_aglin(self, predictions):  # primal is minimization
+    #     r_ = cp.Variable()
+    #     u_ = cp.Variable(self.n_instances)
+    #     obj = cp.Minimize(r_)
+    #     constr = [predictions[:, i] @ u_ <= r_ for i in range(predictions.shape[1])]
+    #     constr.append(-u_ <= 0)
+    #     # constr.append(u_ <= self.regulator)
+    #     constr.append(cp.sum(u_) == self.regulator)
+    #     problem = cp.Problem(obj, constr)
+    #     if self.quiet:
+    #         old_stdout = sys.stdout
+    #         sys.stdout = open(os.devnull, "w")
+    #     opti = problem.solve(solver=cp.GUROBI)
+    #     if self.quiet:
+    #         sys.stdout = old_stdout
+    #     return r_.value, u_.value, opti, [x.dual_value.tolist() for x in problem.constraints[:predictions.shape[1]]]
 
-    def get_predictions(self, predict_per_clf):
-        # transpose prediction list to have per row a list of decision for each tree for each transaction
-        predict_per_trans = list(map(list, zip(*predict_per_clf)))
-        return list(map(lambda x: self.get_class(x), predict_per_trans))
+    def softmax(self, X, copy=True):
+        """
+        Calculate the softmax function.
+        The softmax function is calculated by
+        np.exp(X) / np.sum(np.exp(X), axis=1)
+        This will cause overflow when large values are exponentiated.
+        Hence the largest value in each row is subtracted from each data
+        point to prevent this.
+        Parameters
+        ----------
+        X : array-like of float of shape (M, N)
+            Argument to the logistic function.
+        copy : bool, default=True
+            Copy X or not.
+        Returns
+        -------
+        out : ndarray of shape (M, N)
+            Softmax function evaluated at every point in x.
+        """
+        if copy:
+            X = np.copy(X)
+        max_prob = np.max(X, axis=1).reshape((-1, 1))
+        X -= max_prob
+        np.exp(X, X)
+        sum_prob = np.sum(X, axis=1).reshape((-1, 1))
+        X /= sum_prob
+        return X
 
     def predict(self, X, y=None):
         if self.n_estimators_ == 0:  # fit method has not been called
             print(self.estimators_)
             print(self.estimator_weights_)
             raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
+        # return np.argmax(self.predict_proba(X), axis=1)
         # Run a prediction on each estimator
-        predict_per_clf = [clf.predict(X) for clf_id, clf in enumerate(self.estimators_)]
-        return self.get_predictions(predict_per_clf)
+        predict_per_clf = np.asarray([clf.predict(X) for clf in self.estimators_]).transpose()
+        return np.apply_along_axis(lambda x: np.argmax(np.bincount(x, weights=self.estimator_weights_)), axis=1, arr=predict_per_clf.astype('int'))
+
+    # def predict_proba(self, X):
+    #     prob_per_tree = np.asarray([clf.predict_proba(X) for clf in self.estimators_])
+    #     return np.average(prob_per_tree, axis=0, weights=self.estimator_weights_)
+
+    def predict_proba(self, X):
+        classes = self.classes_[:, np.newaxis]
+        pred = sum((np.array(estimator.predict(X)) == classes).T * w for estimator, w in zip(self.estimators_, self.estimator_weights_))
+        pred /= sum(self.estimator_weights_)
+        pred[:, 0] *= -1
+        decision = pred.sum(axis=1)
+        decision = np.vstack([-decision, decision]).T / 2
+        return self.softmax(decision, False)
 
     def get_nodes_count(self):
         if self.n_estimators_ == 0:  # fit method has not been called
