@@ -120,6 +120,12 @@ public:
         size = size_;
     }
 
+    Array(const Array<A> &ar) {
+        size = ar.size;
+        elts = new A[ar.size];
+        forEach(i, ar) elts[i] = ar.elts[i];
+    }
+
     Array(int allocsize, int size_) {
         size = size_;
         elts = new A[allocsize];
@@ -151,12 +157,20 @@ public:
 
     A &operator[](int i) { return elts[i]; }
 
+    bool operator==(const Array<A>& rhs)
+    {
+        if (elts == rhs.elts) return true;
+        if (size != rhs.size) return false;
+        forEach(i, rhs) if (elts[i] != *(rhs.elts + i)) return false;
+        return true;
+    }
+
     class iterator {
     public:
         iterator(A * ptr): ptr(ptr){}
         iterator operator++() { ++ptr; return *this; }
         bool operator!=(const iterator & other) const { return ptr != other.ptr; }
-        // the const is add to only allow read. It is much faster but we lose in read
+        // the const is add to only allow read. It is much faster but we lose in write
         const A& operator*() const { return *ptr; }
     private:
         A* ptr;

@@ -8,33 +8,29 @@
 using namespace std;
 
 typedef pair<int, TrieNode*> NodePriority;
-typedef int hashcode;
 
-//struct TrieNode;
+struct TrieNode;
+
+struct TrieEdge {
+  Item item;
+  TrieNode *subtrie;
+};
 
 struct TrieNode {
-    Array<Item> itemset;
-//    vector<hashcode> children;
-//    vector<hashcode> parent;
-    QueryData *data; // data used to answer a query, if null this itemset is not closed
-     ~TrieNode ();
+  vector<TrieEdge> edges;
+  QueryData *data; // data used to answer a query, if null this itemset is not closed
+  ~TrieNode ();
 };
+
 
 class Trie {
 friend class Query_TotalFreq;
 public:
-    Trie(int maxsize);
+    Trie();
+
     ~Trie();
-
-    int cachesize;
-    TrieNode** bucket;
-    TrieNode *root;
     TrieNode *insert ( Array<Item> itemset );
-    hashcode gethashcode ( Array<Item> itemset );
-    hashcode getlasthashcode ( Array<Item> itemset );
-    void remove( hashcode code );
-
-    /*TrieNode *find ( Array<Item> itemset );
+    TrieNode *find ( Array<Item> itemset );
     TrieNode *root;
     TrieNode *createTree ( Array<Item> itemset, int pos, TrieNode *&last );
     struct cmp {
@@ -43,7 +39,7 @@ public:
         };
     };
     priority_queue<NodePriority, vector<NodePriority>, cmp> nodemapper;
-    int maxcachesize;*/
+    int maxcachesize;
 
 };
 

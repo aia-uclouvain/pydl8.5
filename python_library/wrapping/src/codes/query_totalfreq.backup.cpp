@@ -1,5 +1,5 @@
 #include "query_totalfreq.h"
-#include "trie.h"
+#include trie_.h
 #include <iostream>
 
 Query_TotalFreq::Query_TotalFreq(Trie *trie,

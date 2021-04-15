@@ -61,10 +61,12 @@ bool Query_TotalFreq::updateData(QueryData *best, Error upperBound, Attribute at
 }
 
 QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
+    cout << "a" << endl;
     Class maxclass = -1;
     Error error;
 
     auto *data = new QueryData_Best();
+    cout << "b" << endl;
 
     //fast or default error. support will be used
     if (tids_error_class_callback == nullptr && tids_error_callback == nullptr) {
@@ -95,10 +97,12 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
             maxclass = int(infos[1]);
         }
     }
+    cout << "c" << endl;
     data->test = maxclass;
     data->leafError = error;
     data->error += experror->addError(cover->getSupport(), data->error, dm->getNTransactions());
     data->solutionDepth = currentMaxDepth;
+    cout << "d" << endl;
 
     return (QueryData *) data;
 }

@@ -1,6 +1,6 @@
 #ifndef QUERY_BEST_H
 #define QUERY_BEST_H
-#include "trie.h"
+#include trie_.h
 #include "experror.h"
 #include <query.h>
 #include <vector>

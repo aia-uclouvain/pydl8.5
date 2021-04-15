@@ -1,5 +1,5 @@
 #include "query_weighted.h"
-#include "trie.h"
+#include trie_.h
 #include <iostream>
 
 Query_Weighted::Query_Weighted(Trie *trie,

@@ -57,7 +57,7 @@ string search(Supports supports,
     if (in_weights) weights = vector<float>(in_weights, in_weights + ntransactions);
 
     // create an empty trie for the search space
-    Trie *trie = new Trie;
+    Trie *trie = new Trie(100003);
 
     Query *query = new Query_TotalFreq(minsup, maxdepth, trie, dataReader, experror, timeLimit, continuousMap,
                                        tids_error_class_callback_pointer, supports_error_class_callback_pointer,
@@ -95,6 +95,7 @@ string search(Supports supports,
         tree_out->latSize = ((LcmPruned *) lcm)->latticesize;
         tree_out->searchRt = duration<double>(stop_tree - start_tree).count();
         out += tree_out->to_str();
+        out += "latsize : " + to_string(tree_out->latSize) + "\n";
     }
 
     delete trie;

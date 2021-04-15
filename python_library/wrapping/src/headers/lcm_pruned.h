@@ -41,9 +41,9 @@ public:
 protected:
     TrieNode* recurse ( Array<Item> itemset, Attribute last_added, TrieNode* node, Array<Attribute> attributes_to_visit, Depth depth, Error ub, Error lb = 0 );
 
-    Array<Attribute> getSuccessors(Array<Attribute> last_freq_attributes, Attribute last_added);
+    Array<Attribute> getSuccessors(Array<Attribute> last_freq_attributes, Attribute last_added, TrieNode* node);
 
-    Array<Attribute> getExistingSuccessors(TrieNode* node);
+//    Array<Attribute> getExistingSuccessors(TrieNode* node);
 
     Error computeSimilarityLowerBound(bitset<M> *b1_cover, bitset<M> *b2_cover, Error b1_error, Error b2_error);
 

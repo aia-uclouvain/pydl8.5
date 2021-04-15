@@ -99,7 +99,7 @@ float LcmPruned::informationGain(Supports notTaken, Supports taken) {
 }
 
 
-Array<Attribute> LcmPruned::getSuccessors(Array<Attribute> last_candidates, Attribute last_added) {
+Array<Attribute> LcmPruned::getSuccessors(Array<Attribute> last_candidates, Attribute last_added, TrieNode* node) {
 
     std::multimap<float, Attribute> gain;
     Array<Attribute> next_candidates(last_candidates.size, 0);
@@ -111,11 +111,23 @@ Array<Attribute> LcmPruned::getSuccessors(Array<Attribute> last_candidates, Attr
     int current_sup = cover->getSupport();
     Supports current_sup_class = cover->getSupportPerClass();
 
+    unordered_set<int> candidates_checker;
+//    if (!infoGain){
+//        for (TrieEdge edge : node->edges) {
+//            candidates_checker.insert(item_attribute(edge.item));
+//        }
+//    }
+
     // access each candidate
-    for (auto& candidate : last_candidates) {
+    for (auto candidate : last_candidates) {
 
         // this attribute is already in the current itemset
         if (last_added == candidate) continue;
+
+//        if (!infoGain && candidates_checker.find(candidate) != candidates_checker.end()){
+//            next_candidates.push_back(candidate);
+//            continue;
+//        }
 
         // compute the support of each candidate
         int sup_left = cover->temporaryIntersectSup(candidate, false);
@@ -152,20 +164,20 @@ Array<Attribute> LcmPruned::getSuccessors(Array<Attribute> last_candidates, Attr
 }
 
 // find the successors of a node when it has been already visited in the past
-Array<Attribute> LcmPruned::getExistingSuccessors(TrieNode *node) {
-    // use an hashset to reduce the insert time. a basic int hasher is ok
-    unordered_set<int> candidates_checker;
-    int size = candidates_checker.size();
-    Array<Attribute> candidates(node->edges.size(), 0);
-    for (TrieEdge edge : node->edges) {
-        candidates_checker.insert(item_attribute(edge.item));
-        if (candidates_checker.size() > size) {
-            candidates.push_back(item_attribute(edge.item));
-            size++;
-        }
-    }
-    return candidates;
-}
+//Array<Attribute> LcmPruned::getExistingSuccessors(TrieNode *node) {
+//    // use an hashset to reduce the insert time. a basic int hasher is ok
+//    unordered_set<int> candidates_checker;
+//    int size = candidates_checker.size();
+//    Array<Attribute> candidates(node->edges.size(), 0);
+//    for (TrieEdge edge : node->edges) {
+//        candidates_checker.insert(item_attribute(edge.item));
+//        if (candidates_checker.size() > size) {
+//            candidates.push_back(item_attribute(edge.item));
+//            size++;
+//        }
+//    }
+//    return candidates;
+//}
 
 // compute the similarity lower bound based on the best ever seen node or the node with the highest coversize
 Error LcmPruned::computeSimilarityLowerBound(bitset<M> *b1_cover, bitset<M> *b2_cover, Error b1_error, Error b2_error) {
@@ -246,9 +258,9 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
     }
 
     // in case the solution cannot be derived without computation and remaining depth is 2, we use a specific algorithm
-    if (query->maxdepth - depth == 2 && cover->getSupport() >= 2 * query->minsup && no_python_error) {
+    /*if (query->maxdepth - depth == 2 && cover->getSupport() >= 2 * query->minsup && no_python_error) {
         return computeDepthTwo(cover, ub, next_candidates, last_added, itemset, node, query, computed_lb, query->trie);
-    }
+    }*/
 
     /* there are two cases in which the execution attempt here
      1- when the node data did not exist
@@ -273,7 +285,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
         if (result) return result;
 
         // if we can't get solution without computation, we compute the next candidates to perform the search
-        next_attributes = getSuccessors(next_candidates, last_added);
+        next_attributes = getSuccessors(next_candidates, last_added, node);
     }
     //case 2 : the node data exists without solution but ub > last ub which is now lb
     else {
@@ -287,8 +299,8 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
         }
 
         // if we can't get solution without computation, we compute the next candidates to perform the search
-        next_attributes = getSuccessors(next_candidates, last_added);
-        // next_attributes = getExistingSuccessors(node);
+        next_attributes = getSuccessors(next_candidates, last_added, node);
+//         next_attributes = getExistingSuccessors(node);
         // next_attributes = getSuccessors(next_candidates, cover, last_added);
     }
 
@@ -322,7 +334,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
     Error child_ub = ub;
 
     // we evaluate the split on each candidate attribute
-    for(auto& next : next_attributes) {
+    for(const auto next : next_attributes) {
         Logger::showMessageAndReturn("\n\nWe are evaluating the attribute : ", next);
 
         Array<Item> itemsets[2];
@@ -456,6 +468,8 @@ void LcmPruned::run() {
     Array<Item> itemset;
     itemset.size = 0;
     itemset.elts = nullptr;
+    cout << "item" << endl;
+    printItemset(itemset);
 
     // insert the emptyset node
     TrieNode *node = query->trie->insert(itemset);
