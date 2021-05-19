@@ -5,33 +5,34 @@
 #define DL85_DEPTHTWOCOMPUTER_H
 
 #include "rCover.h"
-#include "trie.h"
-#include "query.h"
-#include "query_best.h"
+#include "cache.h"
+#include "freq_nodedataManager.h"
+#include "solution.h"
 #include <chrono>
 #include <utility>
+#include "rCoverTotalFreq.h"
 
 using namespace std::chrono;
 
-TrieNode* computeDepthTwo(RCover*, Error, Array<Attribute>, Attribute, Array<Item>, TrieNode*, Query*, Error, Trie*);
+Node* computeDepthTwo(Error, Array<Attribute>, Attribute, Array<Item>, Node*, NodeDataManager*, Error, Cache*);
 
 struct TreeTwo{
-    QueryData_Best* root_data;
-    QueryData_Best* left_data;
-    QueryData_Best* right_data;
-    QueryData_Best* left1_data;
-    QueryData_Best* left2_data;
-    QueryData_Best* right1_data;
-    QueryData_Best* right2_data;
+    Freq_NodeData* root_data;
+    Freq_NodeData* left_data;
+    Freq_NodeData* right_data;
+    Freq_NodeData* left1_data;
+    Freq_NodeData* left2_data;
+    Freq_NodeData* right1_data;
+    Freq_NodeData* right2_data;
 
     TreeTwo(){
-        root_data = new QueryData_Best();
-        left_data = new QueryData_Best();
-        right_data = new QueryData_Best();
-        left1_data = new QueryData_Best();
-        left2_data = new QueryData_Best();
-        right1_data = new QueryData_Best();
-        right2_data = new QueryData_Best();
+        root_data = new Freq_NodeData();
+        left_data = new Freq_NodeData();
+        right_data = new Freq_NodeData();
+        left1_data = new Freq_NodeData();
+        left2_data = new Freq_NodeData();
+        right1_data = new Freq_NodeData();
+        right2_data = new Freq_NodeData();
     }
 
     TreeTwo(const TreeTwo& cpy){

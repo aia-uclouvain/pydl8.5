@@ -1,4 +1,4 @@
-#include "query_totalfreq.h"
+#include frequency_nodedataManager.h
 #include trie_.h
 #include <iostream>
 

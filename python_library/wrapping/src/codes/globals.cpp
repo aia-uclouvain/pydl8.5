@@ -112,8 +112,9 @@ Array<Item> addItem ( Array<Item> src1, Item item ) {
     return dest;
 }
 
-void printItemset(Array<Item> itemset) {
-    if (verbose) {
+void printItemset(Array<Item> itemset, bool force) {
+    if (verbose || force) {
+        if (itemset.size == 0) std::cout << "\\phi";
         for (int i = 0; i < itemset.size; ++i) {
             std::cout << itemset[i] << ",";
         }

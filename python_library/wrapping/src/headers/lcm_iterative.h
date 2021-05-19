@@ -6,15 +6,21 @@
 #define DL85_LCM_ITERATIVE_H
 #include <utility>
 #include "globals.h"
-#include "trie.h"
-#include "query.h"
+#include "cache_trie.h"
+#include "nodedataManager.h"
 #include "dataManager.h"
 #include "rCoverTotalFreq.h"
 
 
 class LcmIterative {
 public:
-    LcmIterative ( DataManager *data, Query *query, Trie *trie, bool infoGain, bool infoAsc, bool allDepths );
+    LcmIterative ( DataManager *data, NodeDataManager *query, Cache *cache, bool infoGain, bool infoAsc, bool allDepths,
+                   Support minsup,
+                   Depth maxdepth,
+                   int timeLimit,
+                   bool continuous,
+                   float maxError = NO_ERR,
+                   bool stopAfterError = false);
 
     ~LcmIterative();
 
@@ -23,8 +29,8 @@ public:
     int latticesize = 0;
 
 
-protected:
-    TrieNode* recurse ( Array<Item> itemset,
+//protected:
+    Node* recurse ( Array<Item> itemset,
                         Item added,
                         Array<pair<bool,Attribute> > a_attributes,
                         RCover* a_transactions,
@@ -41,12 +47,21 @@ protected:
     float informationGain ( pair<Supports,Support> notTaken, pair<Supports,Support> taken);
 
     DataManager *dataReader;
-    Trie *trie;
-    Query *query;
+    Cache *cache;
+    NodeDataManager *nodeDataManager;
     bool infoGain = false;
     bool infoAsc = false; //if true ==> items with low IG are explored first
     bool allDepths = false;
     //bool timeLimitReached = false;
+    Support minsup;
+    Depth maxdepth;
+    int timeLimit;
+    bool continuous = false;
+    float maxError = NO_ERR;
+    bool stopAfterError = false;
+    time_point<high_resolution_clock> startTime;
+    TrieNode *realroot; // as the empty itemset may not have an empty closure
+    bool timeLimitReached = false;
 };
 
 

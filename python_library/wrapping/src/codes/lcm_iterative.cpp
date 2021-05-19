@@ -3,7 +3,7 @@
 //
 
 #include "lcm_iterative.h"
-#include "query_best.h" // if cannot link is specified, we need a clustering problem!!!
+#include "solution.h" // if cannot link is specified, we need a clustering problem!!!
 #include "logger.h"
 #include <iostream>
 #include <limits.h>
@@ -25,14 +25,27 @@ struct Hash {
     }
 };
 
-LcmIterative::LcmIterative ( DataManager *dataReader, Query *query, Trie *trie, bool infoGain, bool infoAsc, bool allDepths):
-        dataReader ( dataReader ), query ( query ), trie ( trie ), infoGain ( infoGain ), infoAsc ( infoAsc ), allDepths ( allDepths ) {
+LcmIterative::LcmIterative ( DataManager *dataReader, NodeDataManager *nodeDataManager, Cache *cache, bool infoGain, bool infoAsc, bool allDepths,
+                             Support minsup,
+                             Depth maxdepth,
+                             int timeLimit,
+                             bool continuous,
+                             float maxError,
+                             bool stopAfterError):
+        dataReader ( dataReader ), nodeDataManager ( nodeDataManager ), cache ( cache ), infoGain ( infoGain ), infoAsc ( infoAsc ), allDepths ( allDepths ),
+minsup(minsup),
+maxdepth(maxdepth),
+timeLimit(timeLimit),
+continuous(continuous),
+maxError(maxError),
+stopAfterError(stopAfterError) {
+    startTime = high_resolution_clock::now();
 }
 
 LcmIterative::~LcmIterative() {
 }
 
-TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
+Node* LcmIterative::recurse ( Array<Item> itemset_,
                                Item added,
                                Array<pair<bool,Attribute > > a_attributes,
                                RCover* a_transactions,
@@ -43,10 +56,10 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
     Logger::showMessageAndReturn("-----------\t------------");
     Logger::showMessageAndReturn("\t\tAppel recursif. CMD : ", currentMaxDepth, " and current depth : ", depth);
 
-    if ( query->timeLimit > 0 ){
-        float runtime = duration_cast<milliseconds>( high_resolution_clock::now() - query->startTime ).count() / 1000;
-        if( runtime >= query->timeLimit )
-            query->timeLimitReached = true;
+    if ( timeLimit > 0 ){
+        float runtime = duration_cast<milliseconds>( high_resolution_clock::now() - startTime ).count() / 1000;
+        if( runtime >= timeLimit )
+            timeLimitReached = true;
     }
 
     Array<Item> itemset;
@@ -63,7 +76,7 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
     Logger::showMessage("itemset après ajout : ");
     printItemset(itemset);
 
-    TrieNode *node = trie->insert ( itemset );
+    Node *node = cache->insert ( itemset, nodeDataManager ).first;
     return node;
 
     /*if (node->data) {//node already exists
@@ -95,7 +108,7 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
             return node;
         }
 
-        if ( depth == currentMaxDepth){// query->maxdepth ){
+        if ( depth == currentMaxDepth){// nodeDataManager->maxdepth ){
             Logger::showMessageAndReturn("on a atteint la profondeur maximale pour cette itération. parent boud = ", parent_ub, " et leaf error = ", leafError);
 
             if ( parent_ub < leafError ){
@@ -130,10 +143,10 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
 //            if ( latticesize % 1000 == 0 )
 //                cerr << "--- Searching, lattice size: " << latticesize << "\r" << flush;
 
-            //STEP 2 : call initData of query
+            //STEP 2 : call initData of nodeDataManager
             //<=================== START STEP 2 ===================>
             Error bound = parent_ub;
-            node->data = query->initData(a_transactions, parent_ub, query->minsup,currentMaxDepth);
+            node->data = nodeDataManager->initData(a_transactions, parent_ub, nodeDataManager->minsup,currentMaxDepth);
 
             //initialize the bound. it will be used for children in for loop
             initUb = ((QueryData_Best*) node->data)->initUb;
@@ -153,7 +166,7 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
                 return node;
             }
 
-            if ( depth == currentMaxDepth){// query->maxdepth ){
+            if ( depth == currentMaxDepth){// nodeDataManager->maxdepth ){
                 Logger::showMessageAndReturn("on a atteint la profondeur maximale pour cette itération. parent bound = ", parent_ub, " et leaf error = ", ((QueryData_Best*) node->data)->leafError);
 
                 //((QueryData_Best*) node->data)->solutionDepth = currentMaxDepth;
@@ -169,7 +182,7 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
                 return node;
             }
 
-            if ( query->timeLimitReached ){
+            if ( nodeDataManager->timeLimitReached ){
                 ((QueryData_Best*) node->data)->error = ((QueryData_Best*) node->data)->leafError;
                 return node;
             }
@@ -185,7 +198,7 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
             initUb = ((QueryData_Best*) node->data)->initUb;
             Logger::showMessageAndReturn("cette fois-ci parent bound = ", parent_ub, " et leaf error = ", ((QueryData_Best*) node->data)->leafError, " init bound = ", initUb, " et solution depth = ", ((QueryData_Best*) node->data)->solutionDepth);
 
-            if ( query->timeLimitReached ){
+            if ( nodeDataManager->timeLimitReached ){
                 ((QueryData_Best*) node->data)->error = ((QueryData_Best*) node->data)->leafError;
                 return node;
             }
@@ -210,7 +223,7 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
 
         //IF TIMEOUT IS REACHED
         //<=================== START STEP 3 ===================>
-        if ( query->timeLimitReached ){
+        if ( nodeDataManager->timeLimitReached ){
             if ( ((QueryData_Best*) node->data)->error == FLT_MAX )
                 ((QueryData_Best*) node->data)->error = ((QueryData_Best*) node->data)->leafError;
             return node;
@@ -244,7 +257,7 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
                                          currentMaxDepth);
                 a_transactions->backtrack();
 
-                if (query->canimprove(left->data, ub)) {
+                if (nodeDataManager->canimprove(left->data, ub)) {
 
                     float remainUb = ub - ((QueryData_Best *) left->data)->error;
                     a_transactions->intersect(a_attributes2[i].second);
@@ -254,7 +267,7 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
 
                     Error feature_error =
                             ((QueryData_Best *) left->data)->error + ((QueryData_Best *) right->data)->error;
-                    bool hasUpdated = query->updateData(node->data, ub, a_attributes2[i].second, left->data,
+                    bool hasUpdated = nodeDataManager->updateData(node->data, ub, a_attributes2[i].second, left->data,
                                                         right->data);
                     if (hasUpdated) {
                         ub = feature_error;
@@ -262,7 +275,7 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
                                                      ((QueryData_Best *) node->data)->error, " et ub = ", ub);
                     }
 
-                    if (query->canSkip(node->data)) {//lowerBound
+                    if (nodeDataManager->canSkip(node->data)) {//lowerBound
                         //                    if (((QueryData_Best*) node->data )->lowerBound > 0)
                         //                        cout << "lower = " << ((QueryData_Best*) node->data )->lowerBound << endl;
                         Logger::showMessageAndReturn("C'est le meilleur. on break le reste");
@@ -295,10 +308,10 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
             currentMaxDepth += 1;
             ub = ((QueryData_Best *) node->data)->error;
 
-            if (currentMaxDepth == query->maxdepth && query->maxError > 0) //maxErrror is used as bound for the last iteration
-                ub = min(ub,query->maxError);
+            if (currentMaxDepth == nodeDataManager->maxdepth && nodeDataManager->maxError > 0) //maxErrror is used as bound for the last iteration
+                ub = min(ub,nodeDataManager->maxError);
         }
-    }while (depth == 0 && currentMaxDepth <= query->maxdepth);
+    }while (depth == 0 && currentMaxDepth <= nodeDataManager->maxdepth);
 
 
     a_attributes2.free();
@@ -310,7 +323,7 @@ TrieNode* LcmIterative::recurse ( Array<Item> itemset_,
 
 
 void LcmIterative::run () {
-//    query->setStartTime(clock());
+//    nodeDataManager->setStartTime(clock());
     Array<Item> itemset; //array of items representing an itemset
     itemset.size = 0;
     Array<pair<bool, Attribute> > next_attributes(nattributes, 0);
@@ -327,15 +340,15 @@ void LcmIterative::run () {
         sup[1] = cover->getSupport();
         cover->backtrack();
 
-        if (sup[0] >= query->minsup && sup[1] >= query->minsup)
+        if (sup[0] >= minsup && sup[1] >= minsup)
             next_attributes.push_back(make_pair(true, i));
     }
 
     float maxError = NO_ERR;
-    if (query->maxError > 0)
-        maxError = query->maxError;
+    if (maxError > 0)
+        maxError = maxError;
 
-    query->realroot = recurse ( itemset, NO_ITEM, next_attributes, cover, 0, maxError, 1);
+    cache->root = recurse ( itemset, NO_ITEM, next_attributes, cover, 0, maxError, 1);
 
     next_attributes.free ();
     delete cover;
@@ -390,7 +403,7 @@ Array<pair<bool, Attribute> > LcmIterative::getSuccessors(Array<pair<bool, Attri
         else if (current_attributes[i].first) {
 
 
-            if (query->tids_error_class_callback != nullptr || query->tids_error_callback != nullptr){//slow or predictor
+            if (nodeDataManager->tids_error_class_callback != nullptr || nodeDataManager->tids_error_callback != nullptr){//slow or predictor
 
                 current_cover->intersect(current_attributes[i].second, false);
                 supports[0].second = current_cover->getSupport();
@@ -413,9 +426,10 @@ Array<pair<bool, Attribute> > LcmIterative::getSuccessors(Array<pair<bool, Attri
                 current_cover->backtrack();
             }
 
-            if (query->is_freq(supports[0]) && query->is_freq(supports[1])) {
+//            if (nodeDataManager->is_freq(supports[0]) && nodeDataManager->is_freq(supports[1])) {
+            if (supports[0].second >= minsup && supports[1].second >= minsup) {
 
-                if (query->continuous) {//continuous dataset
+                if (continuous) {//continuous dataset
 
                     //when heuristic is used to reorder attribute, use a policy to always select the same attribute
                     if (infoGain) {

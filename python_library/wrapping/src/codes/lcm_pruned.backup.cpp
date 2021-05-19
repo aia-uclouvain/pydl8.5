@@ -1,5 +1,5 @@
 #include "lcm_pruned.h"
-#include "query_best.h" // if cannot link is specified, we need a clustering problem!!!
+#include solution.h // if cannot link is specified, we need a clustering problem!!!
 #include "logger.h"
 #include <iostream>
 #include <limits.h>

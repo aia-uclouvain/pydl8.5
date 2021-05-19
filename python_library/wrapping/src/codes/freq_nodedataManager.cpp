@@ -1,19 +1,19 @@
-#include "query_totalfreq.h"
-#include "trie.h"
+#include "freq_nodedataManager.h"
+#include "cache.h"
 #include <iostream>
 
-Query_TotalFreq::Query_TotalFreq(Support minsup,
-                                 Depth maxdepth,
-                                 Trie *trie,
-                                 DataManager *data,
-                                 ExpError *experror,
-                                 int timeLimit,
-                                 bool continuous,
+Freq_NodeDataManager::Freq_NodeDataManager(
+        RCover* cover,
                                  function<vector<float>(RCover *)> *tids_error_class_callback,
                                  function<vector<float>(RCover *)> *supports_error_class_callback,
-                                 function<float(RCover *)> *tids_error_callback,
-                                 float maxError, bool stopAfterError) :
-        Query_Best(minsup,
+                                 function<float(RCover *)> *tids_error_callback
+                                 ) :
+        NodeDataManager(
+                cover,
+        tids_error_class_callback,
+        supports_error_class_callback,
+        tids_error_callback)
+        /*Query_Best(minsup,
                    maxdepth,
                    trie,
                    data,
@@ -24,49 +24,67 @@ Query_TotalFreq::Query_TotalFreq(Support minsup,
                    supports_error_class_callback,
                    tids_error_callback,
                    (maxError <= 0) ? NO_ERR : maxError,
-                   (maxError <= 0) ? false : stopAfterError) {}
+                   (maxError <= 0) ? false : stopAfterError) */
+                   {}
 
 
-Query_TotalFreq::~Query_TotalFreq() {}
+Freq_NodeDataManager::~Freq_NodeDataManager() {}
 
 
-bool Query_TotalFreq::is_freq(pair<Supports, Support> supports) {
-    return supports.second >= minsup;
-}
+//bool Frequency_NodeDataManager::is_freq(pair<Supports, Support> supports) {
+//    return supports.second >= minsup;
+//}
+//
+//bool Frequency_NodeDataManager::is_pure(pair<Supports, Support> supports) {
+//    Support majnum = supports.first[0], secmajnum = 0;
+//    for (int i = 1; i < nclasses; ++i)
+//        if (supports.first[i] > majnum) {
+//            secmajnum = majnum;
+//            majnum = supports.first[i];
+//        } else if (supports.first[i] > secmajnum)
+//            secmajnum = supports.first[i];
+//    return ((long int) minsup - (long int) (supports.second - majnum)) > (long int) secmajnum;
+//}
 
-bool Query_TotalFreq::is_pure(pair<Supports, Support> supports) {
-    Support majnum = supports.first[0], secmajnum = 0;
-    for (int i = 1; i < nclasses; ++i)
-        if (supports.first[i] > majnum) {
-            secmajnum = majnum;
-            majnum = supports.first[i];
-        } else if (supports.first[i] > secmajnum)
-            secmajnum = supports.first[i];
-    return ((long int) minsup - (long int) (supports.second - majnum)) > (long int) secmajnum;
-}
-
-bool Query_TotalFreq::updateData(QueryData *best, Error upperBound, Attribute attribute, QueryData *left, QueryData *right) {
-    QueryData_Best *best2 = (QueryData_Best *) best, *left2 = (QueryData_Best *) left, *right2 = (QueryData_Best *) right;
+bool Freq_NodeDataManager::updateData(NodeData *best, Error upperBound, Attribute attribute, NodeData *left, NodeData *right) {
+//    cout << "update" << endl;
+    Freq_NodeData *best2 = (Freq_NodeData *) best;
+//    cout << "update1" << endl;
+    Freq_NodeData *left2 = (Freq_NodeData *) left;
+//    cout << "update2" << endl;
+    Freq_NodeData *right2 = (Freq_NodeData *) right;
+//    cout << "update3" << endl;
+//    cout << right2->error << endl;
+//    cout << left2->error << endl;
     Error error = left2->error + right2->error;
+//    cout << "update4" << endl;
     Size size = left2->size + right2->size + 1;
+//    cout << "update5" << endl;
     if (error < upperBound || (floatEqual(error, upperBound) && size < best2->size)) {
+//        cout << "update6" << endl;
         best2->error = error;
+//        cout << "update7" << endl;
         best2->left = left2;
+//        cout << "update8" << endl;
         best2->right = right2;
+//        cout << "update9" << endl;
         best2->size = size;
+//        cout << "update10" << endl;
         best2->test = attribute;
+//        cout << "update11" << endl;
         return true;
     }
+//    cout << "update11" << endl;
     return false;
 }
 
-QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
-    cout << "a" << endl;
+NodeData *Freq_NodeDataManager::initData(Depth currentMaxDepth, int hashcode) {
     Class maxclass = -1;
     Error error;
 
-    auto *data = new QueryData_Best();
-    cout << "b" << endl;
+    auto *data = new Freq_NodeData();
+
+//    if (trie->use_priority) trie->nodemapper.push({cover->getSupport(), hashcode});
 
     //fast or default error. support will be used
     if (tids_error_class_callback == nullptr && tids_error_callback == nullptr) {
@@ -80,7 +98,7 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
         }
         //default error
         else {
-            LeafInfo ev = computeLeafInfo(cover);
+            LeafInfo ev = computeLeafInfo();
             error = ev.error;
             maxclass = ev.maxclass;
         }
@@ -97,20 +115,17 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
             maxclass = int(infos[1]);
         }
     }
-    cout << "c" << endl;
     data->test = maxclass;
     data->leafError = error;
-    data->error += experror->addError(cover->getSupport(), data->error, dm->getNTransactions());
+//    data->error += experror->addError(cover->getSupport(), data->error, dm->getNTransactions());
     data->solutionDepth = currentMaxDepth;
-    cout << "d" << endl;
 
-    return (QueryData *) data;
+    return (NodeData *) data;
 }
 
-LeafInfo Query_TotalFreq::computeLeafInfo(RCover *cover) {
+LeafInfo Freq_NodeDataManager::computeLeafInfo() {
     Class maxclass;
     Error error;
-
     Supports itemsetSupport = cover->getSupportPerClass();
     SupportClass maxclassval = itemsetSupport[0];
     maxclass = 0;
@@ -120,7 +135,7 @@ LeafInfo Query_TotalFreq::computeLeafInfo(RCover *cover) {
             maxclassval = itemsetSupport[i];
             maxclass = i;
         } else if (floatEqual(itemsetSupport[i], maxclassval)) {
-            if (dm->getSupports()[i] > dm->getSupports()[maxclass])
+            if (cover->dm->getSupports()[i] > cover->dm->getSupports()[maxclass])
                 maxclass = i;
         }
     }
@@ -129,7 +144,7 @@ LeafInfo Query_TotalFreq::computeLeafInfo(RCover *cover) {
 }
 
 
-LeafInfo Query_TotalFreq::computeLeafInfo(Supports itemsetSupport) {
+LeafInfo Freq_NodeDataManager::computeLeafInfo(Supports itemsetSupport) {
     Class maxclass = 0;
     Error error;
     SupportClass maxclassval = itemsetSupport[0];
@@ -139,7 +154,7 @@ LeafInfo Query_TotalFreq::computeLeafInfo(Supports itemsetSupport) {
             maxclassval = itemsetSupport[i];
             maxclass = i;
         } else if (floatEqual(itemsetSupport[i], maxclassval)) {
-            if (dm->getSupports()[i] > dm->getSupports()[maxclass])
+            if (cover->dm->getSupports()[i] > cover->dm->getSupports()[maxclass])
                 maxclass = i;
         }
     }

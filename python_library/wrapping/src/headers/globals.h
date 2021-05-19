@@ -66,9 +66,9 @@ extern float comptime;
 // loop in each index in an array
 #define forEach(index, array) for ( int index = 0; index < array.size; ++index )
 // redefine a class name to make it short
-#define QDB QueryData_Best*
+#define FND Freq_NodeData*
 // redefine a class name to make it short
-#define QTF Query_TotalFreq*
+#define FNDM Freq_NodeDataManager*
 
 
 // create (dynamic allocation of vector of size = number of classes)
@@ -120,15 +120,22 @@ public:
         size = size_;
     }
 
-    Array(const Array<A> &ar) {
+    /*Array(const Array<A> &ar) {
         size = ar.size;
         elts = new A[ar.size];
         forEach(i, ar) elts[i] = ar.elts[i];
-    }
+    }*/
 
     Array(int allocsize, int size_) {
         size = size_;
         elts = new A[allocsize];
+    }
+
+    void duplicate(const Array<A> &ar) {
+//        if (elts) delete[] elts;
+        size = ar.size;
+        elts = new A[ar.size];
+        forEach(i, ar) elts[i] = ar.elts[i];
     }
 
     //~Array() {} //destructor does not do anything. Make sure you call free method after using the object
@@ -187,7 +194,7 @@ void addItem(Array<Item> src1, Item item, Array<Item> dest);
 
 Array<Item> addItem ( Array<Item> src1, Item item );
 
-void printItemset(Array<Item> itemset);
+void printItemset(Array<Item> itemset, bool force=false);
 
 
 

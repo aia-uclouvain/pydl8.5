@@ -12,20 +12,31 @@
 #include <chrono>
 //#include <algorithm>
 #include "globals.h"
-#include "trie.h"
-#include "query.h"
+#include "cache.h"
+//#include "cache_hash.h"
+#include "cache_trie.h"
+#include "nodedataManager.h"
 #include "dataManager.h"
 #include "rCover.h"
 #include "depthTwoComputer.h"
-#include "query_best.h" // if cannot link is specified, we need a clustering problem!!!
+#include "solution.h" // if cannot link is specified, we need a clustering problem!!!
 #include "logger.h"
 #include "dataContinuous.h"
 
 
-
 class LcmPruned {
 public:
-    LcmPruned ( RCover *cover, Query *query, bool infoGain, bool infoAsc, bool repeatSort );
+    LcmPruned ( NodeDataManager *nodeDataManager,
+                bool infoGain,
+                bool infoAsc,
+                bool repeatSort,
+                Support minsup,
+                Depth maxdepth,
+                Cache *cache,
+                int timeLimit,
+                bool continuous,
+                float maxError = NO_ERR,
+                bool stopAfterError = false);
 
     ~LcmPruned();
 
@@ -33,21 +44,20 @@ public:
 
     int latticesize = 0;
 
-    Query *query;
-
-    RCover *cover;
+    NodeDataManager *nodeDataManager;
 
 
-protected:
-    TrieNode* recurse ( Array<Item> itemset, Attribute last_added, TrieNode* node, Array<Attribute> attributes_to_visit, Depth depth, Error ub, Error lb = 0 );
 
-    Array<Attribute> getSuccessors(Array<Attribute> last_freq_attributes, Attribute last_added, TrieNode* node);
+//protected:
+    Node* recurse ( Array<Item> itemset, Attribute last_added, Node* node, Array<Attribute> attributes_to_visit, Depth depth, Error ub, bool newnode);
+
+    Array<Attribute> getSuccessors(Array<Attribute> last_freq_attributes, Attribute last_added, Node* node);
 
 //    Array<Attribute> getExistingSuccessors(TrieNode* node);
 
     Error computeSimilarityLowerBound(bitset<M> *b1_cover, bitset<M> *b2_cover, Error b1_error, Error b2_error);
 
-    void addInfoForLowerBound(QueryData *node_data, bitset<M> *&b1_cover, bitset<M> *&b2_cover,
+    void addInfoForLowerBound(NodeData *node_data, bitset<M> *&b1_cover, bitset<M> *&b2_cover,
                               Error &b1_error, Error &b2_error, Support &highest_coversize);
 
     float informationGain ( Supports notTaken, Supports taken);
@@ -56,13 +66,27 @@ protected:
     bool infoGain = false;
     bool infoAsc = false; //if true ==> items with low IG are explored first
     bool repeatSort = false;
-    //bool timeLimitReached = false;
+//    DataManager *dm; // we need to have information about the data for default predictions
+    Cache *cache;
+    Support minsup;
+    Depth maxdepth;
+    int timeLimit;
+    bool continuous = false;
+    float maxError = NO_ERR;
+    bool stopAfterError = false;
+    time_point<high_resolution_clock> startTime;
+//    TrieNode *realroot; // as the empty itemset may not have an empty closure
+    bool timeLimitReached = false;
+
+private:
+    Node *getSolutionIfExists(Node *node, Error ub, Depth depth);
+
 };
 
 // a variable to express whether the error computation is not performed in python or not
-#define no_python_error !query->tids_error_callback && !query->tids_error_class_callback && !query->supports_error_class_callback
+#define no_python_error !nodeDataManager->tids_error_callback && !nodeDataManager->tids_error_class_callback && !nodeDataManager->supports_error_class_callback
 
 // a variable to express whether the error computation is performed in python or not
-#define is_python_error query->tids_error_callback || query->tids_error_class_callback || query->supports_error_class_callback
+#define is_python_error nodeDataManager->tids_error_callback || nodeDataManager->tids_error_class_callback || nodeDataManager->supports_error_class_callback
 
 #endif

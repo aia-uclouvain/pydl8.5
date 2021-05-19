@@ -21,15 +21,21 @@
 #include "dataContinuous.h"
 #include "dataBinaryPython.h"
 #include "dataManager.h"
-#include "experror.h"
+//#include "experror.h"
 #include "rCoverTotalFreq.h"
 #include "rCoverWeighted.h"
 #include "lcm_pruned.h"
 #include "lcm_iterative.h"
-#include "query_totalfreq.h"
+#include "freq_nodedataManager.h"
+#include "freq_Solution.h"
+#include "cache_hash.h"
+#include "cache_trie.h"
+#include "cache_priority.h"
 //#include "query_weighted.h"
 
 using namespace std;
+
+enum CacheType { CacheTrie, CacheHash, CachePriority };
 
 /** search - the starting function that calls all the other to comp
  *
@@ -89,6 +95,8 @@ string search(Supports supports,
               int timeLimit = 0,
               map<int, pair<int, int>> *continuousMap = nullptr,
               bool save = false,
-              bool verbose_param = false);
+              bool verbose_param = false,
+              CacheType cache_type = CacheTrie,
+              int cache_size = 1000);
 
 #endif //DL85_DL85_H

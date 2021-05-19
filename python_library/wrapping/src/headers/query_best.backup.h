@@ -2,7 +2,7 @@
 #define QUERY_BEST_H
 #include trie_.h
 #include "experror.h"
-#include <query.h>
+#include nodedataManager.h
 #include <vector>
 
 struct QueryData_Best {
