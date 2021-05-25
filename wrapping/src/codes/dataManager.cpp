@@ -7,10 +7,11 @@
 #include <algorithm>
 
 
-DataManager::DataManager(int* supports, int ntransactions, int nattributes, int nclasses, int *data, int *target):supports(supports), ntransactions(ntransactions), nattributes(nattributes), nclasses(nclasses) {
+DataManager::DataManager(int* supports, int ntransactions, int nattributes, int nclasses, int *data, int *target, int *warm):supports(supports), ntransactions(ntransactions), nattributes(nattributes), nclasses(nclasses) {
     nWords = (int)ceil((float)ntransactions/M);
     b = new bitset<M> *[nattributes];
     c = new bitset<M> *[nclasses];
+    w = new bitset<M> *[1];
 
     for (int i = 0; i < nattributes; i++){
         bitset<M> * attrCov = new bitset<M>[nWords];
@@ -66,6 +67,31 @@ DataManager::DataManager(int* supports, int ntransactions, int nattributes, int 
     else
         c = nullptr;
 
+    if (warm){
+        bitset<M> * classCov = new bitset<M>[nWords];
+        for (int j = 0; j < nWords; ++j) {
+            int currentindex = -1;
+            int* start = target + (M*j);
+            int* end = nullptr;
+            if (j != nWords - 1)
+                end = target + (M*j) + M;
+            else
+                end = target + ntransactions;
+            int dist = 0;
+
+            auto itr = find(start, end, 1);
+            while (itr != end && start < end) {
+                dist = distance(start, itr);
+                currentindex += 1 + dist;
+                classCov[nWords-(j+1)].set(currentindex);
+                start += (dist + 1);
+                itr = find(start, end, 1);
+            }
+        }
+        w[0] = classCov;
+    }
+    else
+        w = nullptr;
 
     ::nattributes = nattributes;
     ::nclasses = nclasses;
@@ -77,4 +103,8 @@ bitset<M>* DataManager::getAttributeCover(int attr) {
 
 bitset<M>* DataManager::getClassCover(int clas) {
     return c[clas];
+}
+
+bitset<M>* DataManager::getWarmCover() {
+    return w[0];
 }

@@ -96,7 +96,7 @@ class DL85Predictor(BaseEstimator):
         return {'X_types': 'categorical',
                 'allow_nan': False}
 
-    def fit(self, X, y=None):
+    def fit(self, X, y=None, warm=None):
         """Implements the standard fitting function for a DL8.5 classifier.
 
         Parameters
@@ -121,6 +121,7 @@ class DL85Predictor(BaseEstimator):
         if target_is_need:  # target-needed tasks (eg: classification, regression, etc.)
             # Check that X and y have correct shape and raise ValueError if not
             X, y = check_X_y(X, y, dtype='int32')
+            X, warm = check_X_y(X, warm, dtype='int32')
             if self.leaf_value_function is None:
                 opt_pred_func = None
                 predict = False
@@ -144,6 +145,7 @@ class DL85Predictor(BaseEstimator):
         import dl85Optimizer
         solution = dl85Optimizer.solve(data=X,
                                        target=y,
+                                       warm=warm,
                                        func=opt_func,
                                        fast_func=opt_fast_func,
                                        predictor_func=opt_pred_func,

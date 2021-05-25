@@ -61,6 +61,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
         Logger::showMessageAndReturn("le noeud exists");
 
         Error leafError = ((QueryData_Best *) node->data)->leafError;
+        Error lower_bound = ( (QueryData_Best*) node->data )->lowerBound;
         Error *nodeError = &(((QueryData_Best *) node->data)->error);
         Error storedInitUb = ((QueryData_Best *) node->data)->initUb;
         Error initUb = parent_ub;
@@ -78,7 +79,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset_,
                 return node;
             }
 
-        if (leafError == 0) { // if we have a node already visited with lErr = 0, we can return the last solution
+        if (leafError <= lower_bound) { // if we have a node already visited with lErr = 0, we can return the last solution
             Logger::showMessageAndReturn("l'erreur est nulle");
             itemset.free();
             return node;

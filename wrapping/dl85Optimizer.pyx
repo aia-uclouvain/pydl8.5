@@ -26,6 +26,7 @@ cdef extern from "src/headers/dl85.h":
                     int nclasses,
                     int *data,
                     int *target,
+                    int *warm,
                     float maxError,
                     bool stopAfterError,
                     bool iterative,
@@ -67,6 +68,7 @@ cdef extern from "src/headers/py_predictor_error_function_wrapper.h":
 
 def solve(data,
           target,
+          warm,
           func=None,
           fast_func=None,
           predictor_func=None,
@@ -125,7 +127,15 @@ def solve(data,
         target_array = &target_view[0]
     else:
         nclasses = 0
-
+   
+    cdef int [::1] warm_view
+    cdef int *warm_array = NULL
+    if warm is not None
+        warm = warm.astype('int32')
+        if not warm.flags['C_CONTIGUOUS']:
+            warm = np.ascontiguousarray(warm) # Makes a contiguous copy of the numpy array.
+        warm_view = warm
+        warm_array = &warm_view[0]
 
     if not supports.flags['C_CONTIGUOUS']:
         supports = np.ascontiguousarray(supports) # Makes a contiguous copy of the numpy array.
@@ -148,6 +158,7 @@ def solve(data,
                  nclasses,
                  data_matrix,
                  target_array,
+                 warm_array,
                  max_error,
                  stop_after_better,
                  iterative,

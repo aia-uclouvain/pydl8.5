@@ -28,6 +28,7 @@ string search(//std::function<float(Array<int>::iterator)> callback,
               Class nclasses,
               Bool *data,
               Class *target,
+              Class *warm,
               float maxError,
               bool stopAfterError,
               bool iterative,
@@ -68,7 +69,7 @@ string search(//std::function<float(Array<int>::iterator)> callback,
     Trie *trie = new Trie;
     Query *query = NULL;
 
-    DataManager *dataReader = new DataManager(supports, ntransactions, nattributes, nclasses, data, target);
+    DataManager *dataReader = new DataManager(supports, ntransactions, nattributes, nclasses, data, target, warm);
 
     if (save)
         return 0;

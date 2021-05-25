@@ -71,6 +71,15 @@ pair<Supports, Support> RCover::getSupportPerClass(){
     return itemsetSupport;
 }
 
+Support RCover::getSupportForWarm(){
+    Support support = 0;
+    bitset<M> * warmCover = dm->getWarmCover();
+    for (int i = 0; i < limit.top(); ++i) {
+        support += (coverWords[validWords[i]].top() & warmCover[validWords[i]]).count();
+    }
+    return support;
+}
+
 int* RCover::getClassSupport(){
     int* classSupport = new int[dm->getNClasses()];
     for (int i = 0; i < dm->getNClasses(); ++i) {

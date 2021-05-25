@@ -73,6 +73,7 @@ bool Query_Best::canimprove ( QueryData *left, Error ub ) {
 }
 
 bool Query_Best::canSkip( QueryData *actualBest ){
+    std::cout << "checking canSkip" << std::endl;
     return ((QueryData_Best*) actualBest )->error == ((QueryData_Best*) actualBest )->lowerBound;
 }
 

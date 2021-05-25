@@ -85,19 +85,21 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Error parent_ub, Support min
 
             }
             error = itemsetSupport.second - maxclassval;
-            int remaining = itemsetSupport.second - (maxclassval + secondval);
-            if (maxclassval >= minsup){
-                if (secondval >= minsup)
-                    lowerb = remaining;
-                else
-                    if (secondval + remaining >= minsup)
-                        lowerb = remaining;
-                    else
-                        lowerb = minsup - secondval;
-            } else
-                if (secondval < minsup)
-                    lowerb = remaining;
-            lowerb = 0;
+            // int remaining = itemsetSupport.second - (maxclassval + secondval);
+            // if (maxclassval >= minsup){
+            //     if (secondval >= minsup)
+            //         lowerb = remaining;
+            //     else
+            //         if (secondval + remaining >= minsup)
+            //             lowerb = remaining;
+            //         else
+            //             lowerb = minsup - secondval;
+            // } else
+            //     if (secondval < minsup)
+            //         lowerb = remaining;
+            // lowerb = 0;
+            lowerb = cover->getSupportForWarm();
+            std::cout<< "lowerBound warm " << lowerb << std::endl;
         }
         deleteSupports(itemsetSupport.first);
     } else {//slow error or predictor error function. Not need to compute support

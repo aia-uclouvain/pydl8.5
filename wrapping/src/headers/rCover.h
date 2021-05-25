@@ -41,6 +41,8 @@ public:
 
     pair<Supports, Support> getSupportPerClass();
 
+    Support getSupportForWarm();
+
     int* getClassSupport();
 
     vector<int> getTransactionsID();
