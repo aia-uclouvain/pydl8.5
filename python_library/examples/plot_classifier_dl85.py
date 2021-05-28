@@ -15,7 +15,7 @@ from dl85 import DL85Classifier
 from sklearn.tree import DecisionTreeClassifier
 import random
 
-dataset = np.genfromtxt("../datasets/soybean.txt", delimiter=' ')
+dataset = np.genfromtxt("../../datasets/soybean.txt", delimiter=' ')
 X = dataset[:, 1:]
 y = dataset[:, 0]
 X = X.astype('int32')

@@ -15,7 +15,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.utils.multiclass import unique_labels
 from sklearn.base import BaseEstimator
 from copy import deepcopy
-from sklearn.metrics import accuracy_score, roc_auc_score
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import StratifiedKFold
 import numpy as np
 import cvxpy as cp
@@ -215,7 +215,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         self.classes_ = []
         self.objective_ = None
 
-    def fit(self, X, y=None, X_test=None, y_test=None, iter_file=None):
+    def fit(self, X, y=None):
         if y is None:
             raise ValueError("The \"y\" value is compulsory for boosting.")
 
@@ -283,18 +283,6 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
 
         if not self.quiet:
             print()
-
-        self.classes_ = unique_labels(y)
-
-        if X_test is not None and y_test is not None:  # handle each iteration value
-            # mod = "_demiriz" if self.model == 2 else "_ratsch" if self.model == 1 else "_aglin" if self.model == 3 else "_mdboost" if self.model == 4 else "_other"
-            iter_file_name = iter_file + ".csv"
-            acc_stream = open(iter_file_name, "w")
-            acc_stream.write("objective,train_acc,test_acc,train_auc,test_auc,n_iter,n_trees\n")
-            acc_stream.flush()
-            acc_stream.close()
-            acc_stream = open(iter_file_name, "a+")
-
         while (self.max_iterations > 0 and self.n_iterations_ <= self.max_iterations) or self.max_iterations <= 0:
             if not self.quiet:
                 print("n_iter", self.n_iterations_)
@@ -337,20 +325,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
                 # print("sum pred", pred.sum(), "\n", "sample weights inline", sample_weights.tolist(), "\nsample weights", sample_weights, "\n", "p@w more plus or moins", pred @ sample_weights)
 
             # check if optimal condition is met
-            # print(self.n_iterations_, self.n_estimators_)
             if self.n_iterations_ > 1:
-                if X_test is not None and y_test is not None:  # handle each iteration value
-                    n_treess = len([i for i in self.estimator_weights_ if i != 0])
-                    if n_treess > 0:
-                        n_treess = str(n_treess)
-                        self.objective_ = opti
-                        self.n_estimators_ = len(self.estimators_)
-                        train_acc = str(accuracy_score(y, self.predict(X)))
-                        test_acc = str(accuracy_score(y_test, self.predict(X_test)))
-                        train_auc = str(roc_auc_score(y, self.predict_proba(X)[:, 1]))
-                        test_auc = str(roc_auc_score(y_test, self.predict_proba(X_test)[:, 1]))
-                        acc_stream.write(str(opti) + "," + train_acc + "," + test_acc + "," + train_auc + "," + test_auc + "," + str(self.n_iterations_ - 1) + "," + n_treess + "\n")
-                        acc_stream.flush()
                 if pred @ sample_weights < r + self.opti_gap:
                     if not self.quiet:
                         print("np.dot(predictions, sample_weigths) < r + espsilon ==> we cannot add the new tree. End of iterations")
@@ -397,10 +372,6 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
                 print("The new sample weight for the next iteration is", sample_weights.tolist(), "\n")
 
             self.n_iterations_ += 1
-
-        if X_test is not None and y_test is not None:  # handle each iteration value
-            acc_stream.close()
-
         self.duration_ = time.perf_counter() - start_time
         self.n_iterations_ -= 1
 
@@ -434,6 +405,8 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
 
         if self.n_estimators_ == 0:
             raise NotFittedError("No tree selected")
+
+        self.classes_ = unique_labels(y)
 
         return self
 
@@ -575,16 +548,6 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         # Run a prediction on each estimator
         predict_per_clf = np.asarray([clf.predict(X) for clf in self.estimators_]).transpose()
         return np.apply_along_axis(lambda x: np.argmax(np.bincount(x, weights=self.estimator_weights_)), axis=1, arr=predict_per_clf.astype('int'))
-
-    # def predict_(self, X, y=None):
-    #     if self.n_estimators_ == 0:  # fit method has not been called
-    #         print(self.estimators_)
-    #         print(self.estimator_weights_)
-    #         raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
-    #     # return np.argmax(self.predict_proba(X), axis=1)
-    #     # Run a prediction on each estimator
-    #     predict_per_clf = np.asarray([clf.predict(X) for clf in self.estimators_]).transpose()
-    #     return np.apply_along_axis(lambda x: np.argmax(np.bincount(x, weights=self.estimator_weights_)), axis=1, arr=predict_per_clf.astype('int'))
 
     # def predict_proba(self, X):
     #     prob_per_tree = np.asarray([clf.predict_proba(X) for clf in self.estimators_])
