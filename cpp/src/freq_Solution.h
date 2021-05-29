@@ -41,6 +41,7 @@ struct Freq_Tree {
         out += "LatticeSize: " + to_string(cacheSize) + "\n";
         out += "RunTime: " + to_string(runtime) + "\n";
         if (timeout) out += "Timeout: True\n";
+        else out += "Timeout: False\n";
         return out;
     }
 };

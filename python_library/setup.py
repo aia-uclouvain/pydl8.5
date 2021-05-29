@@ -45,27 +45,31 @@ PROJECT_URLS = {
 
 EXTENSION_NAME = 'dl85Optimizer'
 EXTENSION_LANGUAGE = 'c++'
-EXTENSION_SOURCE_FILES = ['wrapping/src/headers/error_function.pyx',
-                          'wrapping/dl85Optimizer.pyx',
-                'wrapping/src/codes/data.cpp',
-                'wrapping/src/codes/dataContinuous.cpp',
-                'wrapping/src/codes/dataBinary.cpp',
-                'wrapping/src/codes/dataManager.cpp',
-                'wrapping/src/codes/rCover.cpp',
-                'wrapping/src/codes/dl85.cpp',
-                'wrapping/src/codes/experror.cpp',
-                'wrapping/src/codes/globals.cpp',
-                'wrapping/src/codes/lcm_pruned.cpp',
-                'wrapping/src/codes/lcm_iterative.cpp',
-                'wrapping/src/codes/query.cpp',
-                'wrapping/src/codes/query_best.cpp',
-                'wrapping/src/codes/query_totalfreq.cpp',
-                'wrapping/src/codes/trie.cpp',
-                'wrapping/src/codes/dataBinaryPython.cpp',
-                'wrapping/src/codes/depthTwoComputer.cpp',
-                'wrapping/src/codes/rCoverTotalFreq.cpp',
-                'wrapping/src/codes/rCoverWeighted.cpp',]
-EXTENSION_INCLUDE_DIR = ['wrapping/src/headers']
+EXTENSION_SOURCE_FILES = ['cython_extension/error_function.pyx',
+                          'cython_extension/dl85Optimizer.pyx',
+                          '../cpp/src/cache.cpp',
+                          '../cpp/src/cache_hash.cpp',
+                          '../cpp/src/cache_priority.cpp',
+                          '../cpp/src/cache_trie.cpp',
+                          '../cpp/src/data.cpp',
+                          '../cpp/src/dataBinary.cpp',
+                          '../cpp/src/dataBinaryPython.cpp',
+                          '../cpp/src/dataContinuous.cpp',
+                          '../cpp/src/dataManager.cpp',
+                          '../cpp/src/depthTwoComputer.cpp',
+                          '../cpp/src/dl85.cpp',
+                          '../cpp/src/experror.cpp',
+                          '../cpp/src/freq_nodedataManager.cpp',
+                          '../cpp/src/freq_solution.cpp',
+                          '../cpp/src/globals.cpp',
+                          '../cpp/src/lcm_pruned.cpp',
+                          '../cpp/src/lcm_iterative.cpp',
+                          '../cpp/src/nodedataManager.cpp',
+                          '../cpp/src/rCover.cpp',
+                          '../cpp/src/rCoverTotalFreq.cpp',
+                          '../cpp/src/rCoverWeighted.cpp',
+                          '../cpp/src/solution.cpp']
+EXTENSION_INCLUDE_DIR = ['../cpp/src', 'cython_extension']
 # EXTENSION_BUILD_ARGS = ['-std=c++11']
 EXTENSION_BUILD_ARGS = ['-std=c++11', '-DCYTHON_PEP489_MULTI_PHASE_INIT=0']
 if platform.system() == 'Darwin':

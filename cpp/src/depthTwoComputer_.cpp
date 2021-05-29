@@ -3,7 +3,6 @@
 //
 
 #include "depthTwoComputer.h"
-#include "lcm_pruned.h"
 
 void setItem(Freq_NodeData* node_data, Array<Item> itemset, Cache* cache, NodeDataManager* nodeDataManager){
     if (node_data->left){

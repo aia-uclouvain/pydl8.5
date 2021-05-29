@@ -274,10 +274,10 @@ Item leftI_down = item(((FND)node->data)->test, 0);
 //                cout << "3" << endl;
             Array<Item> copy_itemset;
             copy_itemset.duplicate(itemset);
-            cout << "result found. update importances" << endl;
+            ///cout << "result found. update importances" << endl;
             ((TrieNode*) node)->changeImportance( left_down, right_down, copy_itemset, leftI_down, rightI_down, cache, true);
             copy_itemset.free();
-            cout << "print loads after already found" << endl;
+            ///cout << "print loads after already found" << endl;
             vector<Item> v;
             ((Cache_Trie*)cache)->printload((TrieNode*)cache->root, v);
             cout << "end print load" << endl;
@@ -470,10 +470,10 @@ TrieNode *new_left = (TrieNode*)child_nodes[0];
             copy_itemset.duplicate(itemset);
             node->updateImportance(old_left, old_right, new_left, new_right, hasUpdated, copy_itemset, item(old_attr, 0), item(old_attr, 1), item(attr, 0), item(attr, 1), cache);
             copy_itemset.free();
-            cout << "print loads after eval two items" << endl;
+            ///cout << "print loads after eval two items" << endl;
             vector<Item> v;
             ((Cache_Trie*)cache)->printload((TrieNode*)cache->root, v);
-            cout << "end print load" << endl;
+            ///cout << "end print load" << endl;
 //            cout << "end up" << endl;
 
             if (nodeDataManager->canSkip(node->data)) { //lowerBound reached
@@ -488,13 +488,13 @@ TrieNode *new_left = (TrieNode*)child_nodes[0];
 
             Array<Item> copy_itemset;
             copy_itemset.duplicate(itemset);
-            cout << "Item " << first_item << " not good. change importance" << endl;
+            ///cout << "Item " << first_item << " not good. change importance" << endl;
             ((TrieNode*) node)->changeImportance((TrieNode*)child_nodes[first_item], nullptr, copy_itemset, item(attr, first_item), -1, cache);
             copy_itemset.free();
-            cout << "print loads after an item not good" << endl;
+            ///cout << "print loads after an item not good" << endl;
             vector<Item> v;
             ((Cache_Trie*)cache)->printload((TrieNode*)cache->root, v);
-            cout << "end print load" << endl;
+            ///cout << "end print load" << endl;
         }
 
         if (stopAfterError) {

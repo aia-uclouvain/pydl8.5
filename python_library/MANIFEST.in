@@ -1,6 +1,5 @@
-include wrapping/*.pyx
-exclude wrapping/*.cpp
-include wrapping/src/headers/*.h
-include wrapping/src/headers/error_function.pyx
-exclude wrapping/src/headers/error_function.cpp
-exclude wrapping/src/headers/error_function.h
+include ../cpp/src/*.h
+exclude ../cpp/src/*.cpp
+include cython_extension/*.pyx
+exclude cython_extension/*.cpp
+exclude cython_extension/*.h

@@ -90,7 +90,7 @@ void count_trie_size(TrieNode* node, int& sum){
 
 /// insert itemset. Check from root and insert items only they do not exist using createTree
 pair<Node *, bool> Cache_Trie::insert(Array<Item> itemset, NodeDataManager* nodeDataManager) {
-    cout << "\nitemset: "; printItemset(itemset, true);
+    ///cout << "\nitemset: "; printItemset(itemset, true);
     if (itemset.size == 0){
         cachesize++;
         cout << cachesize << endl;
@@ -102,13 +102,13 @@ pair<Node *, bool> Cache_Trie::insert(Array<Item> itemset, NodeDataManager* node
     if (cachesize >= maxcachesize && maxcachesize > 0) {
         vector<Item> v;
         int unsure_count = 0, inopti_count = 1;
-        cout << "wipe - size before : " << cachesize << endl;
+        ///cout << "wipe - size before : " << cachesize << endl;
         wipe((TrieNode*)root, v, unsure_count, inopti_count);
         cachesize = 1;
         count_trie_size((TrieNode*)root, cachesize);
 //        cachesize++;
-        cout << "good - size after : " << cachesize << endl;
-        cout << "unsure: " << unsure_count << " inopti: " << inopti_count << endl << endl;
+        ///cout << "good - size after : " << cachesize << endl;
+        ///cout << "unsure: " << unsure_count << " inopti: " << inopti_count << endl << endl;
         if (cachesize >= maxcachesize) canwipe = false;
     }
     TrieNode *p = (TrieNode*)root, *p2;
@@ -131,11 +131,11 @@ pair<Node *, bool> Cache_Trie::insert(Array<Item> itemset, NodeDataManager* node
 
             newnode = p2->data ? false : true;
             if (newnode) p2->data = nodeDataManager->initData();
-            cout << cachesize << endl;
-            cout << "print loads after insert" << endl;
+            ///cout << cachesize << endl;
+            ///cout << "print loads after insert" << endl;
             vector<Item> v;
             printload((TrieNode*)root, v);
-            cout << "end print load" << endl;
+            ///cout << "end print load" << endl;
             return {p2, newnode};
         } else {
             p = t->subtrie;
@@ -147,11 +147,11 @@ pair<Node *, bool> Cache_Trie::insert(Array<Item> itemset, NodeDataManager* node
 //    p->count_opti_path++;
     newnode = p->data ? false : true;
     if (newnode) p->data = nodeDataManager->initData();
-    cout << cachesize << endl;
-    cout << "print loads after insert" << endl;
+    ///cout << cachesize << endl;
+    ///cout << "print loads after insert" << endl;
     vector<Item> v;
-    printload((TrieNode*)root, v);
-    cout << "end print load" << endl;
+    ///printload((TrieNode*)root, v);
+    ///cout << "end print load" << endl;
     return {p, newnode};
 }
 
@@ -210,14 +210,14 @@ void Cache_Trie::wipe(TrieNode* node, vector<Item>& itemset, int &unsure_count, 
     for (auto edge = node->edges.begin(); edge != node->edges.end(); ++edge){
         itemset.push_back(edge->item);
         wipe(edge->subtrie, itemset, unsure_count, inopti_count);
-        cout << "Itemset to check: ";
-        for (auto item : itemset) cout << item << ", ";
-        cout << ": " << edge->subtrie->count_opti_path << endl;
+        ///cout << "Itemset to check: ";
+        ///for (auto item : itemset) cout << item << ", ";
+        ///cout << ": " << edge->subtrie->count_opti_path << endl;
         if (edge->subtrie->count_opti_path == 0) {
 //            if (itemset.size() == 3 && itemset[0] == 0 && itemset[1] == 3 && itemset[2] == 11) for(;;) cout << "";
-            cout << "Itemset to del: ";
-            for (auto item : itemset) cout << item << ", ";
-            cout << endl;
+            ///cout << "Itemset to del: ";
+            ///for (auto item : itemset) cout << item << ", ";
+            ///cout << endl;
             /*cout << edge->item << endl;
             cout << "Error: " << ((Freq_NodeData*)edge->subtrie->data) << endl;
             cout << "Error: " << ((Freq_NodeData*)edge->subtrie->data)->leafError << endl;
@@ -241,10 +241,10 @@ void Cache_Trie::printload(TrieNode* node, vector<Item>& itemset) {
     for (auto edge = node->edges.begin(); edge != node->edges.end(); ++edge){
         itemset.push_back(edge->item);
         printload(edge->subtrie, itemset);
-        cout << "Itemset to check: ";
-        for (auto item : itemset) cout << item << ", ";
-        cout << ": " << edge->subtrie->count_opti_path << endl;
-        if (edge->subtrie->count_opti_path < 0) for(;;) cout << "";
+        ///cout << "Itemset to check: ";
+        ///for (auto item : itemset) cout << item << ", ";
+        ///cout << ": " << edge->subtrie->count_opti_path << endl;
+        ///if (edge->subtrie->count_opti_path < 0) for(;;) cout << "";
         itemset.pop_back();
     }
 }

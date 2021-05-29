@@ -55,22 +55,22 @@ struct TrieNode : Node {
     }
 
     void updateNode(Attribute attr, Attribute old, bool hasupdated) {
-        cout << "fia" << endl;
-        for (auto &e: edges) {
-            cout << e.item << ", ";
-        }
-        cout << endl;
-        cout << "test" << endl;
+///        cout << "fia" << endl;
+///        for (auto &e: edges) {
+///            cout << e.item << ", ";
+///        }
+///        cout << endl;
+///        cout << "test" << endl;
         TrieNode* current_node1 = lower_bound(edges.begin(), edges.end(), item(attr, 0), lte)->subtrie;
         TrieNode* current_node2 = lower_bound(edges.begin(), edges.end(), item(attr, 1), lte)->subtrie;
-        cout << "fiw" << endl;
+        ///cout << "fiw" << endl;
         TrieNode* old_node1 = nullptr;
         TrieNode* old_node2 = nullptr;
         if (old >= 0){
             old_node1 = lower_bound(edges.begin(), edges.end(), item(old, 0), lte)->subtrie;
             old_node2 = lower_bound(edges.begin(), edges.end(), item(old, 1), lte)->subtrie;
         }
-        cout << "fi" << endl;
+        ///cout << "fi" << endl;
         if (hasupdated){
             if (current_node1->load == -1) current_node1->load = 1; else current_node1->load++;
             if (current_node2->load == -1) current_node2->load = 1; else current_node2->load++;
@@ -113,13 +113,13 @@ struct TrieNode : Node {
 
     void updateImportance(Node* old_first, Node* old_second, Node* new_first, Node* new_second, bool hasUpdated, Array<Item> itemset, Item old_firstI, Item old_secondI, Item new_firstI, Item new_secondI, Cache* cache){
 //        cout << "vvv" << endl;
-cout << "update importance ";
+///cout << "update importance ";
         if (hasUpdated){
-            cout << "new " << old_first << " " << old_second << endl;
+            ///cout << "new " << old_first << " " << old_second << endl;
             if (old_first && old_second) changeImportance((TrieNode*)old_first, (TrieNode*)old_first, itemset, old_firstI, old_secondI, cache);
         }
         else {
-            cout << "old" << endl;
+            ///cout << "old" << endl;
             changeImportance((TrieNode*)new_first, (TrieNode*)new_second, itemset, new_firstI, new_secondI, cache);
         }
     }

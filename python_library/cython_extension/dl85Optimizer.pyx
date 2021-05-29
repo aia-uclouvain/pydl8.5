@@ -7,7 +7,7 @@ from libcpp.vector cimport vector
 from libcpp.functional cimport function
 import numpy as np
 
-cdef extern from "src/headers/globals.h":
+cdef extern from "../../cpp/src/globals.h":
     cdef cppclass Array[T]:
         cppclass iterator:
             T operator*()
@@ -18,26 +18,26 @@ cdef extern from "src/headers/globals.h":
         iterator end()
         int getSize()
 
-cdef extern from "src/headers/py_tid_error_class_function_wrapper.h":
+cdef extern from "py_tid_error_class_function_wrapper.h":
     cdef cppclass PyTidErrorClassWrapper:
         PyTidErrorClassWrapper()
         PyTidErrorClassWrapper(object) # define a constructor that takes a Python object
              # note - doesn't match c++ signature - that's fine!
 
-cdef extern from "src/headers/py_support_error_class_function_wrapper.h":
+cdef extern from "py_support_error_class_function_wrapper.h":
     cdef cppclass PySupportErrorClassWrapper:
         PySupportErrorClassWrapper()
         PySupportErrorClassWrapper(object) # define a constructor that takes a Python object
              # note - doesn't match c++ signature - that's fine!
 
-cdef extern from "src/headers/py_tid_error_function_wrapper.h":
+cdef extern from "py_tid_error_function_wrapper.h":
     cdef cppclass PyTidErrorWrapper:
         PyTidErrorWrapper()
         PyTidErrorWrapper(object) # define a constructor that takes a Python object
              # note - doesn't match c++ signature - that's fine!
 
 
-cdef extern from "src/headers/dl85.h":
+cdef extern from "../../cpp/src/dl85.h":
     string search ( float* supports,
                     int ntransactions,
                     int nattributes,

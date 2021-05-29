@@ -4,8 +4,8 @@
 {
     "distutils": {
         "depends": [
-            "../src/headers/dataManager.h",
-            "../src/headers/rCover.h"
+            "../cpp/src/dataManager.h",
+            "../cpp/src/rCover.h"
         ],
         "extra_compile_args": [
             "-std=c++11",
@@ -19,31 +19,35 @@
         ],
         "include_dirs": [
             "cython_extension",
-            "../src/headers"
+            "../cpp/src"
         ],
         "language": "c++",
         "name": "dl85Optimizer",
         "sources": [
             "cython_extension/error_function.pyx",
             "cython_extension/dl85Optimizer.pyx",
-            "../src/codes/data.cpp",
-            "../src/codes/dataContinuous.cpp",
-            "../src/codes/dataBinary.cpp",
-            "../src/codes/dataManager.cpp",
-            "../src/codes/rCover.cpp",
-            "../src/codes/dl85.cpp",
-            "../src/codes/experror.cpp",
-            "../src/codes/globals.cpp",
-            "../src/codes/lcm_pruned.cpp",
-            "../src/codes/lcm_iterative.cpp",
-            "../src/codes/query.cpp",
-            "../src/codes/query_best.cpp",
-            "../src/codes/query_totalfreq.cpp",
-            "../src/codes/trie.cpp",
-            "../src/codes/dataBinaryPython.cpp",
-            "../src/codes/depthTwoComputer.cpp",
-            "../src/codes/rCoverTotalFreq.cpp",
-            "../src/codes/rCoverWeighted.cpp"
+            "../cpp/src/cache.cpp",
+            "../cpp/src/cache_hash.cpp",
+            "../cpp/src/cache_priority.cpp",
+            "../cpp/src/cache_trie.cpp",
+            "../cpp/src/data.cpp",
+            "../cpp/src/dataBinary.cpp",
+            "../cpp/src/dataBinaryPython.cpp",
+            "../cpp/src/dataContinuous.cpp",
+            "../cpp/src/dataManager.cpp",
+            "../cpp/src/depthTwoComputer.cpp",
+            "../cpp/src/dl85.cpp",
+            "../cpp/src/experror.cpp",
+            "../cpp/src/freq_nodedataManager.cpp",
+            "../cpp/src/freq_solution.cpp",
+            "../cpp/src/globals.cpp",
+            "../cpp/src/lcm_pruned.cpp",
+            "../cpp/src/lcm_iterative.cpp",
+            "../cpp/src/nodedataManager.cpp",
+            "../cpp/src/rCover.cpp",
+            "../cpp/src/rCoverTotalFreq.cpp",
+            "../cpp/src/rCoverWeighted.cpp",
+            "../cpp/src/solution.cpp"
         ]
     },
     "module_name": "dl85Optimizer"
@@ -679,8 +683,8 @@ static CYTHON_INLINE float __PYX_NAN() {
 #include <string>
 #include <vector>
 #include <stack>
-#include "../../src/headers/dataManager.h"
-#include "../../src/headers/rCover.h"
+#include "../../cpp/src/dataManager.h"
+#include "../../cpp/src/rCover.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif /* _OPENMP */

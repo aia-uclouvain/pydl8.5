@@ -5,15 +5,16 @@ python:
   - "3.8"
 cache:
   directories:
-  - "$HOME/.cache/pip"
+    - "$HOME/.cache/pip"
 install:
-- pip install -r requirements.txt
-- pip install codecov
-- pip install .
+  - cd python_library
+  - pip install -r requirements.txt
+  - pip install codecov
+  - pip install .
 script:
-- pytest -v --cov=dl85 dl85/supervised/classifiers/tests/
+  - pytest -v --cov=dl85 dl85/supervised/classifiers/tests/
 after_success:
-- codecov
+  - codecov
 deploy:
   provider: pypi
   edge: true # v2
