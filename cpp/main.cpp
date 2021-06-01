@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
     cout << "dataset: " << datasetPath.substr(datasetPath.find_last_of('/') + 1, datasetPath.find_last_of('.') - datasetPath.find_last_of('/') - 1) << endl;
     /*function<vector<float>()> example_weights_callback = generate_example_weights;
     function<vector<float>(string)> predict_error_callback = get_training_error;*/
-    vector<float> in(3247,1);
+    //vector<float> in(3247,1);
     string result;
     for (int i = 0; i < 1; ++i) {
         result = search(
