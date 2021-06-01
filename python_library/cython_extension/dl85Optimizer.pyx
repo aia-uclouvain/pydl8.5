@@ -7,7 +7,7 @@ from libcpp.vector cimport vector
 from libcpp.functional cimport function
 import numpy as np
 
-cdef extern from "../../src/headers/globals.h":
+cdef extern from "../../cpp/src/globals.h":
     cdef cppclass Array[T]:
         cppclass iterator:
             T operator*()
@@ -37,7 +37,7 @@ cdef extern from "py_tid_error_function_wrapper.h":
              # note - doesn't match c++ signature - that's fine!
 
 
-cdef extern from "../../src/headers/dl85.h":
+cdef extern from "../../cpp/src/dl85.h":
     string search ( float* supports,
                     int ntransactions,
                     int nattributes,

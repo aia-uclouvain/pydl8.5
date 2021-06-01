@@ -4,12 +4,12 @@ from libcpp.vector cimport vector
 from libcpp.stack cimport stack
 from cython.operator cimport dereference as deref, preincrement as inc
 
-cdef extern from "../../src/headers/dataManager.h":
+cdef extern from "../../cpp/src/dataManager.h":
     cdef cppclass DataManager:
         int getNClasses()
         int* getSupports()
 
-cdef extern from "../../src/headers/rCover.h":
+cdef extern from "../../cpp/src/rCover.h":
     cdef cppclass RCover:
         cppclass iterator:
             int wordIndex

@@ -4,107 +4,45 @@ project(dl85)
 set(CMAKE_CXX_STANDARD 11)
 
 
-include_directories(headers/)
+include_directories(src/)
 
 
 add_executable(dl85
         main.cpp
-
-        headers/data.h
-        codes/data.cpp
-
-        headers/dataContinuous.h
-        codes/dataContinuous.cpp
-
-        headers/dataBinary.h
-        codes/dataBinary.cpp
-
-        headers/dl85.h
-        codes/dl85.cpp
-
-        headers/experror.h
-        codes/experror.cpp
-
-        headers/globals.h
-        codes/globals.cpp
-
-        headers/lcm_pruned.h
-        codes/lcm_pruned.cpp
-
-        # dl85_dist_source/wrapping/src/headers/nodedataManager.h
-        # dl85_dist_source/wrapping/src/codes/nodedataManager.cpp
-
-        headers/query.h
-        codes/query.cpp
-
-        headers/query_best.h
-        codes/query_best.cpp
-
-        headers/query_totalfreq.h
-        codes/query_totalfreq.cpp
-
-        # dl85_dist_source/wrapping/src/headers/solution.h
-        # dl85_dist_source/wrapping/src/codes/solution.cpp
-
-        # dl85_dist_source/wrapping/src/headers/freq_nodedataManager.h
-        # dl85_dist_source/wrapping/src/codes/freq_nodedataManager.cpp
-
-        #        dl85_dist_source/wrapping/src/headers/query_bioptimization.h
-        #        dl85_dist_source/wrapping/src/codes/query_bioptimization.cpp
-
-        #        dl85_dist_source/wrapping/src/headers/query_weighted.h
-        #        dl85_dist_source/wrapping/src/codes/query_weighted.cpp
-
-        headers/depthTwoComputer.h
-        codes/depthTwoComputer.cpp
-
-        #        dl85_dist_source/wrapping/src/headers/cache.h
-        #        dl85_dist_source/wrapping/src/codes/cache.cpp
-        #
-        #        dl85_dist_source/wrapping/src/headers/cache_hash.h
-        #        dl85_dist_source/wrapping/src/codes/cache_hash.cpp
-        #
-        #        dl85_dist_source/wrapping/src/headers/cache_priority.h
-        #        dl85_dist_source/wrapping/src/codes/cache_priority.cpp
-        #
-        #        dl85_dist_source/wrapping/src/headers/cache_trie.h
-        #        dl85_dist_source/wrapping/src/codes/cache_trie.cpp
-
-        headers/trie.h
-        codes/trie.cpp
-
-        headers/dataBinaryPython.h
-        codes/dataBinaryPython.cpp
-
-        headers/lcm_iterative.h
-        codes/lcm_iterative.cpp
-
-        headers/dataManager.h
-        codes/dataManager.cpp
-
-        headers/rCover.h
-        codes/rCover.cpp
-
-        headers/rCoverTotalFreq.h
-        codes/rCoverTotalFreq.cpp
-
-        headers/rCoverWeighted.h
-        codes/rCoverWeighted.cpp
-
-        headers/logger.h
-
-        #        dl85_dist_source/wrapping/src/headers/model.h
-        #        main_for_stashed_code.cpp dl85_dist_source/wrapping/src/codes/model.cpp
-        # dl85_dist_source/wrapping/src/headers/freq_Solution.h
-        # dl85_dist_source/wrapping/src/codes/freq_Solution.cpp
-        )
-
-#target_link_libraries(dl85
-#        libgurobi_g++4.2.a
-#        libgurobi81.dylib
-#        nlohmann_json::nlohmann_json)
-
-#target_link_libraries(dl85_predict
-#        libgurobi_g++4.2.a
-#        libgurobi81.dylib
-#        nlohmann_json::nlohmann_json)
+        src/data.h
+        src/data.cpp
+        src/dataBinary.h
+        src/dataBinary.cpp
+        src/dataBinaryPython.h
+        src/dataBinaryPython.cpp
+        src/dataContinuous.h
+        src/dataContinuous.cpp
+        src/dataManager.h
+        src/dataManager.cpp
+        src/depthTwoComputer.h
+        src/depthTwoComputer.cpp
+        src/dl85.h
+        src/dl85.cpp
+        src/experror.h
+        src/experror.cpp
+        src/globals.h
+        src/globals.cpp
+        src/lcm_iterative.h
+        src/lcm_iterative.cpp
+        src/lcm_pruned.h
+        src/lcm_pruned.cpp
+        src/logger.h
+        src/query.h
+        src/query.cpp
+        src/query_best.h
+        src/query_best.cpp
+        src/query_totalfreq.h
+        src/query_totalfreq.cpp
+        src/rCover.h
+        src/rCover.cpp
+        src/rCoverTotalFreq.h
+        src/rCoverTotalFreq.cpp
+        src/rCoverWeighted.h
+        src/rCoverWeighted.cpp
+        src/trie.h
+        src/trie.cpp)

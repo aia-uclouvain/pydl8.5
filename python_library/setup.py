@@ -47,25 +47,25 @@ EXTENSION_NAME = 'dl85Optimizer'
 EXTENSION_LANGUAGE = 'c++'
 EXTENSION_SOURCE_FILES = ['cython_extension/error_function.pyx',
                           'cython_extension/dl85Optimizer.pyx',
-                '../src/codes/data.cpp',
-                '../src/codes/dataContinuous.cpp',
-                '../src/codes/dataBinary.cpp',
-                '../src/codes/dataManager.cpp',
-                '../src/codes/rCover.cpp',
-                '../src/codes/dl85.cpp',
-                '../src/codes/experror.cpp',
-                '../src/codes/globals.cpp',
-                '../src/codes/lcm_pruned.cpp',
-                '../src/codes/lcm_iterative.cpp',
-                '../src/codes/query.cpp',
-                '../src/codes/query_best.cpp',
-                '../src/codes/query_totalfreq.cpp',
-                '../src/codes/trie.cpp',
-                '../src/codes/dataBinaryPython.cpp',
-                '../src/codes/depthTwoComputer.cpp',
-                '../src/codes/rCoverTotalFreq.cpp',
-                '../src/codes/rCoverWeighted.cpp',]
-EXTENSION_INCLUDE_DIR = ['../src/headers', 'cython_extension']
+                '../cpp/src/data.cpp',
+                '../cpp/src/dataContinuous.cpp',
+                '../cpp/src/dataBinary.cpp',
+                '../cpp/src/dataManager.cpp',
+                '../cpp/src/rCover.cpp',
+                '../cpp/src/dl85.cpp',
+                '../cpp/src/experror.cpp',
+                '../cpp/src/globals.cpp',
+                '../cpp/src/lcm_pruned.cpp',
+                '../cpp/src/lcm_iterative.cpp',
+                '../cpp/src/query.cpp',
+                '../cpp/src/query_best.cpp',
+                '../cpp/src/query_totalfreq.cpp',
+                '../cpp/src/trie.cpp',
+                '../cpp/src/dataBinaryPython.cpp',
+                '../cpp/src/depthTwoComputer.cpp',
+                '../cpp/src/rCoverTotalFreq.cpp',
+                '../cpp/src/rCoverWeighted.cpp',]
+EXTENSION_INCLUDE_DIR = ['../cpp/src', 'cython_extension']
 # EXTENSION_BUILD_ARGS = ['-std=c++11']
 EXTENSION_BUILD_ARGS = ['-std=c++11', '-DCYTHON_PEP489_MULTI_PHASE_INIT=0']
 if platform.system() == 'Darwin':
