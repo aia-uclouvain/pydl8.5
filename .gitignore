@@ -52,3 +52,6 @@ python_library/.coverage
 .idea/*
 
 todo.txt
+
+python_library/examples/output/*
+python_library/examples/*.csv
