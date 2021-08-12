@@ -54,4 +54,5 @@ python_library/.coverage
 todo.txt
 
 python_library/examples/output/*
+python_library/examples/plots/*
 python_library/examples/*.csv
