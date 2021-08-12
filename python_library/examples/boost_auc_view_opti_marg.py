@@ -40,7 +40,7 @@ import csv
 #          'pendigits.txt',
 #          'letter.txt']
 
-files = ['hepatitis.txt']
+files = ['diabetes.txt', 'australian-credit.txt', 'breast-wisconsin.txt', "splice-1.txt", "vehicle.txt"]
 
 # files = ['yeast.txt',
 #          'diabetes.txt',
@@ -49,9 +49,9 @@ files = ['hepatitis.txt']
 #          'ionosphere.txt',
 #          'letter.txt']
 
-FIRST_FILE = sys.argv[3] + '.txt' if len(sys.argv) > 3 else 'hepatitis.txt'
+FIRST_FILE = sys.argv[3] + '.txt' if len(sys.argv) > 3 else 'diabetes.txt'
 MAX_ITERATIONS = int(sys.argv[2]) if len(sys.argv) > 2 else 0
-MAX_DEPTH = int(sys.argv[1]) if len(sys.argv) > 1 else 1
+MAX_DEPTH = int(sys.argv[1]) if len(sys.argv) > 1 else 3
 MAX_FOLD_SIZE = 1000  # max size of each fold used for cross validation. size for tuning is timed by N_FOLDS_TUNING / N_FOLDS
 N_FOLDS_TUNING = 4  # number of folds to create per fold for hyperparameter tuning
 VERBOSE_LEVEL = 10
@@ -64,20 +64,26 @@ END = len(files)
 # END = files.index(FIRST_FILE) + 1
 # python3 file.py max_depth max_iterations first_file
 
-parameters = {'regulator': [.5, 1, 3, 6, 12, 25, 50, 100]}
+# parameters = {'regulator': [.5, 1, 3, 6, 12, 25, 50, 100]}
+parameters = {'regulator': [.125, .25, .375, .5, .625, .75, .875, 1]}
+# parameters = {'regulator': [1, 5, 10, 15, 30, 50, 100, 150]}
 # parameters = {'regulator': [0.01, 0.1, 0.5, 1, 5, 8, 10, 12, 13, 15, 17, 18, 20, 30, 50, 100]}
-# parameters_md = {'regulator': [1, 5, 10, 15, 30, 50, 100, 150]}
+parameters_md = {'regulator': [1, 5, 10, 15, 30, 50, 100, 150]}
 parameters_ada = {'n_estimators': [5, 10, 20, 40, 80, 100, 200, 300]}
 # parameters_ada = {'n_estimators': [10, 50, 100, 200, 300, 400, 500]}
 
-# model_names = ["LP_DEMIRIZ", "MDBOOST"]
-model_names = ["LP_DEMIRIZ"]
+model_names = ["LP_RATSCH", "MDBOOST"]
+# model_names = ["LP_DEMIRIZ"]
+# model_names = ["LP_RATSCH"]
 # model_names = ["MDBOOST"]
-# models = [MODEL_LP_DEMIRIZ, MODEL_QP_MDBOOST]
-models = [MODEL_LP_DEMIRIZ]
+models = [MODEL_LP_RATSCH, MODEL_QP_MDBOOST]
+# models = [MODEL_LP_DEMIRIZ]
+# models = [MODEL_LP_RATSCH]
 # models = [MODEL_QP_MDBOOST]
 tree_names = ["DL85", "CART"]
+# tree_names = ["DL85"]
 tree_algos = [None, DecisionTreeClassifier(max_depth=MAX_DEPTH, random_state=42)]
+# tree_algos = [None]
 with_ada = True
 # with_ada = False
 
@@ -87,7 +93,7 @@ file_out = open("output/out_auc_opti_depth_" + str(MAX_DEPTH) + ".csv", "w")
 file_iters = open("output/out_iters_depth_" + str(MAX_DEPTH) + ".csv", "a")
 stats_writer = csv.writer(file_out, delimiter=',')
 iters_writer = csv.writer(file_iters, delimiter=',')
-iters_writer.writerow(["dataset", "fold", "reg", "fixed_reg", "algo", "objective", "train_acc", "test_acc", "train_auc", "test_auc", "n_iter", "n_trees"])
+iters_writer.writerow(["dataset", "fold", "reg", "fixed_reg", "algo", "objective", "train_acc", "test_acc", "train_auc", "test_auc", "n_iter", "n_trees", "min_margin", "avg_margin", "var_margin"])
 
 for filename in files[START:END]:
     dataset = np.genfromtxt("../datasets/" + filename, delimiter=' ')
@@ -127,55 +133,6 @@ for filename in files[START:END]:
           "######################################################################")
 
     # ========================= #
-    #           DL85            #
-    # ========================= #
-    # print("DL8.5")
-    # print("Dataset :", filename)
-    # clf_results = cross_validate(estimator=DL85Classifier(max_depth=MAX_DEPTH), X=X, y=y, scoring='accuracy',
-    #                              cv=custom_cv_dl85, n_jobs=-1, verbose=VERBOSE_LEVEL, return_train_score=True,
-    #                              return_estimator=True, error_score=np.nan)
-    # n_trees = [1 for k in range(N_FOLDS)]
-    # aucs = [roc_auc_score(y_tests[k], clf_results['estimator'][k].predict_proba(X_tests[k])[:, 1]) for k in range(N_FOLDS)]
-    # fps = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 1] if y_tests[k][i] != 1]) for k in range(N_FOLDS)]
-    # fns = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 0] if y_tests[k][i] != 0]) for k in range(N_FOLDS)]
-    # print("Model built. Avg duration of building =", round(float(np.mean(clf_results['fit_time'])), 4))
-    # print("Avg number of trees =", [1, 1, 1, 1, 1], 1)
-    # print("Accuracy on training set =", clf_results['train_score'], round(float(np.mean(clf_results['train_score'])), 4))
-    # print("Avg accuracy on test set =", clf_results['test_score'], round(float(np.mean(clf_results['test_score'])), 4))
-    # print("list of time :", clf_results['fit_time'])
-    # print("list of n_nodes :", [clf_results['estimator'][k].get_nodes_count() for k in range(N_FOLDS)])
-    # print("list of auc :", aucs, round(float(np.mean(aucs)), 4))
-    # print("sum false positives =", sum(fps))
-    # print("sum false negatives =", sum(fns), "\n\n\n")
-    # tmp_to_write = [[n_trees[k], n_trees[k], clf_results['fit_time'][k], True, clf_results['train_score'][k], clf_results['test_score'][k], fps[k], fns[k], clf_results['estimator'][k].get_nodes_count(), -1, -1, aucs[k]] for k in range(N_FOLDS)]
-    # # tmp_to_write = [[n_trees[k], n_trees[k], clf_results['fit_time'][k], not clf_results['estimator'][k].timeout_, clf_results['train_score'][k], clf_results['test_score'][k], fps[k], fns[k], clf_results['estimator'][k].get_nodes_count(), -1, -1, aucs[k]] for k in range(N_FOLDS)]
-    # to_write += [val for sublist in tmp_to_write for val in sublist]
-
-    # ========================= #
-    #           CART            #
-    # ========================= #
-    # print("CART")
-    # print("Dataset :", filename)
-    # clf_results = cross_validate(estimator=DecisionTreeClassifier(max_depth=MAX_DEPTH, random_state=42), X=X, y=y, scoring='accuracy',
-    #                              cv=custom_cv_cart, n_jobs=-1, verbose=VERBOSE_LEVEL, return_train_score=True,
-    #                              return_estimator=True, error_score=np.nan)
-    # n_trees = [1 for k in range(N_FOLDS)]
-    # aucs = [roc_auc_score(y_tests[k], clf_results['estimator'][k].predict_proba(X_tests[k])[:, 1]) for k in range(N_FOLDS)]
-    # fps = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 1] if y_tests[k][i] != 1]) for k in range(N_FOLDS)]
-    # fns = [len([i for i in [j for j, val in enumerate(clf_results['estimator'][k].predict(X_tests[k])) if val == 0] if y_tests[k][i] != 0]) for k in range(N_FOLDS)]
-    # print("Model built. Avg duration of building =", round(float(np.mean(clf_results['fit_time'])), 4))
-    # print("Avg number of trees =", [1, 1, 1, 1, 1], 1)
-    # print("Accuracy on training set =", clf_results['train_score'], round(float(np.mean(clf_results['train_score'])), 4))
-    # print("Avg accuracy on test set =", clf_results['test_score'], round(float(np.mean(clf_results['test_score'])), 4))
-    # print("list of time :", clf_results['fit_time'])
-    # print("list of n_nodes :", [clf_results['estimator'][k].tree_.node_count for k in range(N_FOLDS)])
-    # print("list of auc :", aucs, round(float(np.mean(aucs)), 4))
-    # print("sum false positives =", sum(fps))
-    # print("sum false negatives =", sum(fns), "\n\n\n")
-    # tmp_to_write = [[n_trees[k], n_trees[k], clf_results['fit_time'][k], True, clf_results['train_score'][k], clf_results['test_score'][k], fps[k], fns[k], clf_results['estimator'][k].tree_.node_count, -1, -1, aucs[k]] for k in range(N_FOLDS)]
-    # to_write += [val for sublist in tmp_to_write for val in sublist]
-
-    # ========================= #
     #        Optiboost          #
     # ========================= #
     def get_ntrees(estimator, X, y):
@@ -193,25 +150,19 @@ for filename in files[START:END]:
                 l[i] = 0
         return list(map(lambda x: str(x), l))
 
-    lpdem_cart_regs, lpdem_opti_regs, lprat_cart_regs, lprat_opti_regs, md_cart_regs, md_opti_regs = [], [], [], [], [], []
-    lpdem_cart_regs_acc, lpdem_opti_regs_acc, lprat_cart_regs_acc, lprat_opti_regs_acc, md_cart_regs_acc, md_opti_regs_acc = [], [], [], [], [], []
-    lpdem_cart_regs_auc, lpdem_opti_regs_auc, lprat_cart_regs_auc, lprat_opti_regs_auc, md_cart_regs_auc, md_opti_regs_auc = [], [], [], [], [], []
-    lpdem_cart_regs_trees, lpdem_opti_regs_trees, lprat_cart_regs_trees, lprat_opti_regs_trees, md_cart_regs_trees, md_opti_regs_trees = [], [], [], [], [], []
-    lpdem_cart_regs_iter, lpdem_opti_regs_iter, lprat_cart_regs_iter, lprat_opti_regs_iter, md_cart_regs_iter, md_opti_regs_iter = [], [], [], [], [], []
-    lpdem_cart_regs_obj, lpdem_opti_regs_obj, lprat_cart_regs_obj, lprat_opti_regs_obj, md_cart_regs_obj, md_opti_regs_obj = [], [], [], [], [], []
+    info_per_reg = {"dem": {"dl85": {}, "cart": {}}, "rat": {"dl85": {}, "cart": {}}, "md": {"dl85": {}, "cart": {}}}
     all_best_objs_per_fold = {}
     for name, base_clf in zip([x + " + " + y for x in model_names for y in tree_names], [DL85Booster(base_estimator=base, max_depth=MAX_DEPTH, model=mod, max_iterations=MAX_ITERATIONS) for mod in models for base in tree_algos]):
         print("Optiboost + {}".format(name))
         print("Dataset :", filename)
         file = open("output/" + name.replace(" + ", "_") + "_auc_depth_" + str(MAX_DEPTH) + ".csv", "a")
-        # file = open(name.replace(" + ", "_") + "_auc_maxiter_" + (str(MAX_ITERATIONS) if MAX_ITERATIONS > 0 else 'none') + "_depth_" + str(MAX_DEPTH) + ".csv", "a+")
         n_trees, fps, fns, fit_times, train_scores, test_scores, n_iter, regulators, gammas, n_opti, n_nodes, train_aucs, test_aucs, objs = [], [], [], [], [], [], [], [], [], 0, [], [], [], []
         # build training set and validation set for the hyperparameter tuning. Use 4 folds for this task
         for k in range(N_FOLDS):
             X_train, X_test, y_train, y_test = X_trains[k], X_tests[k], y_trains[k], y_tests[k]
             print("Fold", k+1, "- Search for the best regulator using grid search...")
-            # param = parameters_md if "MDBOOST" in name else parameters
-            param = parameters
+            param = parameters_md if "MDBOOST" in name else parameters
+            # param = parameters
             gd_sr = GridSearchCV(estimator=base_clf, error_score=np.nan, param_grid=param, scoring={'ntrees': get_ntrees, 'niter': get_niterations, 'obj': get_objective, 'auc': 'roc_auc', 'acc': 'accuracy'}, refit=False, cv=N_FOLDS_TUNING, n_jobs=-1, verbose=VERBOSE_LEVEL)
             gd_sr.fit(X_train, y_train)
 
@@ -219,10 +170,10 @@ for filename in files[START:END]:
             best_param_index = rank_sorted_indices[0]
             best_reg = gd_sr.cv_results_['params'][best_param_index]['regulator']
 
-            mod = MODEL_LP_DEMIRIZ if "LP_DEMIRIZ" in name else MODEL_QP_MDBOOST
+            mod = MODEL_LP_DEMIRIZ if "LP_DEMIRIZ" in name else MODEL_LP_RATSCH if "LP_RATSCH" in name else MODEL_QP_MDBOOST
             estim = None if "DL85" in name else DecisionTreeClassifier(max_depth=MAX_DEPTH, random_state=42)
             clf = DL85Booster(model=mod, base_estimator=estim, max_depth=MAX_DEPTH, max_iterations=MAX_ITERATIONS, regulator=best_reg)
-            suffix = "lpboost_cart" if name == "LP_DEMIRIZ + CART" else "lpboost_dl85" if name == "LP_DEMIRIZ + DL85" else "mdboost_cart" if name == "MDBOOST + CART" else "mdboost_dl85" if name == "MDBOOST + DL85" else "other"
+            suffix = "lpdem_cart" if name == "LP_DEMIRIZ + CART" else "lpdem_dl85" if name == "LP_DEMIRIZ + DL85" else "lprat_cart" if name == "LP_RATSCH + CART" else "lprat_dl85" if name == "LP_RATSCH + DL85" else "mdboost_cart" if name == "MDBOOST + CART" else "mdboost_dl85" if name == "MDBOOST + DL85" else "other"
             iter_filepath = "output/{}_depth_{}_fold_{}_{}".format(filename.split(".")[0], MAX_DEPTH, k+1, suffix)
             clf.fit(X_train, y_train, X_test, y_test, iter_file=iter_filepath)
 
@@ -232,12 +183,7 @@ for filename in files[START:END]:
 
             def add_info(line: str):
                 my_list = line.strip().split(',')
-                my_list.insert(0, suffix)
-                my_list.insert(0, "0")
-                my_list.insert(0, str(best_reg))
-                my_list.insert(0, str(k+1))
-                my_list.insert(0, filename_)
-                return my_list
+                return [filename_, str(k+1), str(best_reg), "0", suffix] + my_list
 
             content.pop(0)
             content = [add_info(x) for x in content]
@@ -256,73 +202,6 @@ for filename in files[START:END]:
             regulators.append(best_reg)
             test_aucs.append(roc_auc_score(y_test, clf.predict_proba(X_test)[:, 1]))
             train_aucs.append(roc_auc_score(y_train, clf.predict_proba(X_train)[:, 1]))
-
-            # this part is about saving some metrics about the different parameters tested
-            # each successive 5 lines contain for each file, the 5 metrics below gathered
-            # for each fold. So, for 5 folds, each file needs 25 lines. Each line is
-            # composed of the value gathered for each hyperparameter. So each line contains
-            # the same value as the number of hyperparameters. In this case, there are 16 for
-            # lpboost and 8 for mdboost. Values are the means on the different tuning folds.
-            if name == "LP_DEMIRIZ + CART":
-                lpdem_cart_regs.append(regulators[-1])
-                # mean accuracy on test sets for each parameter value on folds used during hyperparameter tuning
-                # it can be used as the test set accuracy for each of the parameters
-                lpdem_cart_regs_acc.append(gd_sr.cv_results_['mean_test_acc'])
-                # mean auc on test sets
-                lpdem_cart_regs_auc.append(gd_sr.cv_results_['mean_test_auc'])
-                # mean trees found on test sets
-                lpdem_cart_regs_trees.append(gd_sr.cv_results_['mean_test_ntrees'])
-                # mean iteration numbers needed on test sets
-                lpdem_cart_regs_iter.append(gd_sr.cv_results_['mean_test_niter'])
-                # mean objective value on test sets
-                lpdem_cart_regs_obj.append(gd_sr.cv_results_['mean_test_obj'])
-                file.write(filename + "," + ",".join(replacenan(lpdem_cart_regs_trees[-1])) + "\n")
-                file.write(filename + "," + ",".join(replacenan(lpdem_cart_regs_iter[-1])) + "\n")
-                file.write(filename + "," + ",".join(replacenan(lpdem_cart_regs_acc[-1])) + "\n")
-                file.write(filename + "," + ",".join(replacenan(lpdem_cart_regs_auc[-1])) + "\n")
-                file.write(filename + "," + ",".join(replacenan(lpdem_cart_regs_obj[-1])) + "\n")
-                file.flush()
-            elif name == "LP_DEMIRIZ + DL85":
-                lpdem_opti_regs.append(regulators[-1])
-                lpdem_opti_regs_acc.append(gd_sr.cv_results_['mean_test_acc'])
-                lpdem_opti_regs_auc.append(gd_sr.cv_results_['mean_test_auc'])
-                lpdem_opti_regs_trees.append(gd_sr.cv_results_['mean_test_ntrees'])
-                lpdem_opti_regs_iter.append(gd_sr.cv_results_['mean_test_niter'])
-                lpdem_opti_regs_obj.append(gd_sr.cv_results_['mean_test_obj'])
-                # print(replacenan(lpdem_opti_regs_trees[-1]))
-                file.write(filename + "," + ",".join(replacenan(lpdem_opti_regs_trees[-1])) + "\n")
-                file.write(filename + "," + ",".join(replacenan(lpdem_opti_regs_iter[-1])) + "\n")
-                file.write(filename + "," + ",".join(replacenan(lpdem_opti_regs_acc[-1])) + "\n")
-                file.write(filename + "," + ",".join(replacenan(lpdem_opti_regs_auc[-1])) + "\n")
-                file.write(filename + "," + ",".join(replacenan(lpdem_opti_regs_obj[-1])) + "\n")
-                file.flush()
-            elif name == "MDBOOST + CART":
-                md_cart_regs.append(regulators[-1])
-                md_cart_regs_acc.append(gd_sr.cv_results_['mean_test_acc'])
-                md_cart_regs_auc.append(gd_sr.cv_results_['mean_test_auc'])
-                md_cart_regs_trees.append(gd_sr.cv_results_['mean_test_ntrees'])
-                md_cart_regs_iter.append(gd_sr.cv_results_['mean_test_niter'])
-                md_cart_regs_obj.append(gd_sr.cv_results_['mean_test_obj'])
-                file.write(filename + "," + ",".join(replacenan(md_cart_regs_trees[-1])) + "\n")
-                file.write(filename + "," + ",".join(replacenan(md_cart_regs_iter[-1])) + "\n")
-                file.write(filename + "," + ",".join(replacenan(md_cart_regs_acc[-1])) + "\n")
-                file.write(filename + "," + ",".join(replacenan(md_cart_regs_auc[-1])) + "\n")
-                file.write(filename + "," + ",".join(replacenan(md_cart_regs_obj[-1])) + "\n")
-                file.flush()
-            elif name == "MDBOOST + DL85":
-                md_opti_regs.append(regulators[-1])
-                md_opti_regs_acc.append(gd_sr.cv_results_['mean_test_acc'])
-                md_opti_regs_auc.append(gd_sr.cv_results_['mean_test_acc'])
-                md_opti_regs_trees.append(gd_sr.cv_results_['mean_test_ntrees'])
-                md_opti_regs_iter.append(gd_sr.cv_results_['mean_test_niter'])
-                md_opti_regs_obj.append(gd_sr.cv_results_['mean_test_obj'])
-                file.write(filename + "," + ",".join(replacenan(md_opti_regs_trees[-1])) + "\n")
-                file.write(filename + "," + ",".join(replacenan(md_opti_regs_iter[-1])) + "\n")
-                file.write(filename + "," + ",".join(replacenan(md_opti_regs_acc[-1])) + "\n")
-                file.write(filename + "," + ",".join(replacenan(md_opti_regs_auc[-1])) + "\n")
-                # print("md_opti_regs_obj", md_opti_regs_obj)
-                file.write(filename + "," + ",".join(replacenan(md_opti_regs_obj[-1])) + "\n")
-                file.flush()
             gammas.append(-1)
             if "CART" in name:
                 n_nodes.append(sum([c.tree_.node_count for c in clf.estimators_]))
@@ -334,6 +213,33 @@ for filename in files[START:END]:
             to_write += [n_iter[-1], n_trees[-1], fit_times[-1], clf.optimal_, train_scores[-1], test_scores[-1], fps[-1], fns[-1], n_nodes[-1], regulators[-1], gammas[-1], train_aucs[-1], test_aucs[-1], objs[-1]]
             print("Optiboost + {}".format(name), end=" ")
             print("fold :", k+1, "n_trees :", n_trees[k], "train_acc :", train_scores[k], "test acc :", test_scores[k], "n_nodes :", n_nodes[k], "regu :", regulators[k], "gamma :", gammas[k], "train_auc :", train_aucs[k], "test_auc :", test_aucs[k], "obj :", objs[k], "\n")
+
+
+            # this part is about saving some metrics about the different parameters tested
+            # each successive 5 lines contain for each file, the 5 metrics below gathered
+            # for each fold. So, for 5 folds, each file needs 25 lines. Each line is
+            # composed of the value gathered for each hyperparameter. So each line contains
+            # the same value as the number of hyperparameters. In this case, there are 16 for
+            # lpboost and 8 for mdboost. Values are the means on the different tuning folds.
+
+            tech = "dem" if "LP_DEMIRIZ" in name else "rat" if "LP_RATSCH" in name else "md"
+            alg = "cart" if "CART" in name else "dl85"
+            info_per_reg[tech][alg][k] = {
+                "best_reg": regulators[-1],  # best regulator for this tech + alg and fold
+                # mean accuracy on test sets for each parameter value on folds used during hyperparameter tuning
+                "acc": gd_sr.cv_results_['mean_test_acc'],  # it can be used as the test set accuracy for each of the parameters
+                "auc": gd_sr.cv_results_['mean_test_auc'],  # mean auc on test sets
+                "trees": gd_sr.cv_results_['mean_test_ntrees'],  # mean trees found on test sets
+                "iter": gd_sr.cv_results_['mean_test_niter'],  # mean iteration numbers needed on test sets
+                "obj": gd_sr.cv_results_['mean_test_obj']  # mean objective value on test sets
+            }
+            file.write(filename + "," + ",".join(replacenan(gd_sr.cv_results_['mean_test_ntrees'])) + "\n")
+            file.write(filename + "," + ",".join(replacenan(gd_sr.cv_results_['mean_test_niter'])) + "\n")
+            file.write(filename + "," + ",".join(replacenan(gd_sr.cv_results_['mean_test_acc'])) + "\n")
+            file.write(filename + "," + ",".join(replacenan(gd_sr.cv_results_['mean_test_auc'])) + "\n")
+            file.write(filename + "," + ",".join(replacenan(gd_sr.cv_results_['mean_test_obj'])) + "\n")
+            file.flush()
+
         file.close()
         print("Model built. Avg duration of building =", round(float(np.mean(fit_times)), 4))
         print("Number of trees =", n_trees, np.mean(n_trees))
@@ -361,30 +267,16 @@ for filename in files[START:END]:
         # file = open(name.replace(" + ", "_"), "a+")
         n_trees, fps, fns, fit_times, train_scores, test_scores, n_iter, regulators, gammas, n_opti, n_nodes, train_aucs, test_aucs, objs = [], [], [], [], [], [], [], [], [], 0, [], [], [], []
         # build training set and validation set for the hyperparameter tuning. Use 4 folds for this task
-        other_name = "LP_DEMIRIZ + DL85" if name == "LP_DEMIRIZ + CART" else "LP_DEMIRIZ + CART" if name == "LP_DEMIRIZ + DL85" else "MDBOOST + DL85" if name == "MDBOOST + CART" else "MDBOOST + CART" if name ==  "MDBOOST + DL85" else None
+        other_name = "LP_DEMIRIZ + DL85" if name == "LP_DEMIRIZ + CART" else "LP_DEMIRIZ + CART" if name == "LP_DEMIRIZ + DL85" else "LP_RATSCH + DL85" if name == "LP_RATSCH + CART" else "LP_RATSCH + CART" if name == "LP_RATSCH + DL85" else "MDBOOST + DL85" if name == "MDBOOST + CART" else "MDBOOST + CART" if name ==  "MDBOOST + DL85" else None
         old_objs = all_best_objs_per_fold[other_name]
-        # old_objs = []
-        # if name == "LP_DEMIRIZ + CART":
-        #     old_objs = all_best_objs_per_fold["LP_DEMIRIZ + DL85"]
-        # elif name == "LP_DEMIRIZ + DL85":
-        #     old_objs = all_best_objs_per_fold["LP_DEMIRIZ + CART"]
-        # elif name == "MDBOOST + CART":
-        #     old_objs = all_best_objs_per_fold["MDBOOST + DL85"]
-        # elif name == "MDBOOST + DL85":
-        #     old_objs = all_best_objs_per_fold["MDBOOST + CART"]
+
         for k in range(N_FOLDS):
             X_train, X_test, y_train, y_test = X_trains[k], X_tests[k], y_trains[k], y_tests[k]
             print("Fold", k+1, "- Search for the best regulator using grid search...")
 
-            clf = reg = estim = mod = None
-            if name == "LP_DEMIRIZ + CART":
-                reg, estim, mod, suffix = lpdem_opti_regs[k], DecisionTreeClassifier(max_depth=MAX_DEPTH, random_state=42), MODEL_LP_DEMIRIZ, "lpboost_cart"
-            elif name == "LP_DEMIRIZ + DL85":
-                reg, estim, mod, suffix = lpdem_cart_regs[k], None, MODEL_LP_DEMIRIZ, "lpboost_dl85"
-            elif name == "MDBOOST + CART":
-                reg, estim, mod, suffix = md_opti_regs[k], DecisionTreeClassifier(max_depth=MAX_DEPTH, random_state=42), MODEL_QP_MDBOOST, "mdboost_cart"
-            elif name == "MDBOOST + DL85":
-                reg, estim, mod, suffix = md_cart_regs[k], None, MODEL_QP_MDBOOST, "mdboost_dl85"
+            tech, suffix, mod = ("dem", "lpdem_", MODEL_LP_DEMIRIZ) if "LP_DEMIRIZ" in name else ("rat", "lprat_", MODEL_LP_RATSCH) if "LP_RATSCH" in name else ("md", "mdboost_", MODEL_QP_MDBOOST)
+            alg, estim, suffix = ("cart", DecisionTreeClassifier(max_depth=MAX_DEPTH, random_state=42), suffix + "cart") if "CART" in name else ("dl85", None, suffix + "dl85")
+            reg = info_per_reg[tech][alg][k]["best_reg"]
 
             clf = DL85Booster(base_estimator=estim, max_depth=MAX_DEPTH, model=mod, max_iterations=MAX_ITERATIONS, regulator=reg)
             # clf.fit(X_train, y_train)
@@ -398,12 +290,7 @@ for filename in files[START:END]:
 
             def add_info(line: str):
                 my_list = line.strip().split(',')
-                my_list.insert(0, suffix)
-                my_list.insert(0, "1")
-                my_list.insert(0, str(reg))
-                my_list.insert(0, str(k+1))
-                my_list.insert(0, filename_)
-                return my_list
+                return [filename_, str(k+1), str(best_reg), "1", suffix] + my_list
 
             content.pop(0)
             content = [add_info(x) for x in content]

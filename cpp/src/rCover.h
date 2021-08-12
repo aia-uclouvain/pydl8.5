@@ -13,6 +13,7 @@
 #include "globals.h"
 #include "dataManager.h"
 #include <cmath>
+#include <algorithm>
 
 using namespace std;
 
@@ -29,7 +30,7 @@ public:
     Supports sup_class = nullptr;
     int support = -1;
 
-    RCover(DataManager* dmm);
+    RCover(DataManager* dmm, vector<float>* weights = nullptr);
 
     RCover(RCover&& cover) noexcept ;
 

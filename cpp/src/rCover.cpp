@@ -4,7 +4,11 @@
 
 #include "rCover.h"
 
-RCover::RCover(DataManager *dmm):dm(dmm) {
+bool isZero(float x){
+    return x == 0.0;
+}
+
+RCover::RCover(DataManager *dmm, vector<float>* weights):dm(dmm) {
     nWords = (int)ceil((float)dm->getNTransactions()/M);
     coverWords = new stack<bitset<M>>[nWords];
     validWords = new int[nWords];
@@ -16,6 +20,29 @@ RCover::RCover(DataManager *dmm):dm(dmm) {
             for (int j = dm->getNTransactions()%M; j < M; ++j) {
                 word.set(j, false);
             }
+            /*if (weights){
+                int size = dm->getNTransactions()%M;
+                vector<float> tmp = vector<float>(weights->begin(), weights->begin() + size);
+                auto it = tmp.begin();
+                while ((it = std::find_if(it, tmp.end(), isZero)) != tmp.end())
+                {
+                    int ind = distance(tmp.begin(), it);
+                    word.set(size - ind - 1, false);
+                    it++;
+                }
+            }*/
+        }
+        else {
+            /*if (weights){
+                vector<float> tmp = vector<float>(weights->begin() + i * M, weights->begin() + ((i+1) * M - 1));
+                auto it = tmp.begin();
+                while ((it = std::find_if(it, tmp.end(), isZero)) != tmp.end())
+                {
+                    int ind = distance(tmp.begin(), it);
+                    word.set(M - ind - 1, false);
+                    it++;
+                }
+            }*/
         }
         rword.push(word);
         coverWords[i] = rword;

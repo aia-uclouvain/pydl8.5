@@ -115,13 +115,13 @@ int main(int argc, char *argv[]) {
     function<vector<float>(string)> predict_error_callback = get_training_error;*/
 //    vector<float> in(ntransactions,1);
 
-//    constexpr double dropout = 0.9; // Chance of 0
-//    random_device rd;
-//    mt19937 gen(rd());
-//    bernoulli_distribution dist(1 - dropout); // bernoulli_distribution takes chance of true n constructor
+    constexpr double dropout = 0.9; // Chance of 0
+    random_device rd;
+    mt19937 gen(rd());
+    bernoulli_distribution dist(1 - dropout); // bernoulli_distribution takes chance of true n constructor
 
-//    vector<float> weight_vec(ntransactions);
-//    std::generate(weight_vec.begin(), weight_vec.end(), [&]{ return dist(gen); });
+    vector<float> weight_vec(ntransactions);
+    std::generate(weight_vec.begin(), weight_vec.end(), [&]{ return dist(gen); });
 //    size_t ones = std::count(weight_vec.begin(), weight_vec.end(), 1);
 //    std::cout << "vector contains " << ones << " 1's, out of " << size << ". " << ones/double(size) << "%\n";
 //    std::cout << "vector contains " << size - ones << " 0's, out of " << size << ". " << (size - ones)/double(size) << "%\n";
@@ -150,8 +150,8 @@ int main(int argc, char *argv[]) {
                 nullptr, //tids_error_class_callback
                 nullptr, //supports_error_class_callback
                 nullptr, //tids_error_callback
-                nullptr, //in_weights
-//                weight_vec.data(),
+//                nullptr, //in_weights
+                weight_vec.data(),
                 true, //tids_error_class_is_null
                 true, //supports_error_class_is_null
                 true, //tids_error_is_null

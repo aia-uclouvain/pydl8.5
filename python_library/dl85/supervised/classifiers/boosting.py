@@ -290,7 +290,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             # mod = "_demiriz" if self.model == 2 else "_ratsch" if self.model == 1 else "_aglin" if self.model == 3 else "_mdboost" if self.model == 4 else "_other"
             iter_file_name = iter_file + ".csv"
             acc_stream = open(iter_file_name, "w")
-            acc_stream.write("objective,train_acc,test_acc,train_auc,test_auc,n_iter,n_trees\n")
+            acc_stream.write("objective,train_acc,test_acc,train_auc,test_auc,n_iter,n_trees,min_margin,avg_margin,var_margin\n")
             acc_stream.flush()
             acc_stream.close()
             acc_stream = open(iter_file_name, "a+")
@@ -343,23 +343,27 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
                     n_treess = len([i for i in self.estimator_weights_ if i != 0])
                     if n_treess > 0:
                         n_treess = str(n_treess)
-                        self.objective_ = opti
+                        # self.objective_ = opti
                         self.n_estimators_ = len(self.estimators_)
                         train_acc = str(accuracy_score(y, self.predict(X)))
                         test_acc = str(accuracy_score(y_test, self.predict(X_test)))
                         train_auc = str(roc_auc_score(y, self.predict_proba(X)[:, 1]))
                         test_auc = str(roc_auc_score(y_test, self.predict_proba(X_test)[:, 1]))
-                        acc_stream.write(str(opti) + "," + train_acc + "," + test_acc + "," + train_auc + "," + test_auc + "," + str(self.n_iterations_ - 1) + "," + n_treess + "\n")
+                        acc_stream.write(str(opti) + "," + train_acc + "," + test_acc + "," + train_auc + "," + test_auc + "," + str(self.n_iterations_ - 1) + "," + n_treess + "," + str(min(self.margins_norm_)) + "," + str(np.mean(self.margins_norm_)) + "," + str(np.var(self.margins_norm_)) + "\n")
                         acc_stream.flush()
-                if pred @ sample_weights < r + self.opti_gap:
+                if pred @ sample_weights < r + self.opti_gap or (self.n_iterations_ >= 200 and self.objective_ is not None and self.objective_ > opti and self.objective_ - opti < 0.05):
+                # if pred @ sample_weights < r + self.opti_gap:
+                # if pred @ sample_weights < r:
+                    #print("obj:", self.objective_, "opti:", opti, "dif:", self.objective_ - opti)
                     if not self.quiet:
-                        print("np.dot(predictions, sample_weigths) < r + espsilon ==> we cannot add the new tree. End of iterations")
+                        print("np.dot(predictions, sample_weigths):{} < r:{} + espsilon:{} ==> we cannot add the new tree. End of iterations".format(pred @ sample_weights, r, self.opti_gap))
                         print("Objective value at end is", opti)
                     self.optimal_ = True
                     self.objective_ = opti
                     break
+                self.objective_ = opti
                 if not self.quiet:
-                    print("np.dot(predictions, sample_weigths) >= r + epsilon. We can add the new tree.")
+                    print("np.dot(predictions, sample_weigths):{} >= r:{} + epsilon:{}. We can add the new tree.".format(pred @ sample_weights, r, self.opti_gap))
 
             # add new prediction to all prediction matrix. Each column represents predictions of a tree for all examples
             predictions = pred.reshape((-1, 1)) if predictions is None else np.concatenate((predictions, pred.reshape(-1, 1)), axis=1)
@@ -389,11 +393,16 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
                 print("Objective value at this stage is", opti)
                 print("Value of r is", r)
                 print("The sorted margin at this stage is", sorted(self.margins_))
-                mean = sum(self.margins_) / len(self.margins_)
-                variance = sum([((x - mean) ** 2) for x in self.margins_]) / len(self.margins_)
-                std = variance ** 0.5
-                print("min margin:", min(self.margins_), "\tmax margin:", max(self.margins_), "\tavg margin:", mean, "\tstd margin:", std, "\tsum:", sum(self.margins_))
-                print("number of neg margins:", len([marg for marg in self.margins_ if marg < 0]), "\tnumber of pos margins:", len([marg for marg in self.margins_ if marg >= 0]))
+                # mean = sum(self.margins_) / len(self.margins_)
+                # variance = sum([((x - mean) ** 2) for x in self.margins_]) / len(self.margins_)
+                # std = variance ** 0.5
+                # mean_norm = sum(self.margins_norm_) / len(self.margins_norm_)
+                # variance_norm = sum([((x - mean_norm) ** 2) for x in self.margins_norm_]) / len(self.margins_norm_)
+                # std_norm = variance_norm ** 0.5
+                # print("min margin:", min(self.margins_), "\tmax margin:", max(self.margins_), "\tavg margin:", np.mean(self.margins_), "\tstd margin:", np.std(self.margins_), "\tsum:", sum(self.margins_))
+                # print("number of neg margins:", len([marg for marg in self.margins_ if marg < 0]), "\tnumber of pos margins:", len([marg for marg in self.margins_ if marg >= 0]))
+                print("min margin:", min(self.margins_norm_), "\tmax margin:", max(self.margins_norm_), "\tavg margin:", np.mean(self.margins_norm_), "\tstd margin:", np.std(self.margins_norm_), "\tsum:", sum(self.margins_norm_))
+                print("number of neg margins:", len([marg for marg in self.margins_norm_ if marg < 0]), "\tnumber of pos margins:", len([marg for marg in self.margins_norm_ if marg >= 0]))
                 print("The new sample weight for the next iteration is", sample_weights.tolist(), "\n")
 
             self.n_iterations_ += 1
@@ -512,6 +521,24 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         u_ = cp.Variable(self.n_instances)
         obj = cp.Minimize(r_ + 1/(2*self.regulator) * cp.quad_form((u_ - 1), self.A_inv))
         constr = [predictions[:, i] @ u_ <= r_ for i in range(predictions.shape[1])]
+        problem = cp.Problem(obj, constr)
+        if self.quiet:
+            old_stdout = sys.stdout
+            sys.stdout = open(os.devnull, "w")
+        opti = problem.solve(solver=cp.GUROBI)
+        if self.quiet:
+            sys.stdout = old_stdout
+        return r_.value, u_.value, opti, [x.dual_value.tolist() for x in problem.constraints]
+
+    def compute_dual_mdboostt(self, predictions):  # primal is maximization
+        r_ = cp.Variable()
+        u_ = cp.Variable(self.n_instances)
+        obj = cp.Minimize(r_ + 1/(2*self.regulator) * cp.quad_form((u_ - 1), self.A_inv))
+        constr = [predictions[:, i] @ u_ <= r_ for i in range(predictions.shape[1])]
+        constr.append(-u_ <= 0)
+        if self.regulator > 0:
+            constr.append(u_ <= self.regulator)
+        constr.append(cp.sum(u_) == 1)
         problem = cp.Problem(obj, constr)
         if self.quiet:
             old_stdout = sys.stdout

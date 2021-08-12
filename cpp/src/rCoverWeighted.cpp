@@ -5,7 +5,7 @@
 #include "rCoverWeighted.h"
 
 
-RCoverWeighted::RCoverWeighted(DataManager *dmm, vector<float>* weights):RCover(dmm), weights(weights) {}
+RCoverWeighted::RCoverWeighted(DataManager *dmm, vector<float>* weights):RCover(dmm, weights), weights(weights) {}
 
 RCoverWeighted::RCoverWeighted(RCoverWeighted &&cover, vector<float>* weights): RCover(move(cover)), weights(weights) {}
 

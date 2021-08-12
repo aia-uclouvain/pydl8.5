@@ -7,7 +7,7 @@ import time
 import numpy as np
 from sklearn.metrics import confusion_matrix
 
-dataset = np.genfromtxt("../datasets/paper.txt", delimiter=' ')
+dataset = np.genfromtxt("../../datasets/paper.txt", delimiter=' ')
 # dataset = np.genfromtxt("../datasets/paper.txt", delimiter=' ')
 X = dataset[:, 1:]
 y = dataset[:, 0]
@@ -31,45 +31,45 @@ print("######################################################################\n"
 # on remarque bien que l'objectif diminue a chaque itération mais ce n'est forcément preuve d'une bonne qualité
 # avec cart, passer de 10 à 15 itérations diminue l'objectif mais dégrade la qualité de la forêt (reg = 1)
 # ce qui n'est pas le cas avec DL8.5.Les observations sont un peu pareil en ratsch et mdboost mais ils augmentent un peu
-for i, mod in enumerate(models):
-    break
-    # for clf in [
-    #     DL85Booster(base_estimator=DecisionTreeClassifier(max_depth=depth, criterion='gini'), regulator=reguls[i], model=mod, verbose=False, quiet=True, max_iterations=max_iter),
-    #     DL85Booster(max_depth=depth, regulator=reguls[i], model=mod, verbose=False, quiet=True, max_iterations=max_iter),
-    # ]:
-    print("<<=== Optiboost ===>>")
-    # clf = DL85Booster(base_estimator=DecisionTreeClassifier(max_depth=depth, criterion='gini'), regulator=reguls[i], model=mod, verbose=False, quiet=False, max_iterations=max_iter)
-    clf = DL85Booster(max_depth=depth, regulator=reguls[i], model=mod, verbose=False, quiet=False, max_iterations=max_iter)
-    # clf = DL85Classifier(max_depth=2, time_limit=600, desc=True)
-    start = time.perf_counter()
-    print("Model building...")
-    clf.fit(X_train, y_train)
-    duration = time.perf_counter() - start
-    print("Model built. Duration of building =", round(duration, 4))
-    print("Number of trees =", clf.n_estimators_)
-    y_pred = clf.predict(X_test)
-    print("Confusion Matrix below")
-    # print(confusion_matrix(y_test, y_pred))
-    print(confusion_matrix(y_train, clf.predict(X_train)))
-    print("Accuracy DL85Booster +", model_names[i], "on training set =", round(accuracy_score(y_train, clf.predict(X_train)), 4))
-    print("Accuracy DL85Booster +", model_names[i], "on test set =", round(accuracy_score(y_test, y_pred), 4), "\n")
-    clf.estimator_weights_ = [float(i)/sum(clf.estimator_weights_) for i in clf.estimator_weights_]
-    predss = []
-    for estim in clf.estimators_:
-        predss.append([-1 if p != y_train[i] else 1 for i, p in enumerate(estim.predict(X_train))])
-    predss = np.array(predss).transpose()
-    margins_ = (predss @ np.array(clf.estimator_weights_).reshape(-1, 1)).transpose().tolist()[0]
-    print("len tree w", sum(clf.estimator_weights_), "w:", clf.estimator_weights_)
-    print("margins sorted", sorted(margins_), "\n")
-    mean = sum(margins_) / len(margins_)
-    variance = sum([((x - mean) ** 2) for x in margins_]) / len(margins_)
-    std = variance ** 0.5
-    print("min margin", min(margins_), "max margin", max(margins_), "avg margin", mean, "std margin", std)
-    n_neg = len([marg for marg in margins_ if marg < 0])
-    n_pos = len([marg for marg in margins_ if marg >= 0])
-    print("n_neg margins", n_neg, "n_pos margins", n_pos)
-    print("acc", n_pos / (n_pos + n_neg))
-print(X_train.shape)
+# for i, mod in enumerate(models):
+#     break
+#     # for clf in [
+#     #     DL85Booster(base_estimator=DecisionTreeClassifier(max_depth=depth, criterion='gini'), regulator=reguls[i], model=mod, verbose=False, quiet=True, max_iterations=max_iter),
+#     #     DL85Booster(max_depth=depth, regulator=reguls[i], model=mod, verbose=False, quiet=True, max_iterations=max_iter),
+#     # ]:
+#     print("<<=== Optiboost ===>>")
+#     # clf = DL85Booster(base_estimator=DecisionTreeClassifier(max_depth=depth, criterion='gini'), regulator=reguls[i], model=mod, verbose=False, quiet=False, max_iterations=max_iter)
+#     clf = DL85Booster(max_depth=depth, regulator=reguls[i], model=mod, verbose=False, quiet=False, max_iterations=max_iter)
+#     # clf = DL85Classifier(max_depth=2, time_limit=600, desc=True)
+#     start = time.perf_counter()
+#     print("Model building...")
+#     clf.fit(X_train, y_train)
+#     duration = time.perf_counter() - start
+#     print("Model built. Duration of building =", round(duration, 4))
+#     print("Number of trees =", clf.n_estimators_)
+#     y_pred = clf.predict(X_test)
+#     print("Confusion Matrix below")
+#     # print(confusion_matrix(y_test, y_pred))
+#     print(confusion_matrix(y_train, clf.predict(X_train)))
+#     print("Accuracy DL85Booster +", model_names[i], "on training set =", round(accuracy_score(y_train, clf.predict(X_train)), 4))
+#     print("Accuracy DL85Booster +", model_names[i], "on test set =", round(accuracy_score(y_test, y_pred), 4), "\n")
+#     clf.estimator_weights_ = [float(i)/sum(clf.estimator_weights_) for i in clf.estimator_weights_]
+#     predss = []
+#     for estim in clf.estimators_:
+#         predss.append([-1 if p != y_train[i] else 1 for i, p in enumerate(estim.predict(X_train))])
+#     predss = np.array(predss).transpose()
+#     margins_ = (predss @ np.array(clf.estimator_weights_).reshape(-1, 1)).transpose().tolist()[0]
+#     print("len tree w", sum(clf.estimator_weights_), "w:", clf.estimator_weights_)
+#     print("margins sorted", sorted(margins_), "\n")
+#     mean = sum(margins_) / len(margins_)
+#     variance = sum([((x - mean) ** 2) for x in margins_]) / len(margins_)
+#     std = variance ** 0.5
+#     print("min margin", min(margins_), "max margin", max(margins_), "avg margin", mean, "std margin", std)
+#     n_neg = len([marg for marg in margins_ if marg < 0])
+#     n_pos = len([marg for marg in margins_ if marg >= 0])
+#     print("n_neg margins", n_neg, "n_pos margins", n_pos)
+#     print("acc", n_pos / (n_pos + n_neg))
+# print(X_train.shape)
 
     # print("<<=== AdaBoost + CART ===>>")
     # ab = AdaBoostClassifier(base_estimator=DecisionTreeClassifier(max_depth=depth), n_estimators=clf.n_estimators_)
@@ -114,6 +114,7 @@ def nonzero(l):
 
 
 w = [0.04702562, 0.06138093, 0.33033682, 0.01767855, 0.09034457, 0.01944097, 0.21529075, 0.04468528, 0.02048239, 0.0802539,  0.07308022]
+w = [0.05, 0.06, 0.33, 0.02, 0.09, 0.02, 0.22, 0.04, 0.02, 0.08, 0.07]
 # w = np.random.dirichlet(np.ones(11),size=1)[0]
 print(w)
 
