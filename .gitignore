@@ -42,6 +42,8 @@ python_library/cython_extension/error_function.cpp
 python_library/cython_extension/error_function.h
 
 python_library/examples/gurobi.log
+python_library/examples/plots/anneal_odt
+python_library/examples/plots/anneal_odt.png
 
 python_library/*.so
 

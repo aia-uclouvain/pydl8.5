@@ -91,8 +91,9 @@ string search(Supports supports,
     Cache *cache;
     switch (cache_type) {
         case CacheHash:
-            cache = new Cache_Hash(nextPrime(cache_size), maxdepth);
-            cout << "caching with hashmap limited to " << nextPrime(cache_size) << " elements" << endl;
+//            cache = new Cache_Hash(nextPrime(cache_size), maxdepth);
+            cache = new Cache_Hash(cache_size, maxdepth);
+            cout << "caching with hashmap limited to " << cache_size << " elements" << endl;
             break;
         case CachePriority:
             cache = new Cache_Priority(nextPrime(cache_size), maxdepth);
@@ -100,7 +101,7 @@ string search(Supports supports,
             break;
         default:
             cache = new Cache_Trie(cache_size);
-            ///cout << "caching with trie" << endl;
+            cout << "caching with trie" << endl;
     }
     // create an empty trie for the search space
 //    Cache *cache = new Cache_Hash(1000003, maxdepth);
@@ -149,7 +150,8 @@ string search(Supports supports,
         auto stop_tree = high_resolution_clock::now();
         solution = new Freq_Solution(lcm, nodeDataManager);
         Tree *tree_out = solution->getTree();
-        ((Freq_Tree *) tree_out)->cacheSize = ((LcmPruned *) lcm)->latticesize;
+//        ((Freq_Tree *) tree_out)->cacheSize = ((LcmPruned *) lcm)->latticesize;
+        ((Freq_Tree *) tree_out)->cacheSize = cache->getCacheSize();
         ((Freq_Tree *) tree_out)->runtime = duration<double>(stop_tree - start_tree).count();
         out += ((Freq_Tree *) tree_out)->to_str();
 //        out += "latsize : " + to_string(((Freq_Tree *) tree_out)->cacheSize) + "\n";

@@ -53,6 +53,7 @@ Node *infeasiblecase(Node *node, Error *saved_lb, Error ub) {
 }
 
 Node * LcmPruned::getSolutionIfExists(Node *node, Error ub, Depth depth){
+
     Error *nodeError = &(((FND) node->data)->error);
     // in case the solution exists because the error of a newly created node is set to FLT_MAX
     if (*nodeError < FLT_MAX) {
@@ -72,7 +73,7 @@ Node * LcmPruned::getSolutionIfExists(Node *node, Error ub, Depth depth){
     }
 //    nodeDataManager->cover->getSupport();
 
-    // we cannot split tne node
+    // we cannot split the node
     if (depth == maxdepth || nodeDataManager->cover->getSupport() < 2 * minsup) {
         return cannotsplitmore(node, ub, nodeError, leafError);
     }
@@ -237,7 +238,7 @@ static bool lte(const TrieEdge edge, const Item item) {
  * @param cover - the transactions covered by the itemset
  * @param depth - the current depth in the search tree
  * @param ub - the upper bound of the search. It cannot be reached
- * @param computed_lb - a computed similarity lower bound. It can be reached
+ * @param newnode - a boolean value stating whether the node that we want to solve is newly create or not
  * @return the same node as get in parameter with added information about the best tree
  */
 Node *LcmPruned::recurse(Array<Item> itemset,
@@ -256,33 +257,23 @@ Node *LcmPruned::recurse(Array<Item> itemset,
     }
 
     if (newnode) {
-        Logger::showMessageAndReturn("New node");
-        Logger::showMessageAndReturn("after init of the new node. leaf error = ", ((FND) node->data)->leafError);
+        Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) node->data)->leafError);
         latticesize++;
     }
-    else Logger::showMessageAndReturn("the node exists");
+    else Logger::showMessageAndReturn("The node already exists");
+
     Node* result = getSolutionIfExists(node, ub, depth);
-//    cout << "haha " << result << endl;
-    if (result) {
+    if (result) { // the solution can be inferred without computation
         if ( ((FND)node->data)->left && ((FND)node->data)->right ){
-//                cout << "1" << endl;
-Item leftI_down = item(((FND)node->data)->test, 0);
-            TrieNode* left_down = (TrieNode*)cache->get(itemset, leftI_down);
-//                cout << "2" << endl;
-            Item rightI_down = item(((FND)node->data)->test, 1);
-            TrieNode* right_down = (TrieNode*)cache->get(itemset, rightI_down);
-//                cout << "3" << endl;
-            Array<Item> copy_itemset;
-            copy_itemset.duplicate(itemset);
-            ///cout << "result found. update importances" << endl;
-            ((TrieNode*) node)->changeImportance( left_down, right_down, copy_itemset, leftI_down, rightI_down, cache, true);
-            copy_itemset.free();
-            ///cout << "print loads after already found" << endl;
-            vector<Item> v;
-            ((Cache_Trie*)cache)->printload((TrieNode*)cache->root, v);
-            cout << "end print load" << endl;
+
+            Item leftItem_down = item(((FND)node->data)->test, 0);
+            Item rightItem_down = item(((FND)node->data)->test, 1);
+
+            // we should update subtree load
+//            Array<Item> copy_itemset;
+//            copy_itemset.duplicate(itemset);
+//            cache->updateSubTreeLoad( copy_itemset, leftItem_down, rightItem_down, true);
         }
-//        ((TrieNode*) node)->changeImportance((TrieNode*)node, nullptr, itemset, attr, cache);
         return result;
     }
     Logger::showMessageAndReturn("Node solution cannot be found without calculation");
@@ -326,12 +317,12 @@ Item leftI_down = item(((FND)node->data)->test, 0);
     // for each attribute. It can be used as a lower bound
     Error minlb = FLT_MAX;
 
-    //bount for the first child (item)
+    //bound for the first child (item)
     Error child_ub = ub;
 
-    vector<Item> vec_items;
-    vector<Node*> vec_nodes;
-    vector<Node*> best_nodes;
+//    vector<Item> vec_items;
+//    vector<Node*> vec_nodes;
+//    vector<Node*> best_nodes;
     int best_attr;
     // we evaluate the split on each candidate attribute
     for(const auto attr : next_attributes) {
@@ -365,7 +356,6 @@ Item leftI_down = item(((FND)node->data)->test, 0);
         // perform search on the first item
         nodeDataManager->cover->intersect(attr, first_item);
         itemsets[first_item] = addItem(itemset, item(attr, first_item));
-//        cout <<  "load: " << ((TrieNode*)node)->load << endl;
         pair<Node*, bool> node_state = cache->insert(itemsets[first_item], nodeDataManager);
         child_nodes[first_item] = node_state.first;
         new_node = node_state.second;
@@ -376,14 +366,18 @@ Item leftI_down = item(((FND)node->data)->test, 0);
         // perform the search for the first item
         child_nodes[first_item] = recurse(itemsets[first_item], attr, child_nodes[first_item], next_attributes,  depth + 1, child_ub, new_node);
 
+
         // check if the found information is relevant to compute the next similarity bounds
         addInfoForLowerBound(child_nodes[first_item]->data, b1_cover, b2_cover, b1_error, b2_error, highest_coversize);
         //cout << "after good bound 1" << " sc[0] = " << b1_sc[0] << " sc[1] = " << b1_sc[1] << " err = " << ((FND)nodes[first_item]->data)->error << endl;
         Error firstError = ((FND) child_nodes[first_item]->data)->error;
         itemsets[first_item].free();
         nodeDataManager->cover->backtrack();
-        vec_items.push_back(item(attr, first_item));
-        vec_nodes.push_back(child_nodes[first_item]);
+//        vec_items.push_back(item(attr, first_item));
+//        vec_nodes.push_back(child_nodes[first_item]);
+
+        Array<Item> copy_itemset;
+        copy_itemset.duplicate(itemset);
 
         if (nodeDataManager->canimprove(child_nodes[first_item]->data, child_ub)) {
             // perform search on the second item
@@ -406,95 +400,46 @@ Item leftI_down = item(((FND)node->data)->test, 0);
             Error secondError = ((FND) child_nodes[second_item]->data)->error;
             itemsets[second_item].free();
             nodeDataManager->cover->backtrack();
-            vec_items.push_back(item(attr, second_item));
-            vec_nodes.push_back(child_nodes[second_item]);
+//            vec_items.push_back(item(attr, second_item));
+//            vec_nodes.push_back(child_nodes[second_item]);
 
             Error feature_error = firstError + secondError;
-//            printItemset(itemset);
-//            if (itemset.size == 1 && itemset[0] == 0) cout << ((FND)((Cache_Hash*)cache)->bucket[2]->data)->leafError << endl;
-//            cout << ((FND)node->data)->leafError << endl;
-//            cout << ((FND)child_nodes[first_item]->data)->leafError << endl;
-//            printItemset(itemset, true);
-//            cout << "hereeez " << itemset.size << endl;
-//            cout << node->data << endl;
-//            cout << ((FND)node->data)->error << endl;
 
-//            cout << "hohoh" << endl;
-            TrieNode *old_left, *old_right;
-            int old_attr;
-            if ( !((FND)node->data)->left ) {
-//                cout << "fi" << endl;
-                old_left = nullptr;
-                old_right = nullptr;
-                old_attr = -1;
-//                cout << "fa" << endl;
-            }
-            else {
-//                cout << "fr" << endl;
-                old_left = (TrieNode*)best_nodes[0];
-                old_right = (TrieNode*)best_nodes[1];
-                old_attr = best_attr;
-//                old_left = lower_bound( ((TrieNode*)node)->edges.begin(), ((TrieNode*)node)->edges.end(), item(((FND)node->data)->test, 0), lte )->subtrie;
-//                old_right = lower_bound( ((TrieNode*)node)->edges.begin(), ((TrieNode*)node)->edges.end(), item(((FND)node->data)->test, 1), lte )->subtrie;
-//                cout << "gr" << endl;
-            }
-//            TrieNode *new_left = lower_bound( ((TrieNode*)node)->edges.begin(), ((TrieNode*)node)->edges.end(), item(attr, 0), lte )->subtrie;
-//            TrieNode *new_right = lower_bound( ((TrieNode*)node)->edges.begin(), ((TrieNode*)node)->edges.end(), item(attr, 1), lte )->subtrie;
-//            cout << "he" << endl;
-TrieNode *new_left = (TrieNode*)child_nodes[0];
-//            cout << "mo" << endl;
-            TrieNode *new_right = (TrieNode*)child_nodes[1];
-//            cout << "old new children" << endl;
+            int lastBestAttr = !((FND) node->data)->left ? -1 : best_attr;
 
-
-//            printItemset(itemset, true);
-//            cout << old_attr << endl;
             bool hasUpdated = nodeDataManager->updateData(node->data, child_ub, attr, child_nodes[0]->data, child_nodes[1]->data);
+
             if (hasUpdated) {
                 child_ub = feature_error;
-                best_nodes.clear();
-                best_nodes.push_back(child_nodes[0]);
-                best_nodes.push_back(child_nodes[1]);
+//                best_nodes.clear();
+//                best_nodes.push_back(child_nodes[0]);
+//                best_nodes.push_back(child_nodes[1]);
                 best_attr = attr;
-//                cout << endl;
-//                for (auto item: itemset) cout << item << ", ";
+                if (lastBestAttr != -1){
+//                    cache->updateSubTreeLoad(copy_itemset, item(lastBestAttr, 0), item(lastBestAttr, 1),false);
+                }
                 Logger::showMessageAndReturn("-after this attribute ", attr, ", node error=", *nodeError, " and ub=", child_ub);
             }
             // in case we get the real error, we update the minimum possible error
-            else minlb = min(minlb, feature_error);
-            //printItemset(itemset, true);
-            //cout << "current: " << ((FND)node->data)->test << " old: " << old << " hasupdated: " << hasUpdated << endl;
-            //node->updateNode(((FND)node->data)->test, old, hasUpdated);
+            else {
+                minlb = min(minlb, feature_error);
+//                cache->updateSubTreeLoad(copy_itemset, item(attr, 0), item(attr, 1),false);
+            }
 
-            Array<Item> copy_itemset;
-            copy_itemset.duplicate(itemset);
-            node->updateImportance(old_left, old_right, new_left, new_right, hasUpdated, copy_itemset, item(old_attr, 0), item(old_attr, 1), item(attr, 0), item(attr, 1), cache);
-            copy_itemset.free();
-            ///cout << "print loads after eval two items" << endl;
-            vector<Item> v;
-            ((Cache_Trie*)cache)->printload((TrieNode*)cache->root, v);
-            ///cout << "end print load" << endl;
-//            cout << "end up" << endl;
+            /*vector<Item> v;
+            ((Cache_Trie*)cache)->printload((TrieNode*)cache->root, v);*/
 
             if (nodeDataManager->canSkip(node->data)) { //lowerBound reached
                 Logger::showMessageAndReturn("We get the best solution. So, we break the remaining attributes");
                 break; //prune remaining attributes not browsed yet
             }
-        } else { //we do not attempt the second child, so we use its lower bound
+        }
+        else { //we do not attempt the second child, so we use its lower bound
             // if the first error is unknown, we use its lower bound
-            if (floatEqual(firstError, FLT_MAX)) minlb = min(minlb, first_lb + second_lb);
+            if (floatEqual(firstError, FLT_MAX)) minlb = min(minlb, ((FND) child_nodes[first_item]->data)->lowerBound + second_lb);
             // otherwise, we use it
             else minlb = min(minlb, firstError + second_lb);
-
-            Array<Item> copy_itemset;
-            copy_itemset.duplicate(itemset);
-            ///cout << "Item " << first_item << " not good. change importance" << endl;
-            ((TrieNode*) node)->changeImportance((TrieNode*)child_nodes[first_item], nullptr, copy_itemset, item(attr, first_item), -1, cache);
-            copy_itemset.free();
-            ///cout << "print loads after an item not good" << endl;
-            vector<Item> v;
-            ((Cache_Trie*)cache)->printload((TrieNode*)cache->root, v);
-            ///cout << "end print load" << endl;
+//            cache->updateSubTreeLoad(copy_itemset, item(attr, first_item), -1, false);
         }
 
         if (stopAfterError) {

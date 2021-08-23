@@ -15,15 +15,17 @@ struct TrieEdge {
 };
 
 struct TrieNode : Node {
+    // int load;
     vector<TrieEdge> edges;
-    int load;
-    int count_opti_path;
-    TrieNode(): load(-1), count_opti_path(1), Node() {}
-    ~TrieNode() {for (auto &edge : edges) delete edge.subtrie;}
-//    ~TrieNode() {for ( auto i = edges.begin (); i != edges.end (); ++i ) delete i->subtrie;}
-    static bool lte(const TrieEdge edge, const Item item) {
-        return edge.item < item;
+    TrieNode(): Node() {
+        count_opti_path = 1; //load(-1);
     }
+    ~TrieNode() {for (auto &edge : edges) delete edge.subtrie;}
+
+    /*static bool lte(const TrieEdge edge, const Item item) {
+        return edge.item < item;
+    }*/
+
     /*void update(Attribute attr){
         Item i1 = item(attr, 0); //neg item of the best attribute
         Item i2 = item(attr, 1); //pos item of the best attribute
@@ -36,7 +38,8 @@ struct TrieNode : Node {
             else if (edge.subtrie->load == -1) edge.subtrie->load = 0;
         }
     }*/
-    void update(vector<Item>& vec_items, vector<Node*>& vec_nodes) {
+
+    /*void update(vector<Item>& vec_items, vector<Node*>& vec_nodes) {
         Attribute attr = ((Freq_NodeData*)data)->test;
         Item i1 = item(attr, 0); //neg item of the best attribute
         Item i2 = item(attr, 1); //pos item of the best attribute
@@ -52,9 +55,9 @@ struct TrieNode : Node {
             // the item does not belong to the best attribute
             else if (node->load == -1) node->load = 0;
         }
-    }
+    }*/
 
-    void updateNode(Attribute attr, Attribute old, bool hasupdated) {
+    /*void updateNode(Attribute attr, Attribute old, bool hasupdated) {
 ///        cout << "fia" << endl;
 ///        for (auto &e: edges) {
 ///            cout << e.item << ", ";
@@ -79,9 +82,9 @@ struct TrieNode : Node {
             if (current_node1->load == -1) current_node1->load = 0;
             if (current_node2->load == -1) current_node2->load = 0;
         }
-    }
+    }*/
 
-    void changeImportance(TrieNode* first, TrieNode* second, Array<Item> itemset, Item firstI, Item secondI, Cache* cache, bool inc=false) {
+    /*void changeImportance(TrieNode* first, TrieNode* second, Array<Item> itemset, Item firstI, Item secondI, Cache* cache, bool inc=false) {
 //        cout << "change importance" << endl;
         TrieNode* nodes[] = {first, second};
         Array<Item> itemsets[] = { addItem(itemset, firstI), addItem(itemset, secondI) };
@@ -109,9 +112,9 @@ struct TrieNode : Node {
 //            cout << "else" << endl;
         }
 
-    }
+    }*/
 
-    void updateImportance(Node* old_first, Node* old_second, Node* new_first, Node* new_second, bool hasUpdated, Array<Item> itemset, Item old_firstI, Item old_secondI, Item new_firstI, Item new_secondI, Cache* cache){
+    /*void updateImportance(Node* old_first, Node* old_second, Node* new_first, Node* new_second, bool hasUpdated, Array<Item> itemset, Item old_firstI, Item old_secondI, Item new_firstI, Item new_secondI, Cache* cache){
 //        cout << "vvv" << endl;
 ///cout << "update importance ";
         if (hasUpdated){
@@ -122,7 +125,7 @@ struct TrieNode : Node {
             ///cout << "old" << endl;
             changeImportance((TrieNode*)new_first, (TrieNode*)new_second, itemset, new_firstI, new_secondI, cache);
         }
-    }
+    }*/
 };
 
 class Cache_Trie : public Cache {
@@ -133,9 +136,10 @@ public:
 
     int maxcachesize;
     pair<Node *, bool> insert ( Array<Item> itemset, NodeDataManager* );
-    Node *get ( Array<Item> itemset, Item item=-1 );
-    void uncountItemset(Array<Item> itemset, bool inc=false);
+    Node *get ( Array<Item> itemset );
+    void updateItemsetLoad(Array<Item> itemset, bool inc=false);
     void printload(TrieNode* node, vector<Item>& itemset);
+    void updateSubTreeLoad(Array<Item> itemset, Item firstI, Item secondI, bool inc=false);
 
 private:
     bool canwipe = true;

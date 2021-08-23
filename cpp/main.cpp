@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
 //     string datasetPath = "../dl85_dist_source/datasets/paper_.txt";
 //     string datasetPath = "../dl85_dist_source/datasets/paper_test.txt";
 //    string datasetPath = "../dl85_dist_source/datasets/soybean.txt";
-//    string datasetPath = "../dl85_dist_source/datasets/anneal.txt";
+//    string datasetPath = "../../datasets/anneal.txt";
 //    string datasetPath = "../dl85_dist_source/datasets/tic-tac-toe.txt";
 //    string datasetPath = "../../datasets/tic-tac-toe__.txt";
     string datasetPath = "../../datasets/soybean.txt";
@@ -100,13 +100,13 @@ int main(int argc, char *argv[]) {
     auto *sup = new SupportClass [supports.size()];
     for (int j = 0; j < (int) supports.size(); ++j) sup[j] = supports[j];
     int ntransactions = (int) (data.size()) / nfeatures, nclass = (int) supports.size();
-    int maxdepth = 2, minsup = 1, max_estimators = 1;
+    int maxdepth = 4, minsup = 1, max_estimators = 1;
 //    int cache_size = 50;
 //    int cache_size = 10;
 //    int cache_size = 3000000;
     int cache_size = 0;
-//    CacheType cache_type = CacheHash;
-    CacheType cache_type = CacheTrie;
+    CacheType cache_type = CacheHash;
+//    CacheType cache_type = CacheTrie;
 
     cout << "dataset: " << datasetPath.substr(datasetPath.find_last_of('/') + 1, datasetPath.find_last_of('.') - datasetPath.find_last_of('/') - 1) << endl;
     /*function<vector<float>()> example_weights_callback = generate_example_weights;

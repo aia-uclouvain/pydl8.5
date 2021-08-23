@@ -33,7 +33,7 @@ typedef int Support;
 // weighted support for a class
 typedef float SupportClass;
 // array of supports per class
-typedef SupportClass* Supports;
+typedef SupportClass *Supports;
 
 
 extern float epsilon;
@@ -103,35 +103,36 @@ void subSupports(Supports src1, Supports src2, Supports dest);
 
 bool floatEqual(float f1, float f2);
 
-void parallel_for(unsigned nb_elements, std::function<void (int start, int end)> functor, bool use_threads = true);
+void parallel_for(unsigned nb_elements, std::function<void(int start, int end)> functor, bool use_threads = true);
 
 
 // the array is a light-weight vector that does not do copying or resizing of storage space.
 template<class A>
 struct Array {
 public:
-    A* elts; //the "array" of elements
+
+    A *elts; //the "array" of elements
     int size; //the real size of elements in the array while "allocsize" is the allocated size
 
-    Array(){}
+    Array() {}
 
-    Array(A* elts_, int size_) {
+    Array(A *elts_, int size_) {
         elts = elts_;
         size = size_;
     }
 
-    /*Array(const Array<A> &ar) {
+    Array(const Array<A> &ar) {
         size = ar.size;
         elts = new A[ar.size];
         forEach(i, ar) elts[i] = ar.elts[i];
-    }*/
+    }
 
     Array(int allocsize, int size_) {
         size = size_;
         elts = new A[allocsize];
     }
 
-    void duplicate(const Array<A> &ar) {
+    void duplicate(const Array<A> ar) {
 //        if (elts) delete[] elts;
         size = ar.size;
         elts = new A[ar.size];
@@ -158,14 +159,13 @@ public:
         ++size;
     }
 
-    int getSize(){
+    int getSize() {
         return size;
     }
 
     A &operator[](int i) { return elts[i]; }
 
-    bool operator==(const Array<A>& rhs)
-    {
+    bool operator==(const Array<A> &rhs) const {
         if (elts == rhs.elts) return true;
         if (size != rhs.size) return false;
         forEach(i, rhs) if (elts[i] != *(rhs.elts + i)) return false;
@@ -174,28 +174,56 @@ public:
 
     class iterator {
     public:
-        iterator(A * ptr): ptr(ptr){}
-        iterator operator++() { ++ptr; return *this; }
-        bool operator!=(const iterator & other) const { return ptr != other.ptr; }
+        iterator(A *ptr) : ptr(ptr) {}
+
+        iterator operator++() {
+            ++ptr;
+            return *this;
+        }
+
+        bool operator!=(const iterator &other) const { return ptr != other.ptr; }
+
         // the const is add to only allow read. It is much faster but we lose in write
-        const A& operator*() const { return *ptr; }
+        const A &operator*() const { return *ptr; }
+
     private:
-        A* ptr;
+        A *ptr;
     };
 
     iterator begin() const { return iterator(elts); }
+
     iterator end() const { return iterator(elts + size); }
 };
+
+/*// custom hash can be a standalone function object:
+struct MyHash {
+    std::size_t operator()(S const &s) const noexcept {
+        std::size_t h1 = std::hash<std::string>{}(s.first_name);
+        std::size_t h2 = std::hash<std::string>{}(s.last_name);
+        return h1 ^ (h2 << 1); // or use boost::hash_combine
+    }
+};*/
+
+// custom specialization of std::hash can be injected in namespace std
+namespace std {
+    template<class A>
+    struct hash<Array<A>> {
+        std::size_t operator()(const Array<A>& array) const noexcept {
+            std::size_t h = array.size;
+            for (auto elt: array) h ^= elt + 0x9e3779b9 + 64 * h + h / 4;
+            return h;
+        }
+    };
+}
 
 
 void merge(Array<Item> src1, Array<Item> src2, Array<Item> dest);
 
 void addItem(Array<Item> src1, Item item, Array<Item> dest);
 
-Array<Item> addItem ( Array<Item> src1, Item item );
+Array<Item> addItem(Array<Item> src1, Item item);
 
-void printItemset(Array<Item> itemset, bool force=false);
-
+void printItemset(Array<Item> itemset, bool force = false);
 
 
 #endif

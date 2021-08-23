@@ -38,7 +38,7 @@ struct Freq_Tree {
             out += "Error: " + to_string(trainingError) + "\n";
             out += "Accuracy: " + to_string(accuracy) + "\n";
         }
-        out += "LatticeSize: " + to_string(cacheSize) + "\n";
+        out += "CacheSize: " + to_string(cacheSize) + "\n";
         out += "RunTime: " + to_string(runtime) + "\n";
         if (timeout) out += "Timeout: True\n";
         else out += "Timeout: False\n";
