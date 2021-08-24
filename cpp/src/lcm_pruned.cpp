@@ -182,7 +182,7 @@ Array<Attribute> LcmPruned::getSuccessors(Array<Attribute> last_candidates, Attr
 }
 
 // compute the similarity lower bound based on the best ever seen node or the node with the highest coversize
-Error LcmPruned::computeSimilarityLowerBound(bitset<M> *b1_cover, bitset<M> *b2_cover, Error b1_error, Error b2_error) {
+/*Error LcmPruned::computeSimilarityLowerBound(bitset<M> *b1_cover, bitset<M> *b2_cover, Error b1_error, Error b2_error) {
     return 0;
     if (is_python_error) return 0;
     Error bound = 0;
@@ -197,10 +197,10 @@ Error LcmPruned::computeSimilarityLowerBound(bitset<M> *b1_cover, bitset<M> *b2_
         }
     }
     return (bound > 0) ? bound : 0;
-}
+}*/
 
 // store the node with lowest error as well as the one with the largest cover in order to find a similarity lower bound
-void LcmPruned::addInfoForLowerBound(NodeData *node_data, bitset<M> *&b1_cover, bitset<M> *&b2_cover,
+/*void LcmPruned::addInfoForLowerBound(NodeData *node_data, bitset<M> *&b1_cover, bitset<M> *&b2_cover,
                                     Error &b1_error, Error &b2_error, Support &highest_coversize) {
 //    if (((FND) node_data)->error < FLT_MAX) {
     Error err = (((FND) node_data)->error < FLT_MAX) ? ((FND) node_data)->error : ((FND) node_data)->lowerBound;
@@ -219,11 +219,11 @@ void LcmPruned::addInfoForLowerBound(NodeData *node_data, bitset<M> *&b1_cover, 
         highest_coversize = sup;
     }
 //    }
-}
+}*/
 
-static bool lte(const TrieEdge edge, const Item item) {
+/*static bool lte(const TrieEdge edge, const Item item) {
     return edge.item < item;
-}
+}*/
 
 /** recurse - this method finds the best tree given an itemset and its cover and update
  * the information of the node representing the itemset. Each itemset is represented by a node and info about the
@@ -264,24 +264,23 @@ Node *LcmPruned::recurse(Array<Item> itemset,
 
     Node* result = getSolutionIfExists(node, ub, depth);
     if (result) { // the solution can be inferred without computation
-        if ( ((FND)node->data)->left && ((FND)node->data)->right ){
 
+        /*if ( ((FND)node->data)->left && ((FND)node->data)->right ){ // we should then update subtree load
             Item leftItem_down = item(((FND)node->data)->test, 0);
             Item rightItem_down = item(((FND)node->data)->test, 1);
+            Array<Item> copy_itemset;
+            copy_itemset.duplicate(itemset);
+            cache->updateSubTreeLoad( copy_itemset, leftItem_down, rightItem_down, true);
+        }*/
 
-            // we should update subtree load
-//            Array<Item> copy_itemset;
-//            copy_itemset.duplicate(itemset);
-//            cache->updateSubTreeLoad( copy_itemset, leftItem_down, rightItem_down, true);
-        }
         return result;
     }
     Logger::showMessageAndReturn("Node solution cannot be found without calculation");
 
     // in case the solution cannot be derived without computation and remaining depth is 2, we use a specific algorithm
-    /*if (nodeDataManager->maxdepth - depth == 2 && cover->getSupport() >= 2 * nodeDataManager->minsup && no_python_error) {
-        return computeDepthTwo(ub, next_candidates, last_added, itemset, node, nodeDataManager, computed_lb, nodeDataManager->trie, this);
-    }*/
+    if (maxdepth - depth == 2 && nodeDataManager->cover->getSupport() >= 2 * minsup && no_python_error) {
+        return computeDepthTwo(nodeDataManager->cover, ub, next_candidates, last_added, itemset, node, nodeDataManager, ((FND) node->data)->lowerBound, cache, this);
+    }
 
     /* the node solution cannot be computed without calculation. at this stage, we will make a search through successors*/
     Error leafError = ((FND) node->data)->leafError;
@@ -307,23 +306,29 @@ Node *LcmPruned::recurse(Array<Item> itemset,
         return node;
     }
 
-    // parameters for similarity lower bound
-    bool first_item = false, second_item = true;
-    bitset<M> *b1_cover = nullptr, *b2_cover = nullptr;
+    //===== parameters for similarity lower bound =====//
+    /*bitset<M> *b1_cover = nullptr, *b2_cover = nullptr;
     // Supports b1_sc = nullptr, b2_sc = nullptr;
     Error b1_error = 0, b2_error = 0;
-    Support highest_coversize = 0;
-    // in case solution, is not found, this value is the minimum of the minimum error
-    // for each attribute. It can be used as a lower bound
+    Support highest_coversize = 0;*/
+    //===== parameters for similarity lower bound =====//
+
+    // vector<Item> vec_items;
+    // vector<Node*> vec_nodes;
+    // vector<Node*> best_nodes;
+
+    /* in case solution, is not found, this value is the minimum of the minimum
+     * error of each attribute. It can be used as a lower bound for the current node*/
     Error minlb = FLT_MAX;
 
-    //bound for the first child (item)
+    bool first_item, second_item;
+
+    // upper bound for the first child (item)
     Error child_ub = ub;
 
-//    vector<Item> vec_items;
-//    vector<Node*> vec_nodes;
-//    vector<Node*> best_nodes;
+    // the best feature for the current node
     int best_attr;
+
     // we evaluate the split on each candidate attribute
     for(const auto attr : next_attributes) {
         Logger::showMessageAndReturn("\n\nWe are evaluating the attribute : ", attr);
@@ -340,16 +345,17 @@ Node *LcmPruned::recurse(Array<Item> itemset,
          want to use it, please comment the next block. 0/1 order is used in this case.*/
 
         //=========================== BEGIN BLOCK ==========================//
-        nodeDataManager->cover->intersect(attr, false);
+        /*nodeDataManager->cover->intersect(attr, false);
         first_lb = computeSimilarityLowerBound(b1_cover, b2_cover, b1_error, b2_error);
         nodeDataManager->cover->backtrack();
 
         nodeDataManager->cover->intersect(attr);
         second_lb = computeSimilarityLowerBound(b1_cover, b2_cover, b1_error, b2_error);
-        nodeDataManager->cover->backtrack();
+        nodeDataManager->cover->backtrack();*/
         //=========================== END BLOCK ==========================//
 
 
+        // the first item is the one with the highest lower bound
         first_item = second_lb > first_lb;
         second_item = !first_item;
 
@@ -360,7 +366,7 @@ Node *LcmPruned::recurse(Array<Item> itemset,
         child_nodes[first_item] = node_state.first;
         new_node = node_state.second;
         // if lower bound was not computed
-        if (floatEqual(first_lb, -1)) first_lb = computeSimilarityLowerBound(b1_cover, b2_cover, b1_error, b2_error);
+//        if (floatEqual(first_lb, -1)) first_lb = computeSimilarityLowerBound(b1_cover, b2_cover, b1_error, b2_error);
         // the best lower bound between the computed and the saved is used
         ((FND) child_nodes[first_item]->data)->lowerBound = (!new_node) ? max(((FND) child_nodes[first_item]->data)->lowerBound, first_lb) : first_lb;
         // perform the search for the first item
@@ -368,7 +374,7 @@ Node *LcmPruned::recurse(Array<Item> itemset,
 
 
         // check if the found information is relevant to compute the next similarity bounds
-        addInfoForLowerBound(child_nodes[first_item]->data, b1_cover, b2_cover, b1_error, b2_error, highest_coversize);
+//        addInfoForLowerBound(child_nodes[first_item]->data, b1_cover, b2_cover, b1_error, b2_error, highest_coversize);
         //cout << "after good bound 1" << " sc[0] = " << b1_sc[0] << " sc[1] = " << b1_sc[1] << " err = " << ((FND)nodes[first_item]->data)->error << endl;
         Error firstError = ((FND) child_nodes[first_item]->data)->error;
         itemsets[first_item].free();
@@ -387,7 +393,7 @@ Node *LcmPruned::recurse(Array<Item> itemset,
             node_state = cache->insert(itemsets[second_item], nodeDataManager);
             child_nodes[second_item] = node_state.first;
             new_node = node_state.second;
-            if (floatEqual(second_lb, -1)) second_lb = computeSimilarityLowerBound(b1_cover, b2_cover, b1_error, b2_error);
+//            if (floatEqual(second_lb, -1)) second_lb = computeSimilarityLowerBound(b1_cover, b2_cover, b1_error, b2_error);
             // the best lower bound between the computed and the saved is used
             ((FND) child_nodes[second_item]->data)->lowerBound = (!new_node) ? max(((FND) child_nodes[second_item]->data)->lowerBound, second_lb) : second_lb;
             // bound for the second child (item)
@@ -396,7 +402,7 @@ Node *LcmPruned::recurse(Array<Item> itemset,
             child_nodes[second_item] = recurse(itemsets[second_item], attr, child_nodes[second_item], next_attributes, depth + 1, remainUb, new_node);
 
             // check if the found information is relevant to compute the next similarity bounds
-            addInfoForLowerBound(child_nodes[second_item]->data, b1_cover, b2_cover, b1_error, b2_error, highest_coversize);
+//            addInfoForLowerBound(child_nodes[second_item]->data, b1_cover, b2_cover, b1_error, b2_error, highest_coversize);
             Error secondError = ((FND) child_nodes[second_item]->data)->error;
             itemsets[second_item].free();
             nodeDataManager->cover->backtrack();
@@ -449,8 +455,8 @@ Node *LcmPruned::recurse(Array<Item> itemset,
             }
         }
     }
-    delete[] b1_cover;
-    delete[] b2_cover;
+//    delete[] b1_cover;
+//    delete[] b2_cover;
 
     // we do not find the solution and the new lower bound is better than the old
     if (floatEqual(*nodeError, FLT_MAX) && max(ub, minlb) > ((FND) node->data)->lowerBound) ((FND) node->data)->lowerBound = max(ub, minlb);

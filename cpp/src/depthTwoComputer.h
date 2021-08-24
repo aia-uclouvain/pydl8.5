@@ -13,15 +13,18 @@
 
 #include "rCover.h"
 #include "cache.h"
-#include "freq_nodedataManager.h"
 #include "solution.h"
+#include "freq_nodedataManager.h"
+#include "rCoverTotalFreq.h"
+//#include "lcm_pruned.h"
 #include <chrono>
 #include <utility>
-#include "rCoverTotalFreq.h"
 
 using namespace std::chrono;
 
-Node* computeDepthTwo(RCover*, Error, Array<Attribute>, Attribute, Array<Item>, Node*, NodeDataManager*, Error, Cache*);
+class LcmPruned;
+
+Node* computeDepthTwo(RCover*, Error, Array<Attribute>, Attribute, Array<Item>, Node*, NodeDataManager*, Error, Cache*, LcmPruned*);
 
 struct TreeTwo{
     Freq_NodeData* root_data;

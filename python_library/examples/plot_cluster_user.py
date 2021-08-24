@@ -30,6 +30,7 @@ print("#########################################################################
 # The quality of every cluster is determined using the Euclidean distance.
 eucl_dist = DistanceMetric.get_metric('euclidean')
 
+
 # user error function
 def error(tids):
     # collect the complete examples identified using the tids. 
@@ -41,10 +42,12 @@ def error(tids):
     # return the sum of distances as the error
     return float(sum(distances))
 
+
 # user leaf assignment
 def leaf_value(tids):
     # The prediction for every leaf is the centroid of the cluster
     return np.mean(X.take(list(tids)))
+
 
 # Change the parameters of the algorithm as desired.
 clf = DL85Predictor(max_depth=2, min_sup=5, error_function=error, leaf_value_function=leaf_value, time_limit=600)

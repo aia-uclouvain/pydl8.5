@@ -105,8 +105,8 @@ int main(int argc, char *argv[]) {
 //    int cache_size = 10;
 //    int cache_size = 3000000;
     int cache_size = 0;
-    CacheType cache_type = CacheHash;
-//    CacheType cache_type = CacheTrie;
+//    CacheType cache_type = CacheHash;
+    CacheType cache_type = CacheTrie;
 
     cout << "dataset: " << datasetPath.substr(datasetPath.find_last_of('/') + 1, datasetPath.find_last_of('.') - datasetPath.find_last_of('/') - 1) << endl;
     /*function<vector<float>()> example_weights_callback = generate_example_weights;

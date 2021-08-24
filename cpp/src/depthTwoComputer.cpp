@@ -387,6 +387,7 @@ Node* computeDepthTwo(RCover* cover,
             auto stop = high_resolution_clock::now();
             spectime += duration<double>(stop - stop_comp).count();
             if (verbose) cout << "best twotree error = " << to_string(best_tree->root_data->error) << endl;
+            cache->cachesize += 3;
             return node;
         }
 
@@ -397,6 +398,7 @@ Node* computeDepthTwo(RCover* cover,
         spectime += duration<double>(stop - stop_comp).count();
 
         if (verbose) cout << "best twotree error = " << to_string(best_tree->root_data->error) << endl;
+        cache->cachesize += 1;
         return node;
     } else {
         //error not lower than ub

@@ -55,10 +55,9 @@ public:
 
 //    Array<Attribute> getExistingSuccessors(TrieNode* node);
 
-    Error computeSimilarityLowerBound(bitset<M> *b1_cover, bitset<M> *b2_cover, Error b1_error, Error b2_error);
+//    Error computeSimilarityLowerBound(bitset<M> *b1_cover, bitset<M> *b2_cover, Error b1_error, Error b2_error);
 
-    void addInfoForLowerBound(NodeData *node_data, bitset<M> *&b1_cover, bitset<M> *&b2_cover,
-                              Error &b1_error, Error &b2_error, Support &highest_coversize);
+//    void addInfoForLowerBound(NodeData *node_data, bitset<M> *&b1_cover, bitset<M> *&b2_cover, Error &b1_error, Error &b2_error, Support &highest_coversize);
 
     float informationGain ( Supports notTaken, Supports taken);
 
