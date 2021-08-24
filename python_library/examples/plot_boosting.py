@@ -7,7 +7,7 @@ import time
 import numpy as np
 from sklearn.metrics import confusion_matrix
 
-dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')
+dataset = np.genfromtxt("../../datasets/anneal.txt", delimiter=' ')
 X = dataset[:, 1:]
 y = dataset[:, 0]
 X = X.astype('int32')

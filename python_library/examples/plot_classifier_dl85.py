@@ -15,7 +15,7 @@ from dl85 import DL85Classifier
 from sklearn.tree import DecisionTreeClassifier
 import random
 
-dataset = np.genfromtxt("../../datasets/soybean.txt", delimiter=' ')
+dataset = np.genfromtxt("../../datasets/anneal.txt", delimiter=' ')
 X = dataset[:, 1:]
 y = dataset[:, 0]
 X = X.astype('int32')
@@ -27,7 +27,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 print("######################################################################\n"
       "#                      DL8.5 default classifier                      #\n"
       "######################################################################")
-clf = DL85Classifier(max_depth=2, time_limit=600, desc=True, verbose=True)
+clf = DL85Classifier(max_depth=2, time_limit=600, desc=True)
 start = time.perf_counter()
 print("Model building...")
 clf.fit(X, y)
@@ -74,4 +74,3 @@ scores = cross_val_score(clf, X, y, cv=5)
 duration = time.perf_counter() - start
 print("Model built. Duration of building =", round(duration, 4))
 print("Average accuracy on test set =", round(np.mean(scores), 4))
-

@@ -93,15 +93,15 @@ string search(Supports supports,
         case CacheHash:
 //            cache = new Cache_Hash(nextPrime(cache_size), maxdepth);
             cache = new Cache_Hash(cache_size, maxdepth);
-            cout << "caching with hashmap limited to " << cache_size << " elements" << endl;
+//            cout << "caching with hashmap limited to " << cache_size << " elements" << endl;
             break;
         case CachePriority:
             cache = new Cache_Priority(nextPrime(cache_size), maxdepth);
-            cout << "caching with priority queue limited to " << nextPrime(cache_size) << " elements" << endl;
+//            cout << "caching with priority queue limited to " << nextPrime(cache_size) << " elements" << endl;
             break;
         default:
             cache = new Cache_Trie(cache_size);
-            cout << "caching with trie" << endl;
+//            cout << "caching with trie" << endl;
     }
     // create an empty trie for the search space
 //    Cache *cache = new Cache_Hash(1000003, maxdepth);
