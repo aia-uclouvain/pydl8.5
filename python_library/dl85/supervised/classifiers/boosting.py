@@ -227,34 +227,18 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         predictions, r, self.n_iterations_, constant = None, None, 1, 0.0001
 
         if self.model == MODEL_QP_MDBOOST:
-            # A_inv = None
+            # Define the inverse of the A matrix
             if self.gamma is None:
-                # Build positive semidefinite A matrix
                 self.A_inv = np.full((self.n_instances, self.n_instances), -1/(self.n_instances - 1), dtype=np.float64)
                 np.fill_diagonal(self.A_inv, 1)
-                # regularize A to make sure it is really PSD
-                self.A_inv = np.add(self.A_inv, np.dot(np.eye(self.n_instances), constant))
+                self.A_inv = np.add(self.A_inv, np.dot(np.eye(self.n_instances), constant))  # regularize A_inv to make sure it is really PSD
             else:
-                if self.gamma == 'auto':
-                    self.gamma = 1 / self.n_instances
-                elif self.gamma == 'scale':
-                    self.gamma = 1 / (self.n_features * X.var())
-                elif self.gamma == 'nscale':
-                    # scaler = MinMaxScaler(feature_range=(-10, 10))
-                    # self.gamma = 1 / scaler.fit_transform(X).var()
-                    self.gamma = 1 / X.var()
+                self.gamma = 1 / self.n_instances if self.gamma == 'auto' else 1 / (self.n_features * X.var()) if self.gamma == 'scale' else 1 / X.var() if self.gamma == 'nscale' else 1 / self.n_instances
                 self.A_inv = np.identity(self.n_instances, dtype=np.float64)
                 for i in range(self.n_instances):
                     for j in range(self.n_instances):
                         if i != j:
                             self.A_inv[i, j] = np.exp(-self.gamma * np.linalg.norm(np.subtract(X[i, :], X[j, :]))**2)
-                        # else:
-                        #     self.A_inv[i, j] = 1
-                        # for k in range(n_instances):
-                        #     if k != i:
-                        #         self.A_inv[i, j] += np.exp(-self.gamma * np.linalg.norm(np.subtract(X[i, :], X[k, :]))**2)
-            # if not is_pos_def(self.A_inv) and not is_semipos_def(self.A_inv):
-            # A_inv = np.add(self.A_inv, np.dot(np.eye(n_instances), constant))
 
             if not self.quiet:
                 print(self.A_inv)
@@ -463,43 +447,6 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         if self.quiet:
             sys.stdout = old_stdout
         return r_.value, u_.value, opti, [x.dual_value.tolist() for x in problem.constraints[:predictions.shape[1]]]
-
-    def compute_dual_aglin(self, predictions):  # primal is maximization
-        r_ = cp.Variable()
-        u_ = cp.Variable(self.n_instances)
-        v_ = cp.Variable(self.n_instances)
-        obj = cp.Minimize(r_)
-        constr = [-(predictions[:, t] @ u_) <= r_ for t in range(predictions.shape[1])]
-        constr.append(u_ + v_ == -1)
-        constr.append(cp.sum(v_) == self.regulator)
-        constr.append(-v_ <= 0)
-        problem = cp.Problem(obj, constr)
-        if self.quiet:
-            old_stdout = sys.stdout
-            sys.stdout = open(os.devnull, "w")
-        opti = problem.solve(solver=cp.GUROBI)
-        if self.quiet:
-            sys.stdout = old_stdout
-        # print(predictions.shape[1])
-        # print(problem.constraints)
-        # print("size cons", len([x.dual_value for x in problem.constraints[:predictions.shape[1]]]))
-        # print("size cons", len([x.dual_value for x in problem.constraints]))
-        # print("type cons", type([x.dual_value for x in problem.constraints][1]))
-        # print("size cons", [x.dual_value for x in problem.constraints][0].shape)
-        # print("size cons", [x.dual_value for x in problem.constraints][0])
-        # print("size cons", [x.dual_value for x in problem.constraints][1].shape)
-        # print("size cons", [x.dual_value for x in problem.constraints][2].shape)
-        # print("size cons", [x.dual_value for x in problem.constraints][3].shape)
-        # print("size cons", len([x.dual_value for x in problem.constraints[0]]))
-        # print("size cons", len(problem.constraints[1]))
-        # print("size cons", len(problem.constraints[2]))
-        # print("size cons", len(problem.constraints[3]))
-        # print(type([x.dual_value for x in problem.constraints[predictions.shape[1]:predictions.shape[1] + 1]]))
-        # print(type([x.dual_value for x in problem.constraints[predictions.shape[1]:predictions.shape[1] + 1]][0]))
-        # print(type(np.array([x.dual_value for x in problem.constraints[predictions.shape[1]:predictions.shape[1] + 1]])))
-        # print([x.dual_value for x in problem.constraints[predictions.shape[1]:predictions.shape[1] + 1]])
-        # return r_.value, [x.dual_value for x in problem.constraints[predictions.shape[1]:predictions.shape[1] + 1]][0], opti, [x.dual_value.tolist() for x in problem.constraints[:predictions.shape[1]]]
-        return r_.value, v_.value, opti, [x.dual_value.tolist() for x in problem.constraints[:predictions.shape[1]]]
 
     def compute_dual_demiriz(self, predictions):  # primal is minimization
         u_ = cp.Variable(self.n_instances)
