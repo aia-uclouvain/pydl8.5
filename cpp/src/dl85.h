@@ -25,7 +25,7 @@
 #include "rCoverTotalFreq.h"
 #include "rCoverWeighted.h"
 #include "lcm_pruned.h"
-#include "lcm_iterative.h"
+//#include "lcm_iterative.h"
 #include "freq_nodedataManager.h"
 #include "freq_Solution.h"
 #include "cache_hash.h"
@@ -34,8 +34,6 @@
 //#include "query_weighted.h"
 
 using namespace std;
-
-enum CacheType { CacheTrie, CacheHash, CachePriority };
 
 /** search - the starting function that calls all the other to comp
  *
@@ -65,38 +63,40 @@ enum CacheType { CacheTrie, CacheHash, CachePriority };
  * @param verbose_param - a boolean value to set whether the search must be verbose or not. Default value is false
  * @return a string representing a serialized form of the found tree is returned
  */
-string search(Supports supports,
-              int ntransactions,
-              int nattributes,
-              int nclasses,
-              Bool *data,
-              Class *target,
-              int maxdepth = 1,
-              int minsup = 1,
-              float maxError = 0,
-              bool stopAfterError = false,
-              bool iterative = false,
-              //get a pointer on cover as param and return a vector of float. Due to iterator behaviour of RCover
-              // object and the wrapping done in cython, this pointer in python is seen as a list of tids in the cover
-              function<vector<float>(RCover *)> tids_error_class_callback = nullptr,
-              //get a pointer on cover as param and return a vector of float. Due to iterator behaviour of RCover object
-              // and the wrapping done in cython, this pointer in python is seen as a list of support per class of the cover
-              function<vector<float>(RCover *)> supports_error_class_callback = nullptr,
-              //get a pointer on cover as param and return a float. Due to iterator behaviour of RCover object and the
-              // wrapping done in cython, this pointer in python is seen as a list of tids in the cover
-              function<float(RCover *)> tids_error_callback = nullptr,
-              float *in_weights = nullptr,
-              bool tids_error_class_is_null = true,
-              bool supports_error_class_is_null = true,
-              bool tids_error_is_null = true,
-              bool infoGain = false,
-              bool infoAsc = true,
-              bool repeatSort = false,
-              int timeLimit = 0,
-              map<int, pair<int, int>> *continuousMap = nullptr,
-              bool save = false,
-              bool verbose_param = false,
-              CacheType cache_type = CacheTrie,
-              int cache_size = 1000);
+string search(
+        Supports supports,
+        Transaction ntransactions,
+        Attribute nattributes,
+        Class nclasses,
+        Bool *data,
+        Class *target,
+        Depth maxdepth = 1,
+        Support minsup = 1,
+        Error maxError = 0,
+        bool stopAfterError = false,
+        bool iterative = false,
+        //get a pointer on cover as param and return a vector of float. Due to iterator behaviour of RCover
+        // object and the wrapping done in cython, this pointer in python is seen as a list of tids in the cover
+        function<vector<float>(RCover *)> tids_error_class_callback = nullptr,
+        //get a pointer on cover as param and return a vector of float. Due to iterator behaviour of RCover object
+        // and the wrapping done in cython, this pointer in python is seen as a list of support per class of the cover
+        function<vector<float>(RCover *)> supports_error_class_callback = nullptr,
+        //get a pointer on cover as param and return a float. Due to iterator behaviour of RCover object and the
+        // wrapping done in cython, this pointer in python is seen as a list of tids in the cover
+        function<float(RCover *)> tids_error_callback = nullptr,
+        float *in_weights = nullptr,
+        bool tids_error_class_is_null = true,
+        bool supports_error_class_is_null = true,
+        bool tids_error_is_null = true,
+        bool infoGain = false,
+        bool infoAsc = true,
+        bool repeatSort = false,
+        int timeLimit = 0,
+        map<int, pair<int, int>> *continuousMap = nullptr,
+        bool save = false,
+        bool verbose_param = false,
+        CacheType cache_type = CacheTrie,
+        int cache_size = 1000,
+        WipeType wipe_type = WipeAll);
 
 #endif //DL85_DL85_H

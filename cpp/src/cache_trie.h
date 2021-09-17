@@ -131,20 +131,20 @@ struct TrieNode : Node {
 class Cache_Trie : public Cache {
 //friend class Query_TotalFreq;
 public:
-    Cache_Trie(int maxcachesize=0);
+    Cache_Trie(Depth maxdepth, WipeType wipe_type=WipeAll, int maxcachesize=0);
     ~Cache_Trie(){};
 
-    int maxcachesize;
     pair<Node *, bool> insert ( Array<Item> itemset, NodeDataManager* );
     Node *get ( Array<Item> itemset );
     void updateItemsetLoad(Array<Item> itemset, bool inc=false);
     void printload(TrieNode* node, vector<Item>& itemset);
     void updateSubTreeLoad(Array<Item> itemset, Item firstI, Item secondI, bool inc=false);
+    int getCacheSize();
+    void wipe(Node* node, WipeType cache_type, Depth depth = 1);
 
 private:
     bool canwipe = true;
-    void wipe(TrieNode* node, vector<Item>& itemset, int &unsure_count, int &inopti_count);
-    TrieNode *createTree ( Array<Item> itemset, int pos, TrieNode *&last, NodeDataManager* nodeDataManager );
+    TrieNode *addNonExistingItemsetPart ( Array<Item> itemset, int pos, vector<TrieEdge>::iterator& geqEdge_it, TrieNode *&last, NodeDataManager* nodeDataManager );
 
 };
 

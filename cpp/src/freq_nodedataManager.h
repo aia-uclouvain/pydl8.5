@@ -47,9 +47,9 @@ public:
 
     bool updateData(NodeData *best, Error upperBound, Attribute attribute, NodeData *left, NodeData *right);
 
-    NodeData *initData(Depth currentMaxDepth = -1, int hashcode = -1);
+    NodeData *initData(RCover *cov = nullptr, Depth currentMaxDepth = -1, int hashcode = -1);
 
-    LeafInfo computeLeafInfo();
+    LeafInfo computeLeafInfo(RCover *cov = nullptr);
 
     LeafInfo computeLeafInfo(Supports itemsetSupport);
 

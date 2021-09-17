@@ -16,7 +16,7 @@ struct PriorityNode : Node {
 
 class Cache_Priority: public Cache {
 public:
-    Cache_Priority(int cachesize, int maxlength);
+    Cache_Priority(Depth maxdepth, WipeType wipe_type, int maxcachesize);
     ~Cache_Priority() { delete[] bucket; }
 
     struct cmp {
@@ -24,8 +24,6 @@ public:
             return a.first > b.first; // < for Max heap (highest first) and > for min heap (lowest first)
         };
     };
-    int cachesize;
-    int maxlength;
     PriorityNode** bucket;
     priority_queue<NodePriority, vector<NodePriority>, cmp> nodemapper;
     pair<Node *, bool>insert ( Array<Item> itemset, NodeDataManager* );

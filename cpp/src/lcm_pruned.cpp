@@ -75,6 +75,7 @@ Node * LcmPruned::getSolutionIfExists(Node *node, Error ub, Depth depth){
 
     // we cannot split the node
     if (depth == maxdepth || nodeDataManager->cover->getSupport() < 2 * minsup) {
+        node->solution_effort = 1;
         return cannotsplitmore(node, ub, nodeError, leafError);
     }
 
@@ -265,22 +266,22 @@ Node *LcmPruned::recurse(Array<Item> itemset,
     Node* result = getSolutionIfExists(node, ub, depth);
     if (result) { // the solution can be inferred without computation
 
-        /*if ( ((FND)node->data)->left && ((FND)node->data)->right ){ // we should then update subtree load
+        if ( ((FND)node->data)->left && ((FND)node->data)->right && cache->maxcachesize > NO_CACHE_LIMIT ){ // we should then update subtree load
             Item leftItem_down = item(((FND)node->data)->test, 0);
             Item rightItem_down = item(((FND)node->data)->test, 1);
             Array<Item> copy_itemset;
             copy_itemset.duplicate(itemset);
             cache->updateSubTreeLoad( copy_itemset, leftItem_down, rightItem_down, true);
-        }*/
+        }
 
         return result;
     }
     Logger::showMessageAndReturn("Node solution cannot be found without calculation");
 
     // in case the solution cannot be derived without computation and remaining depth is 2, we use a specific algorithm
-    if (maxdepth - depth == 2 && nodeDataManager->cover->getSupport() >= 2 * minsup && no_python_error) {
+    /*if (maxdepth - depth == 2 && nodeDataManager->cover->getSupport() >= 2 * minsup && no_python_error) {
         return computeDepthTwo(nodeDataManager->cover, ub, next_candidates, last_added, itemset, node, nodeDataManager, ((FND) node->data)->lowerBound, cache, this);
-    }
+    }*/
 
     /* the node solution cannot be computed without calculation. at this stage, we will make a search through successors*/
     Error leafError = ((FND) node->data)->leafError;
@@ -362,6 +363,7 @@ Node *LcmPruned::recurse(Array<Item> itemset,
         // perform search on the first item
         nodeDataManager->cover->intersect(attr, first_item);
         itemsets[first_item] = addItem(itemset, item(attr, first_item));
+//        cout << "load: " << node->count_opti_path << endl;
         pair<Node*, bool> node_state = cache->insert(itemsets[first_item], nodeDataManager);
         child_nodes[first_item] = node_state.first;
         new_node = node_state.second;
@@ -371,6 +373,8 @@ Node *LcmPruned::recurse(Array<Item> itemset,
         ((FND) child_nodes[first_item]->data)->lowerBound = (!new_node) ? max(((FND) child_nodes[first_item]->data)->lowerBound, first_lb) : first_lb;
         // perform the search for the first item
         child_nodes[first_item] = recurse(itemsets[first_item], attr, child_nodes[first_item], next_attributes,  depth + 1, child_ub, new_node);
+        node->solution_effort += child_nodes[first_item]->solution_effort;
+        cache->max_solution_effort = max(cache->max_solution_effort, node->solution_effort);
 
 
         // check if the found information is relevant to compute the next similarity bounds
@@ -389,6 +393,7 @@ Node *LcmPruned::recurse(Array<Item> itemset,
             // perform search on the second item
             nodeDataManager->cover->intersect(attr, second_item);
             itemsets[second_item] = addItem(itemset, item(attr, second_item));
+//            cout << "aaa" << endl;
 //            cout <<  "load: " << ((TrieNode*)node)->load << endl;
             node_state = cache->insert(itemsets[second_item], nodeDataManager);
             child_nodes[second_item] = node_state.first;
@@ -400,6 +405,8 @@ Node *LcmPruned::recurse(Array<Item> itemset,
             Error remainUb = child_ub - firstError;
             // perform the search for the second item
             child_nodes[second_item] = recurse(itemsets[second_item], attr, child_nodes[second_item], next_attributes, depth + 1, remainUb, new_node);
+            node->solution_effort += child_nodes[second_item]->solution_effort;
+            cache->max_solution_effort = max(cache->max_solution_effort, node->solution_effort);
 
             // check if the found information is relevant to compute the next similarity bounds
 //            addInfoForLowerBound(child_nodes[second_item]->data, b1_cover, b2_cover, b1_error, b2_error, highest_coversize);
@@ -410,7 +417,8 @@ Node *LcmPruned::recurse(Array<Item> itemset,
 //            vec_nodes.push_back(child_nodes[second_item]);
 
             Error feature_error = firstError + secondError;
-
+            printItemset(itemset);
+//            cout << "&" << endl;
             int lastBestAttr = !((FND) node->data)->left ? -1 : best_attr;
 
             bool hasUpdated = nodeDataManager->updateData(node->data, child_ub, attr, child_nodes[0]->data, child_nodes[1]->data);
@@ -421,15 +429,16 @@ Node *LcmPruned::recurse(Array<Item> itemset,
 //                best_nodes.push_back(child_nodes[0]);
 //                best_nodes.push_back(child_nodes[1]);
                 best_attr = attr;
-                if (lastBestAttr != -1){
-//                    cache->updateSubTreeLoad(copy_itemset, item(lastBestAttr, 0), item(lastBestAttr, 1),false);
-                }
+                if (lastBestAttr != -1 && cache->maxcachesize > NO_CACHE_LIMIT) cache->updateSubTreeLoad(copy_itemset, item(lastBestAttr, 0), item(lastBestAttr, 1),false);
+                else copy_itemset.free();
+
                 Logger::showMessageAndReturn("-after this attribute ", attr, ", node error=", *nodeError, " and ub=", child_ub);
             }
             // in case we get the real error, we update the minimum possible error
             else {
                 minlb = min(minlb, feature_error);
-//                cache->updateSubTreeLoad(copy_itemset, item(attr, 0), item(attr, 1),false);
+                if(cache->maxcachesize > NO_CACHE_LIMIT) cache->updateSubTreeLoad(copy_itemset, item(attr, 0), item(attr, 1),false);
+                else copy_itemset.free();
             }
 
             /*vector<Item> v;
@@ -445,7 +454,8 @@ Node *LcmPruned::recurse(Array<Item> itemset,
             if (floatEqual(firstError, FLT_MAX)) minlb = min(minlb, ((FND) child_nodes[first_item]->data)->lowerBound + second_lb);
             // otherwise, we use it
             else minlb = min(minlb, firstError + second_lb);
-//            cache->updateSubTreeLoad(copy_itemset, item(attr, first_item), -1, false);
+            if (cache->maxcachesize > NO_CACHE_LIMIT) cache->updateSubTreeLoad(copy_itemset, item(attr, first_item), -1, false);
+            else copy_itemset.free();
         }
 
         if (stopAfterError) {

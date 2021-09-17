@@ -8,7 +8,7 @@
 using namespace std;
 
 DataBinaryPython::DataBinaryPython(Supports supportss, Transaction numtransactions, Attribute numattributes, Class numclasses, Bool *data, Class *target) {
-    b = (int **)malloc(numtransactions * sizeof(int *));
+    b = (Bool **)malloc(numtransactions * sizeof(Bool *));
     for (int i = 0; i < numtransactions; i++){
         //b[i] = (int *)malloc(numattributes * sizeof(int));
         b[i] = &data[i * numattributes];

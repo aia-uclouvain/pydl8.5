@@ -2,10 +2,10 @@
 
 using namespace std;
 
-Cache_Priority::Cache_Priority(int cachesize, int maxlength): Cache(), cachesize(cachesize), maxlength(maxlength) {
+Cache_Priority::Cache_Priority(Depth maxdepth, WipeType wipe_type, int maxcachesize): Cache(maxdepth, wipe_type, maxcachesize) {
     root = new PriorityNode();
-    bucket = new PriorityNode*[cachesize];
-    for (int i=0; i<cachesize; i++) bucket[i] = nullptr;
+    bucket = new PriorityNode*[maxcachesize];
+    for (int i=0; i<maxcachesize; i++) bucket[i] = nullptr;
 }
 
 void Cache_Priority::addpriority( int priority, int index ){

@@ -89,7 +89,7 @@ Node* computeDepthTwo(RCover* cover,
     // only a few mandatory are computed. The remaining are derived from them
     auto start_comp = high_resolution_clock::now();
     // matrix for supports per class
-    auto **sups_sc = new Supports *[attr.size()];
+    auto **sups_sc = new Supports*[attr.size()];
     // matrix for support. In fact, for weighted examples problems, the sum of "support per class" is not equal to "support"
     auto **sups = new Support* [attr.size()];
     for (int l = 0; l < attr.size(); ++l) {
@@ -140,8 +140,8 @@ Node* computeDepthTwo(RCover* cover,
         subSupports(root_sup_clas, idsc, igsc);
         Support igs = root_sup - ids;
 
-        //feature to left
-        // the feature cannot be root since its two children will not fullfill the minsup constraint
+        //feature to left.
+        // the feature cannot be root since its two children will not fulfill the minsup constraint
         if (igs < searcher->minsup || ids < searcher->minsup) {
             if (local_verbose) cout << "root impossible de splitter...on backtrack" << endl;
             delete feat_best_tree;
@@ -152,7 +152,7 @@ Node* computeDepthTwo(RCover* cover,
         feat_best_tree->root_data->left = new Freq_NodeData();
         feat_best_tree->root_data->right = new Freq_NodeData();
 
-        // the feature at root cannot be splitted at left. It is then a leaf node
+        // the feature at root cannot be split at left. It is then a leaf node
         if (igs < 2 * searcher->minsup) {
             LeafInfo ev = nodeDataManager->computeLeafInfo(igsc);
             feat_best_tree->root_data->left->error = ev.error;

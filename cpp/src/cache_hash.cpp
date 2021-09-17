@@ -2,27 +2,26 @@
 
 using namespace std;
 
-Cache_Hash::Cache_Hash(int maxcachesize, int maxdepth): Cache(), maxcachesize(maxcachesize) {
+Cache_Hash::Cache_Hash(Depth maxdepth, WipeType wipe_type, int maxcachesize): Cache(maxdepth, wipe_type, maxcachesize) {
     root = new HashNode();
     store.alloc(maxdepth);
     for (int i = 0; i < maxdepth; ++i) {
         store[i] = unordered_map<Array<Item>, HashNode*>();
     }
-    /*bucket = new HashNode*[maxcachesize];
-    for (int i=0; i<maxcachesize; i++) bucket[i] = nullptr;*/
 }
 
 pair<Node *, bool> Cache_Hash::insert(Array<Item> itemset, NodeDataManager* nodeDataManager) {
     if (itemset.size == 0) {
-        //cout << "zero" << endl;
         root->data = nodeDataManager->initData();
+        cachesize++;
         return {root, true};
     }
     else {
-        //cout << "plus que zero" << endl;
-        HashNode* node = new HashNode();
+        if (cachesize >= maxcachesize && maxcachesize > 0) wipe(root);
+        auto* node = new HashNode();
         node->data = nodeDataManager->initData();
         store[itemset.size - 1].insert({itemset, node});
+        cachesize++;
         return {node, true};
     }
 }
@@ -33,14 +32,17 @@ Node *Cache_Hash::get ( Array<Item> itemset){
 
 void Cache_Hash::updateSubTreeLoad(Array<Item> itemset, Item firstItem, Item secondItem, bool inc){
     for (auto item: {firstItem, secondItem}) {
-        if (item == -1) continue;
+        if (item == -1) {
+            if (item == secondItem) itemset.free();
+            continue;
+        }
         Array<Item> itemset1 = addItem(itemset, item);
         if (item == secondItem) itemset.free();
         updateItemsetLoad(itemset1, inc);
 
         auto* node = (HashNode*)get(itemset1);
 
-        if ( ((FND)node->data)->left && ((FND)node->data)->right ){
+        if ( node && ((FND)node->data)->left && ((FND)node->data)->right ){
             Item nextFirstItem = item(((FND)node->data)->test, 0);
             Item nextSecondItem = item(((FND)node->data)->test, 1);
             updateSubTreeLoad( itemset1, nextFirstItem, nextSecondItem, inc );
@@ -50,8 +52,10 @@ void Cache_Hash::updateSubTreeLoad(Array<Item> itemset, Item firstItem, Item sec
 }
 
 void Cache_Hash::updateItemsetLoad ( Array<Item> itemset, bool inc ){
-    if (inc) store[itemset.size - 1][itemset]->count_opti_path++;
-    else store[itemset.size - 1][itemset]->count_opti_path--;
+    if (store[itemset.size - 1].find(itemset) != store[itemset.size - 1].end() && store[itemset.size - 1][itemset]){
+        if (inc) store[itemset.size - 1][itemset]->count_opti_path++;
+        else store[itemset.size - 1][itemset]->count_opti_path--;
+    }
 }
 
 int Cache_Hash::getCacheSize() {
@@ -60,6 +64,15 @@ int Cache_Hash::getCacheSize() {
         size += store[i].size();
     }
     return size + 1;
+}
+
+void Cache_Hash::wipe(Node* node1) {
+    for (int i = 0; i < store.size; ++i) {
+        for (auto itr = store[i].begin(); itr != store[i].end(); ++itr) {
+            if (itr->second->data && itr->second->count_opti_path == 0) store[i].erase(itr->first);
+            //else if (itr->second->count_opti_path < 0) for(;;) cout << "g";
+        }
+    }
 }
 
 /*int Cache_Hash::gethashcode(Array<Item> itemset){

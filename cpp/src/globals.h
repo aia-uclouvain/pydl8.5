@@ -14,26 +14,33 @@
 
 // type created for decision taken on an attribute (feature)
 typedef int Bool;
+//typedef unsigned char Bool;
 // a class value
 typedef int Class;
+//typedef unsigned char Class;
 // a transaction id
 typedef int Transaction;
 // a feature number
 typedef int Attribute;
+//typedef unsigned short int Attribute;
 // number of nodes in the tree
 typedef int Size;
+//typedef unsigned short int Size;
 // depth of the tree
 typedef int Depth;
+//typedef unsigned short int Depth;
 // error of the tree
 typedef float Error;
 // an item is a decision on an attribute (selected or not). n_items = 2 * n_attributes
 typedef int Item;
+//typedef unsigned short int Item;
 // number of transactions covered by an itemset
 typedef int Support;
 // weighted support for a class
 typedef float SupportClass;
 // array of supports per class
 typedef SupportClass *Supports;
+//typedef Support *Supports;
 
 
 extern float epsilon;
@@ -48,6 +55,7 @@ extern float comptime;
 
 #define NO_SUP INT_MAX // SHRT_MAX
 #define NO_ERR FLT_MAX
+#define NO_CACHE_LIMIT 0
 #define NO_GAIN FLT_MAX
 #define NO_ITEM INT_MAX // SHRT_MAX
 #define NO_ATTRIBUTE INT_MAX // SHRT_MAX

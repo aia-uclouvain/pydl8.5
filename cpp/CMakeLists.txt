@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 project(dl85)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 include_directories(src/)
 
@@ -33,8 +33,8 @@ add_executable(dl85
         src/freq_Solution.cpp
         src/globals.h
         src/globals.cpp
-        src/lcm_iterative.h
-        src/lcm_iterative.cpp
+#        src/lcm_iterative.h
+#        src/lcm_iterative.cpp
         src/lcm_pruned.h
         src/lcm_pruned.cpp
         src/logger.h

@@ -42,9 +42,9 @@ string search(Supports supports,
               Class nclasses,
               Bool *data,
               Class *target,
-              int maxdepth,
-              int minsup,
-              float maxError,
+              Depth maxdepth,
+              Support minsup,
+              Error maxError,
               bool stopAfterError,
               bool iterative,
               function<vector<float>(RCover *)> tids_error_class_callback,
@@ -62,7 +62,8 @@ string search(Supports supports,
               bool save,
               bool verbose_param,
               CacheType cache_type,
-              int cache_size) {
+              int max_cache_size,
+              WipeType wipe_type) {
 
 //    auto start = high_resolution_clock::now(); // start the timer
 
@@ -92,15 +93,15 @@ string search(Supports supports,
     switch (cache_type) {
         case CacheHash:
 //            cache = new Cache_Hash(nextPrime(cache_size), maxdepth);
-            cache = new Cache_Hash(cache_size, maxdepth);
+            cache = new Cache_Hash(maxdepth, wipe_type, max_cache_size);
 //            cout << "caching with hashmap limited to " << cache_size << " elements" << endl;
             break;
         case CachePriority:
-            cache = new Cache_Priority(nextPrime(cache_size), maxdepth);
+            cache = new Cache_Priority(maxdepth, wipe_type, nextPrime(max_cache_size));
 //            cout << "caching with priority queue limited to " << nextPrime(cache_size) << " elements" << endl;
             break;
         default:
-            cache = new Cache_Trie(cache_size);
+            cache = new Cache_Trie(maxdepth, wipe_type, max_cache_size);
 //            cout << "caching with trie" << endl;
     }
     // create an empty trie for the search space
@@ -128,7 +129,7 @@ string search(Supports supports,
 
 
     void *lcm;
-    if (iterative) {
+    /*if (iterative) {
         lcm = new LcmIterative(dataReader, nodeDataManager, cache, infoGain, infoAsc, repeatSort, minsup, maxdepth,
                                timeLimit,
                                continuousMap, maxError <= 0 ? NO_ERR : maxError,
@@ -141,7 +142,7 @@ string search(Supports supports,
         ((Freq_Tree *) tree_out)->cacheSize = ((LcmIterative *) lcm)->latticesize;
         ((Freq_Tree *) tree_out)->runtime = duration<double>(stop_tree - start_tree).count();
         out += ((Freq_Tree *) tree_out)->to_str();
-    } else {
+    } else {*/
         lcm = new LcmPruned(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, cache, timeLimit,
                             continuousMap,
                             maxError <= 0 ? NO_ERR : maxError, maxError <= 0 ? false : stopAfterError);
@@ -159,7 +160,7 @@ string search(Supports supports,
 //        out += "error : " + to_string(((Freq_NodeData *) ((LcmPruned *) lcm)->cache->root->data)->error) + "\n";
 //        out += "runtime : " + to_string(duration<double>(stop_tree - start_tree).count()) + "\n";
 //        out += "cachesize : " + to_string(cache->cachesize) + "\n";
-    }
+//    }
 
     delete cache;
     delete nodeDataManager;

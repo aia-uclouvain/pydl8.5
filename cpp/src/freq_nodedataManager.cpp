@@ -78,11 +78,13 @@ bool Freq_NodeDataManager::updateData(NodeData *best, Error upperBound, Attribut
     return false;
 }
 
-NodeData *Freq_NodeDataManager::initData(Depth currentMaxDepth, int hashcode) {
+NodeData *Freq_NodeDataManager::initData(RCover *cov, Depth currentMaxDepth, int hashcode) {
     Class maxclass = -1;
     Error error;
 
     auto *data = new Freq_NodeData();
+
+    if (cov == nullptr) cov = cover;
 
 //    if (trie->use_priority) trie->nodemapper.push({cover->getSupport(), hashcode});
 
@@ -91,7 +93,7 @@ NodeData *Freq_NodeDataManager::initData(Depth currentMaxDepth, int hashcode) {
         //python fast error
         if (supports_error_class_callback != nullptr) {
             function<vector<float>(RCover *)> callback = *supports_error_class_callback;
-            cover->getSupportPerClass(); // allocate the sup_array if it does not exist yet and compute the frequency counts
+            cov->getSupportPerClass(); // allocate the sup_array if it does not exist yet and compute the frequency counts
             vector<float> infos = callback(cover);
             error = infos[0];
             maxclass = int(infos[1]);
@@ -107,10 +109,10 @@ NodeData *Freq_NodeDataManager::initData(Depth currentMaxDepth, int hashcode) {
     else {
         if (tids_error_callback != nullptr) {
             function<float(RCover *)> callback = *tids_error_callback;
-            error = callback(cover);
+            error = callback(cov);
         } else {
             function<vector<float>(RCover *)> callback = *tids_error_class_callback;
-            vector<float> infos = callback(cover);
+            vector<float> infos = callback(cov);
             error = infos[0];
             maxclass = int(infos[1]);
         }
@@ -123,10 +125,11 @@ NodeData *Freq_NodeDataManager::initData(Depth currentMaxDepth, int hashcode) {
     return (NodeData *) data;
 }
 
-LeafInfo Freq_NodeDataManager::computeLeafInfo() {
+LeafInfo Freq_NodeDataManager::computeLeafInfo(RCover *cov) {
+    if (cov == nullptr) cov = cover;
     Class maxclass;
     Error error;
-    Supports itemsetSupport = cover->getSupportPerClass();
+    Supports itemsetSupport = cov->getSupportPerClass();
     SupportClass maxclassval = itemsetSupport[0];
     maxclass = 0;
 
@@ -135,7 +138,7 @@ LeafInfo Freq_NodeDataManager::computeLeafInfo() {
             maxclassval = itemsetSupport[i];
             maxclass = i;
         } else if (floatEqual(itemsetSupport[i], maxclassval)) {
-            if (cover->dm->getSupports()[i] > cover->dm->getSupports()[maxclass])
+            if (cov->dm->getSupports()[i] > cov->dm->getSupports()[maxclass])
                 maxclass = i;
         }
     }

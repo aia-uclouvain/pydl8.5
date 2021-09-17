@@ -50,9 +50,9 @@ public:
 
     virtual bool canSkip(NodeData *actualBest) = 0;
 
-    virtual NodeData *initData(Depth currentMaxDepth = -1, int hashcode = -1) = 0;
+    virtual NodeData *initData(RCover *cov = nullptr, Depth currentMaxDepth = -1, int hashcode = -1) = 0;
 
-    virtual LeafInfo computeLeafInfo() = 0;
+    virtual LeafInfo computeLeafInfo(RCover *cov = nullptr) = 0;
 
     virtual LeafInfo computeLeafInfo(Supports itemsetSupport) = 0;
 

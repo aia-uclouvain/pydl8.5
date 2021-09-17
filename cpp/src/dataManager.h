@@ -18,7 +18,7 @@ class DataManager {
 public:
     int nWords;
 
-    DataManager(Supports supports, int ntransactions, int nattributes, int nclasses, int *b, int *c);
+    DataManager(Supports supports, Transaction ntransactions, Attribute nattributes, Class nclasses, Bool *data, Class *target);
 
     ~DataManager(){
         for (int i = 0; i < nattributes; ++i) {
@@ -29,24 +29,24 @@ public:
             delete[] c[j];
         }
         delete[]c;
-        // deleteSupports(supports);
+        deleteSupports(supports);
     }
 
-    bitset<M> * getAttributeCover(int attr);
+    bitset<M> * getAttributeCover(Attribute attr);
 
-    bitset<M> * getClassCover(int clas);
+    bitset<M> * getClassCover(Class clas);
 
     /// get number of transactions
-    int getNTransactions () const { return ntransactions; }
+    [[nodiscard]] Transaction getNTransactions () const { return ntransactions; }
 
     /// get number of features
-    int getNAttributes () const { return nattributes; }
+    [[nodiscard]] Attribute getNAttributes () const { return nattributes; }
 
     /// get number of transactions
-    int getNClasses () const { return nclasses; }
+    [[nodiscard]] Class getNClasses () const { return nclasses; }
 
     /// get array of support of each class
-    Supports getSupports () const { return supports; }
+    [[nodiscard]] Supports getSupports () const { return supports; }
 
 private:
     bitset<M> **b; /// matrix of data

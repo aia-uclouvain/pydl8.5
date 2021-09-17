@@ -16,12 +16,9 @@ struct HashNode : Node {
 
 class Cache_Hash: public Cache {
 public:
-    Cache_Hash(int maxcachesize, int maxdepth);
-    ~Cache_Hash() {  }
+    Cache_Hash(Depth maxdepth, WipeType wipe_type, int maxcachesize);
+    ~Cache_Hash() {}
 
-    int maxcachesize;
-//    int maxlength;
-//    HashNode** bucket;
     Array<unordered_map<Array<Item>, HashNode*>> store;
 
     pair<Node *, bool>insert ( Array<Item> itemset, NodeDataManager* );
@@ -29,10 +26,10 @@ public:
     void updateSubTreeLoad(Array<Item> itemset, Item firstItem, Item secondItem, bool inc=false);
     void updateItemsetLoad ( Array<Item> itemset, bool inc=false );
     int getCacheSize();
+    void wipe(Node* node);
 
 private:
-    int gethashcode ( Array<Item> itemset );
-    void remove( int hashcode );
+
 
 };
 

@@ -5,7 +5,7 @@
 #include "dataManager.h"
 
 
-DataManager::DataManager(Supports supports, int ntransactions, int nattributes, int nclasses, int *data, int *target):supports(supports), ntransactions(ntransactions), nattributes(nattributes), nclasses(nclasses) {
+DataManager::DataManager(Supports supports, Transaction ntransactions, Attribute nattributes, Class nclasses, Bool *data, Class *target):supports(supports), ntransactions(ntransactions), nattributes(nattributes), nclasses(nclasses) {
     nclasses = (nclasses == 1) ? 2 : nclasses;
     nWords = (int)ceil((float)ntransactions/M);
     b = new bitset<M> *[nattributes];
@@ -15,8 +15,8 @@ DataManager::DataManager(Supports supports, int ntransactions, int nattributes, 
         bitset<M> * attrCov = new bitset<M>[nWords];
         for (int j = 0; j < nWords; ++j) {
             int currentindex = -1;
-            int* start = data + (ntransactions*i) + (M*j);
-            int* end = nullptr;
+            Bool* start = data + (ntransactions*i) + (M*j);
+            Bool* end = nullptr;
             if (j != nWords - 1)
                 end = data + (ntransactions*i) + (M*j) + M;
             else
@@ -42,8 +42,8 @@ DataManager::DataManager(Supports supports, int ntransactions, int nattributes, 
             bitset<M> * classCov = new bitset<M>[nWords];
             for (int j = 0; j < nWords; ++j) {
                 int currentindex = -1;
-                int* start = target + (M*j);
-                int* end = nullptr;
+                Class* start = target + (M*j);
+                Class* end = nullptr;
                 if (j != nWords - 1)
                     end = target + (M*j) + M;
                 else
@@ -70,10 +70,10 @@ DataManager::DataManager(Supports supports, int ntransactions, int nattributes, 
     ::nclasses = nclasses;
 }
 
-bitset<M>* DataManager::getAttributeCover(int attr) {
+bitset<M>* DataManager::getAttributeCover(Attribute attr) {
     return b[attr];
 }
 
-bitset<M>* DataManager::getClassCover(int clas) {
+bitset<M>* DataManager::getClassCover(Class clas) {
     return c[clas];
 }
