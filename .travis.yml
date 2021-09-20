@@ -12,6 +12,7 @@ install:
 - pip install codecov
 - pwd
 - ls
+- ls ..
 - pip install .
 script:
 - pytest -v --cov=dl85 dl85/supervised/classifiers/tests/

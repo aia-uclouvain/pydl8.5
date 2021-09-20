@@ -4,6 +4,10 @@ import platform
 import codecs
 from dl85 import __version__
 
+from os import listdir
+onlyfiles = [f for f in listdir(".")]
+print(onlyfiles)
+
 DISTNAME = 'pydl8.5'
 DESCRIPTION = 'A package to build an optimal binary decision tree classifier.'
 with codecs.open('../README.rst', encoding='utf-8-sig') as f:
