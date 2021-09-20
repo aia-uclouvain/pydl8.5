@@ -6,9 +6,12 @@ sphinx
 sphinx_gallery
 sphinx_rtd_theme
 sphinxcontrib.bibtex
+sphinx_copybutton
 numpydoc
 pillow
 setuptools
 cython
 pytest
 pytest-cov
+gurobipy
+cvxpy
