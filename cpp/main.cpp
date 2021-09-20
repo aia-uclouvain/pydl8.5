@@ -7,53 +7,14 @@
 #include <vector>
 #include <iostream>
 #include <functional>
-#include <ctime>
-#include <cstdlib>
 #include "dl85.h"
 #include "globals.h"
-#include <sys/time.h>
-#include <sys/resource.h>
 #include <random>
 
 using namespace std;
 
-float rand_0_1(){
-    return (float) rand()/RAND_MAX;
-}
-
-float rand_a_b(int a, int b){
-    return (rand() % b) + a;
-}
-
-/*vector<float> generate_example_weights() {
-    int n_instances = 3247;
-    *//*vector<float>v;
-    v.reserve(n_instances);
-    for (int i = 0; i < n_instances; ++i) {
-        v.push_back(rand_0_1());
-    }
-    return v;*//*
-    return vector<float>(n_instances, 1);
-}
-vector<float> get_training_error(string tree) {
-    return vector<float>{30,5};
-}*/
-
 int main(int argc, char *argv[]) {
-    srand(time(0));
-    // string datasetname = argv[1]; int maxdepth = atoi(argv[2]);
-    // string datasetPath = "../datasets/" + datasetname + ".txt";
-    // cout << "file : " << datasetPath << " depth : " << maxdepth << endl;
-    // string datasetPath = "../dl85_dist_source/datasets/tic-tac-toe.txt";
-//     string datasetPath = "../dl85_dist_source/datasets/paper.txt";
-//     string datasetPath = "../dl85_dist_source/datasets/paper_.txt";
-//     string datasetPath = "../dl85_dist_source/datasets/paper_test.txt";
-//    string datasetPath = "../dl85_dist_source/datasets/soybean.txt";
-//    string datasetPath = "../dl85_dist_source/datasets/anneal.txt";
-    string datasetPath = "../../datasets/australian-credit.txt";
-//int i = 8;
-//    string datasetPath = "../dl85_dist_source/datasets/tic-tac-toe.txt";
-//    string datasetPath = "../dl85_dist_source/datasets/tic-tac-toe__.txt";
+    string datasetPath = "../../datasets/anneal.txt";
 
     ifstream dataset(datasetPath);
     string line;
@@ -102,37 +63,20 @@ int main(int argc, char *argv[]) {
     auto *sup = new SupportClass [supports.size()];
     for (int j = 0; j < (int) supports.size(); ++j) sup[j] = supports[j];
     int ntransactions = (int) (data.size()) / nfeatures, nclass = (int) supports.size();
-    int maxdepth = 3, minsup = 1, max_estimators = 1;
-//    int cache_size = 50;
-//    int cache_size = 10;
-//    int cache_size = 3000000;
-//    int cache_size = 0;
-//    CacheType cache_type = CacheHash;
-//    CacheType cache_type = CacheTrie;
+    int maxdepth = 3, minsup = 1;
 
     cout << "dataset: " << datasetPath.substr(datasetPath.find_last_of('/') + 1, datasetPath.find_last_of('.') - datasetPath.find_last_of('/') - 1) << endl;
-    /*function<vector<float>()> example_weights_callback = generate_example_weights;
-    function<vector<float>(string)> predict_error_callback = get_training_error;*/
-//    vector<float> in(ntransactions,1);
 
-//    constexpr double dropout = 0.9; // Chance of 0
-//    random_device rd;
-//    mt19937 gen(rd());
-//    bernoulli_distribution dist(1 - dropout); // bernoulli_distribution takes chance of true n constructor
+    constexpr double dropout = 0.9; // Chance of 0
+    random_device rd;
+    mt19937 gen(rd());
+    bernoulli_distribution dist(1 - dropout); // bernoulli_distribution takes chance of true n constructor
 
-//    vector<float> weight_vec(ntransactions);
-//    std::generate(weight_vec.begin(), weight_vec.end(), [&]{ return dist(gen); });
-//    size_t ones = std::count(weight_vec.begin(), weight_vec.end(), 1);
-//    std::cout << "vector contains " << ones << " 1's, out of " << size << ". " << ones/double(size) << "%\n";
-//    std::cout << "vector contains " << size - ones << " 0's, out of " << size << ". " << (size - ones)/double(size) << "%\n";
-//    for (auto i = weight_vec.begin(); i != weight_vec.end(); ++i)
-//        std::cout << *i << ' ';
-//    cout << endl;
-
+    vector<float> weight_vec(ntransactions);
+    std::generate(weight_vec.begin(), weight_vec.end(), [&]{ return dist(gen); });
 
 
     string result;
-    for (int i = 0; i < 1; ++i) {
         result = search(
                 sup, //supports
                 ntransactions, //ntransactions
@@ -142,11 +86,8 @@ int main(int argc, char *argv[]) {
                 target.data(), //target
                 maxdepth, //maxdepth
                 minsup, //minsup
-//                -1, //alpha
-//                1, //gamma
                 0, //maxError
                 false, //stopAfterError
-                false, //iterative
                 nullptr, //tids_error_class_callback
                 nullptr, //supports_error_class_callback
                 nullptr, //tids_error_callback
@@ -155,26 +96,15 @@ int main(int argc, char *argv[]) {
                 true, //tids_error_class_is_null
                 true, //supports_error_class_is_null
                 true, //tids_error_is_null
-//                max_estimators,
                 false, //infoGain
                 false, //infoAsc
                 false, //repeatSort
                 0, //timeLimit
-                nullptr, //continuousMap
-                false, //save
-//                 false, //uncomment on master branch — used for to activate caching lower bound
-                false//,//, // verbose parameter
-//                false
-//                cache_type, //cache type
-//                cache_size //cache size
+                false // verbose parameter
         );
-    }
 
 
     delete[] sup;
     cout << result;
-    struct rusage usage;
-    getrusage(RUSAGE_SELF, &usage);
-    cout << "used memory: " << usage.ru_maxrss / 1024.f / 1024.f << "Mb" << endl;
 
 }

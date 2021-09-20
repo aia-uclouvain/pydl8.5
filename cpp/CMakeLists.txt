@@ -9,26 +9,14 @@ include_directories(src/)
 
 add_executable(dl85
         main.cpp
-        src/data.h
-        src/data.cpp
-        src/dataBinary.h
-        src/dataBinary.cpp
-        src/dataBinaryPython.h
-        src/dataBinaryPython.cpp
-        src/dataContinuous.h
-        src/dataContinuous.cpp
         src/dataManager.h
         src/dataManager.cpp
         src/depthTwoComputer.h
         src/depthTwoComputer.cpp
         src/dl85.h
         src/dl85.cpp
-        src/experror.h
-        src/experror.cpp
         src/globals.h
         src/globals.cpp
-        src/lcm_iterative.h
-        src/lcm_iterative.cpp
         src/lcm_pruned.h
         src/lcm_pruned.cpp
         src/logger.h

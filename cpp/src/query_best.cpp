@@ -1,6 +1,5 @@
 #include "query_best.h"
 #include <iostream>
-#include <dataContinuous.h>
 
 using namespace std;
 
@@ -8,9 +7,7 @@ Query_Best::Query_Best(Support minsup,
                        Depth maxdepth,
                        Trie* trie,
                        DataManager *data,
-                       ExpError *experror,
                        int timeLimit,
-                       bool continuous,
                        function<vector<float>(RCover *)> *tids_error_class_callback,
                        function<vector<float>(RCover *)> *supports_error_class_callback,
                        function<float(RCover *)> *tids_error_callback,
@@ -21,12 +18,11 @@ Query_Best::Query_Best(Support minsup,
                 trie,
                 data,
                 timeLimit,
-                continuous,
                 tids_error_class_callback,
                 supports_error_class_callback,
                 tids_error_callback,
                 maxError,
-                stopAfterError), experror(experror) {
+                stopAfterError){
 }
 
 
@@ -62,8 +58,7 @@ int Query_Best::printResult(QueryData_Best *data, int depth, Tree *tree) {
         return depth;
     }
     else {
-        if (continuous) tree->expression += "{\"feat\": " + ((DataContinuous *) this->dm)->names[data->test] + ", \"left\": ";
-        else tree->expression += "{\"feat\": " + std::to_string(data->test) + ", \"left\": ";
+        tree->expression += "{\"feat\": " + std::to_string(data->test) + ", \"left\": ";
 
         // perhaps strange, but we have stored the positive outcome in right, generally, people think otherwise... :-)
         int left_depth = printResult(data->right, depth + 1, tree);

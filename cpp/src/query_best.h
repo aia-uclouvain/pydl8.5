@@ -2,7 +2,6 @@
 #define QUERY_BEST_H
 
 #include "trie.h"
-#include "experror.h"
 #include <query.h>
 #include <vector>
 
@@ -13,7 +12,6 @@ struct QueryData_Best {
     Error error;
     Error lowerBound;
     Size size;
-    Depth solutionDepth;
 
     QueryData_Best() {
         test = -1;
@@ -23,14 +21,7 @@ struct QueryData_Best {
         error = FLT_MAX;
         lowerBound = 0;
         size = 1;
-        solutionDepth = -1;
     }
-
-    /*~QueryData_Best(){
-        cout << "data is deleted" << endl;
-        delete left;
-        delete right;
-    }*/
 };
 
 
@@ -40,9 +31,7 @@ public:
                Depth maxdepth,
                Trie *trie,
                DataManager *data,
-               ExpError *experror,
                int timeLimit,
-               bool continuous,
                function<vector<float>(RCover *)> *tids_error_class_callback = nullptr,
                function<vector<float>(RCover *)> *supports_error_class_callback = nullptr,
                function<float(RCover *)> *tids_error_callback = nullptr,
@@ -71,7 +60,6 @@ public:
 protected:
     int printResult(QueryData_Best *node_data, int depth, Tree *tree);
 
-    ExpError *experror;
 };
 
 #endif

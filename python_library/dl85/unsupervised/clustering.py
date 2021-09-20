@@ -14,8 +14,6 @@ class DL85Cluster(DL85Predictor, ClusterMixin):
         Maximum depth of the tree to be found
     min_sup : int, default=1
         Minimum number of examples per leaf
-    iterative : bool, default=False
-        Whether the search will be Iterative Deepening Search or not. By default, it is Depth First Search
     max_error : int, default=0
         Maximum allowed error. Default value stands for no bound. If no tree can be found that is strictly better, the model remains empty.
     stop_after_better : bool, default=False
@@ -62,7 +60,6 @@ class DL85Cluster(DL85Predictor, ClusterMixin):
             max_depth=1,
             min_sup=1,
             error_function=None,
-            iterative=False,
             max_error=0,
             stop_after_better=False,
             time_limit=0,
@@ -79,7 +76,6 @@ class DL85Cluster(DL85Predictor, ClusterMixin):
                                min_sup=min_sup,
                                error_function=error_function,
                                fast_error_function=None,
-                               iterative=iterative,
                                max_error=max_error,
                                stop_after_better=stop_after_better,
                                time_limit=time_limit,

@@ -16,16 +16,10 @@
 #include <functional>
 #include <chrono>
 #include "globals.h"
-#include "data.h"
-#include "dataBinary.h"
-#include "dataContinuous.h"
-#include "dataBinaryPython.h"
 #include "dataManager.h"
-#include "experror.h"
 #include "rCoverTotalFreq.h"
 #include "rCoverWeighted.h"
 #include "lcm_pruned.h"
-#include "lcm_iterative.h"
 #include "query_totalfreq.h"
 //#include "query_weighted.h"
 
@@ -69,7 +63,7 @@ string search(Supports supports,
               int minsup = 1,
               float maxError = 0,
               bool stopAfterError = false,
-              bool iterative = false,
+//              bool iterative = false,
               //get a pointer on cover as param and return a vector of float. Due to iterator behaviour of RCover
               // object and the wrapping done in cython, this pointer in python is seen as a list of tids in the cover
               function<vector<float>(RCover *)> tids_error_class_callback = nullptr,
@@ -87,8 +81,6 @@ string search(Supports supports,
               bool infoAsc = true,
               bool repeatSort = false,
               int timeLimit = 0,
-              map<int, pair<int, int>> *continuousMap = nullptr,
-              bool save = false,
               bool verbose_param = false);
 
 #endif //DL85_DL85_H

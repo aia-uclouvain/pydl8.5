@@ -17,84 +17,14 @@ from sklearn.base import BaseEstimator
 from copy import deepcopy
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.model_selection import StratifiedKFold
+from .utils.matrix import *
 import numpy as np
 import cvxpy as cp
 import math
 
 MODEL_LP_RATSCH = 1  # regulator of ratsch is between ]0; 1]
 MODEL_LP_DEMIRIZ = 2  # regulator of demiriz is between ]1/n_instances; +\infty]
-MODEL_LP_AGLIN = 3  # regulator of aglin is between [0; 1]
-MODEL_QP_MDBOOST = 4
-
-
-def is_pos_def(x):
-    # print(np.linalg.eigvals(x))
-    return np.all(np.linalg.eigvals(x) > 0)
-
-
-def is_semipos_def(x):
-    return np.all(np.linalg.eigvals(x) >= 0)
-
-
-def isPD(B):
-    """Returns true when input is positive-definite, via Cholesky"""
-    try:
-        _ = np.linalg.cholesky(B)
-        return True
-    except np.linalg.LinAlgError:
-        return False
-
-
-def nearestPD(A):
-    """Find the nearest positive-definite matrix to input
-
-    A Python/Numpy port of John D'Errico's `nearestSPD` MATLAB code [1], which
-    credits [2].
-
-    [1] https://www.mathworks.com/matlabcentral/fileexchange/42885-nearestspd
-
-    [2] N.J. Higham, "Computing a nearest symmetric positive semidefinite
-    matrix" (1988): https://doi.org/10.1016/0024-3795(88)90223-6
-    """
-
-    B = (A + A.T) / 2
-    _, s, V = np.linalg.svd(B)
-
-    H = np.dot(V.T, np.dot(np.diag(s), V))
-
-    A2 = (B + H) / 2
-
-    A3 = (A2 + A2.T) / 2
-
-    if isPD(A3):
-        return A3
-
-    spacing = np.spacing(np.linalg.norm(A))
-    # The above is different from [1]. It appears that MATLAB's `chol` Cholesky
-    # decomposition will accept matrixes with exactly 0-eigenvalue, whereas
-    # Numpy's will not. So where [1] uses `eps(mineig)` (where `eps` is Matlab
-    # for `np.spacing`), we use the above definition. CAVEAT: our `spacing`
-    # will be much larger than [1]'s `eps(mineig)`, since `mineig` is usually on
-    # the order of 1e-16, and `eps(1e-16)` is on the order of 1e-34, whereas
-    # `spacing` will, for Gaussian random matrixes of small dimension, be on
-    # othe order of 1e-16. In practice, both ways converge, as the unit test
-    # below suggests.
-    I = np.eye(A.shape[0])
-    k = 1
-    while not isPD(A3):
-        mineig = np.min(np.real(np.linalg.eigvals(A3)))
-        A3 += I * (-mineig * k**2 + spacing)
-        k += 1
-
-    return A3
-
-
-def get_near_psd(A):
-    C = (A + A.T)/2
-    eigval, eigvec = np.linalg.eig(C)
-    eigval[eigval < 0] = 0
-
-    return eigvec.dot(np.diag(eigval)).dot(eigvec.T)
+MODEL_QP_MDBOOST = 3
 
 
 class DL85Booster(BaseEstimator, ClassifierMixin):
@@ -160,7 +90,6 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             gamma=None,
             error_function=None,
             fast_error_function=None,
-            iterative=False,
             min_trans_cost=0,
             opti_gap=0.01,
             max_error=0,
@@ -189,7 +118,6 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         self.max_iterations = max_iterations
         self.error_function = error_function
         self.fast_error_function = fast_error_function
-        self.iterative = iterative
         self.max_error = max_error
         self.stop_after_better = stop_after_better
         self.time_limit = time_limit
@@ -207,13 +135,13 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         self.n_instances = None
         self.A_inv = None
 
-        self.optimal_ = False
+        self.optimal_ = False  # whether the ensemble is optimal
         self.estimators_, self.estimator_weights_ = [], []
         self.accuracy_ = self.duration_ = self.n_estimators_ = self.n_iterations_ = 0
-        self.margins_ = []
-        self.margins_norm_ = []
+        self.margins_ = []  # the ensemble margin on training instances
+        self.margins_norm_ = []  # the normalized margins
         self.classes_ = []
-        self.objective_ = None
+        self.objective_ = None  # the optimal value reached by the ensemble
 
     def fit(self, X, y=None, X_test=None, y_test=None, iter_file=None):
         if y is None:
@@ -229,87 +157,70 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         if self.model == MODEL_QP_MDBOOST:
             # Define the inverse of the A matrix
             if self.gamma is None:
-                self.A_inv = np.full((self.n_instances, self.n_instances), -1/(self.n_instances - 1), dtype=np.float64)
-                np.fill_diagonal(self.A_inv, 1)
-                self.A_inv = np.add(self.A_inv, np.dot(np.eye(self.n_instances), constant))  # regularize A_inv to make sure it is really PSD
+                A = np.full((self.n_instances, self.n_instances), -1/(self.n_instances - 1), dtype=np.float64)
+                np.fill_diagonal(A, 1)
+                A = np.add(A, np.dot(np.eye(self.n_instances), constant))  # regularize A to make A^-1 sure it is really PSD
             else:
                 self.gamma = 1 / self.n_instances if self.gamma == 'auto' else 1 / (self.n_features * X.var()) if self.gamma == 'scale' else 1 / X.var() if self.gamma == 'nscale' else 1 / self.n_instances
-                self.A_inv = np.identity(self.n_instances, dtype=np.float64)
+                A = np.identity(self.n_instances, dtype=np.float64)
                 for i in range(self.n_instances):
                     for j in range(self.n_instances):
                         if i != j:
-                            self.A_inv[i, j] = np.exp(-self.gamma * np.linalg.norm(np.subtract(X[i, :], X[j, :]))**2)
+                            A[i, j] = np.exp(-self.gamma * np.linalg.norm(np.subtract(X[i, :], X[j, :]))**2)
 
             if not self.quiet:
-                print(self.A_inv)
-                print("is psd", is_pos_def(self.A_inv))
-                print("is semi psd", is_semipos_def(self.A_inv))
+                print("Matrix A", A)
+                print("is pos def: ", is_pd(A))
+                print("is psd: ", is_psd(A))
 
-            # if isPD(A_inv) is False:
-            #     A_inv = nearestPD(A_inv)
+            # invert the matrix A
+            self.A_inv = np.linalg.pinv(A)
 
-            # invert A matrix
-            # try:
-            #     A_inv = np.linalg.inv(A_inv)
-            # except:
-            self.A_inv = np.linalg.pinv(self.A_inv)
-
-            if isPD(self.A_inv) is False:
-                self.A_inv = nearestPD(self.A_inv)
+            # find the nearest pos def matrix if A_inv is not
+            if pos_def(self.A_inv) is False:
+                self.A_inv = nearest_pd(self.A_inv)
 
             if not self.quiet:
-                print("A_inv")
-                # print(A_inv)
-                print("is psd", isPD(self.A_inv))
-                print("is psd", is_pos_def(self.A_inv))
-                print("is semi psd", is_semipos_def(self.A_inv))
-                print("is semi psd", is_pos_def(nearestPD(self.A_inv)))
+                print("Matrix A_inv", self.A_inv)
+                print("is pos def", is_pd(self.A_inv))
+                print("is psd", is_psd(self.A_inv))
 
         if not self.quiet:
             print()
 
         self.classes_ = unique_labels(y)
 
-        if X_test is not None and y_test is not None:  # handle each iteration value
-            # mod = "_demiriz" if self.model == 2 else "_ratsch" if self.model == 1 else "_aglin" if self.model == 3 else "_mdboost" if self.model == 4 else "_other"
-            iter_file_name = iter_file + ".csv"
+        # if a test set is provided, some metrics are store after each boosting iteration
+        if X_test is not None and y_test is not None:
+            iter_file_name = (iter_file if iter_file is not None else "iter_file") + ".csv"
             acc_stream = open(iter_file_name, "w")
             acc_stream.write("objective,train_acc,test_acc,train_auc,test_auc,n_iter,n_trees,min_margin,avg_margin,var_margin\n")
             acc_stream.flush()
-            acc_stream.close()
-            acc_stream = open(iter_file_name, "a+")
 
+        # run the boosting loop for a fixed number of iterations if max_iterations is specified
         while (self.max_iterations > 0 and self.n_iterations_ <= self.max_iterations) or self.max_iterations <= 0:
             if not self.quiet:
                 print("n_iter", self.n_iterations_)
 
             # initialize the classifier
-            # self.clf_params["time_limit"] = self.clf_params["time_limit"] - (time.perf_counter() - start_time)
+            # initialize the base classifier. DL8.5 can be changed by another optimal classifier
             clf = DL85Classifier(**self.clf_params) if self.base_estimator is None else self.base_estimator
 
-            # fit the model
-            if self.quiet or True:
-                old_stdout = sys.stdout
-                sys.stdout = open(os.devnull, "w")
-                clf.fit(X, y, sample_weight=sample_weights.tolist())
-                sys.stdout = old_stdout
-            else:
-                clf.fit(X, y, sample_weight=sample_weights.tolist())
+            # fit the model with the correct weights. The print of the learning are disabled.
+            old_stdout = sys.stdout
+            sys.stdout = open(os.devnull, "w")
+            clf.fit(X, y, sample_weight=sample_weights.tolist())
+            sys.stdout = old_stdout
 
             # print the tree expression of the estimator if it has
             if not self.quiet:
                 print("A new tree has been learnt based on previous found sample weights")
                 if hasattr(clf, "tree_") and isinstance(clf.tree_, dict):
-                    pass
-                    # print(clf.tree_)
+                    print(clf.tree_)
 
             # compute the prediction of the new estimator : 1 if correct else -1
             try:
                 pred = np.array([-1 if p != y[i] else 1 for i, p in enumerate(clf.predict(X))])
-                # pred = np.array([2*p[y[i]]-1 for i, p in enumerate(clf.predict_proba(X))])
-                # pred = np.array([.5 * y[i] * math.log(p[1]/(p[0]+.00000001)) for i, p in enumerate(clf.predict_proba(X))])
-                # if not self.quiet:
-                #     print("entering tree value", pred @ sample_weights)
             except (NotFittedError, SearchFailedError, TreeNotFoundError) as error:
                 if not self.quiet:
                     print("Problem during the search so we stop")
@@ -318,16 +229,15 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             if not self.quiet:
                 print("correct predictions - incorrect predictions =", pred.sum())
                 print("np.dot(predictions, sample_weigths) =", pred @ sample_weights)
-                # print("sum pred", pred.sum(), "\n", "sample weights inline", sample_weights.tolist(), "\nsample weights", sample_weights, "\n", "p@w more plus or moins", pred @ sample_weights)
 
             # check if optimal condition is met
-            # print(self.n_iterations_, self.n_estimators_)
             if self.n_iterations_ > 1:
-                if X_test is not None and y_test is not None:  # handle each iteration value
+
+                # if a test set is provided, write metrics after each boosting iteration
+                if X_test is not None and y_test is not None:
                     n_treess = len([i for i in self.estimator_weights_ if i != 0])
                     if n_treess > 0:
                         n_treess = str(n_treess)
-                        # self.objective_ = opti
                         self.n_estimators_ = len(self.estimators_)
                         train_acc = str(accuracy_score(y, self.predict(X)))
                         test_acc = str(accuracy_score(y_test, self.predict(X_test)))
@@ -335,39 +245,39 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
                         test_auc = str(roc_auc_score(y_test, self.predict_proba(X_test)[:, 1]))
                         acc_stream.write(str(opti) + "," + train_acc + "," + test_acc + "," + train_auc + "," + test_auc + "," + str(self.n_iterations_ - 1) + "," + n_treess + "," + str(min(self.margins_norm_)) + "," + str(np.mean(self.margins_norm_)) + "," + str(np.var(self.margins_norm_)) + "\n")
                         acc_stream.flush()
-                if pred @ sample_weights < r + self.opti_gap or (self.n_iterations_ >= 200 and self.objective_ is not None and self.objective_ > opti and self.objective_ - opti < 0.05):
-                # if pred @ sample_weights < r + self.opti_gap:
-                # if pred @ sample_weights < r:
-                    #print("obj:", self.objective_, "opti:", opti, "dif:", self.objective_ - opti)
+
+                # optimality condition. an epsilon is added to fix column generation convergence problems
+                if pred @ sample_weights < r + self.opti_gap:
                     if not self.quiet:
                         print("np.dot(predictions, sample_weigths):{} < r:{} + espsilon:{} ==> we cannot add the new tree. End of iterations".format(pred @ sample_weights, r, self.opti_gap))
                         print("Objective value at end is", opti)
                     self.optimal_ = True
                     self.objective_ = opti
                     break
+                # not yet optimal
                 self.objective_ = opti
                 if not self.quiet:
                     print("np.dot(predictions, sample_weigths):{} >= r:{} + epsilon:{}. We can add the new tree.".format(pred @ sample_weights, r, self.opti_gap))
 
-            # add new prediction to all prediction matrix. Each column represents predictions of a tree for all examples
+            # add new prediction to all predictions matrix.Each column represents predictions of a tree for all examples
             predictions = pred.reshape((-1, 1)) if predictions is None else np.concatenate((predictions, pred.reshape(-1, 1)), axis=1)
 
             if not self.quiet:
                 print("whole predictions shape", predictions.shape)
                 print("run dual...")
-                # print(predictions)
 
-            # add the new estimator and compute the dual to find new sample weights for another estimator to add
+            # add the new estimator to list of estimators
             self.estimators_.append(deepcopy(clf))
+
+            # compute the dual to find new sample weights (the best to reach optimality) for the next estimator to add
             if self.model == MODEL_LP_RATSCH:
                 r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_ratsch(predictions)
             elif self.model == MODEL_LP_DEMIRIZ:
                 r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_demiriz(predictions)
-            elif self.model == MODEL_LP_AGLIN:
-                r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_aglin(predictions)
             elif self.model == MODEL_QP_MDBOOST:
                 r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_mdboost(predictions)
 
+            # compute some metrics (margins concept) based on adaboost intuition
             self.margins_ = (predictions @ np.array(self.estimator_weights_).reshape(-1, 1)).transpose().tolist()[0]
             self.margins_norm_ = (predictions @ np.array([float(i)/sum(self.estimator_weights_) for i in self.estimator_weights_]).reshape(-1, 1)).transpose().tolist()[0] if sum(self.estimator_weights_) > 0 else None
 
@@ -377,27 +287,21 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
                 print("Objective value at this stage is", opti)
                 print("Value of r is", r)
                 print("The sorted margin at this stage is", sorted(self.margins_))
-                # mean = sum(self.margins_) / len(self.margins_)
-                # variance = sum([((x - mean) ** 2) for x in self.margins_]) / len(self.margins_)
-                # std = variance ** 0.5
-                # mean_norm = sum(self.margins_norm_) / len(self.margins_norm_)
-                # variance_norm = sum([((x - mean_norm) ** 2) for x in self.margins_norm_]) / len(self.margins_norm_)
-                # std_norm = variance_norm ** 0.5
-                # print("min margin:", min(self.margins_), "\tmax margin:", max(self.margins_), "\tavg margin:", np.mean(self.margins_), "\tstd margin:", np.std(self.margins_), "\tsum:", sum(self.margins_))
-                # print("number of neg margins:", len([marg for marg in self.margins_ if marg < 0]), "\tnumber of pos margins:", len([marg for marg in self.margins_ if marg >= 0]))
                 print("min margin:", min(self.margins_norm_), "\tmax margin:", max(self.margins_norm_), "\tavg margin:", np.mean(self.margins_norm_), "\tstd margin:", np.std(self.margins_norm_), "\tsum:", sum(self.margins_norm_))
                 print("number of neg margins:", len([marg for marg in self.margins_norm_ if marg < 0]), "\tnumber of pos margins:", len([marg for marg in self.margins_norm_ if marg >= 0]))
                 print("The new sample weight for the next iteration is", sample_weights.tolist(), "\n")
 
             self.n_iterations_ += 1
 
+        # close the metrics file
         if X_test is not None and y_test is not None:  # handle each iteration value
             acc_stream.close()
 
+        # compute the learning duration and fix the iterations number counter
         self.duration_ = time.perf_counter() - start_time
         self.n_iterations_ -= 1
 
-        # remove the useless estimators
+        # at the end, remove the useless estimators (the one with weight = 0)
         zero_ind = [i for i, val in enumerate(self.estimator_weights_) if val == 0]
         if not self.quiet:
             print("\nall tree w", self.estimator_weights_, "\n", "zero ind", zero_ind)
@@ -406,7 +310,6 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         predictions = np.delete(predictions, np.s_[zero_ind], axis=1)
         if not self.quiet:
             print("final pred shape", predictions.shape)
-            # print(predictions)
 
         # compute training accuracy of the found ensemble and store it in the variable `accuracy_`
         forest_pred_val = np.dot(predictions, np.array(self.estimator_weights_))
@@ -477,41 +380,6 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             sys.stdout = old_stdout
         return r_.value, u_.value, opti, [x.dual_value.tolist() for x in problem.constraints]
 
-    def compute_dual_mdboostt(self, predictions):  # primal is maximization
-        r_ = cp.Variable()
-        u_ = cp.Variable(self.n_instances)
-        obj = cp.Minimize(r_ + 1/(2*self.regulator) * cp.quad_form((u_ - 1), self.A_inv))
-        constr = [predictions[:, i] @ u_ <= r_ for i in range(predictions.shape[1])]
-        constr.append(-u_ <= 0)
-        if self.regulator > 0:
-            constr.append(u_ <= self.regulator)
-        constr.append(cp.sum(u_) == 1)
-        problem = cp.Problem(obj, constr)
-        if self.quiet:
-            old_stdout = sys.stdout
-            sys.stdout = open(os.devnull, "w")
-        opti = problem.solve(solver=cp.GUROBI)
-        if self.quiet:
-            sys.stdout = old_stdout
-        return r_.value, u_.value, opti, [x.dual_value.tolist() for x in problem.constraints]
-
-    # def compute_dual_aglin(self, predictions):  # primal is minimization
-    #     r_ = cp.Variable()
-    #     u_ = cp.Variable(self.n_instances)
-    #     obj = cp.Minimize(r_)
-    #     constr = [predictions[:, i] @ u_ <= r_ for i in range(predictions.shape[1])]
-    #     constr.append(-u_ <= 0)
-    #     # constr.append(u_ <= self.regulator)
-    #     constr.append(cp.sum(u_) == self.regulator)
-    #     problem = cp.Problem(obj, constr)
-    #     if self.quiet:
-    #         old_stdout = sys.stdout
-    #         sys.stdout = open(os.devnull, "w")
-    #     opti = problem.solve(solver=cp.GUROBI)
-    #     if self.quiet:
-    #         sys.stdout = old_stdout
-    #     return r_.value, u_.value, opti, [x.dual_value.tolist() for x in problem.constraints[:predictions.shape[1]]]
-
     def softmax(self, X, copy=True):
         """
         Calculate the softmax function.
@@ -541,28 +409,15 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         return X
 
     def predict(self, X, y=None):
-        if self.n_estimators_ == 0:  # fit method has not been called
+        # in case no tree has been found
+        if self.n_estimators_ == 0:  # fit method has not been called or the regulator is not good
             print(self.estimators_)
             print(self.estimator_weights_)
-            raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
-        # return np.argmax(self.predict_proba(X), axis=1)
+            raise NotFittedError("Call fit method first or change the regulator" % {'name': type(self).__name__})
         # Run a prediction on each estimator
         predict_per_clf = np.asarray([clf.predict(X) for clf in self.estimators_]).transpose()
+        # return the prediction based on all estimators. The mex weighted class is returned
         return np.apply_along_axis(lambda x: np.argmax(np.bincount(x, weights=self.estimator_weights_)), axis=1, arr=predict_per_clf.astype('int'))
-
-    # def predict_(self, X, y=None):
-    #     if self.n_estimators_ == 0:  # fit method has not been called
-    #         print(self.estimators_)
-    #         print(self.estimator_weights_)
-    #         raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
-    #     # return np.argmax(self.predict_proba(X), axis=1)
-    #     # Run a prediction on each estimator
-    #     predict_per_clf = np.asarray([clf.predict(X) for clf in self.estimators_]).transpose()
-    #     return np.apply_along_axis(lambda x: np.argmax(np.bincount(x, weights=self.estimator_weights_)), axis=1, arr=predict_per_clf.astype('int'))
-
-    # def predict_proba(self, X):
-    #     prob_per_tree = np.asarray([clf.predict_proba(X) for clf in self.estimators_])
-    #     return np.average(prob_per_tree, axis=0, weights=self.estimator_weights_)
 
     def predict_proba(self, X):
         classes = self.classes_[:, np.newaxis]

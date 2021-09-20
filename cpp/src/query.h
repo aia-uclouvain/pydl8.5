@@ -77,7 +77,6 @@ public:
           Trie *trie,
           DataManager *dm,
           int timeLimit,
-          bool continuous,
           function<vector<float>(RCover *)> *tids_error_class_callback = nullptr,
           function<vector<float>(RCover *)> *supports_error_class_callback = nullptr,
           function<float(RCover *)> *tids_error_callback = nullptr,
@@ -114,7 +113,6 @@ public:
     time_point<high_resolution_clock> startTime;
     int timeLimit;
     bool timeLimitReached = false;
-    bool continuous = false;
     float maxError = NO_ERR;
     bool stopAfterError = false;
     function<vector<float>(RCover *)> *tids_error_class_callback = nullptr;

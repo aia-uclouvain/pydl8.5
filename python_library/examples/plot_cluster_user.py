@@ -16,10 +16,8 @@ from sklearn.neighbors import DistanceMetric
 import time
 from dl85 import DL85Predictor
 
-dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')
+dataset = np.genfromtxt("../../datasets/anneal.txt", delimiter=' ')
 X = dataset[:, 1:]
-X = X.astype('int32')
-
 X_train, X_test = train_test_split(X, test_size=0.2, random_state=0)
 
 
@@ -29,6 +27,7 @@ print("#########################################################################
 
 # The quality of every cluster is determined using the Euclidean distance.
 eucl_dist = DistanceMetric.get_metric('euclidean')
+
 
 # user error function
 def error(tids):
@@ -41,10 +40,12 @@ def error(tids):
     # return the sum of distances as the error
     return float(sum(distances))
 
+
 # user leaf assignment
 def leaf_value(tids):
     # The prediction for every leaf is the centroid of the cluster
     return np.mean(X.take(list(tids)))
+
 
 # Change the parameters of the algorithm as desired.
 clf = DL85Predictor(max_depth=2, min_sup=5, error_function=error, leaf_value_function=leaf_value, time_limit=600)

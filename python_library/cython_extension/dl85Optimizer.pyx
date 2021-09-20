@@ -48,7 +48,7 @@ cdef extern from "../../cpp/src/dl85.h":
                     int minsup,
                     float maxError,
                     bool stopAfterError,
-                    bool iterative,
+                    # bool iterative,
                     PyTidErrorClassWrapper tids_error_class_callback,
                     PySupportErrorClassWrapper supports_error_class_callback,
                     PyTidErrorWrapper tids_error_callback,
@@ -60,8 +60,8 @@ cdef extern from "../../cpp/src/dl85.h":
                     bool infoAsc,
                     bool repeatSort,
                     int timeLimit,
-                    map[int, pair[int, int]]* continuousMap,
-                    bool save,
+                    # map[int, pair[int, int]]* continuousMap,
+                    # bool save,
                     bool verbose_param) except +
 
 
@@ -75,15 +75,16 @@ def solve(data,
           example_weights=[],
           max_error=0,
           stop_after_better=False,
-          iterative=False,
+          # iterative=False,
           time_limit=0,
           verb=False,
           desc=False,
           asc=False,
           repeat_sort=False,
-          continuousMap=None,
-          bin_save=False,
-          predictor=False):
+          # continuousMap=None,
+          # bin_save=False,
+          # predictor=False
+          ):
 
     cdef PyTidErrorClassWrapper tec_func = PyTidErrorClassWrapper(tec_func_)
     tec_null_flag = True
@@ -149,10 +150,10 @@ def solve(data,
     if max_error < 0:  # raise error when incompatibility between max_error value and stop_after_better value
         stop_after_better = False
 
-    cont_map = NULL
-    if continuousMap is not None:
-        #cont_map must be defined properly
-        cont_map = NULL
+    # cont_map = NULL
+    # if continuousMap is not None:
+        # #cont_map must be defined properly
+        # cont_map = NULL
 
     info_gain = not (desc == False and asc == False)
 
@@ -168,7 +169,7 @@ def solve(data,
                  minsup = min_sup,
                  maxError = max_error,
                  stopAfterError = stop_after_better,
-                 iterative = iterative,
+                 # iterative = iterative,
                  tids_error_class_callback = tec_func,
                  supports_error_class_callback = sec_func,
                  tids_error_callback = te_func,
@@ -180,8 +181,8 @@ def solve(data,
                  infoAsc = asc,
                  repeatSort = repeat_sort,
                  timeLimit = time_limit,
-                 continuousMap = NULL,
-                 save = bin_save,
+                 # continuousMap = NULL,
+                 # save = bin_save,
                  verbose_param = verb)
 
     return out.decode("utf-8")

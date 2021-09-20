@@ -124,8 +124,8 @@ Array<Attribute> LcmPruned::getSuccessors(Array<Attribute> last_candidates, Attr
         // add frequent attributes but if heuristic is used to sort them, compute its value and sort later
         if (sup_left >= query->minsup && sup_right >= query->minsup) {
             //continuous dataset. Not supported yet
-            if (query->continuous) {}
-            else {
+//            if (query->continuous) {}
+//            else {
                 if (infoGain) {
                     // compute the support per class in each split of the attribute to compute its IG value
                     Supports sup_class_left = cover->temporaryIntersect(candidate, false).first;
@@ -136,7 +136,7 @@ Array<Attribute> LcmPruned::getSuccessors(Array<Attribute> last_candidates, Attr
                     deleteSupports(sup_class_left);
                     deleteSupports(sup_class_right);
                 } else next_candidates.push_back(candidate);
-            }
+//            }
         }
     }
 

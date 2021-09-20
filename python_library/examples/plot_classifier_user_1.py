@@ -1,7 +1,7 @@
 """
-===========================================================================
+=====================================================================================
 DL8.5 classifier : user specific error function based on supports per class
-===========================================================================
+=====================================================================================
 PyDL8.5 allows users to write their own error function for classification tasks. 
 This class shows how to write an error function that operates on supports per class.
 For data that is not supervised, other supervised learning task, the DL85 predictor 
@@ -15,12 +15,8 @@ from sklearn.metrics import accuracy_score
 import time
 from dl85 import DL85Classifier
 
-dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')
-X = dataset[:, 1:]
-y = dataset[:, 0]
-X = X.astype('int32')
-y = y.astype('int32')
-
+dataset = np.genfromtxt("../../datasets/anneal.txt", delimiter=' ')
+X, y = dataset[:, 1:], dataset[:, 0]
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
 

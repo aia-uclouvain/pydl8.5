@@ -6,9 +6,7 @@ Query_TotalFreq::Query_TotalFreq(Support minsup,
                                  Depth maxdepth,
                                  Trie *trie,
                                  DataManager *data,
-                                 ExpError *experror,
                                  int timeLimit,
-                                 bool continuous,
                                  function<vector<float>(RCover *)> *tids_error_class_callback,
                                  function<vector<float>(RCover *)> *supports_error_class_callback,
                                  function<float(RCover *)> *tids_error_callback,
@@ -17,9 +15,7 @@ Query_TotalFreq::Query_TotalFreq(Support minsup,
                    maxdepth,
                    trie,
                    data,
-                   experror,
                    timeLimit,
-                   continuous,
                    tids_error_class_callback,
                    supports_error_class_callback,
                    tids_error_callback,
@@ -97,8 +93,7 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
     }
     data->test = maxclass;
     data->leafError = error;
-    data->error += experror->addError(cover->getSupport(), data->error, dm->getNTransactions());
-    data->solutionDepth = currentMaxDepth;
+    data->error += error;
 
     return (QueryData *) data;
 }

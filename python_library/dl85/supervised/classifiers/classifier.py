@@ -13,8 +13,6 @@ class DL85Classifier(DL85Predictor, ClassifierMixin):
         Maximum depth of the tree to be found
     min_sup : int, default=1
         Minimum number of examples per leaf
-    iterative : bool, default=False
-        Whether the search will be Iterative Deepening Search or not. By default, it is Depth First Search
     max_error : int, default=0
         Maximum allowed error. Default value stands for no bound. If no tree can be found that is strictly better, the model remains empty.
     stop_after_better : bool, default=False
@@ -60,10 +58,8 @@ class DL85Classifier(DL85Predictor, ClassifierMixin):
             self,
             max_depth=1,
             min_sup=1,
-            # example_weights=[],
             error_function=None,
             fast_error_function=None,
-            iterative=False,
             max_error=0,
             stop_after_better=False,
             time_limit=0,
@@ -71,19 +67,14 @@ class DL85Classifier(DL85Predictor, ClassifierMixin):
             desc=False,
             asc=False,
             repeat_sort=False,
-            # nps=False,
             quiet=True,
             print_output=False):
 
         DL85Predictor.__init__(self,
                                max_depth=max_depth,
                                min_sup=min_sup,
-                               # example_weights=example_weights,
                                error_function=error_function,
                                fast_error_function=fast_error_function,
-                               # example_weight_function=None,
-                               # test_error_function=self.intermediary_test_error_function,
-                               iterative=iterative,
                                max_error=max_error,
                                stop_after_better=stop_after_better,
                                time_limit=time_limit,
@@ -92,7 +83,6 @@ class DL85Classifier(DL85Predictor, ClassifierMixin):
                                asc=asc,
                                repeat_sort=repeat_sort,
                                leaf_value_function=None,
-                               # nps=nps,
                                quiet=quiet,
                                print_output=print_output)
 

@@ -1,3 +1,8 @@
+"""
+==============================================
+DL85Classifier example to export tree as image
+==============================================
+"""
 import numpy as np
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
@@ -16,9 +21,8 @@ X, y = dataset[:, 1:], dataset[:, 0]
 # split the dataset into training and test sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
-clf = DL85Classifier(max_depth=2, min_sup=1, print_output=True)
+clf = DL85Classifier(max_depth=2)
 clf.fit(X, y)
-print("========= END PRINT =========\n\n")
 y_pred = clf.predict(X_test)
 
 # show results

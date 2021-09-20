@@ -46,8 +46,6 @@ class DL85Predictor(BaseEstimator):
         Maximum depth of the tree to be found
     min_sup : int, default=1
         Minimum number of examples per leaf
-    iterative : bool, default=False
-        Whether the search will be Iterative Deepening Search or not. By default, it is Depth First Search
     max_error : int, default=0
         Maximum allowed error. Default value stands for no bound. If no tree can be found that is strictly better, the model remains empty.
     stop_after_better : bool, default=False
@@ -93,13 +91,8 @@ class DL85Predictor(BaseEstimator):
             self,
             max_depth=1,
             min_sup=1,
-            # max_estimators=1,
-            # example_weights=[],
             error_function=None,
             fast_error_function=None,
-            # example_weight_function=None,
-            predict_error_function=None,
-            iterative=False,
             max_error=0,
             stop_after_better=False,
             time_limit=0,
@@ -113,13 +106,9 @@ class DL85Predictor(BaseEstimator):
             print_output=False):
         self.max_depth = max_depth
         self.min_sup = min_sup
-        # self.max_estimators = max_estimators
         self.sample_weight = []
         self.error_function = error_function
         self.fast_error_function = fast_error_function
-        # self.example_weight_function = example_weight_function
-        # self.predict_error_function = predict_error_function
-        self.iterative = iterative
         self.max_error = max_error
         self.stop_after_better = stop_after_better
         self.time_limit = time_limit
@@ -199,37 +188,24 @@ class DL85Predictor(BaseEstimator):
                                        tec_func_=opt_func,
                                        sec_func_=opt_fast_func,
                                        te_func_=opt_pred_func,
-                                       # exw_func_=self.example_weight_function,
-                                       # pred_func_=self.predict_error_function,
                                        max_depth=self.max_depth,
                                        min_sup=self.min_sup,
-                                       # max_estimators=self.max_estimators,
                                        example_weights=self.sample_weight,
                                        max_error=self.max_error,
                                        stop_after_better=self.stop_after_better,
-                                       iterative=self.iterative,
                                        time_limit=self.time_limit,
                                        verb=self.verbose,
                                        desc=self.desc,
                                        asc=self.asc,
-                                       repeat_sort=self.repeat_sort,
-                                       bin_save=False,
-                                       # nps=self.nps,
-                                       predictor=predict)
+                                       repeat_sort=self.repeat_sort)
 
         # if self.print_output:
         #     print(solution)
 
-        # print("sol")
-        # print(solution)
-        # print("end")
         solution = solution.rstrip("\n").splitlines()
-        sol_size = len(solution)
+        self.sol_size = len(solution)
 
-        # if self.sol_size_ == 1:
-        #     raise ValueError(solution[0])
-
-        if sol_size == 9:  # solution found
+        if self.sol_size == 9:  # solution found
             self.tree_ = json.loads(solution[1].split('Tree: ')[1])
             self.size_ = int(solution[2].split(" ")[1])
             self.depth_ = int(solution[3].split(" ")[1])
@@ -256,21 +232,11 @@ class DL85Predictor(BaseEstimator):
                     else:
                         print("DL8.5 fitting: Timeout reached but solution found")
 
-            # else:  # timeout reached
-            #     self.timeout_ = True
-            #     if self.size_ < 3 and self.max_error > 0:  # return just a leaf as fake solution
-            #         print("DL8.5 fitting: Timeout reached without solution. However, a solution exists with "
-            #               "error equal to the max error you specify as unreachable. Please increase "
-            #               "your bound if you want to reach it.")
-            #     else:
-            #         if not self.quiet:
-            #             print("DL8.5 fitting: Timeout reached but solution found")
-
             if target_is_need:  # problem with target
                 # Store the classes seen during fit
                 self.classes_ = unique_labels(y)
 
-        elif sol_size == 5:  # solution not found
+        elif self.sol_size == 5:  # solution not found
             self.lattice_size_ = int(solution[2].split(" ")[1])
             self.runtime_ = float(solution[3].split(" ")[1])
             self.timeout_ = bool(strtobool(solution[4].split(" ")[1]))
@@ -298,10 +264,6 @@ class DL85Predictor(BaseEstimator):
         if self.print_output:
             print(solution[0])
             print("Tree:", self.tree_)
-            # if self.leaf_value_function is None:
-            #     print("Tree:", self.tree_)
-            # else:
-            #     print("Tree:", self.tree_without_transactions())
             print("Size:", str(self.size_))
             print("Depth:", str(self.depth_))
             print("Error:", str(self.error_))

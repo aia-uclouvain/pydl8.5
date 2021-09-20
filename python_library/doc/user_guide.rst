@@ -21,8 +21,7 @@ decision tree learning problems, including, but not limited to, classification t
 
 Decision trees are traditionally learned using heuristic algorithms, such as CART and C4.5.
 However, due to the heuristic nature of these algorithms, the trees learned using them can be larger than 
-necessary; this may make the resulting trees less interpretable. Trees found by DL8.5 are optimal under
- constraints  that aim to make the resulting trees both interpretable and accurate. 
+necessary; this may make the resulting trees less interpretable. Trees found by DL8.5 are optimal under constraints  that aim to make the resulting trees both interpretable and accurate.
 
 Moreover, given that in DL8.5 it is not necessary to specify a heuristic, solving other learning problems 
 than classification problems potentially becomes simpler.

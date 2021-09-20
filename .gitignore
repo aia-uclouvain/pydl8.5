@@ -2,7 +2,7 @@ python_library/build/*
 
 python_library/dist/*
 
-python_library/dl8.5.egg-info/*
+python_library/pydl8.5.egg-info/*
 
 python_library/doc/_build/*
 python_library/doc/auto_examples/*
@@ -13,12 +13,6 @@ python_library/.pytest_cache/*
 python_library/.idea/*
 
 python_library/.ipynb_checkpoints/*
-
-datasets/boosting/eharmony/*
-
-datasets/boosting/mnist/*
-
-datasets/boosting/usps/*
 
 python_library/notebooks/*
 
@@ -31,6 +25,7 @@ python_library/dl85/supervised/classifiers/__pycache__/*
 python_library/dl85/supervised/__pycache__/*
 python_library/dl85/unsupervised/__pycache__/*
 python_library/dl85/supervised/classifiers/tests/__pycache__/*
+python_library/dl85/supervised/classifiers/utils/__pycache__/*
 python_library/dl85/errors/__pycache__/*
 python_library/dl85/predictors/__pycache__/*
 python_library/dl85/supervised/classifiers/old_classifier.py
@@ -56,3 +51,5 @@ todo.txt
 python_library/examples/output/*
 python_library/examples/plots/*
 python_library/examples/*.csv
+
+datasets/tests/*

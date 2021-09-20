@@ -19,7 +19,6 @@
 #include "depthTwoComputer.h"
 #include "query_best.h" // if cannot link is specified, we need a clustering problem!!!
 #include "logger.h"
-#include "dataContinuous.h"
 
 
 
