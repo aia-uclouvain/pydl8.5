@@ -7,7 +7,7 @@ cache:
   directories:
   - "$HOME/.cache/pip"
 install:
-- pip install -r requirements.txt
+- pip install -r python_library/requirements.txt
 - pip install codecov
 - pip install python_library/.
 script:
