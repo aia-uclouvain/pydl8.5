@@ -2,7 +2,7 @@ dist: bionic
 sudo: false
 language: python
 python:
-  - "3.8"
+  - "3.9"
 cache:
   directories:
   - "$HOME/.cache/pip"
@@ -10,6 +10,8 @@ install:
 - cd python_library
 - pip install -r requirements.txt
 - pip install codecov
+- pwd
+- ls
 - pip install .
 script:
 - pytest -v --cov=dl85 dl85/supervised/classifiers/tests/
