@@ -1,17 +1,20 @@
 from setuptools import Extension, find_packages, setup
 from Cython.Build import cythonize
 import platform
-import codecs
+# import codecs
 from dl85 import __version__
 
 from os import listdir
-onlyfiles = [f for f in listdir(".")]
+onlyfiles = [f for f in listdir("..")]
 print(onlyfiles)
 
 DISTNAME = 'pydl8.5'
 DESCRIPTION = 'A package to build an optimal binary decision tree classifier.'
-with codecs.open('../README.rst', encoding='utf-8-sig') as f:
-    LONG_DESCRIPTION = f.read()
+# with codecs.open('../README.rst', encoding='utf-8-sig') as f:
+#     LONG_DESCRIPTION = f.read()
+readme = open("../README.rst")
+LONG_DESCRIPTION = readme.read().replace("\n", " ")
+readme.close()
 AUTHORS = 'Gael Aglin, Siegfried Nijssen, Pierre Schaus'
 AUTHORS_EMAIL = 'aglingael@gmail.com, siegfried.nijssen@gmail.com, pschaus@gmail.com'
 URL = 'https://github.com/aia-uclouvain/pydl8.5'
