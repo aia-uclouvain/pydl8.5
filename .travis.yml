@@ -9,9 +9,9 @@ cache:
 install:
 - pip install -r python_library/requirements.txt
 - pip install codecov
+- pip install python_library/.
 script:
 - cd python_library
-- pip install .
 - pytest -v --cov=dl85 dl85/supervised/classifiers/tests/
 after_success:
 - codecov
