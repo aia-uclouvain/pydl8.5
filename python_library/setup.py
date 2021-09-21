@@ -7,6 +7,10 @@ from dl85 import __version__
 from os import listdir
 print([f for f in listdir("..")])
 
+import pathlib
+print(pathlib.Path(__file__).parent.resolve())
+print(pathlib.Path().resolve())
+
 DISTNAME = 'pydl8.5'
 DESCRIPTION = 'A package to build an optimal binary decision tree classifier.'
 with codecs.open('../README.rst', encoding='utf-8-sig') as f:
