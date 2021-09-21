@@ -3,7 +3,7 @@
 .. _user_guide:
 
 =======================
-User guide: Using DL8.5
+User guide: Using PyDL8.5
 =======================
 
 Optimal Decision Trees

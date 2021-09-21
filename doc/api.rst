@@ -1,5 +1,5 @@
 ####################
-DL8.5 API
+PyDL8.5 API
 ####################
 
 This project implements the class ``DL85Classifier`` for learning optimal classification trees using the DL8.5 algorithm. Moreover, it provides a ``DL85Predictor`` class that 
@@ -18,6 +18,7 @@ Predictors
    :template: class.rst
 
     supervised.classifiers.DL85Classifier
+    supervised.classifiers.DL85Booster
     predictors.predictor.DL85Predictor
     unsupervised.clustering.DL85Cluster
 

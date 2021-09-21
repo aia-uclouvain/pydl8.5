@@ -13,6 +13,10 @@ class DL85Classifier(DL85Predictor, ClassifierMixin):
         Maximum depth of the tree to be found
     min_sup : int, default=1
         Minimum number of examples per leaf
+    error_function : function, default=None
+        User-specific error function based on transactions
+    fast_error_function : function, default=None
+        User-specific error function based on supports per class
     max_error : int, default=0
         Maximum allowed error. Default value stands for no bound. If no tree can be found that is strictly better, the model remains empty.
     stop_after_better : bool, default=False
@@ -27,8 +31,6 @@ class DL85Classifier(DL85Predictor, ClassifierMixin):
         A parameter used to indicate if the sorting of the items is done in ascending order of information gain
     repeat_sort : bool, default=False
         A parameter used to indicate whether the sorting of items is done at each level of the lattice or only before the search
-    nps : bool, default=False
-        A parameter used to indicate if only optimal solutions should be stored in the cache.
     print_output : bool, default=False
         A parameter used to indicate if the search output will be printed or not
 

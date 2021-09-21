@@ -1,26 +1,18 @@
-import json
 import os
-import random
 import sys
 import time
-import copy
+from copy import deepcopy
+import cvxpy as cp
 
-from gurobipy import Model, GRB, quicksum
 from sklearn.base import ClassifierMixin
-
-from .classifier import DL85Classifier
-from ...predictors.predictor import DL85Predictor
-from ...errors.errors import SearchFailedError, TreeNotFoundError
 from sklearn.exceptions import NotFittedError
 from sklearn.utils.multiclass import unique_labels
 from sklearn.base import BaseEstimator
-from copy import deepcopy
 from sklearn.metrics import accuracy_score, roc_auc_score
-from sklearn.model_selection import StratifiedKFold
+
+from .classifier import DL85Classifier
+from ...errors.errors import SearchFailedError, TreeNotFoundError
 from .utils.matrix import *
-import numpy as np
-import cvxpy as cp
-import math
 
 MODEL_LP_RATSCH = 1  # regulator of ratsch is between ]0; 1]
 MODEL_LP_DEMIRIZ = 2  # regulator of demiriz is between ]1/n_instances; +\infty]
@@ -33,16 +25,30 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
 
     Parameters
     ----------
+    base_etimator : classifier, default=None
+        The base classifier to boost
     max_depth : int, default=1
         Maximum depth of the tree to be found
     min_sup : int, default=1
         Minimum number of examples per leaf
-    iterative : bool, default=False
-        Whether the search will be Iterative Deepening Search or not. By default, it is Depth First Search
+    max_iterations : int, default=0
+        The maximum number of iterations after which the search is stopped. Default value means "no stop on iterations"
+    model : int, default=MODEL_LP_DEMIRIZ
+        The column generation model to solve
+    gamma : str, default=None
+        Variance matrix parameter for MDBoost
+    error_function : function, default=None
+        User-specific error function based on transactions
+    fast_error_function : function, default=None
+        User-specific error function based on supports per class
+    opti_gap : float, default=0.01
+        This value is a tolerance to stop the column generation before optimality. It fixes the convergence problem of column generation approaches
     max_error : int, default=0
         Maximum allowed error. Default value stands for no bound. If no tree can be found that is strictly better, the model remains empty.
     stop_after_better : bool, default=False
         A parameter used to indicate if the search will stop after finding a tree better than max_error
+    regulator : float, default=-1
+        This is the regularization parameter of column generation models.
     time_limit : int, default=0
         Allocated time in second(s) for the search. Default value stands for no limit. The best tree found within the time limit is stored, if this tree is better than max_error.
     verbose : bool, default=False
@@ -53,29 +59,33 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         A parameter used to indicate if the sorting of the items is done in ascending order of information gain
     repeat_sort : bool, default=False
         A parameter used to indicate whether the sorting of items is done at each level of the lattice or only before the search
-    nps : bool, default=False
-        A parameter used to indicate if only optimal solutions should be stored in the cache.
+    quiet : bool, default=True
+        Whether to print or not the column generation details
     print_output : bool, default=False
         A parameter used to indicate if the search output will be printed or not
 
     Attributes
     ----------
-    tree_ : str
-        Outputted tree in serialized form; remains empty as long as no model is learned.
-    size_ : int
-        The size of the outputted tree
-    depth_ : int
-        Depth of the found tree
-    error_ : float
-        Error of the found tree
+    estimators_ : list
+        The list of estimators in the final ensemble.
+    estimator_weights_ : list
+        The weight of each estimator.
+    n_estimators_ : int
+        Total number of estimators
+    n_iterations_ : int
+        Total number of iterations needed to find the optimal ensemble.
+    objective_ : float
+        The objective value reached by the ensemble.
     accuracy_ : float
         Accuracy of the found tree on training set
-    lattice_size_ : int
-        The number of nodes explored before found the optimal tree
-    runtime_ : float
-        Time of the optimal decision tree search
-    timeout_ : bool
-        Whether the search reached timeout or not
+    margins_ : list
+        The list of margin of the found ensemble on the training set
+    margins_norm_ : list
+        Same value as above but normalized. Each value is between -1 and 1.
+    duration_ : float
+        Time of the optimal forest search
+    optimal_ : bool
+        Whether the ensemble is optimal or not
     classes_ : ndarray, shape (n_classes,)
         The classes seen at :meth:`fit`.
     """
@@ -90,7 +100,6 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             gamma=None,
             error_function=None,
             fast_error_function=None,
-            min_trans_cost=0,
             opti_gap=0.01,
             max_error=0,
             regulator=-1,
@@ -109,7 +118,6 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         del self.clf_params["max_iterations"]
         del self.clf_params["model"]
         del self.clf_params["gamma"]
-        del self.clf_params["min_trans_cost"]
         del self.clf_params["opti_gap"]
 
         self.base_estimator = base_estimator
@@ -130,7 +138,6 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         self.quiet = quiet
         self.model = model
         self.gamma = gamma
-        self.min_trans_cost = min_trans_cost
         self.opti_gap = opti_gap
         self.n_instances = None
         self.A_inv = None

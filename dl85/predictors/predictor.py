@@ -60,8 +60,6 @@ class DL85Predictor(BaseEstimator):
         A parameter used to indicate heuristic function used to sort the items in ascending order
     repeat_sort : bool, default=False
         A parameter used to indicate whether the heuristic sort will be applied at each level of the lattice or only at the root
-    nps : bool, default=False
-        A parameter used to indicate if only optimal solutions should be stored in the cache.
     print_output : bool, default=False
         A parameter used to indicate if the search output will be printed or not
 
@@ -101,7 +99,6 @@ class DL85Predictor(BaseEstimator):
             asc=False,
             repeat_sort=False,
             leaf_value_function=None,
-            nps=False,
             quiet=True,
             print_output=False):
         self.max_depth = max_depth
@@ -117,7 +114,6 @@ class DL85Predictor(BaseEstimator):
         self.asc = asc
         self.repeat_sort = repeat_sort
         self.leaf_value_function = leaf_value_function
-        self.nps = nps
         self.quiet = quiet
         self.print_output = print_output
 

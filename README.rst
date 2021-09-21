@@ -9,15 +9,21 @@
 .. |ReadTheDocs| image:: https://readthedocs.org/projects/dl85/badge/?version=latest
 .. _ReadTheDocs: https://dl85.readthedocs.io/en/latest/
 
-.. |Codecov| image:: https://codecov.io/gh/aglingael/dl8.5/branch/master/graph/badge.svg
-.. _Codecov: https://codecov.io/gh/aglingael/dl8.5
+.. |Codecov| image:: https://codecov.io/gh/aglingael/PyDL8.5/branch/master/graph/badge.svg?token=UAP32DK54M
+.. _Codecov: https://codecov.io/gh/aglingael/PyDL8.5
 
 :Authors:
     Gaël Aglin, Siegfried Nijssen, Pierre Schaus
 
 Relevant paper : `[DL852020] <https://dial.uclouvain.be/pr/boreal/fr/object/boreal%3A223390/datastream/PDF_01/view>`_ `[PYDL852020] <https://www.ijcai.org/Proceedings/2020/0750.pdf>`_
 
-**PYDL8.5:** This project implements an algorithm for inferring optimal binary decision trees.
+**The PYDL8.5 library is an enhancement of DL8.5. The name has changed because the library no longer contains
+only the implementation of the DL8.5 algorithm, although the additional features are still built around DL8.5.
+Therefore the name of the library has changed and you need to install the correct version from PyPI to benefit
+from the new features. Please read the relevant articles referenced below to learn about the additional features.
+The documentation will help you get started with PyDL8.5.**
+
+This project implements an algorithm for inferring optimal binary decision trees.
 It is scikit-learn compatible and can be used in combination with scikit-learn.
 As a scikit-learn classifier, it implements the methods "fit" and "predict".
 

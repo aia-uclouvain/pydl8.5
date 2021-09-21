@@ -28,8 +28,6 @@ class DL85Cluster(DL85Predictor, ClusterMixin):
         A parameter used to indicate if the sorting of the items is done in ascending order of information gain
     repeat_sort : bool, default=False
         A parameter used to indicate whether the sorting of items is done at each level of the lattice or only before the search
-    nps : bool, default=False
-        A parameter used to indicate if only optimal solutions should be stored in the cache.
     print_output : bool, default=False
         A parameter used to indicate if the search output will be printed or not
 
@@ -68,7 +66,6 @@ class DL85Cluster(DL85Predictor, ClusterMixin):
             asc=False,
             repeat_sort=False,
             leaf_value_function=None,
-            nps=False,
             print_output=False):
 
         DL85Predictor.__init__(self,
@@ -84,7 +81,6 @@ class DL85Cluster(DL85Predictor, ClusterMixin):
                                asc=asc,
                                repeat_sort=repeat_sort,
                                leaf_value_function=leaf_value_function,
-                               nps=nps,
                                print_output=print_output)
 
     @staticmethod
