@@ -10,12 +10,11 @@ install:
   - pip install -r python_library/requirements.txt
   - pip install codecov
 before_script:
-  - cd python_library
+#  - cd python_library
   - pwd
   - ls
-  - ls ..
 script:
-  - pip install .
+  - pip install python_library/.
 after_success:
   - pytest -v --cov=dl85 dl85/supervised/classifiers/tests/
   - codecov
