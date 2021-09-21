@@ -1,0 +1,3 @@
+exclude cython_extension/dl850ptimizer.cpp
+exclude cython_extension/error_function.cpp
+exclude cython_extension/error_function.h

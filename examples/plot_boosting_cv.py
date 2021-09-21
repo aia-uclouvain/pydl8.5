@@ -9,7 +9,7 @@ from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.model_selection import GridSearchCV, KFold
 from dl85 import DL85Booster, MODEL_LP_RATSCH, MODEL_LP_DEMIRIZ, MODEL_QP_MDBOOST
 
-dataset = np.genfromtxt("../../datasets/tic-tac-toe.txt", delimiter=' ')
+dataset = np.genfromtxt("../datasets/tic-tac-toe.txt", delimiter=' ')
 X, y = dataset[:, 1:], dataset[:, 0]
 n_folds, n_folds_tuning, verbose_level = 5, 4, 0
 

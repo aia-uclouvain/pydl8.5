@@ -12,7 +12,7 @@ import time
 import numpy as np
 from sklearn.metrics import confusion_matrix
 
-dataset = np.genfromtxt("../../datasets/tic-tac-toe.txt", delimiter=' ')
+dataset = np.genfromtxt("../datasets/tic-tac-toe.txt", delimiter=' ')
 X, y = dataset[:, 1:], dataset[:, 0]
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 

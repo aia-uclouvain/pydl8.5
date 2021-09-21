@@ -16,7 +16,7 @@ print("######################################################################\n"
       "######################################################################")
 
 # read the dataset and split into features and targets
-dataset = np.genfromtxt("../../datasets/anneal.txt", delimiter=' ')
+dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')
 X, y = dataset[:, 1:], dataset[:, 0]
 # split the dataset into training and test sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)

@@ -14,8 +14,7 @@ jobs:
             conda update --yes --quiet conda
             conda create -n testenv --yes --quiet python=3.9
             source activate testenv
-            conda install --yes pip numpy scipy scikit-learn matplotlib sphinx sphinx_rtd_theme numpydoc pillow setuptools cython
-            cd python_libary
+            conda install --yes pip numpy scipy scikit-learn matplotlib sphinx sphinx_rtd_theme numpydoc pillow setuptools cython sphinxcontrib sphinx_copybutton gurobipy cvxpy
             pip install sphinx-gallery
             pip install .
 

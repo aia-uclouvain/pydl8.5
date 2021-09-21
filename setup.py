@@ -4,21 +4,14 @@ import platform
 import codecs
 from dl85 import __version__
 
-from os import listdir
-print([f for f in listdir("..")])
-
-import pathlib
-print(pathlib.Path(__file__).parent.resolve())
-print(pathlib.Path().resolve())
-
 DISTNAME = 'pydl8.5'
 DESCRIPTION = 'A package to build an optimal binary decision tree classifier.'
-with codecs.open('../README.rst', encoding='utf-8-sig') as f:
+with codecs.open('README.rst', encoding='utf-8-sig') as f:
     LONG_DESCRIPTION = f.read()
 AUTHORS = 'Gael Aglin, Siegfried Nijssen, Pierre Schaus'
 AUTHORS_EMAIL = 'aglingael@gmail.com, siegfried.nijssen@gmail.com, pschaus@gmail.com'
 URL = 'https://github.com/aia-uclouvain/pydl8.5'
-LICENSE = '../LICENSE.txt'
+LICENSE = 'LICENSE.txt'
 DOWNLOAD_URL = 'https://github.com/aia-uclouvain/pydl8.5'
 VERSION = __version__
 INSTALL_REQUIRES = ['setuptools', 'cython', 'numpy', 'scikit-learn', 'gurobipy', 'cvxpy']
@@ -54,19 +47,19 @@ EXTENSION_NAME = 'dl85Optimizer'
 EXTENSION_LANGUAGE = 'c++'
 EXTENSION_SOURCE_FILES = ['cython_extension/error_function.pyx',
                           'cython_extension/dl85Optimizer.pyx',
-                          '../cpp/src/dataManager.cpp',
-                          '../cpp/src/depthTwoComputer.cpp',
-                          '../cpp/src/dl85.cpp',
-                          '../cpp/src/globals.cpp',
-                          '../cpp/src/lcm_pruned.cpp',
-                          '../cpp/src/query.cpp',
-                          '../cpp/src/query_best.cpp',
-                          '../cpp/src/query_totalfreq.cpp',
-                          '../cpp/src/rCover.cpp',
-                          '../cpp/src/rCoverTotalFreq.cpp',
-                          '../cpp/src/rCoverWeighted.cpp',
-                          '../cpp/src/trie.cpp', ]
-EXTENSION_INCLUDE_DIR = ['../cpp/src', 'cython_extension']
+                          'core/src/dataManager.cpp',
+                          'core/src/depthTwoComputer.cpp',
+                          'core/src/dl85.cpp',
+                          'core/src/globals.cpp',
+                          'core/src/lcm_pruned.cpp',
+                          'core/src/query.cpp',
+                          'core/src/query_best.cpp',
+                          'core/src/query_totalfreq.cpp',
+                          'core/src/rCover.cpp',
+                          'core/src/rCoverTotalFreq.cpp',
+                          'core/src/rCoverWeighted.cpp',
+                          'core/src/trie.cpp', ]
+EXTENSION_INCLUDE_DIR = ['core/src', 'cython_extension']
 # EXTENSION_BUILD_ARGS = ['-std=c++11']
 EXTENSION_BUILD_ARGS = ['-std=c++11', '-DCYTHON_PEP489_MULTI_PHASE_INIT=0']
 if platform.system() == 'Darwin':

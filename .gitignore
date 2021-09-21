@@ -1,55 +1,51 @@
-python_library/build/*
+build/*
 
-python_library/dist/*
+dist/*
 
-python_library/pydl8.5.egg-info/*
+pydl8.5.egg-info/*
 
-python_library/doc/_build/*
-python_library/doc/auto_examples/*
-python_library/doc/generated/*
+doc/_build/*
+doc/auto_examples/*
+doc/generated/*
 
-python_library/.pytest_cache/*
-
-python_library/.idea/*
-
-python_library/.ipynb_checkpoints/*
-
-python_library/notebooks/*
-
-cpp/cmake-build-debug/*
-
-cpp/cmake-build-release/*
-
-python_library/dl85/__pycache__/*
-python_library/dl85/supervised/classifiers/__pycache__/*
-python_library/dl85/supervised/__pycache__/*
-python_library/dl85/unsupervised/__pycache__/*
-python_library/dl85/supervised/classifiers/tests/__pycache__/*
-python_library/dl85/supervised/classifiers/utils/__pycache__/*
-python_library/dl85/errors/__pycache__/*
-python_library/dl85/predictors/__pycache__/*
-python_library/dl85/supervised/classifiers/old_classifier.py
-python_library/dl85/unsupervised/old_clustering.py
-python_library/dl85/predictors/old_predictor.py
-
-python_library/cython_extension/dl85Optimizer.cpp
-python_library/cython_extension/error_function.cpp
-python_library/cython_extension/error_function.h
-
-python_library/examples/gurobi.log
-
-python_library/*.so
-
-python_library/.coverage
-
-.coverage
+.pytest_cache/*
 
 .idea/*
 
+.ipynb_checkpoints/*
+
+notebooks/*
+
+core/cmake-build-debug/*
+
+core/cmake-build-release/*
+
+dl85/__pycache__/*
+dl85/supervised/classifiers/__pycache__/*
+dl85/supervised/__pycache__/*
+dl85/unsupervised/__pycache__/*
+dl85/supervised/classifiers/tests/__pycache__/*
+dl85/supervised/classifiers/utils/__pycache__/*
+dl85/errors/__pycache__/*
+dl85/predictors/__pycache__/*
+dl85/supervised/classifiers/old_classifier.py
+dl85/unsupervised/old_clustering.py
+dl85/predictors/old_predictor.py
+
+cython_extension/dl85Optimizer.cpp
+cython_extension/error_function.cpp
+cython_extension/error_function.h
+
+examples/gurobi.log
+
+*.so
+
+.coverage
+
 todo.txt
 
-python_library/examples/output/*
-python_library/examples/plots/*
-python_library/examples/*.csv
+examples/output/*
+examples/plots/*
+examples/*.csv
 
 datasets/tests/*
