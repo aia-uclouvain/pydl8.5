@@ -1,7 +1,7 @@
 |Travis|_ |CircleCI|_ |ReadTheDocs|_ |Codecov|_
 
-.. |Travis| image:: https://travis-ci.org/aia-uclouvain/pydl8.5.svg?branch=master
-.. _Travis: https://app.travis-ci.com/github/aia-uclouvain/pydl8.5
+.. |Travis| image:: https://app.travis-ci.com/aglingael/PyDL8.5.svg?branch=master
+.. _Travis: https://app.travis-ci.com/github/aglingael/PyDL8.5
 
 .. |CircleCI| image:: https://circleci.com/gh/aglingael/dl8.5/tree/master.svg?style=svg
 .. _CircleCI: https://circleci.com/gh/aglingael/dl8.5/
