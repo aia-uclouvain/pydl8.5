@@ -12,6 +12,7 @@ pillow
 setuptools
 cython
 pytest
+graphviz
 pytest-cov
 gurobipy
 cvxpy

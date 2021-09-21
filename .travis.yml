@@ -5,12 +5,14 @@ python:
   - "3.9"
 cache:
   directories:
-  - "$HOME/.cache/pip"
+    - "$HOME/.cache/pip"
 install:
   - pip install -r requirements.txt
   - pip install codecov
 script:
   - pip install .
+env:
+  - CODECOV_TOKEN='5094828d-471f-438b-b28a-7dc575bd7ec8'
 after_success:
   - pytest -v --cov=dl85 dl85/supervised/classifiers/tests/
   - codecov
@@ -19,7 +21,10 @@ deploy:
   edge: true # v2
   user: __token__
   password:
-    secure: a7BQN7o+148QnZyFOAVMM1BiZ/p0/tj0ssxBH7UwVWihrOLkzIfD9zDF0Pt+WbhJwba3Prj3jybO1bzyxslbOSkoUdunce2flPobE3oGeja8JU5pzxEfIRbOCMOlmyg2G72USAwDKWnEdpyA0J9CfQms+cFHBWlHa2PhBFHvroFKw6GepkHDcBCuwZEVKxZdA+JThUYhGe+hOlLmFPKWb7FHpxoaWUpKEKx9F+gFGualIX/PmMh4vS1JWcYMu033XzGQ60ms0LFhHqNRX9uFVSMbWz9l4yfoOFGYiw2LZMbR/Po9dkKK1vdXamdoxcetVBmsUKXE1cz3Ybbfo57Yy3V1RNy03p9uQqA5ZM3MsdH0saW1BfUz4Yy9sBCZZWINZ09y1NB3bHB8w3D38HQz6sr0amrKlFtM5kRjq/GzN8MgPYC4i3yWzaiyMJTaamhQUNjMOD7oD9baDilmvndavK/1QCy/A4RswoiyH/EC0u5xBj+WFbM//uTCTqAmvEDq326Jcs5gFEnZRmJ0AnzNdacenGEi4xI8p1/K7YmYemFpTIocPGy8JQK9JdtWmm5wfOurxq350wl3Yck0N2KxHnC2Iz15kwnux33fGYgprRA7S6vOg43RlTpKrIoaLR+2Hl35PEHmRfbf+WSjqeKoBS2kBVNS2/rwnjDSHU54mB4=
+#    PyDL8.5 encrypted token
+    secure: MyMKPOZFzfopm0YT8Pyi/azqLBolTVyhLKh+42iZcTJkGWs1yQjPv6AbeakmprGx+R6WtyV4Hrvc1oSE+/biASQh2bDDFJD+ygLP/XYNuMvqdoINO5NrzsisraX3C/vf+s6lAhe3BMRjgm7pKGsjg3sdOVbr6OZrvLA5ZhmUxgKZAvaR6LgyguM3CmV7W3EM2LS94zcURGi89YDPPTQFGMeGZmp3l4ZHUnITvi7y6MkC7gKaYALh3ieOqFXO66YW82XJbyhGPN7liB0+QoKJtSQt3/vf8Skhq1lawzhq8RjCTKyDy2/DMMshSzSXwGtfPGUhbs3KTfNiqruBWwr5pdaULSuiaUxiJ+PEZCMVgJ/eIjdWlgH71cAuvLcta6ijCPTvbMV6/fmuPuw+7nxasezB7e9L8ZVGPowY4wDSw4VH9MjNQlgbiIlbAWKpFGOGh5tkkjt0HQWjnRvFDo1jcnuXyfIkiO5th7IEDuTSMlTT/0PV+yepOYMMfmT409AD7mqxPRWPenOmsgo1D4XvggvxTG6ZMAXDfzKQbWMeOiggJGSF6OhTYtq+i1a+/VdgMO0tdvnWcPq5gDQvm1br5qRXeM0M6ZpN1Ips5OWVw3ZFjphL5GqzMvulnnLgHNvdlTbAJJf4okpj2/SCe8BzCGLOfOhHPuoMuzhy6Emm5SY=
+#    DL8.5 encrypted token
+#    secure: a7BQN7o+148QnZyFOAVMM1BiZ/p0/tj0ssxBH7UwVWihrOLkzIfD9zDF0Pt+WbhJwba3Prj3jybO1bzyxslbOSkoUdunce2flPobE3oGeja8JU5pzxEfIRbOCMOlmyg2G72USAwDKWnEdpyA0J9CfQms+cFHBWlHa2PhBFHvroFKw6GepkHDcBCuwZEVKxZdA+JThUYhGe+hOlLmFPKWb7FHpxoaWUpKEKx9F+gFGualIX/PmMh4vS1JWcYMu033XzGQ60ms0LFhHqNRX9uFVSMbWz9l4yfoOFGYiw2LZMbR/Po9dkKK1vdXamdoxcetVBmsUKXE1cz3Ybbfo57Yy3V1RNy03p9uQqA5ZM3MsdH0saW1BfUz4Yy9sBCZZWINZ09y1NB3bHB8w3D38HQz6sr0amrKlFtM5kRjq/GzN8MgPYC4i3yWzaiyMJTaamhQUNjMOD7oD9baDilmvndavK/1QCy/A4RswoiyH/EC0u5xBj+WFbM//uTCTqAmvEDq326Jcs5gFEnZRmJ0AnzNdacenGEi4xI8p1/K7YmYemFpTIocPGy8JQK9JdtWmm5wfOurxq350wl3Yck0N2KxHnC2Iz15kwnux33fGYgprRA7S6vOg43RlTpKrIoaLR+2Hl35PEHmRfbf+WSjqeKoBS2kBVNS2/rwnjDSHU54mB4=
   on:
     tags: true
     branch: master
@@ -28,3 +33,6 @@ deploy:
   allow_failure: true # v2
   skip_existing: true
   # skip_cleanup: true # v1
+
+
+

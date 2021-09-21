@@ -17,7 +17,7 @@
 
 Relevant paper : `[DL852020] <https://dial.uclouvain.be/pr/boreal/fr/object/boreal%3A223390/datastream/PDF_01/view>`_ `[PYDL852020] <https://www.ijcai.org/Proceedings/2020/0750.pdf>`_
 
-This project implements an algorithm for inferring optimal binary decision trees.
+**PYDL8.5:** This project implements an algorithm for inferring optimal binary decision trees.
 It is scikit-learn compatible and can be used in combination with scikit-learn.
 As a scikit-learn classifier, it implements the methods "fit" and "predict".
 
