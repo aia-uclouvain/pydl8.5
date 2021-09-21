@@ -7,14 +7,18 @@ cache:
   directories:
   - "$HOME/.cache/pip"
 install:
-- pip install -r python_library/requirements.txt
-- pip install codecov
-- pip install python_library/.
+  - pip install -r python_library/requirements.txt
+  - pip install codecov
+before_script:
+  - cd python_library
+  - pwd
+  - ls
+  - ls ..
 script:
-- cd python_library
-- pytest -v --cov=dl85 dl85/supervised/classifiers/tests/
+  - pip install .
 after_success:
-- codecov
+  - pytest -v --cov=dl85 dl85/supervised/classifiers/tests/
+  - codecov
 deploy:
   provider: pypi
   edge: true # v2
