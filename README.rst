@@ -3,8 +3,8 @@
 .. |Travis| image:: https://app.travis-ci.com/aglingael/PyDL8.5.svg?branch=master
 .. _Travis: https://app.travis-ci.com/github/aglingael/PyDL8.5
 
-.. |CircleCI| image:: https://circleci.com/gh/aglingael/dl8.5/tree/master.svg?style=svg
-.. _CircleCI: https://circleci.com/gh/aglingael/dl8.5/
+.. |CircleCI| image:: https://circleci.com/gh/aglingael/PyDL8.5/tree/master.svg?style=shield
+.. _CircleCI: https://app.circleci.com/pipelines/github/aglingael/PyDL8.5
 
 .. |ReadTheDocs| image:: https://readthedocs.org/projects/dl85/badge/?version=latest
 .. _ReadTheDocs: https://dl85.readthedocs.io/en/latest/
