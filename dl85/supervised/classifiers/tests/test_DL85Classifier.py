@@ -3,8 +3,7 @@ from sklearn.model_selection import train_test_split
 from ..classifier import DL85Classifier
 import numpy as np
 from random import randrange
-from os import listdir
-from os.path import isfile, join
+from os.path import join
 from sklearn.metrics import accuracy_score
 
 dev = "../../../../"
@@ -14,20 +13,17 @@ prefix = prod
 
 
 def test_fit():
-    dataset = np.genfromtxt(prefix + "datasets/anneal.txt", delimiter=' ')
-    X = dataset[:, 1:]
-    y = dataset[:, 0]
+    dataset = np.genfromtxt(prefix + "datasets/anneal.txt", delimiter=' ').astype('int32')
+    X, y = dataset[:, 1:], dataset[:, 0]
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
     clf1 = DL85Classifier(max_depth=randrange(1, 4), min_sup=randrange(1, X_train.shape[0] // 4))
     clf1.fit(X_train, y_train)
-
     assert clf1.sol_size in [5, 9]
 
 
 def test_predict():
-    dataset = np.genfromtxt(prefix + "datasets/anneal.txt", delimiter=' ')
-    X = dataset[:, 1:]
-    y = dataset[:, 0]
+    dataset = np.genfromtxt(prefix + "datasets/anneal.txt", delimiter=' ').astype('int32')
+    X, y = dataset[:, 1:], dataset[:, 0]
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
     clf1 = DL85Classifier(max_depth=randrange(1, 4), min_sup=randrange(1, X_train.shape[0] // 4))
     clf1.fit(X_train, y_train)
@@ -41,8 +37,7 @@ def test_predict():
                     return False
             return True
 
-        assert len(y_pred1) == X_test.shape[0] and is_class(
-            y_pred1) is True  # list(set(y_pred1)) == list(set(list(clf1.classes_)))
+        assert len(y_pred1) == X_test.shape[0] and is_class(y_pred1) is True  # list(set(y_pred1)) == list(set(list(clf1.classes_)))
     else:
         assert clf1.sol_size == 5
 
@@ -50,17 +45,12 @@ def test_predict():
 def test_depth_2():
     solutions = [137, 10, 87, 22, 177, 267, 60, 16, 70, 32, 418, 599, 22, 252, 153, 58, 9, 55, 508, 282, 75, 17, 437, 0]
     mypath = prefix + "datasets"
-    onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f)) and not f.startswith(".")]
-    onlyfiles = sorted(onlyfiles)
+    datasets = ['anneal.txt', 'audiology.txt', 'australian-credit.txt', 'breast-wisconsin.txt', 'diabetes.txt', 'german-credit.txt', 'heart-cleveland.txt', 'hepatitis.txt', 'hypothyroid.txt', 'ionosphere.txt', 'kr-vs-kp.txt', 'letter.txt', 'lymph.txt', 'mushroom.txt', 'pendigits.txt', 'primary-tumor.txt', 'segment.txt', 'soybean.txt', 'splice-1.txt', 'tic-tac-toe.txt', 'vehicle.txt', 'vote.txt', 'yeast.txt', 'zoo-1.txt']
     depth = 2
 
-    for i, file in enumerate(onlyfiles):
-        dataset = np.genfromtxt(join(mypath, file), delimiter=' ')
-        X = dataset[:, 1:]
-        y = dataset[:, 0]
-        X = X.astype('int32')
-        y = y.astype('int32')
-
+    for i, file in enumerate(datasets):
+        dataset = np.genfromtxt(join(mypath, file), delimiter=' ').astype('int32')
+        X, y = dataset[:, 1:], dataset[:, 0]
         clf = DL85Classifier(max_depth=depth, time_limit=600)
         clf.fit(X, y)
         y_pred = clf.predict(X)
@@ -73,19 +63,14 @@ def test_depth_2():
 def test_depth_3():
     solutions = [112, 5, 73, 15, 162, 236, 41, 10, 61, 22, 198, 369, 12, 8, 47, 46, 0, 29, 224, 216, 26, 12, 403, 0]
     mypath = prefix + "datasets"
-    onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f)) and not f.startswith(".")]
-    onlyfiles = sorted(onlyfiles)
+    datasets = ['anneal.txt', 'audiology.txt', 'australian-credit.txt', 'breast-wisconsin.txt', 'diabetes.txt', 'german-credit.txt', 'heart-cleveland.txt', 'hepatitis.txt', 'hypothyroid.txt', 'ionosphere.txt', 'kr-vs-kp.txt', 'letter.txt', 'lymph.txt', 'mushroom.txt', 'pendigits.txt', 'primary-tumor.txt', 'segment.txt', 'soybean.txt', 'splice-1.txt', 'tic-tac-toe.txt', 'vehicle.txt', 'vote.txt', 'yeast.txt', 'zoo-1.txt']
     depth = 3
 
-    for i, file in enumerate(onlyfiles):
+    for i, file in enumerate(datasets):
         if file in ["ionosphere.txt", "letter.txt", "mushroom.txt", "pendigits.txt", "splice-1.txt", "vehicle.txt"]:
             continue
-        dataset = np.genfromtxt(join(mypath, file), delimiter=' ')
-        X = dataset[:, 1:]
-        y = dataset[:, 0]
-        X = X.astype('int32')
-        y = y.astype('int32')
-
+        dataset = np.genfromtxt(join(mypath, file), delimiter=' ').astype('int32')
+        X, y = dataset[:, 1:], dataset[:, 0]
         clf = DL85Classifier(max_depth=depth, time_limit=600)
         clf.fit(X, y)
         y_pred = clf.predict(X)
@@ -98,19 +83,14 @@ def test_depth_3():
 def test_depth_4():
     solutions = [91, 1, 56, 7, 137, 204, 25, 3, 53, 11, 144, 550, 3, 0, 14, 34, 0, 14, 141, 137, 13, 5, 366, 0]
     mypath = prefix + "datasets"
-    onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f)) and not f.startswith(".")]
-    onlyfiles = sorted(onlyfiles)
+    datasets = ['anneal.txt', 'audiology.txt', 'australian-credit.txt', 'breast-wisconsin.txt', 'diabetes.txt', 'german-credit.txt', 'heart-cleveland.txt', 'hepatitis.txt', 'hypothyroid.txt', 'ionosphere.txt', 'kr-vs-kp.txt', 'letter.txt', 'lymph.txt', 'mushroom.txt', 'pendigits.txt', 'primary-tumor.txt', 'segment.txt', 'soybean.txt', 'splice-1.txt', 'tic-tac-toe.txt', 'vehicle.txt', 'vote.txt', 'yeast.txt', 'zoo-1.txt']
     depth = 4
 
-    for i, file in enumerate(onlyfiles):
+    for i, file in enumerate(datasets):
         if file not in ["hepatitis.txt", "lymph.txt", "mushroom.txt", "primary-tumor.txt", "segment.txt", "soybean.txt", "tic-tac-toe.txt", "vote.txt", "zoo-1.txt"]:
             continue
-        dataset = np.genfromtxt(join(mypath, file), delimiter=' ')
-        X = dataset[:, 1:]
-        y = dataset[:, 0]
-        X = X.astype('int32')
-        y = y.astype('int32')
-
+        dataset = np.genfromtxt(join(mypath, file), delimiter=' ').astype('int32')
+        X, y = dataset[:, 1:], dataset[:, 0]
         clf = DL85Classifier(max_depth=depth, time_limit=600)
         clf.fit(X, y)
         y_pred = clf.predict(X)
