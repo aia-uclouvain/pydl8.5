@@ -1,5 +1,0 @@
-include ../cpp/src/*.h
-exclude ../cpp/src/*.cpp
-include cython_extension/*.pyx
-exclude cython_extension/*.cpp
-exclude cython_extension/*.h

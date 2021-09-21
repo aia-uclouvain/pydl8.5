@@ -6,12 +6,12 @@ from dl85 import __version__
 
 DISTNAME = 'pydl8.5'
 DESCRIPTION = 'A package to build an optimal binary decision tree classifier.'
-with codecs.open('README.rst', encoding='utf-8-sig') as f:
+with codecs.open('../README.rst', encoding='utf-8-sig') as f:
     LONG_DESCRIPTION = f.read()
 AUTHORS = 'Gael Aglin, Siegfried Nijssen, Pierre Schaus'
 AUTHORS_EMAIL = 'aglingael@gmail.com, siegfried.nijssen@gmail.com, pschaus@gmail.com'
 URL = 'https://github.com/aia-uclouvain/pydl8.5'
-LICENSE = 'LICENSE.txt'
+LICENSE = '../LICENSE.txt'
 DOWNLOAD_URL = 'https://github.com/aia-uclouvain/pydl8.5'
 VERSION = __version__
 INSTALL_REQUIRES = ['setuptools', 'cython', 'numpy', 'scikit-learn', 'gurobipy', 'cvxpy']
