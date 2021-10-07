@@ -100,6 +100,9 @@ string search(Supports supports,
             cache = new Cache_Priority(maxdepth, wipe_type, nextPrime(max_cache_size));
 //            cout << "caching with priority queue limited to " << nextPrime(cache_size) << " elements" << endl;
             break;
+        case CacheLtdTrie:
+            cache = new Cache_Ltd_Trie(maxdepth, wipe_type, max_cache_size);
+            break;
         default:
             cache = new Cache_Trie(maxdepth, wipe_type, max_cache_size);
 //            cout << "caching with trie" << endl;

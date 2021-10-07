@@ -5,15 +5,15 @@ import platform
 import codecs
 from dl85 import __version__
 
-DISTNAME = 'dl8.5'
+DISTNAME = 'pydl8.5'
 DESCRIPTION = 'A package to build an optimal binary decision tree classifier.'
-with codecs.open('../README.rst', encoding='utf-8-sig') as f:
+with codecs.open('README.rst', encoding='utf-8-sig') as f:
     LONG_DESCRIPTION = f.read()
 AUTHORS = 'Gael Aglin, Siegfried Nijssen, Pierre Schaus'
 AUTHORS_EMAIL = 'aglingael@gmail.com, siegfried.nijssen@gmail.com, pschaus@gmail.com'
-URL = 'https://github.com/aglingael/dl8.5'
+URL = 'https://github.com/aglingael/PyDL8.5'
 LICENSE = 'LICENSE.txt'
-DOWNLOAD_URL = 'https://github.com/aglingael/dl8.5'
+DOWNLOAD_URL = 'https://github.com/aglingael/PyDL8.5'
 VERSION = __version__
 INSTALL_REQUIRES = ['setuptools', 'cython', 'numpy', 'scikit-learn', 'cvxpy']
 SETUP_REQUIRES = ['cython']
@@ -47,29 +47,29 @@ EXTENSION_NAME = 'dl85Optimizer'
 EXTENSION_LANGUAGE = 'c++'
 EXTENSION_SOURCE_FILES = ['cython_extension/error_function.pyx',
                           'cython_extension/dl85Optimizer.pyx',
-                          '../cpp/src/cache.cpp',
-                          '../cpp/src/cache_hash.cpp',
-                          '../cpp/src/cache_priority.cpp',
-                          '../cpp/src/cache_trie.cpp',
-                          '../cpp/src/data.cpp',
-                          '../cpp/src/dataBinary.cpp',
-                          '../cpp/src/dataBinaryPython.cpp',
-                          '../cpp/src/dataContinuous.cpp',
-                          '../cpp/src/dataManager.cpp',
-                          '../cpp/src/depthTwoComputer.cpp',
-                          '../cpp/src/dl85.cpp',
-                          '../cpp/src/experror.cpp',
-                          '../cpp/src/freq_nodedataManager.cpp',
-                          '../cpp/src/freq_solution.cpp',
-                          '../cpp/src/globals.cpp',
-                          '../cpp/src/lcm_pruned.cpp',
-                          '../cpp/src/lcm_iterative.cpp',
-                          '../cpp/src/nodedataManager.cpp',
-                          '../cpp/src/rCover.cpp',
-                          '../cpp/src/rCoverTotalFreq.cpp',
-                          '../cpp/src/rCoverWeighted.cpp',
-                          '../cpp/src/solution.cpp']
-EXTENSION_INCLUDE_DIR = ['../cpp/src', 'cython_extension']
+                          'core/src/cache.cpp',
+                          'core/src/cache_hash.cpp',
+                          'core/src/cache_priority.cpp',
+                          'core/src/cache_trie.cpp',
+                          'core/src/data.cpp',
+                          'core/src/dataBinary.cpp',
+                          'core/src/dataBinaryPython.cpp',
+                          'core/src/dataContinuous.cpp',
+                          'core/src/dataManager.cpp',
+                          'core/src/depthTwoComputer.cpp',
+                          'core/src/dl85.cpp',
+                          'core/src/experror.cpp',
+                          'core/src/freq_nodedataManager.cpp',
+                          'core/src/freq_solution.cpp',
+                          'core/src/globals.cpp',
+                          'core/src/lcm_pruned.cpp',
+                          'core/src/lcm_iterative.cpp',
+                          'core/src/nodedataManager.cpp',
+                          'core/src/rCover.cpp',
+                          'core/src/rCoverTotalFreq.cpp',
+                          'core/src/rCoverWeighted.cpp',
+                          'core/src/solution.cpp']
+EXTENSION_INCLUDE_DIR = ['core/src', 'cython_extension']
 # EXTENSION_BUILD_ARGS = ['-std=c++11']
 EXTENSION_BUILD_ARGS = ['-std=c++11', '-DCYTHON_PEP489_MULTI_PHASE_INIT=0']
 if platform.system() == 'Darwin':

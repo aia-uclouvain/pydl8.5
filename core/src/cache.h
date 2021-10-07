@@ -6,7 +6,7 @@
 using namespace std;
 
 enum CacheType {
-    CacheTrie, CacheHash, CachePriority
+    CacheTrie, CacheLtdTrie, CacheHash, CachePriority
 };
 
 enum WipeType {
@@ -19,6 +19,7 @@ struct Node {
     int count_opti_path;
     int solution_effort = 0;
     Node() { data = nullptr; }
+//    virtual ~Node() = delete;
     virtual ~Node() { if (data) delete data; }
 };
 
@@ -28,6 +29,7 @@ class Cache {
 public:
     Cache(Depth maxdepth, WipeType wipe_type, Size maxcachesize);
     virtual ~Cache() { delete root; }
+//    virtual ~Cache() { delete root->data; }
 
     Node *root; // the root node of the tree
     Size cachesize; // the size (number of nodes) of the cache
@@ -41,6 +43,7 @@ public:
     virtual void updateItemsetLoad ( Array<Item> itemset, bool inc=false ){}
     virtual int getCacheSize(){return cachesize;}
     virtual void wipe(Node* node, WipeType cache_type, Depth depth = 1){}
+    virtual void wipe(Node* node, float red_factor = .5f){}
 };
 
 #endif

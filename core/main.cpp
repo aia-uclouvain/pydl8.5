@@ -84,24 +84,25 @@ int main(int argc, char *argv[]) {
     int maxdepth, minsup;
 
     if (cli){
-        datasetPath = (argc > 1) ? "../../datasets/" + std::string(argv[1]) + ".txt" : "../../datasets/anneal.txt";
+        datasetPath = (argc > 1) ? "../datasets/" + std::string(argv[1]) + ".txt" : "../datasets/anneal.txt";
         maxdepth = (argc > 2) ? atoi(argv[2]) : 2;
         minsup = (argc > 3) ? atoi(argv[3]) : 1;
     }
     else {
-        //datasetPath = "../../datasets/tic-tac-toe.txt";
+        //datasetPath = "../datasets/tic-tac-toe.txt";
         datasetPath = "../../datasets/soybean.txt";
-//        datasetPath = "../../datasets/hepatitis.txt";
-//        datasetPath = "../../datasets/tests/paper.txt";
-//        datasetPath = "../../datasets/tic-tac-toe.txt";
+//        datasetPath = "../datasets/hepatitis.txt";
+//        datasetPath = "../datasets/tests/paper.txt";
+//        datasetPath = "../datasets/tic-tac-toe.txt";
         maxdepth = 4;
         minsup = 1;
     }
 
-    CacheType cache_type = CacheTrie;
-//    Size cache_size = 10000;
+//    CacheType cache_type = CacheTrie;
+    CacheType cache_type = CacheLtdTrie;
+    Size cache_size = 500;
     WipeType wipe_type = WipeAll;
-    Size cache_size = NO_CACHE_LIMIT;
+//    Size cache_size = NO_CACHE_LIMIT;
 //    int cache_size = 10;
 //    int cache_size = 3000000;
 //    CacheType cache_type = CacheHash;

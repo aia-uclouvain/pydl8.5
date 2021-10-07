@@ -31,6 +31,7 @@
 #include "cache_hash.h"
 #include "cache_trie.h"
 #include "cache_priority.h"
+#include "cache_ltd_trie.h"
 //#include "query_weighted.h"
 
 using namespace std;

@@ -3,10 +3,14 @@ project(dl85)
 
 set(CMAKE_CXX_STANDARD 17)
 
+#[[add_executable(test
+        tests_run/test.cpp)]]
+
 include_directories(src/)
 
 add_executable(dl85
         main.cpp
+#        tests_run/main_arg.cpp
         src/cache.h
         src/cache.cpp
         src/cache_hash.h
@@ -15,6 +19,8 @@ add_executable(dl85
         src/cache_priority.cpp
         src/cache_trie.h
         src/cache_trie.cpp
+        src/cache_ltd_trie.h
+        src/cache_ltd_trie.cpp
         src/data.h
         src/data.cpp
         src/dataBinaryPython.h

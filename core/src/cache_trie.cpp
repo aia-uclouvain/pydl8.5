@@ -105,6 +105,8 @@ pair<Node *, bool> Cache_Trie::insert(Array<Item> itemset, NodeDataManager *node
 void Cache_Trie::wipe(Node *node1, WipeType wipe_type, Depth depth) {
     auto *node = (TrieNode *) node1;
     for (auto edge_iterator = node->edges.begin(); edge_iterator != node->edges.end(); ++edge_iterator) {
+        // as node the children of a node removed are useless, we perform a prefix search and recursively remove all children of a useless node
+
         // recursively
         if (wipe_type == WipeEffort || wipe_type == WipeAll) wipe(edge_iterator->subtrie, wipe_type);
         else if (wipe_type == WipeDepth || wipe_type == WipeDepthEffort) wipe(edge_iterator->subtrie, wipe_type, depth + 1);

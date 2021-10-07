@@ -75,7 +75,7 @@ Node * LcmPruned::getSolutionIfExists(Node *node, Error ub, Depth depth){
 
     // we cannot split the node
     if (depth == maxdepth || nodeDataManager->cover->getSupport() < 2 * minsup) {
-        node->solution_effort = 1;
+//        node->solution_effort = 1;
         return cannotsplitmore(node, ub, nodeError, leafError);
     }
 
@@ -373,7 +373,13 @@ Node *LcmPruned::recurse(Array<Item> itemset,
         ((FND) child_nodes[first_item]->data)->lowerBound = (!new_node) ? max(((FND) child_nodes[first_item]->data)->lowerBound, first_lb) : first_lb;
         // perform the search for the first item
         child_nodes[first_item] = recurse(itemsets[first_item], attr, child_nodes[first_item], next_attributes,  depth + 1, child_ub, new_node);
-        node->solution_effort += child_nodes[first_item]->solution_effort;
+        node->solution_effort += max(1, child_nodes[first_item]->solution_effort);
+        cout << "itemset: ";
+        for (auto i:itemset) {
+            cout << i << ",";
+        }
+        cout << " its par " << node;
+        cout << " effff : " << node->solution_effort << endl;
         cache->max_solution_effort = max(cache->max_solution_effort, node->solution_effort);
 
 
@@ -405,7 +411,7 @@ Node *LcmPruned::recurse(Array<Item> itemset,
             Error remainUb = child_ub - firstError;
             // perform the search for the second item
             child_nodes[second_item] = recurse(itemsets[second_item], attr, child_nodes[second_item], next_attributes, depth + 1, remainUb, new_node);
-            node->solution_effort += child_nodes[second_item]->solution_effort;
+            node->solution_effort += max(1, child_nodes[second_item]->solution_effort);
             cache->max_solution_effort = max(cache->max_solution_effort, node->solution_effort);
 
             // check if the found information is relevant to compute the next similarity bounds
