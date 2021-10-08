@@ -40,7 +40,7 @@ bool minHeapOrder(const TrieLtdNode &node1, const TrieLtdNode &node2) {
 // a < b ===> ascending order
 // a > b ===> descending order
 //bool sortDecOrder(pair<TrieLtdNode *, TrieLtdNode*> &pair1, pair<TrieLtdNode *, TrieLtdNode*> &pair2) {
-bool sortDecOrder(tuple<TrieLtdNode *, TrieLtdNode*, Item, vector<Item>> &pair1, tuple<TrieLtdNode *, TrieLtdNode*, Item, vector<Item>> &pair2) {
+/*bool sortDecOrder(tuple<TrieLtdNode *, TrieLtdNode*, Item, vector<Item>> &pair1, tuple<TrieLtdNode *, TrieLtdNode*, Item, vector<Item>> &pair2) {
 //const auto node1 = pair1.first;
 const auto node1 = get<0>(pair1);
 //const auto node2 = pair2.first;
@@ -56,6 +56,40 @@ const auto node2 = get<0>(pair2);
     // in case we don't care about the ub impact for nodes without solution
     if (node1->solution_effort == node2->solution_effort) return ((const FND)node1->data)->test > ((const FND)node2->data)->test;
     return node1->solution_effort > node2->solution_effort;
+
+    if (node1->solution_effort == node2->solution_effort && ((const FND)node1->data)->test != ((const FND)node2->data)->test) {
+        // if a return statement were used here, in case of tests equality node1 will be used as higher without using ub impact
+        if (((const FND)node1->data)->test > ((const FND)node2->data)->test) return true;
+        if (((const FND)node1->data)->test < ((const FND)node2->data)->test) return false;
+    }
+    float n1_eff = ((const FND)node1->data)->test != -1 ? node1->solution_effort : ((const FND)node1->data)->leafError / ((const FND)node1->data)->lowerBound * node1->solution_effort;
+    float n2_eff = ((const FND)node2->data)->test != -1 ? node2->solution_effort : ((const FND)node2->data)->leafError / ((const FND)node2->data)->lowerBound * node2->solution_effort;
+
+    return n1_eff > n2_eff;
+}*/
+
+bool sortDecOrder(tuple<TrieLtdNode *, TrieLtdNode*, Item, vector<Item>> &pair1, tuple<TrieLtdNode *, TrieLtdNode*, Item, vector<Item>> &pair2) {
+//const auto node1 = pair1.first;
+    const auto node1 = get<0>(pair1);
+//const auto node2 = pair2.first;
+    const auto node2 = get<0>(pair2);
+
+//    if ((node1->count_opti_path < 0 && node2->count_opti_path < 0) || (node1->data == nullptr && node2->data == nullptr)) return false; // use node1 as the lowest
+    //if (node1->count_opti_path < 0 && node2->count_opti_path < 0) return false; // use node1 as the lowest
+    //if (node1->count_opti_path > 0 && node2->count_opti_path > 0) return true; // use node1 as the highest
+    // true if node1 > node2 or node2 < node1
+//    if (node1->count_opti_path > 0 || node2->count_opti_path < 0 || node2->data == nullptr) return true; // place node1 to left (high value)
+    //if (node1->count_opti_path > 0 || node2->count_opti_path < 0) return true; // place node1 to left (high value)
+    // false if node1 < node2 or node2 > node1
+//    if (node1->count_opti_path < 0 || node2->count_opti_path > 0 || node1->data == nullptr) return false; // place invalid node1 to right to be popped first
+    //if (node1->count_opti_path < 0 || node2->count_opti_path > 0) return false; // place invalid node1 to right to be popped first
+
+    if (node1->count_opti_path > 0 && node2->count_opti_path == 0) return true; // place node1 to left (high value)
+    if (node1->count_opti_path == 0 && node2->count_opti_path > 0) return false; // place invalid node1 to right to be popped first
+
+    // in case we don't care about the ub impact for nodes without solution
+    //if (node1->n_subnodes == node2->n_subnodes) return ((const FND)node1->data)->test > ((const FND)node2->data)->test;
+    return node1->n_subnodes > node2->n_subnodes;
 
     if (node1->solution_effort == node2->solution_effort && ((const FND)node1->data)->test != ((const FND)node2->data)->test) {
         // if a return statement were used here, in case of tests equality node1 will be used as higher without using ub impact
@@ -99,16 +133,19 @@ TrieLtdNode *Cache_Ltd_Trie::addNonExistingItemsetPart(Array<Item> itemset, int 
                                                 TrieLtdNode *parent_node,
                                                 NodeDataManager *nodeDataManager) {
     TrieLtdNode* child_node;
+    int sub_nodes = itemset.size - pos - 1;
     for (int i = pos; i < itemset.size; ++i) {
         child_node = new TrieLtdNode();
-        cout << "node inserted: ";
-        for (int z = 0; z <= i; ++z) {
-            cout << itemset[z] << ",";
-        }
-        cout << " pointer is " << child_node << " its parent " << parent_node << endl;
+        if (i != itemset.size) child_node->n_subnodes = sub_nodes;
+//        cout << "node inserted: ";
+//        for (int z = 0; z <= i; ++z) {
+//            cout << itemset[z] << ",";
+//        }
+//        cout << " pointer is " << child_node << " its parent " << parent_node << endl;
 //        if (maxcachesize > NO_CACHE_LIMIT) heap.push_back(make_pair(child_node, parent_node));
         if (maxcachesize > NO_CACHE_LIMIT) {
             vector<Item> v;
+            v.reserve(i+1);
             for (int j = 0; j <= i; ++j) {
                 v.push_back(itemset[j]);
             }
@@ -127,9 +164,25 @@ TrieLtdNode *Cache_Ltd_Trie::addNonExistingItemsetPart(Array<Item> itemset, int 
         }
         cachesize++;
         parent_node = child_node;
+        sub_nodes--;
     }
     child_node->data = nodeDataManager->initData();
     return child_node;
+}
+
+void Cache_Ltd_Trie::decreaseItemset(vector<Item>& itemset){
+    auto *cur_node = (TrieLtdNode *) root;
+    vector<TrieLtdEdge>::iterator geqEdge_it;
+    int i = 0;
+    for (; i <  itemset.size() - 1; i++) {
+        geqEdge_it = lower_bound(cur_node->edges.begin(), cur_node->edges.end(), itemset[i], lessTrieEdge);
+        if (geqEdge_it != cur_node->edges.end()){ // item found
+            cur_node = geqEdge_it->subtrie;
+            cur_node->n_subnodes--;
+        }
+    }
+    geqEdge_it = lower_bound(cur_node->edges.begin(), cur_node->edges.end(), itemset[i], lessTrieEdge);
+    cur_node->edges.erase(geqEdge_it);
 }
 
 // insert itemset. Check from root and insert items only if they do not exist using addItemsetPart function
@@ -141,8 +194,8 @@ pair<Node *, bool> Cache_Ltd_Trie::insert(Array<Item> itemset, NodeDataManager *
         cur_node->data = nodeDataManager->initData();
         return {cur_node, true};
     }
-    cout << "itemset to insert: ";
-    printItemset(itemset, true);
+//    cout << "itemset to insert: ";
+//    printItemset(itemset, true);
 
     if (getCacheSize() >= maxcachesize && maxcachesize > 0) {
         cout << "cachesize before = " << getCacheSize() << endl;
@@ -153,6 +206,7 @@ pair<Node *, bool> Cache_Ltd_Trie::insert(Array<Item> itemset, NodeDataManager *
     }
 
     vector<TrieLtdEdge>::iterator geqEdge_it;
+    vector<TrieLtdNode*> existing_nodes;
     forEach (i, itemset) {
 //        cout << "item : " << itemset[i] << endl;
         for (const auto& edge: cur_node->edges) {
@@ -160,10 +214,15 @@ pair<Node *, bool> Cache_Ltd_Trie::insert(Array<Item> itemset, NodeDataManager *
         }
         geqEdge_it = lower_bound(cur_node->edges.begin(), cur_node->edges.end(), itemset[i], lessTrieEdge);
         if (geqEdge_it == cur_node->edges.end() || geqEdge_it->item != itemset[i]) { // the item does not exist
+            int sub_nodes = itemset.size -  i;
+            for (const auto node:existing_nodes) {
+                node->n_subnodes += sub_nodes;
+            }
             // create path representing the part of the itemset not yet present in the trie.
             TrieLtdNode *last_inserted_node = addNonExistingItemsetPart(itemset, i, geqEdge_it, cur_node, nodeDataManager);
             return {last_inserted_node, true};
         } else {
+            existing_nodes.push_back(geqEdge_it->subtrie);
             cur_node = geqEdge_it->subtrie;
             cur_node->count_opti_path++;
         }
@@ -202,7 +261,10 @@ void Cache_Ltd_Trie::wipe(float red_factor) {
 //    cout << "aucun null" << endl;
 //    for(auto it = heap.rbegin(); it != heap.rend(); it++) if (*it == nullptr) cout << "it null" << endl;
 //    cout << "aucun it null" << endl;
-    //for (auto it = heap.end(); it != heap.begin(); it--) if (*it != nullptr) cout << "eff " << (*it)->solution_effort << endl;
+//cout << endl << "subnodes" << endl;
+//    for (auto it = heap.rbegin(); it != heap.rend(); it++) if (std::get<0>(*it)->count_opti_path < 0) cout << std::get<0>(*it)->count_opti_path << ",";
+//    for (auto it = heap.rbegin(); it != heap.rend(); it++) if (std::get<0>(*it) != nullptr) cout << std::get<0>(*it)->n_subnodes << ",";
+//    cout << endl << endl;
     int counter = 0;
     for (auto it = heap.rbegin(); it != heap.rend(); it++) {
 //    for (auto it = heap.rbegin(); it != heap.rend(); it++) {
@@ -216,49 +278,50 @@ void Cache_Ltd_Trie::wipe(float red_factor) {
             break;
         }
 //        heap.back().first->invalidateChildren();
-        std::get<0>(heap.back())->invalidateChildren();
+        //std::get<0>(heap.back())->invalidateChildren();
 //        vector<pair<TrieLtdNode*,vector<TrieLtdEdge>*>>* hp = &heap;
 //        auto is_target = [hp](TrieLtdEdge* look){ return look->subtrie == hp->back().first; };
 //        auto it_node = find_if(heap.back().second->begin(),heap.back().second->end(), is_target);
 
-cout << "\nnode we look for: " << std::get<0>(heap.back()) << " its parent " << std::get<1>(heap.back()) << "its effort: "  <<  std::get<1>(heap.back())->solution_effort << endl;
-cout << "item to look for: " << std::get<2>(heap.back()) << endl;
-cout << "itemset: ";
-        for (auto i:std::get<3>(heap.back())) {
-            cout << i << ",";
-        }
-        cout << endl;
-        cout << "items: ";
-        for (auto i:std::get<1>(heap.back())->edges) {
-            cout << i.item << ",";
-        }
-        cout << endl;
+//cout << "\nnode we look for: " << std::get<0>(heap.back()) << " its parent " << std::get<1>(heap.back()) << "its effort: "  <<  std::get<1>(heap.back())->solution_effort << " its subnodes: " << std::get<0>(heap.back())->n_subnodes << " its count opti: " << std::get<0>(heap.back())->count_opti_path << endl;
+//cout << "item to look for: " << std::get<2>(heap.back()) << endl;
+//cout << "itemset: ";
+//        for (auto i:std::get<3>(heap.back())) {
+//            cout << i << ",";
+//        }
+//        cout << endl;
+//        cout << "items: ";
+//        for (auto i:std::get<1>(heap.back())->edges) {
+//            cout << i.item << ",";
+//        }
+//        cout << endl;
 //        auto it_node = heap.back().second->edges.begin();
-        auto it_node = std::get<1>(heap.back())->edges.begin();
+//        auto it_node = std::get<1>(heap.back())->edges.begin();
 //        for(;it_node != heap.back().second->edges.end(); it_node++){
-        for(;it_node != std::get<1>(heap.back())->edges.end(); it_node++){
-//            if (it_node->subtrie == heap.back().first) {
-            /*if (it_node->subtrie == std::get<0>(heap.back())) {
-                cout << "yes" << endl;
-                break;
-            }*/
-            if (it_node->item == std::get<2>(heap.back())) {
-                cout << "item found!!!" << endl;
-                if (it_node->subtrie == std::get<0>(heap.back())) {
-                    cout << "child found" << endl;
-                    break;
-                }
-                else cout << "child not found" << endl;
-            }
-        }
+//        for(;it_node != std::get<1>(heap.back())->edges.end(); it_node++){
+////            if (it_node->subtrie == heap.back().first) {
+//            /*if (it_node->subtrie == std::get<0>(heap.back())) {
+//                cout << "yes" << endl;
+//                break;
+//            }*/
+//            if (it_node->item == std::get<2>(heap.back())) {
+////                cout << "item found!!!" << endl;
+//                if (it_node->subtrie == std::get<0>(heap.back())) {
+////                    cout << "child found" << endl;
+//                    break;
+//                }
+////                else cout << "child not found" << endl;
+//            }
+//        }
 //        if (it_node->subtrie != heap.back().first) cout << "pas yes" << endl;
-        if (it_node->subtrie != std::get<0>(heap.back())) cout << "pas yes" << endl;
-        else cout << "yes" << endl;
+//        if (it_node->subtrie != std::get<0>(heap.back())) cout << "pas yes" << endl;
+//        else cout << "yes" << endl;
 //        delete it_node->subtrie;
 //        delete heap.back().first;
         delete std::get<0>(heap.back());
 //        heap.back().second->edges.erase(it_node);
-        std::get<1>(heap.back())->edges.erase(it_node);
+//        std::get<1>(heap.back())->edges.erase(it_node);
+        decreaseItemset(std::get<3>(heap.back()));
         heap.pop_back();
 //        delete *it;
 //        heap.erase(it);

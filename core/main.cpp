@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
 
 //    CacheType cache_type = CacheTrie;
     CacheType cache_type = CacheLtdTrie;
-    Size cache_size = 500;
+    Size cache_size = 500000;
     WipeType wipe_type = WipeAll;
 //    Size cache_size = NO_CACHE_LIMIT;
 //    int cache_size = 10;

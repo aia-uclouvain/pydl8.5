@@ -69,6 +69,7 @@ public:
 private:
     bool canwipe = true;
     TrieLtdNode *addNonExistingItemsetPart ( Array<Item> itemset, int pos, vector<TrieLtdEdge>::iterator& geqEdge_it, TrieLtdNode *parent, NodeDataManager* nodeDataManager );
+    void decreaseItemset(vector<Item>& itemset);
 
 };
 

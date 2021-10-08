@@ -18,6 +18,7 @@ struct Node {
     NodeData *data; // data is the information kept by a node during the tree search
     int count_opti_path;
     int solution_effort = 0;
+    int n_subnodes = 0;
     Node() { data = nullptr; }
 //    virtual ~Node() = delete;
     virtual ~Node() { if (data) delete data; }

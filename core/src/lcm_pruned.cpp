@@ -374,12 +374,12 @@ Node *LcmPruned::recurse(Array<Item> itemset,
         // perform the search for the first item
         child_nodes[first_item] = recurse(itemsets[first_item], attr, child_nodes[first_item], next_attributes,  depth + 1, child_ub, new_node);
         node->solution_effort += max(1, child_nodes[first_item]->solution_effort);
-        cout << "itemset: ";
-        for (auto i:itemset) {
-            cout << i << ",";
-        }
-        cout << " its par " << node;
-        cout << " effff : " << node->solution_effort << endl;
+//        cout << "itemset: ";
+//        for (auto i:itemset) {
+//            cout << i << ",";
+//        }
+//        cout << " its par " << node;
+//        cout << " effff : " << node->solution_effort << endl;
         cache->max_solution_effort = max(cache->max_solution_effort, node->solution_effort);
 
 
