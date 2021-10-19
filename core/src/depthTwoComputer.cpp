@@ -3,16 +3,35 @@
 //
 
 #include "depthTwoComputer.h"
-#include "lcm_pruned.h"
+#include "search_base.h"
+//#include "search_nocache.h"
 
-void setItem(Freq_NodeData* node_data, Array<Item> itemset, Cache* cache, NodeDataManager* nodeDataManager){
+void addTreeToCache(Node* node, Array<Item> itemset, Cache* cache, NodeDataManager* nodeDataManager){
+    auto* node_data = (Freq_NodeData *)node->data;
+    if (cache->maxcachesize > NO_CACHE_LIMIT) node->count_opti_path = node_data->size;
+    if (node_data->left){
+        Array<Item> itemset_left = addItem(itemset, item(node_data->test, 0));
+        Node *node_left = cache->insert(itemset_left, nodeDataManager).first;
+        node_left->data = (NodeData *) node_data->left;
+        addTreeToCache(node_left, itemset_left, cache, nodeDataManager);
+        itemset_left.free();
+
+        Array<Item> itemset_right = addItem(itemset, item(node_data->test, 1));
+        Node *node_right = cache->insert(itemset_right, nodeDataManager).first;
+        node_right->data = (NodeData *) node_data->right;
+        addTreeToCache(node_right, itemset_right, cache, nodeDataManager);
+        itemset_right.free();
+    }
+}
+
+void setIteme(Freq_NodeData* node_data, const Array<Item>& itemset, Cache* cache, NodeDataManager* nodeDataManager){
     if (node_data->left){
         Array<Item> itemset_left;
         itemset_left.alloc(itemset.size + 1);
         addItem(itemset, item(node_data->left->test, 0), itemset_left);
         Node *node_left = cache->insert(itemset_left, nodeDataManager).first;
         node_left->data = (NodeData *) node_data->left;
-        setItem((Freq_NodeData *)node_left->data, itemset_left, cache, nodeDataManager);
+        setIteme((Freq_NodeData *)node_left->data, itemset_left, cache, nodeDataManager);
         itemset_left.free();
     }
 
@@ -22,7 +41,7 @@ void setItem(Freq_NodeData* node_data, Array<Item> itemset, Cache* cache, NodeDa
         addItem(itemset, item(node_data->right->test, 1), itemset_right);
         Node *node_right = cache->insert(itemset_right, nodeDataManager).first;
         node_right->data = (NodeData *) node_data->right;
-        setItem((Freq_NodeData *)node_right->data, itemset_right, cache, nodeDataManager);
+        setIteme((Freq_NodeData *)node_right->data, itemset_right, cache, nodeDataManager);
         itemset_right.free();
     }
 }
@@ -41,28 +60,30 @@ void setItem(Freq_NodeData* node_data, Array<Item> itemset, Cache* cache, NodeDa
  * @param lb - the lower bound of the search
  * @return the same node passed as parameter is returned but the tree of depth 2 is already added to it
  */
-Node* computeDepthTwo(RCover* cover,
-                           Error ub,
-                           Array <Attribute> attributes_to_visit,
-                           Attribute last_added,
-                           Array <Item> itemset,
+pair<Node*, Error> computeDepthTwo(RCover* cover,
+                      Error ub,
+                      Array <Attribute> attributes_to_visit,
+                      Attribute last_added,
+                      Array <Item> itemset,
                       Node *node,
                       NodeDataManager* nodeDataManager,
                       Error lb,
                       Cache* cache,
-                      LcmPruned* searcher) {
+                      Search_base* searcher) {
 
     // infeasible case. Avoid computing useless solution
     if (ub <= lb){
         node->data = nodeDataManager->initData(); // no need to update the error
         if (verbose) cout << "infeasible case. ub = " << ub << " lb = " << lb << endl;
-        return node;
+        return make_pair(node, ((FND)node->data)->error);
     }
 //    cout << "fifi" << endl;
 
     // The fact to not bound the search make it find the best solution in any case and remove the chance to recall this
     // function for the same node with an higher upper bound. Since this function is not exponential, we can afford that.
     ub = FLT_MAX;
+    /*if(cache == nullptr) searcher = (Search_nocache*)searcher;
+    else searcher = (Search*)searcher;*/
 
     //count the number of call to this function for stats
     ncall += 1;
@@ -374,6 +395,13 @@ Node* computeDepthTwo(RCover* cover,
 //    if (local_verbose) cout << "lc1: " << best_tree->root_data->left->left->test << " lc2: " << best_tree->root_data->left->right->test << " rc1: " << best_tree->root_data->right->left->test << " rc2: " << best_tree->root_data->right->right->test << endl;
 //    if (local_verbose) cout << "blc: " << best_tree->root_data->left->test << " brc: " << best_tree->root_data->right->test << endl;
 
+    // without cache
+    if (node == nullptr && cache == nullptr){
+        Error best_error = best_tree->root_data->error;
+        delete best_tree;
+        return make_pair(nullptr, best_error);
+    }
+
     if (best_tree->root_data->test != -1) {
         if (best_tree->root_data->size == 3 && best_tree->root_data->left->test == best_tree->root_data->right->test && floatEqual(best_tree->root_data->leafError, best_tree->root_data->left->error + best_tree->root_data->right->error)) {
             best_tree->root_data->size = 1;
@@ -387,31 +415,34 @@ Node* computeDepthTwo(RCover* cover,
             auto stop = high_resolution_clock::now();
             spectime += duration<double>(stop - stop_comp).count();
             if (verbose) cout << "best twotree error = " << to_string(best_tree->root_data->error) << endl;
-            cache->cachesize += 3;
-            return node;
+            return make_pair(node, ((FND)node->data)->error);
         }
 
         node->data = (NodeData *) best_tree->root_data;
-        setItem((Freq_NodeData *) node->data, itemset, cache, nodeDataManager);
+        addTreeToCache(node, itemset, cache, nodeDataManager);
+//        setIteme((Freq_NodeData *) node->data, itemset, cache, nodeDataManager);
+
+        // update count_opti_path counter for each node of the current path
+        //if (itemset.size > 0 && cache->maxcachesize > NO_CACHE_LIMIT) cache->updateRootPath(itemset, ((Freq_NodeData *) node->data)->size - 1);
 
         auto stop = high_resolution_clock::now();
         spectime += duration<double>(stop - stop_comp).count();
 
         if (verbose) cout << "best twotree error = " << to_string(best_tree->root_data->error) << endl;
-        cache->cachesize += 1;
-        return node;
+
+        return make_pair(node, ((FND)node->data)->error);
     } else {
-        //error not lower than ub
+        //error not lower than ub (this case will never happen as the ub is set to FLT_MAX)
         LeafInfo ev = nodeDataManager->computeLeafInfo();
         delete best_tree;
         node->data = (NodeData *) new Freq_NodeData();
-        ((Freq_NodeData *) node->data)->error = ev.error;
+        ((Freq_NodeData *) node->data)->error = FLT_MAX;
         ((Freq_NodeData *) node->data)->leafError = ev.error;
         ((Freq_NodeData *) node->data)->test = ev.maxclass;
         auto stop = high_resolution_clock::now();
         spectime += duration<double>(stop - stop_comp).count();
         if (verbose) cout << "best twotree error = " << to_string(best_tree->root_data->error) << endl;
-        return node;
+        return make_pair(node, ((FND)node->data)->error);
     }
 
 }

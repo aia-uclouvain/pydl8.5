@@ -129,11 +129,11 @@ public:
         size = size_;
     }
 
-    Array(const Array<A> &ar) {
+    /*Array(const Array<A> &ar) {
         size = ar.size;
         elts = new A[ar.size];
         forEach(i, ar) elts[i] = ar.elts[i];
-    }
+    }*/
 
     Array(int allocsize, int size_) {
         size = size_;
@@ -146,6 +146,14 @@ public:
         elts = new A[ar.size];
         forEach(i, ar) elts[i] = ar.elts[i];
     }
+
+    Array<A>& operator=(const Array<A>& ar) = default;
+
+    /*Array<A>& operator=(const Array<A>& ar) {
+        elts = ar.elts;
+        size = ar.size;
+        return *this;
+    }*/
 
     //~Array() {} //destructor does not do anything. Make sure you call free method after using the object
 

@@ -17,7 +17,7 @@ struct HashNode : Node {
 class Cache_Hash: public Cache {
 public:
     Cache_Hash(Depth maxdepth, WipeType wipe_type, int maxcachesize);
-    ~Cache_Hash() {}
+    ~Cache_Hash() {delete root; forEach(i, store) for(auto &elt: store[i]) delete elt.second;}
 
     Array<unordered_map<Array<Item>, HashNode*>> store;
 

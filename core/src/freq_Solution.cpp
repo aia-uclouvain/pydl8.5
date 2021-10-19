@@ -3,7 +3,7 @@
 //
 
 #include "freq_Solution.h"
-#include "lcm_pruned.h"
+#include "search.h"
 
 Freq_Solution::Freq_Solution(void *searcher, NodeDataManager* nodeDataManager1) : Solution(searcher, nodeDataManager1) {
     tree = new Freq_Tree;
@@ -14,7 +14,7 @@ Freq_Solution::~Freq_Solution() {
 }
 
 Tree* Freq_Solution::getTree() {
-    printResult((Freq_NodeData *) ((LcmPruned*)searcher)->cache->root->data);
+    printResult((Freq_NodeData *) ((Search*)searcher)->cache->root->data);
     return (Tree*) tree;
 }
 
@@ -22,7 +22,7 @@ void Freq_Solution::printResult(Freq_NodeData *data) {
     int depth;
     if (data->size == 0 || (data->size == 1 && floatEqual(data->error, FLT_MAX))) {
         tree->expression = "(No such tree)";
-        tree->timeout = ((LcmPruned*)searcher)->timeLimitReached;
+        tree->timeout = ((Search*)searcher)->timeLimitReached;
     }
     else {
         tree->expression = "";
@@ -31,8 +31,8 @@ void Freq_Solution::printResult(Freq_NodeData *data) {
         tree->size = data->size;
         tree->depth = depth - 1;
         tree->trainingError = data->error;
-        tree->accuracy = 1 - tree->trainingError / float(((LcmPruned*)searcher)->nodeDataManager->cover->dm->getNTransactions());
-        tree->timeout = ((LcmPruned*)searcher)->timeLimitReached;
+        tree->accuracy = 1 - tree->trainingError / float(((Search*)searcher)->nodeDataManager->cover->dm->getNTransactions());
+        tree->timeout = ((Search*)searcher)->timeLimitReached;
     }
 }
 
@@ -43,7 +43,7 @@ int Freq_Solution::printResult(Freq_NodeData *data, int depth) {
         return depth;
     }
     else {
-        if (((LcmPruned*)searcher)->continuous) tree->expression += "{\"feat\": " + ((DataContinuous *) nodeDataManager->cover->dm)->names[data->test] + ", \"left\": ";
+        if (((Search*)searcher)->continuous) tree->expression += "{\"feat\": " + ((DataContinuous *) nodeDataManager->cover->dm)->names[data->test] + ", \"left\": ";
         else tree->expression += "{\"feat\": " + std::to_string(data->test) + ", \"left\": ";
 
         // perhaps strange, but we have stored the positive outcome in right, generally, people think otherwise... :-)

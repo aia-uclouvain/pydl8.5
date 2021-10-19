@@ -90,22 +90,35 @@ int main(int argc, char *argv[]) {
     }
     else {
         //datasetPath = "../datasets/tic-tac-toe.txt";
-        datasetPath = "../../datasets/soybean.txt";
-//        datasetPath = "../datasets/hepatitis.txt";
-//        datasetPath = "../datasets/tests/paper.txt";
-//        datasetPath = "../datasets/tic-tac-toe.txt";
+//        datasetPath = "../../datasets/soybean.txt";
+        datasetPath = "../../datasets/anneal.txt";
+//        datasetPath = "../../datasets/audiology.txt";
+//        datasetPath = "../../datasets/hypothyroid.txt";
+//        datasetPath = "../../datasets/ionosphere.txt";
+//        datasetPath = "../../datasets/hepatitis.txt";
+//        datasetPath = "../../datasets/tests/paper.txt";
+//        datasetPath = "../../datasets/tic-tac-toe.txt";
         maxdepth = 4;
         minsup = 1;
     }
 
 //    CacheType cache_type = CacheTrie;
     CacheType cache_type = CacheLtdTrie;
-    Size cache_size = 500000;
+//    Size cache_size = 500000;
+//    Size cache_size = 30000;
+//    Size cache_size = 250;
     WipeType wipe_type = WipeAll;
-//    Size cache_size = NO_CACHE_LIMIT;
+    Size cache_size = NO_CACHE_LIMIT;
 //    int cache_size = 10;
 //    int cache_size = 3000000;
 //    CacheType cache_type = CacheHash;
+    float wipe_factor = .5f;
+    bool with_cache = false;
+//    bool with_cache = true;
+    bool use_special_algo = true;
+//    bool use_special_algo = false;
+//    bool verb = true;
+    bool verb = false;
 
     ifstream dataset(datasetPath);
     map<Class, SupportClass> supports_map; // for each class, compute the number of transactions (support)
@@ -127,7 +140,7 @@ int main(int argc, char *argv[]) {
     //function<int(vector<float>&)> callback = functorExample; //params type are in brackets while return type come before
     //vector<float> sample_weight(ntransactions, 1);
 
-    string result = search(
+    string result = launch(
             support_per_class, //supports
             ntransactions, //ntransactions
             nfeatures, //nattributes
@@ -146,16 +159,19 @@ int main(int argc, char *argv[]) {
             true, //tids_error_class_is_null
             true, //supports_error_class_is_null
             true, //tids_error_is_null
-            true, //infoGain
+            false, //infoGain
             true, //infoAsc
             false, //repeatSort
             0, //timeLimit
             nullptr, //continuousMap
             false, //save
-            false, // verbose parameter
+            verb, // verbose parameter
             cache_type, //cache type
             cache_size, //cache size
-            wipe_type // the type of wiping
+            wipe_type, // the type of wiping
+            wipe_factor,
+            with_cache,
+            use_special_algo
     );
 
     cout << result;

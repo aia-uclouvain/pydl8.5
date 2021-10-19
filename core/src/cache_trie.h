@@ -15,10 +15,10 @@ struct TrieEdge {
 };
 
 struct TrieNode : Node {
-    // int load;
+    int solution_effort = 0;
     vector<TrieEdge> edges;
     TrieNode(): Node() {
-        count_opti_path = 1; //load(-1);
+        count_opti_path = 1;
     }
     ~TrieNode() {for (auto &edge : edges) delete edge.subtrie;}
 
@@ -131,9 +131,10 @@ struct TrieNode : Node {
 class Cache_Trie : public Cache {
 //friend class Query_TotalFreq;
 public:
-    Cache_Trie(Depth maxdepth, WipeType wipe_type=WipeAll, int maxcachesize=0);
-    ~Cache_Trie(){};
+    Size max_solution_effort = 1;
 
+    Cache_Trie(Depth maxdepth, WipeType wipe_type=WipeAll, int maxcachesize=0);
+    ~Cache_Trie(){freeCache();};
     pair<Node *, bool> insert ( Array<Item> itemset, NodeDataManager* );
     Node *get ( Array<Item> itemset );
     void updateItemsetLoad(Array<Item> itemset, bool inc=false);
@@ -141,9 +142,9 @@ public:
     void updateSubTreeLoad(Array<Item> itemset, Item firstI, Item secondI, bool inc=false);
     int getCacheSize();
     void wipe(Node* node, WipeType cache_type, Depth depth = 1);
+    void freeCache();
 
 private:
-    bool canwipe = true;
     TrieNode *addNonExistingItemsetPart ( Array<Item> itemset, int pos, vector<TrieEdge>::iterator& geqEdge_it, TrieNode *&last, NodeDataManager* nodeDataManager );
 
 };

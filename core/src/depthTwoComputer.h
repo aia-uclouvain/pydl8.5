@@ -22,9 +22,11 @@
 
 using namespace std::chrono;
 
-class LcmPruned;
+class Search_base;
+//class Search;
+//class Search_nocache;
 
-Node* computeDepthTwo(RCover*, Error, Array<Attribute>, Attribute, Array<Item>, Node*, NodeDataManager*, Error, Cache*, LcmPruned*);
+pair<Node*, Error> computeDepthTwo(RCover*, Error, Array<Attribute>, Attribute, Array<Item>, Node*, NodeDataManager*, Error, Cache*, Search_base*);
 
 struct TreeTwo{
     Freq_NodeData* root_data;

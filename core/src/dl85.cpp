@@ -36,7 +36,7 @@ int nextPrime(int N) {
     return prime;
 }
 
-string search(Supports supports,
+string launch(Supports supports,
               Transaction ntransactions,
               Attribute nattributes,
               Class nclasses,
@@ -63,7 +63,10 @@ string search(Supports supports,
               bool verbose_param,
               CacheType cache_type,
               int max_cache_size,
-              WipeType wipe_type) {
+              WipeType wipe_type,
+              float wipe_factor,
+              bool with_cache,
+              bool useSpecial) {
 
 //    auto start = high_resolution_clock::now(); // start the timer
 
@@ -80,8 +83,9 @@ string search(Supports supports,
     verbose = verbose_param;
 
     auto *dataReader = new DataManager(supports, ntransactions, nattributes, nclasses, data, target);
-    cout << "TrainingDistribution: ";
-    forEachClass(i) cout << dataReader->getSupports()[i] << " ";
+    cout << "nItems: " << nattributes*2 << " --- nTransactions: " << ntransactions << endl;
+    cout << "Class Distribution: ";
+    forEachClass(i) if (i == nclasses - 1) cout << i << ":" << dataReader->getSupports()[i]; else cout << i << ":" << dataReader->getSupports()[i] << ", ";
     cout << endl;
 
     if (save) return 0; // this param is not supported yet
@@ -101,7 +105,7 @@ string search(Supports supports,
 //            cout << "caching with priority queue limited to " << nextPrime(cache_size) << " elements" << endl;
             break;
         case CacheLtdTrie:
-            cache = new Cache_Ltd_Trie(maxdepth, wipe_type, max_cache_size);
+            cache = new Cache_Ltd_Trie(maxdepth, wipe_type, max_cache_size, wipe_factor, with_cache);
             break;
         default:
             cache = new Cache_Trie(maxdepth, wipe_type, max_cache_size);
@@ -126,12 +130,11 @@ string search(Supports supports,
 
     Solution *solution = nullptr;
 
-    string out = "";
-    out = "(nItems, nTransactions) : ( " + to_string(dataReader->getNAttributes() * 2) + ", " +
+    string out = "(nItems, nTransactions) : ( " + to_string(dataReader->getNAttributes() * 2) + ", " +
           to_string(dataReader->getNTransactions()) + " )\n";
 
 
-    void *lcm;
+    Search_base *searcher;
     /*if (iterative) {
         lcm = new LcmIterative(dataReader, nodeDataManager, cache, infoGain, infoAsc, repeatSort, minsup, maxdepth,
                                timeLimit,
@@ -146,13 +149,13 @@ string search(Supports supports,
         ((Freq_Tree *) tree_out)->runtime = duration<double>(stop_tree - start_tree).count();
         out += ((Freq_Tree *) tree_out)->to_str();
     } else {*/
-        lcm = new LcmPruned(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, cache, timeLimit,
-                            continuousMap,
-                            maxError <= 0 ? NO_ERR : maxError, maxError <= 0 ? false : stopAfterError);
+
+    if (with_cache) {
+        searcher = new Search(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, cache, timeLimit, continuousMap, maxError <= 0 ? NO_ERR : maxError, useSpecial, maxError <= 0 ? false : stopAfterError);
         auto start_tree = high_resolution_clock::now();
-        ((LcmPruned *) lcm)->run(); // perform the search
+        searcher->run(); // perform the search
         auto stop_tree = high_resolution_clock::now();
-        solution = new Freq_Solution(lcm, nodeDataManager);
+        solution = new Freq_Solution(searcher, nodeDataManager);
         Tree *tree_out = solution->getTree();
 //        ((Freq_Tree *) tree_out)->cacheSize = ((LcmPruned *) lcm)->latticesize;
         ((Freq_Tree *) tree_out)->cacheSize = cache->getCacheSize();
@@ -163,6 +166,15 @@ string search(Supports supports,
 //        out += "error : " + to_string(((Freq_NodeData *) ((LcmPruned *) lcm)->cache->root->data)->error) + "\n";
 //        out += "runtime : " + to_string(duration<double>(stop_tree - start_tree).count()) + "\n";
 //        out += "cachesize : " + to_string(cache->cachesize) + "\n";
+    }
+    else {
+        searcher = new Search_nocache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, maxError <= 0 ? NO_ERR : maxError, useSpecial, maxError <= 0 ? false : stopAfterError);
+        auto start_tree = high_resolution_clock::now();
+        searcher->run(); // perform the search
+        auto stop_tree = high_resolution_clock::now();
+        out += "runtime = " + to_string(duration<double>(stop_tree - start_tree).count()) + "\n";
+    }
+
 //    }
 
     delete cache;

@@ -1,29 +1,22 @@
-#include "lcm_pruned.h"
+#include "search.h"
 
 using namespace std::chrono;
 
 
-LcmPruned::LcmPruned(NodeDataManager *nodeDataManager, bool infoGain, bool infoAsc, bool repeatSort,
-                     Support minsup,
-                     Depth maxdepth,
-                     Cache *cache,
-                     int timeLimit,
-                     bool continuous,
-                     float maxError,
-                     bool stopAfterError) :
-        nodeDataManager(nodeDataManager), infoGain(infoGain), infoAsc(infoAsc), repeatSort(repeatSort),
-        cache(cache),
-        minsup(minsup),
-        maxdepth(maxdepth),
-        timeLimit(timeLimit),
-        continuous(continuous),
-        maxError(maxError),
-        stopAfterError(stopAfterError)
-{
+Search::Search(NodeDataManager *nodeDataManager, bool infoGain, bool infoAsc, bool repeatSort,
+               Support minsup,
+               Depth maxdepth,
+               Cache *cache,
+               int timeLimit,
+               bool continuous,
+               float maxError,
+               bool specialAlgo,
+               bool stopAfterError) :
+        Search_base(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, maxError, specialAlgo, stopAfterError), cache(cache) {
     startTime = high_resolution_clock::now();
 }
 
-LcmPruned::~LcmPruned(){}
+Search::~Search(){}
 
 // the solution already exists for this node
 Node *existingsolution(Node *node, Error *nodeError) {
@@ -52,7 +45,7 @@ Node *infeasiblecase(Node *node, Error *saved_lb, Error ub) {
     return node;
 }
 
-Node * LcmPruned::getSolutionIfExists(Node *node, Error ub, Depth depth){
+Node * Search::getSolutionIfExists(Node *node, Error ub, Depth depth){
 
     Error *nodeError = &(((FND) node->data)->error);
     // in case the solution exists because the error of a newly created node is set to FLT_MAX
@@ -89,7 +82,7 @@ Node * LcmPruned::getSolutionIfExists(Node *node, Error ub, Depth depth){
 }
 
 // information gain calculation
-float LcmPruned::informationGain(Supports notTaken, Supports taken) {
+float Search::informationGain(Supports notTaken, Supports taken) {
     int sumSupNotTaken = sumSupports(notTaken);
     int sumSupTaken = sumSupports(taken);
     int actualDBSize = sumSupNotTaken + sumSupTaken;
@@ -118,7 +111,7 @@ float LcmPruned::informationGain(Supports notTaken, Supports taken) {
 }
 
 
-Array<Attribute> LcmPruned::getSuccessors(Array<Attribute> last_candidates, Attribute last_added, Node* node) {
+Array<Attribute> Search::getSuccessors(Array<Attribute> last_candidates, Attribute last_added, Node* node) {
 
     std::multimap<float, Attribute> gain;
     Array<Attribute> next_candidates(last_candidates.size, 0);
@@ -242,13 +235,13 @@ Array<Attribute> LcmPruned::getSuccessors(Array<Attribute> last_candidates, Attr
  * @param newnode - a boolean value stating whether the node that we want to solve is newly create or not
  * @return the same node as get in parameter with added information about the best tree
  */
-Node *LcmPruned::recurse(Array<Item> itemset,
-                             Attribute last_added,
-                             Node *node,
-                             Array<Attribute> next_candidates,
-                             Depth depth,
-                             float ub,
-                             bool newnode) {
+Node *Search::recurse(Array<Item> itemset,
+                      Attribute last_added,
+                      Node *node,
+                      Array<Attribute> next_candidates,
+                      Depth depth,
+                      float ub,
+                      bool newnode) {
 
     // check if we ran out of time
     if (timeLimit > 0) {
@@ -258,7 +251,7 @@ Node *LcmPruned::recurse(Array<Item> itemset,
     }
 
     if (newnode) {
-        Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) node->data)->leafError);
+        Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) node->data)->leafError, " test ", ((FND) node->data)->test, " pointer ", node, " left ", ((FND) node->data)->left);
         latticesize++;
     }
     else Logger::showMessageAndReturn("The node already exists");
@@ -273,15 +266,16 @@ Node *LcmPruned::recurse(Array<Item> itemset,
             copy_itemset.duplicate(itemset);
             cache->updateSubTreeLoad( copy_itemset, leftItem_down, rightItem_down, true);
         }
+//        Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) result->data)->leafError, " test ", ((FND) result->data)->test, " pointer ", result, " left ", ((FND) result->data)->left);
 
         return result;
     }
     Logger::showMessageAndReturn("Node solution cannot be found without calculation");
 
     // in case the solution cannot be derived without computation and remaining depth is 2, we use a specific algorithm
-    /*if (maxdepth - depth == 2 && nodeDataManager->cover->getSupport() >= 2 * minsup && no_python_error) {
-        return computeDepthTwo(nodeDataManager->cover, ub, next_candidates, last_added, itemset, node, nodeDataManager, ((FND) node->data)->lowerBound, cache, this);
-    }*/
+    if (specialAlgo && maxdepth - depth == 2 && nodeDataManager->cover->getSupport() >= 2 * minsup && no_python_error) {
+        return computeDepthTwo(nodeDataManager->cover, ub, next_candidates, last_added, itemset, node, nodeDataManager, ((FND) node->data)->lowerBound, cache, this).first;
+    }
 
     /* the node solution cannot be computed without calculation. at this stage, we will make a search through successors*/
     Error leafError = ((FND) node->data)->leafError;
@@ -373,14 +367,14 @@ Node *LcmPruned::recurse(Array<Item> itemset,
         ((FND) child_nodes[first_item]->data)->lowerBound = (!new_node) ? max(((FND) child_nodes[first_item]->data)->lowerBound, first_lb) : first_lb;
         // perform the search for the first item
         child_nodes[first_item] = recurse(itemsets[first_item], attr, child_nodes[first_item], next_attributes,  depth + 1, child_ub, new_node);
-        node->solution_effort += max(1, child_nodes[first_item]->solution_effort);
+//        node->solution_effort += max(1, child_nodes[first_item]->solution_effort);
 //        cout << "itemset: ";
 //        for (auto i:itemset) {
 //            cout << i << ",";
 //        }
 //        cout << " its par " << node;
 //        cout << " effff : " << node->solution_effort << endl;
-        cache->max_solution_effort = max(cache->max_solution_effort, node->solution_effort);
+//        cache->max_solution_effort = max(cache->max_solution_effort, node->solution_effort);
 
 
         // check if the found information is relevant to compute the next similarity bounds
@@ -396,6 +390,7 @@ Node *LcmPruned::recurse(Array<Item> itemset,
         copy_itemset.duplicate(itemset);
 
         if (nodeDataManager->canimprove(child_nodes[first_item]->data, child_ub)) {
+//            cout << "can" << endl;
             // perform search on the second item
             nodeDataManager->cover->intersect(attr, second_item);
             itemsets[second_item] = addItem(itemset, item(attr, second_item));
@@ -411,8 +406,8 @@ Node *LcmPruned::recurse(Array<Item> itemset,
             Error remainUb = child_ub - firstError;
             // perform the search for the second item
             child_nodes[second_item] = recurse(itemsets[second_item], attr, child_nodes[second_item], next_attributes, depth + 1, remainUb, new_node);
-            node->solution_effort += max(1, child_nodes[second_item]->solution_effort);
-            cache->max_solution_effort = max(cache->max_solution_effort, node->solution_effort);
+//            node->solution_effort += max(1, child_nodes[second_item]->solution_effort);
+//            cache->max_solution_effort = max(cache->max_solution_effort, node->solution_effort);
 
             // check if the found information is relevant to compute the next similarity bounds
 //            addInfoForLowerBound(child_nodes[second_item]->data, b1_cover, b2_cover, b1_error, b2_error, highest_coversize);
@@ -423,12 +418,12 @@ Node *LcmPruned::recurse(Array<Item> itemset,
 //            vec_nodes.push_back(child_nodes[second_item]);
 
             Error feature_error = firstError + secondError;
-            printItemset(itemset);
+//            printItemset(itemset);
 //            cout << "&" << endl;
             int lastBestAttr = !((FND) node->data)->left ? -1 : best_attr;
-
-            bool hasUpdated = nodeDataManager->updateData(node->data, child_ub, attr, child_nodes[0]->data, child_nodes[1]->data);
-
+//            cout << "before update " << endl;
+            bool hasUpdated = nodeDataManager->updateData(node->data, child_ub, attr, child_nodes[0]->data, child_nodes[1]->data, itemset, cache);
+//            cout << "adter update" << endl;
             if (hasUpdated) {
                 child_ub = feature_error;
 //                best_nodes.clear();
@@ -456,18 +451,20 @@ Node *LcmPruned::recurse(Array<Item> itemset,
             }
         }
         else { //we do not attempt the second child, so we use its lower bound
+//            cout << "cannot" << endl;
             // if the first error is unknown, we use its lower bound
             if (floatEqual(firstError, FLT_MAX)) minlb = min(minlb, ((FND) child_nodes[first_item]->data)->lowerBound + second_lb);
             // otherwise, we use it
             else minlb = min(minlb, firstError + second_lb);
+
+            if (not cache->with_cache) cache->removeSubTree(itemset, attr);
             if (cache->maxcachesize > NO_CACHE_LIMIT) cache->updateSubTreeLoad(copy_itemset, item(attr, first_item), -1, false);
             else copy_itemset.free();
         }
 
         if (stopAfterError) {
             if (depth == 0 && ub < FLT_MAX) {
-                if (*nodeError < ub)
-                    break;
+                if (*nodeError < ub) break;
             }
         }
     }
@@ -495,7 +492,7 @@ Node *LcmPruned::recurse(Array<Item> itemset,
 }
 
 
-void LcmPruned::run() {
+void Search::run() {
 
     // Create empty list for candidate attributes
     Array<Attribute> attributes_to_visit(nattributes, 0);
@@ -510,6 +507,8 @@ void LcmPruned::run() {
                 attributes_to_visit.push_back(attr);
         }
     }
+//    for(const auto &a : attributes_to_visit) cout << a << "-";
+//    cout << endl;
 
     //create an empty array of items representing an emptyset and insert it
     Array<Item> itemset;

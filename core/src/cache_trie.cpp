@@ -78,7 +78,6 @@ pair<Node *, bool> Cache_Trie::insert(Array<Item> itemset, NodeDataManager *node
         wipe((TrieNode *) root, wipe_type);
         cachesize = getCacheSize();
 //        cout << "cachesize after = " << cachesize << endl;
-        if (cachesize >= maxcachesize) canwipe = false;
     }
 
     vector<TrieEdge>::iterator geqEdge_it;
@@ -161,6 +160,15 @@ void Cache_Trie::updateSubTreeLoad(Array<Item> itemset, Item firstItem, Item sec
             updateSubTreeLoad(itemset1, nextFirstItem, nextSecondItem, inc);
         } else if (item == secondItem) itemset1.free();
     }
+}
+
+void Cache_Trie::freeCache() {
+    auto node = (TrieNode*) root;
+    for (auto edge: node->edges) {
+        freeCache();
+        delete edge.subtrie;
+    }
+    delete node;
 }
 
 // original function

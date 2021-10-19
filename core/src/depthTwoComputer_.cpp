@@ -40,15 +40,15 @@ void setItem(Freq_NodeData* node_data, Array<Item> itemset, Cache* cache, NodeDa
  * @param lb - the lower bound of the search
  * @return the same node passed as parameter is returned but the tree of depth 2 is already added to it
  */
-Node* computeDepthTwo( Error ub,
-                           Array <Attribute> attributes_to_visit,
-                           Attribute last_added,
-                           Array <Item> itemset,
-                           Node *node,
-                           NodeDataManager* nodeDataManager,
-                           Error lb,
-                           Cache* cache,
-                           LcmPruned* searcher) {
+Node* computeDepthTwo(Error ub,
+                      Array <Attribute> attributes_to_visit,
+                      Attribute last_added,
+                      Array <Item> itemset,
+                      Node *node,
+                      NodeDataManager* nodeDataManager,
+                      Error lb,
+                      Cache* cache,
+                      Search* searcher) {
 
     // infeasible case. Avoid computing useless solution
     if (ub <= lb){

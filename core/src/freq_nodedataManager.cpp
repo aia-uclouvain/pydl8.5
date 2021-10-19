@@ -1,6 +1,8 @@
 #include "freq_nodedataManager.h"
 #include "cache.h"
 #include <iostream>
+#include <stack>
+#include "logger.h"
 
 Freq_NodeDataManager::Freq_NodeDataManager(
         RCover* cover,
@@ -46,35 +48,43 @@ Freq_NodeDataManager::~Freq_NodeDataManager() {}
 //    return ((long int) minsup - (long int) (supports.second - majnum)) > (long int) secmajnum;
 //}
 
-bool Freq_NodeDataManager::updateData(NodeData *best, Error upperBound, Attribute attribute, NodeData *left, NodeData *right) {
-//    cout << "update" << endl;
-    Freq_NodeData *best2 = (Freq_NodeData *) best;
-//    cout << "update1" << endl;
-    Freq_NodeData *left2 = (Freq_NodeData *) left;
-//    cout << "update2" << endl;
-    Freq_NodeData *right2 = (Freq_NodeData *) right;
-//    cout << "update3" << endl;
-//    cout << right2->error << endl;
-//    cout << left2->error << endl;
-    Error error = left2->error + right2->error;
-//    cout << "update4" << endl;
-    Size size = left2->size + right2->size + 1;
-//    cout << "update5" << endl;
-    if (error < upperBound || (floatEqual(error, upperBound) && size < best2->size)) {
-//        cout << "update6" << endl;
-        best2->error = error;
-//        cout << "update7" << endl;
-        best2->left = left2;
-//        cout << "update8" << endl;
-        best2->right = right2;
-//        cout << "update9" << endl;
-        best2->size = size;
-//        cout << "update10" << endl;
-        best2->test = attribute;
-//        cout << "update11" << endl;
+void removeNotBest(Array<Item> itemset, Attribute toDel, Cache* cache){
+    if (toDel == -1) return;
+
+    Array<Item> leftI = addItem(itemset, item(toDel, 0));
+    Attribute left_attr = (((Freq_NodeData *)cache->get(leftI)->data)->left) ? ((Freq_NodeData *)cache->get(leftI)->data)->test : -1;
+    Array<Item> rightI = addItem(itemset, item(toDel, 1));
+    Attribute right_attr = (((Freq_NodeData *)cache->get(rightI)->data)->left) ? ((Freq_NodeData *)cache->get(rightI)->data)->test : -1;
+
+    removeNotBest(leftI, left_attr, cache);
+    cache->removeItemset(leftI);
+    leftI.free();
+
+    removeNotBest(rightI, right_attr, cache);
+    cache->removeItemset(rightI);
+    rightI.free();
+}
+
+bool Freq_NodeDataManager::updateData(NodeData *best, Error upperBound, Attribute attribute, NodeData *left, NodeData *right, Array<Item> itemset, Cache* cache) {
+    auto *freq_best = (Freq_NodeData *) best, *freq_left = (Freq_NodeData *) left, *freq_right = (Freq_NodeData *) right;
+    Error error = freq_left->error + freq_right->error;
+    Size size = freq_left->size + freq_right->size + 1;
+    if (error < upperBound || (floatEqual(error, upperBound) && size < freq_best->size)) {
+        if (not cache->with_cache)  {
+            cout << "remove subtree with update. ub = " << upperBound << " err foud = " << error << endl;
+            cache->removeSubTree(itemset, !(freq_best)->left ? -1 : freq_best->test);
+        }
+        freq_best->error = error;
+        freq_best->left = freq_left;
+        freq_best->right = freq_right;
+        freq_best->size = size;
+        freq_best->test = attribute;
         return true;
     }
-//    cout << "update11" << endl;
+    else if (not cache->with_cache) {
+        cout << "remove subtree without update. ub = " << upperBound << " err foud = " << error << endl;
+        cache->removeSubTree(itemset, attribute);
+    }
     return false;
 }
 

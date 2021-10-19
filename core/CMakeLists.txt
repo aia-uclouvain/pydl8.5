@@ -41,8 +41,10 @@ add_executable(dl85
         src/globals.cpp
 #        src/lcm_iterative.h
 #        src/lcm_iterative.cpp
-        src/lcm_pruned.h
-        src/lcm_pruned.cpp
+        src/search.h
+        src/search.cpp
+        src/search_nocache.h
+        src/search_nocache.cpp
         src/logger.h
         src/nodedataManager.h
         src/nodedataManager.cpp
@@ -53,4 +55,4 @@ add_executable(dl85
         src/rCoverTotalFreq.h
         src/rCoverTotalFreq.cpp
         src/rCoverWeighted.h
-        src/rCoverWeighted.cpp)
+        src/rCoverWeighted.cpp src/search_base.cpp src/search_base.h)

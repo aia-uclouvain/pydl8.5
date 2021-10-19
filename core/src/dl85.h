@@ -24,7 +24,9 @@
 //#include "experror.h"
 #include "rCoverTotalFreq.h"
 #include "rCoverWeighted.h"
-#include "lcm_pruned.h"
+//#include "search_base.h"
+#include "search_nocache.h"
+#include "search.h"
 //#include "lcm_iterative.h"
 #include "freq_nodedataManager.h"
 #include "freq_Solution.h"
@@ -64,7 +66,7 @@ using namespace std;
  * @param verbose_param - a boolean value to set whether the search must be verbose or not. Default value is false
  * @return a string representing a serialized form of the found tree is returned
  */
-string search(
+string launch(
         Supports supports,
         Transaction ntransactions,
         Attribute nattributes,
@@ -98,6 +100,9 @@ string search(
         bool verbose_param = false,
         CacheType cache_type = CacheTrie,
         int cache_size = 1000,
-        WipeType wipe_type = WipeAll);
+        WipeType wipe_type = WipeAll,
+        float wipe_factor = .5f,
+        bool with_cache = true,
+        bool useSpecial = true);
 
 #endif //DL85_DL85_H

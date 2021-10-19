@@ -16,60 +16,47 @@ struct TrieLtdEdge {
 };
 
 struct TrieLtdNode : Node {
+    int n_subnodes = 0;
+    int n_reuse = 0;
+    Support support = 0;
+    Depth depth = 0;
     vector<TrieLtdEdge> edges;
 
-    TrieLtdNode(): Node() {
-        count_opti_path = 1; //load(-1);
-    }
-
-    TrieLtdNode(const TrieLtdNode&) = default;
-    TrieLtdNode& operator=(const TrieLtdNode&) = default;
-    TrieLtdNode(TrieLtdNode &&) = default;
-
-    /*TrieLtdNode(const TrieLtdNode &node) {
-        edges = node.edges;
-        count_opti_path = node.count_opti_path;
-    }*/
+    TrieLtdNode(): Node() { count_opti_path = 1; }
+    ~TrieLtdNode() {}
 
     void invalidateChildren() {
-//        if (edges.size() == 0) return;
-//cout << "size " << edges.size();// << endl;
-//if (data == nullptr) cout << " data is null" << endl;
-//else cout << " data not null" << endl;
         for (const auto & edge: edges) {
-            edge.subtrie->count_opti_path = -1;
+            edge.subtrie->count_opti_path = INT32_MIN;
             edge.subtrie->invalidateChildren();
         }
     }
-
-//    ~TrieLtdNode() {for (auto &edge : edges) delete edge.subtrie;}
-//    ~TrieLtdNode() = delete;
-    ~TrieLtdNode() {}
 };
 
 class Cache_Ltd_Trie : public Cache {
-//friend class Query_TotalFreq;
+
 public:
-    Cache_Ltd_Trie(Depth maxdepth, WipeType wipe_type=WipeAll, int maxcachesize=0);
-//    ~Cache_Ltd_Trie(){};
-//    ~Cache_Ltd_Trie(){ for (auto node: heap) { delete node.first; } };
-    ~Cache_Ltd_Trie(){ for (auto node: heap) { delete std::get<0>(node); } };
+    Cache_Ltd_Trie(Depth maxdepth, WipeType wipe_type=WipeAll, int maxcachesize=0, float wipe_factor=.5f, bool with_cache=true);
+    ~Cache_Ltd_Trie(){ delete root; for (auto node: heap) { delete node.first; } };
 
     pair<Node *, bool> insert ( Array<Item> itemset, NodeDataManager* );
     Node *get ( Array<Item> itemset );
     void updateItemsetLoad(Array<Item> itemset, bool inc=false);
-    void printload(TrieLtdNode* node, vector<Item>& itemset);
     void updateSubTreeLoad(Array<Item> itemset, Item firstI, Item secondI, bool inc=false);
     int getCacheSize();
-//    void wipe(Node* node, WipeType cache_type, Depth depth = 1);
-    void wipe(float red_factor = .5f);
-//    vector<pair<TrieLtdNode*,TrieLtdNode*>> heap;
-    vector<tuple<TrieLtdNode*,TrieLtdNode*, Item, vector<Item>>> heap;
+    void wipe();
+    void updateRootPath(Array<Item> itemset, int value);
+    void removeChild(Node*, Item);
+    void removeChild(Node*, Node*);
+    void removeItemset(Array<Item> itemset);
+    void removeSubTree(Array<Item> itemset, Attribute toDel);
+    vector<pair<TrieLtdNode*,TrieLtdNode*>> heap;
+    float wipe_factor;
 
 private:
-    bool canwipe = true;
     TrieLtdNode *addNonExistingItemsetPart ( Array<Item> itemset, int pos, vector<TrieLtdEdge>::iterator& geqEdge_it, TrieLtdNode *parent, NodeDataManager* nodeDataManager );
-    void decreaseItemset(vector<Item>& itemset);
+    int computeSubNodes(TrieLtdNode* node);
+    bool isConsistent(TrieLtdNode* node, vector<Item> itemset = vector<Item>());
 
 };
 
