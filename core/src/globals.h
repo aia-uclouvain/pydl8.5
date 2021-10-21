@@ -122,7 +122,10 @@ public:
     A *elts; //the "array" of elements
     int size; //the real size of elements in the array while "allocsize" is the allocated size
 
-    Array() {}
+    Array() {
+        elts = nullptr;
+        size = 0;
+    }
 
     Array(A *elts_, int size_) {
         elts = elts_;
@@ -145,6 +148,12 @@ public:
         size = ar.size;
         elts = new A[ar.size];
         forEach(i, ar) elts[i] = ar.elts[i];
+    }
+
+    Array<A> duplicate() {
+        Array<A> newArr(size, size);
+        for (int i = 0; i < size; ++i) newArr[i] = elts[i];
+        return newArr;
     }
 
     Array<A>& operator=(const Array<A>& ar) = default;
@@ -199,7 +208,7 @@ public:
 
         bool operator!=(const iterator &other) const { return ptr != other.ptr; }
 
-        // the const is add to only allow read. It is much faster but we lose in write
+        // const is added in front of signature to only allow read. It is much faster but we lose in write
         const A &operator*() const { return *ptr; }
 
     private:

@@ -26,7 +26,7 @@
 #include "rCoverWeighted.h"
 //#include "search_base.h"
 #include "search_nocache.h"
-#include "search.h"
+#include "search_cache.h"
 //#include "lcm_iterative.h"
 #include "freq_nodedataManager.h"
 #include "freq_Solution.h"
@@ -100,9 +100,10 @@ string launch(
         bool verbose_param = false,
         CacheType cache_type = CacheTrie,
         int cache_size = 1000,
-        WipeType wipe_type = WipeAll,
+        WipeType wipe_type = All,
         float wipe_factor = .5f,
         bool with_cache = true,
-        bool useSpecial = true);
+        bool useSpecial = true,
+        bool use_ub = true);
 
 #endif //DL85_DL85_H

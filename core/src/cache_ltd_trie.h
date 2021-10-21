@@ -36,7 +36,7 @@ struct TrieLtdNode : Node {
 class Cache_Ltd_Trie : public Cache {
 
 public:
-    Cache_Ltd_Trie(Depth maxdepth, WipeType wipe_type=WipeAll, int maxcachesize=0, float wipe_factor=.5f, bool with_cache=true);
+    Cache_Ltd_Trie(Depth maxdepth, WipeType wipe_type=Subnodes, int maxcachesize=0, float wipe_factor=.5f);
     ~Cache_Ltd_Trie(){ delete root; for (auto node: heap) { delete node.first; } };
 
     pair<Node *, bool> insert ( Array<Item> itemset, NodeDataManager* );
@@ -46,17 +46,14 @@ public:
     int getCacheSize();
     void wipe();
     void updateRootPath(Array<Item> itemset, int value);
-    void removeChild(Node*, Item);
-    void removeChild(Node*, Node*);
-    void removeItemset(Array<Item> itemset);
-    void removeSubTree(Array<Item> itemset, Attribute toDel);
     vector<pair<TrieLtdNode*,TrieLtdNode*>> heap;
     float wipe_factor;
 
 private:
     TrieLtdNode *addNonExistingItemsetPart ( Array<Item> itemset, int pos, vector<TrieLtdEdge>::iterator& geqEdge_it, TrieLtdNode *parent, NodeDataManager* nodeDataManager );
     int computeSubNodes(TrieLtdNode* node);
-    bool isConsistent(TrieLtdNode* node, vector<Item> itemset = vector<Item>());
+    bool isConsistent(TrieLtdNode* node);
+    bool isConsistent(TrieLtdNode* node, vector<Item>);
 
 };
 

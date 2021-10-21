@@ -98,27 +98,33 @@ int main(int argc, char *argv[]) {
 //        datasetPath = "../../datasets/hepatitis.txt";
 //        datasetPath = "../../datasets/tests/paper.txt";
 //        datasetPath = "../../datasets/tic-tac-toe.txt";
-        maxdepth = 4;
+        maxdepth = 3;
         minsup = 1;
     }
 
+//    CacheType cache_type = CacheHash;
 //    CacheType cache_type = CacheTrie;
     CacheType cache_type = CacheLtdTrie;
-//    Size cache_size = 500000;
-//    Size cache_size = 30000;
-//    Size cache_size = 250;
-    WipeType wipe_type = WipeAll;
-    Size cache_size = NO_CACHE_LIMIT;
-//    int cache_size = 10;
-//    int cache_size = 3000000;
-//    CacheType cache_type = CacheHash;
+
+    Size cache_size = 300000;
+//    Size cache_size = NO_CACHE_LIMIT;
+
+    WipeType wipe_type = All;
+//    WipeType wipe_type = Subnodes;
+//    WipeType wipe_type = Recall;
     float wipe_factor = .5f;
+
     bool with_cache = false;
 //    bool with_cache = true;
-    bool use_special_algo = true;
-//    bool use_special_algo = false;
+
+//    bool use_special_algo = true;
+    bool use_special_algo = false;
+
 //    bool verb = true;
     bool verb = false;
+
+    bool use_ub = true;
+//    bool use_ub = false;
 
     ifstream dataset(datasetPath);
     map<Class, SupportClass> supports_map; // for each class, compute the number of transactions (support)
@@ -171,7 +177,8 @@ int main(int argc, char *argv[]) {
             wipe_type, // the type of wiping
             wipe_factor,
             with_cache,
-            use_special_algo
+            use_special_algo,
+            use_ub
     );
 
     cout << result;

@@ -13,8 +13,9 @@ Search_nocache::Search_nocache(NodeDataManager *nodeDataManager, bool infoGain, 
                                int timeLimit,
                                float maxError,
                                bool specialAlgo,
-                               bool stopAfterError) :
-        Search_base(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, maxError, specialAlgo, stopAfterError) {
+                               bool stopAfterError,
+                               bool use_ub) :
+        Search_base(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, maxError, specialAlgo, stopAfterError), use_ub(use_ub) {
     startTime = high_resolution_clock::now();
 }
 
@@ -60,7 +61,7 @@ Array<Attribute> Search_nocache::getSuccessors(Array<Attribute> last_candidates,
     Supports current_sup_class = nodeDataManager->cover->getSupportPerClass();
 
     // access each candidate
-    for (auto candidate: last_candidates) {
+    for (const auto &candidate: last_candidates) {
 
         // this attribute is already in the current itemset
         if (last_added == candidate) continue;
@@ -116,10 +117,10 @@ Error Search_nocache::recurse(Attribute last_added,
                               float ub) {
 
     // check if we ran out of time
-    if (timeLimit > 0) {
-        float runtime = duration_cast<milliseconds>(high_resolution_clock::now() - startTime).count() / 1000.0;
-        if (runtime >= timeLimit) timeLimitReached = true;
-    }
+    if (timeLimit > 0 && duration<float>(high_resolution_clock::now() - startTime).count() >= (float)timeLimit) timeLimitReached = true;
+
+    // if upper bound is disabled, we set it to infinity
+    if (not use_ub) ub = FLT_MAX;
 
     auto leaf = nodeDataManager->computeLeafInfo();
 
@@ -128,21 +129,18 @@ Error Search_nocache::recurse(Attribute last_added,
         Logger::showMessageAndReturn("we backtrack with leaf error = ", leaf.error, " new ub = ", ub);
         return leaf.error;
     }
+
     Logger::showMessageAndReturn("Node solution cannot be found without calculation");
 
     // in case the solution cannot be derived without computation and remaining depth is 2, we use a specific algorithm
     if (specialAlgo && maxdepth - depth == 2 && nodeDataManager->cover->getSupport() >= 2 * minsup && no_python_error) {
-        return computeDepthTwo(nodeDataManager->cover, ub, next_candidates, last_added, Array<Item>(), nullptr,
-                               nodeDataManager, 0, nullptr,
-                               this).second;
+        return computeDepthTwo(nodeDataManager->cover, ub, next_candidates, last_added, Array<Item>(), nullptr, nodeDataManager, 0, nullptr, this).second;
     }
 
     /* the node solution cannot be computed without calculation. at this stage, we will make a search through successors*/
     Logger::showMessageAndReturn("leaf error = ", leaf.error, " new ub = ", ub);
 
-    if (timeLimitReached) {
-        return leaf.error;
-    }
+    if (timeLimitReached) return leaf.error;
 
     // if we can't get solution without computation, we compute the next candidates to perform the search
     Array<Attribute> next_attributes = getSuccessors(next_candidates, last_added);
@@ -151,8 +149,7 @@ Error Search_nocache::recurse(Attribute last_added,
     // case in which there is no candidate
     if (next_attributes.size == 0) {
         Logger::showMessageAndReturn("No candidates. nodeError is set to leafError");
-        Logger::showMessageAndReturn("depth = ", depth, " and init ub = ", ub, " and error after search = ",
-                                     leaf.error);
+        Logger::showMessageAndReturn("depth = ", depth, " and init ub = ", ub, " and error after search = ", leaf.error);
         Logger::showMessageAndReturn("we backtrack with leaf error ", leaf.error);
         next_attributes.free();
         return leaf.error;
@@ -162,7 +159,7 @@ Error Search_nocache::recurse(Attribute last_added,
     Error best_error = leaf.error;
 
     // we evaluate the split on each candidate attribute
-    for (const auto attr: next_attributes) {
+    for (const auto &attr: next_attributes) {
         Logger::showMessageAndReturn("\n\nWe are evaluating the attribute : ", attr);
 
         Logger::showMessageAndReturn("Item left");
@@ -214,22 +211,22 @@ void Search_nocache::run() {
     // Update the candidate list based on frequency criterion
     if (minsup == 1) { // do not check frequency if minsup = 1
         for (int attr = 0; attr < nattributes; ++attr) attributes_to_visit.push_back(attr);
-    } else { // make sure each candidate attribute can be split into two nodes fulfilling the frequency criterion
+    }
+    else { // make sure each candidate attribute can be split into two nodes fulfilling the frequency criterion
         for (int attr = 0; attr < nattributes; ++attr) {
-            if (nodeDataManager->cover->temporaryIntersectSup(attr, false) >= minsup &&
-                nodeDataManager->cover->temporaryIntersectSup(attr) >= minsup)
+            if (nodeDataManager->cover->temporaryIntersectSup(attr, false) >= minsup && nodeDataManager->cover->temporaryIntersectSup(attr) >= minsup)
                 attributes_to_visit.push_back(attr);
         }
     }
 
     //create an empty array of items representing an emptyset and insert it
     Array<Item> itemset;
-    itemset.size = 0;
-    itemset.elts = nullptr;
 
     // call the recursive function to start the search
     Error tree_error = recurse(NO_ATTRIBUTE, attributes_to_visit, 0, maxError);
 
+    if (use_ub) cout << "upper bound is used" << endl;
+    else cout << "upper bound is not used" << endl;
     cout << "tree error = " << tree_error << endl;
 
     // never forget to return what is not yours. Think to others who need it ;-)

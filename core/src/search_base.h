@@ -51,5 +51,8 @@ public:
     virtual void run() = 0;
 };
 
+// a variable to express whether the error computation is not performed in python or not
+#define no_python_error !nodeDataManager->tids_error_callback && !nodeDataManager->tids_error_class_callback && !nodeDataManager->supports_error_class_callback
+
 
 #endif //DL85_SEARCH_BASE_H

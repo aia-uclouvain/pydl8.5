@@ -1,4 +1,4 @@
-#include "search.h"
+#include "search_cache.h"
 #include solution.h // if cannot link is specified, we need a clustering problem!!!
 #include "logger.h"
 #include <iostream>
@@ -17,7 +17,7 @@ using namespace std::chrono;
     }
 };*/
 
-Search::Search(DataManager *dataReader, Query *query, Trie *trie, bool infoGain, bool infoAsc, bool repeatSort) :
+Search_cache::Search_cache(DataManager *dataReader, Query *query, Trie *trie, bool infoGain, bool infoAsc, bool repeatSort) :
         dataReader(dataReader), trie(trie), query(query), infoGain(infoGain), infoAsc(infoAsc), repeatSort(repeatSort) {
 }
 
@@ -44,7 +44,7 @@ TrieNode *infeasiblecase(TrieNode *node, Error *saved_lb, Error ub) {
     return node;
 }
 
-Search::~Search() {
+Search_cache::~Search_cache() {
 }
 
 /** recurse - this method finds the best tree given an itemset and its cover and update
@@ -60,14 +60,14 @@ Search::~Search() {
  * @param computed_lb - a computed similarity lower bound. It can be reached
  * @return the same node as get in parameter with added information about the best tree
  */
-TrieNode *Search::recurse(Array<Item> itemset,
-                          Attribute last_added,
-                          TrieNode *node,
-                          Array<Attribute> next_candidates,
-                          RCover *cover,
-                          Depth depth,
-                          float ub,
-                          float computed_lb) {
+TrieNode *Search_cache::recurse(Array<Item> itemset,
+                                Attribute last_added,
+                                TrieNode *node,
+                                Array<Attribute> next_candidates,
+                                RCover *cover,
+                                Depth depth,
+                                float ub,
+                                float computed_lb) {
 
     // check if we ran out of time
     if (query->timeLimit > 0) {
@@ -347,9 +347,9 @@ TrieNode *Search::recurse(Array<Item> itemset,
 }
 
 
-Error Search::computeLowerBound(RCover *cover, bitset<M> *covlb1, bitset<M> *covlb2, bitset<M> *covlb3,
-                                Supports sclb1, Supports sclb2, Supports sclb3,
-                                Supports sflb1, Supports sflb2, Supports sflb3) {
+Error Search_cache::computeLowerBound(RCover *cover, bitset<M> *covlb1, bitset<M> *covlb2, bitset<M> *covlb3,
+                                      Supports sclb1, Supports sclb2, Supports sclb3,
+                                      Supports sflb1, Supports sflb2, Supports sflb3) {
     Error tmp1 = 0, tmp2 = 0, tmp3 = 0;
     if (covlb1) {
         Error c = 0, f = 0;
@@ -387,11 +387,11 @@ Error Search::computeLowerBound(RCover *cover, bitset<M> *covlb1, bitset<M> *cov
     return max(tmp1, tmp3);
 }
 
-void Search::addInfoForLowerBound(RCover *cover, QueryData *node_data, Error errlb1, Error errlb2, Error errlb3,
-                                  bitset<M> *&covlb1, bitset<M> *&covlb2, bitset<M> *&covlb3,
-                                  Supports &sclb1, Supports &sclb2, Supports &sclb3,
-                                  Supports &sflb1, Supports &sflb2, Supports &sflb3,
-                                  Support suplb) {
+void Search_cache::addInfoForLowerBound(RCover *cover, QueryData *node_data, Error errlb1, Error errlb2, Error errlb3,
+                                        bitset<M> *&covlb1, bitset<M> *&covlb2, bitset<M> *&covlb3,
+                                        Supports &sclb1, Supports &sclb2, Supports &sclb3,
+                                        Supports &sflb1, Supports &sflb2, Supports &sflb3,
+                                        Support suplb) {
     if (((QueryData_Best *) node_data)->error < FLT_MAX) {
         Error b = (((QueryData_Best *) node_data)->error < FLT_MAX) ? ((QueryData_Best *) node_data)->error
                                                                     : ((QueryData_Best *) node_data)->lowerBound;
@@ -420,7 +420,7 @@ void Search::addInfoForLowerBound(RCover *cover, QueryData *node_data, Error err
 }
 
 
-void Search::run() {
+void Search_cache::run() {
     query->setStartTime();
     // set the correct maxerror if needed
     float maxError = NO_ERR;
@@ -463,7 +463,7 @@ void Search::run() {
 }
 
 
-float Search::informationGain(Supports notTaken, Supports taken) {
+float Search_cache::informationGain(Supports notTaken, Supports taken) {
 
     int sumSupNotTaken = sumSupports(notTaken);
     int sumSupTaken = sumSupports(taken);
@@ -495,8 +495,8 @@ float Search::informationGain(Supports notTaken, Supports taken) {
 }
 
 
-Array<Attribute> Search::getSuccessors(Array<Attribute> last_candidates, RCover *cover, Attribute last_added,
-                                       unordered_set<int> frequent_attr) {
+Array<Attribute> Search_cache::getSuccessors(Array<Attribute> last_candidates, RCover *cover, Attribute last_added,
+                                             unordered_set<int> frequent_attr) {
 
     std::multimap<float, Attribute> gain;
     Array<Attribute> next_candidates(last_candidates.size, 0);
@@ -553,7 +553,7 @@ Array<Attribute> Search::getSuccessors(Array<Attribute> last_candidates, RCover 
     return next_candidates;
 }
 
-Array<Attribute> Search::getExistingSuccessors(TrieNode *node) {
+Array<Attribute> Search_cache::getExistingSuccessors(TrieNode *node) {
     // use an hashset to reduce the insert time. a basic int hasher is ok
     unordered_set<int> candidates_checker;
     int size = candidates_checker.size();
@@ -996,8 +996,8 @@ Array<Attribute> Search::getExistingSuccessors(TrieNode *node) {
 
 //correct
 TrieNode *
-Search::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes_to_visit, Attribute last_added,
-                         Array<Item> itemset, TrieNode *node, Error lb) {
+Search_cache::getdepthtwotrees(RCover *cover, Error ub, Array<Attribute> attributes_to_visit, Attribute last_added,
+                               Array<Item> itemset, TrieNode *node, Error lb) {
     //cout << "\t\t lb = " << lb << endl;
     //lb = 0;
     // if (lb > 0) cout << "lb = " << lb << endl;

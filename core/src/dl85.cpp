@@ -66,7 +66,8 @@ string launch(Supports supports,
               WipeType wipe_type,
               float wipe_factor,
               bool with_cache,
-              bool useSpecial) {
+              bool useSpecial,
+              bool use_ub) {
 
 //    auto start = high_resolution_clock::now(); // start the timer
 
@@ -105,7 +106,7 @@ string launch(Supports supports,
 //            cout << "caching with priority queue limited to " << nextPrime(cache_size) << " elements" << endl;
             break;
         case CacheLtdTrie:
-            cache = new Cache_Ltd_Trie(maxdepth, wipe_type, max_cache_size, wipe_factor, with_cache);
+            cache = new Cache_Ltd_Trie(maxdepth, wipe_type, max_cache_size, wipe_factor);
             break;
         default:
             cache = new Cache_Trie(maxdepth, wipe_type, max_cache_size);
@@ -151,7 +152,7 @@ string launch(Supports supports,
     } else {*/
 
     if (with_cache) {
-        searcher = new Search(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, cache, timeLimit, continuousMap, maxError <= 0 ? NO_ERR : maxError, useSpecial, maxError <= 0 ? false : stopAfterError);
+        searcher = new Search_cache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, cache, timeLimit, continuousMap, maxError <= 0 ? NO_ERR : maxError, useSpecial, maxError <= 0 ? false : stopAfterError);
         auto start_tree = high_resolution_clock::now();
         searcher->run(); // perform the search
         auto stop_tree = high_resolution_clock::now();
@@ -159,7 +160,7 @@ string launch(Supports supports,
         Tree *tree_out = solution->getTree();
 //        ((Freq_Tree *) tree_out)->cacheSize = ((LcmPruned *) lcm)->latticesize;
         ((Freq_Tree *) tree_out)->cacheSize = cache->getCacheSize();
-        ((Freq_Tree *) tree_out)->runtime = duration<double>(stop_tree - start_tree).count();
+        ((Freq_Tree *) tree_out)->runtime = duration<float>(stop_tree - start_tree).count();
         out += ((Freq_Tree *) tree_out)->to_str();
 //        out += "latsize : " + to_string(((Freq_Tree *) tree_out)->cacheSize) + "\n";
 //        out += "maxdepth : " + to_string(maxdepth) + "\n";
@@ -168,11 +169,11 @@ string launch(Supports supports,
 //        out += "cachesize : " + to_string(cache->cachesize) + "\n";
     }
     else {
-        searcher = new Search_nocache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, maxError <= 0 ? NO_ERR : maxError, useSpecial, maxError <= 0 ? false : stopAfterError);
+        searcher = new Search_nocache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, maxError <= 0 ? NO_ERR : maxError, useSpecial,maxError > 0 && stopAfterError, use_ub);
         auto start_tree = high_resolution_clock::now();
         searcher->run(); // perform the search
         auto stop_tree = high_resolution_clock::now();
-        out += "runtime = " + to_string(duration<double>(stop_tree - start_tree).count()) + "\n";
+        out += "runtime = " + to_string(duration<float>(stop_tree - start_tree).count()) + "\n";
     }
 
 //    }

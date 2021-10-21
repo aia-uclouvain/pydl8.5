@@ -33,57 +33,17 @@ Freq_NodeDataManager::Freq_NodeDataManager(
 Freq_NodeDataManager::~Freq_NodeDataManager() {}
 
 
-//bool Frequency_NodeDataManager::is_freq(pair<Supports, Support> supports) {
-//    return supports.second >= minsup;
-//}
-//
-//bool Frequency_NodeDataManager::is_pure(pair<Supports, Support> supports) {
-//    Support majnum = supports.first[0], secmajnum = 0;
-//    for (int i = 1; i < nclasses; ++i)
-//        if (supports.first[i] > majnum) {
-//            secmajnum = majnum;
-//            majnum = supports.first[i];
-//        } else if (supports.first[i] > secmajnum)
-//            secmajnum = supports.first[i];
-//    return ((long int) minsup - (long int) (supports.second - majnum)) > (long int) secmajnum;
-//}
-
-void removeNotBest(Array<Item> itemset, Attribute toDel, Cache* cache){
-    if (toDel == -1) return;
-
-    Array<Item> leftI = addItem(itemset, item(toDel, 0));
-    Attribute left_attr = (((Freq_NodeData *)cache->get(leftI)->data)->left) ? ((Freq_NodeData *)cache->get(leftI)->data)->test : -1;
-    Array<Item> rightI = addItem(itemset, item(toDel, 1));
-    Attribute right_attr = (((Freq_NodeData *)cache->get(rightI)->data)->left) ? ((Freq_NodeData *)cache->get(rightI)->data)->test : -1;
-
-    removeNotBest(leftI, left_attr, cache);
-    cache->removeItemset(leftI);
-    leftI.free();
-
-    removeNotBest(rightI, right_attr, cache);
-    cache->removeItemset(rightI);
-    rightI.free();
-}
-
 bool Freq_NodeDataManager::updateData(NodeData *best, Error upperBound, Attribute attribute, NodeData *left, NodeData *right, Array<Item> itemset, Cache* cache) {
     auto *freq_best = (Freq_NodeData *) best, *freq_left = (Freq_NodeData *) left, *freq_right = (Freq_NodeData *) right;
     Error error = freq_left->error + freq_right->error;
     Size size = freq_left->size + freq_right->size + 1;
     if (error < upperBound || (floatEqual(error, upperBound) && size < freq_best->size)) {
-        if (not cache->with_cache)  {
-            cout << "remove subtree with update. ub = " << upperBound << " err foud = " << error << endl;
-            cache->removeSubTree(itemset, !(freq_best)->left ? -1 : freq_best->test);
-        }
         freq_best->error = error;
         freq_best->left = freq_left;
         freq_best->right = freq_right;
         freq_best->size = size;
         freq_best->test = attribute;
         return true;
-    }
-    else if (not cache->with_cache) {
-        cout << "remove subtree without update. ub = " << upperBound << " err foud = " << error << endl;
-        cache->removeSubTree(itemset, attribute);
     }
     return false;
 }

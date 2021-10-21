@@ -1,22 +1,22 @@
-#include "search.h"
+#include "search_cache.h"
 
 using namespace std::chrono;
 
 
-Search::Search(NodeDataManager *nodeDataManager, bool infoGain, bool infoAsc, bool repeatSort,
-               Support minsup,
-               Depth maxdepth,
-               Cache *cache,
-               int timeLimit,
-               bool continuous,
-               float maxError,
-               bool specialAlgo,
-               bool stopAfterError) :
+Search_cache::Search_cache(NodeDataManager *nodeDataManager, bool infoGain, bool infoAsc, bool repeatSort,
+                           Support minsup,
+                           Depth maxdepth,
+                           Cache *cache,
+                           int timeLimit,
+                           bool continuous,
+                           float maxError,
+                           bool specialAlgo,
+                           bool stopAfterError) :
         Search_base(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, maxError, specialAlgo, stopAfterError), cache(cache) {
     startTime = high_resolution_clock::now();
 }
 
-Search::~Search(){}
+Search_cache::~Search_cache(){}
 
 // the solution already exists for this node
 Node *existingsolution(Node *node, Error *nodeError) {
@@ -45,13 +45,10 @@ Node *infeasiblecase(Node *node, Error *saved_lb, Error ub) {
     return node;
 }
 
-Node * Search::getSolutionIfExists(Node *node, Error ub, Depth depth){
+Node * Search_cache::getSolutionIfExists(Node *node, Error ub, Depth depth){
 
     Error *nodeError = &(((FND) node->data)->error);
-    // in case the solution exists because the error of a newly created node is set to FLT_MAX
-    if (*nodeError < FLT_MAX) {
-        return existingsolution(node, nodeError);
-    }
+    if (*nodeError < FLT_MAX) return existingsolution(node, nodeError); // solution exists (new node error is FLT_MAX)
 
     Error *saved_lb = &(((FND) node->data)->lowerBound);
     // in case the problem is infeasible
@@ -82,7 +79,7 @@ Node * Search::getSolutionIfExists(Node *node, Error ub, Depth depth){
 }
 
 // information gain calculation
-float Search::informationGain(Supports notTaken, Supports taken) {
+float Search_cache::informationGain(Supports notTaken, Supports taken) {
     int sumSupNotTaken = sumSupports(notTaken);
     int sumSupTaken = sumSupports(taken);
     int actualDBSize = sumSupNotTaken + sumSupTaken;
@@ -111,7 +108,7 @@ float Search::informationGain(Supports notTaken, Supports taken) {
 }
 
 
-Array<Attribute> Search::getSuccessors(Array<Attribute> last_candidates, Attribute last_added, Node* node) {
+Array<Attribute> Search_cache::getSuccessors(Array<Attribute> last_candidates, Attribute last_added, Node* node) {
 
     std::multimap<float, Attribute> gain;
     Array<Attribute> next_candidates(last_candidates.size, 0);
@@ -131,7 +128,7 @@ Array<Attribute> Search::getSuccessors(Array<Attribute> last_candidates, Attribu
 //    }
 
     // access each candidate
-    for (auto candidate : last_candidates) {
+    for (const auto &candidate : last_candidates) {
 
         // this attribute is already in the current itemset
         if (last_added == candidate) continue;
@@ -215,10 +212,6 @@ Array<Attribute> Search::getSuccessors(Array<Attribute> last_candidates, Attribu
 //    }
 }*/
 
-/*static bool lte(const TrieEdge edge, const Item item) {
-    return edge.item < item;
-}*/
-
 /** recurse - this method finds the best tree given an itemset and its cover and update
  * the information of the node representing the itemset. Each itemset is represented by a node and info about the
  * tree structure is wrapped into a variable data in the node object. Each itemset (the node) is inserted into the
@@ -235,35 +228,28 @@ Array<Attribute> Search::getSuccessors(Array<Attribute> last_candidates, Attribu
  * @param newnode - a boolean value stating whether the node that we want to solve is newly create or not
  * @return the same node as get in parameter with added information about the best tree
  */
-Node *Search::recurse(Array<Item> itemset,
-                      Attribute last_added,
-                      Node *node,
-                      Array<Attribute> next_candidates,
-                      Depth depth,
-                      float ub,
-                      bool newnode) {
+Node *Search_cache::recurse(Array<Item> itemset,
+                            Attribute last_added,
+                            Node *node,
+                            Array<Attribute> next_candidates,
+                            Depth depth,
+                            float ub,
+                            bool newnode) {
 
     // check if we ran out of time
-    if (timeLimit > 0) {
-        float runtime = duration_cast<milliseconds>(high_resolution_clock::now() - startTime).count() / 1000.0;
-        if (runtime >= timeLimit)
-            timeLimitReached = true;
-    }
+    if (timeLimit > 0 && duration<float>(high_resolution_clock::now() - startTime).count() >= (float)timeLimit) timeLimitReached = true;
 
-    if (newnode) {
-        Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) node->data)->leafError, " test ", ((FND) node->data)->test, " pointer ", node, " left ", ((FND) node->data)->left);
-        latticesize++;
-    }
+    if (newnode) Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) node->data)->leafError, " test ", ((FND) node->data)->test, " pointer ", node, " left ", ((FND) node->data)->left);
     else Logger::showMessageAndReturn("The node already exists");
 
     Node* result = getSolutionIfExists(node, ub, depth);
     if (result) { // the solution can be inferred without computation
 
         if ( ((FND)node->data)->left && ((FND)node->data)->right && cache->maxcachesize > NO_CACHE_LIMIT ){ // we should then update subtree load
-            Item leftItem_down = item(((FND)node->data)->test, 0);
-            Item rightItem_down = item(((FND)node->data)->test, 1);
-            Array<Item> copy_itemset;
-            copy_itemset.duplicate(itemset);
+            Item leftItem_down = item(((FND)node->data)->test, 0), rightItem_down = item(((FND)node->data)->test, 1);
+            Array<Item> copy_itemset = itemset.duplicate();
+            /*Array<Item> copy_itemset;
+            copy_itemset.duplicate(itemset);*/
             cache->updateSubTreeLoad( copy_itemset, leftItem_down, rightItem_down, true);
         }
 //        Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) result->data)->leafError, " test ", ((FND) result->data)->test, " pointer ", result, " left ", ((FND) result->data)->left);
@@ -325,7 +311,7 @@ Node *Search::recurse(Array<Item> itemset,
     int best_attr;
 
     // we evaluate the split on each candidate attribute
-    for(const auto attr : next_attributes) {
+    for(const auto &attr : next_attributes) {
         Logger::showMessageAndReturn("\n\nWe are evaluating the attribute : ", attr);
 
         Array<Item> itemsets[2];
@@ -386,8 +372,9 @@ Node *Search::recurse(Array<Item> itemset,
 //        vec_items.push_back(item(attr, first_item));
 //        vec_nodes.push_back(child_nodes[first_item]);
 
-        Array<Item> copy_itemset;
-        copy_itemset.duplicate(itemset);
+        Array<Item> copy_itemset = itemset.duplicate();
+        /*Array<Item> copy_itemset;
+        copy_itemset.duplicate(itemset);*/
 
         if (nodeDataManager->canimprove(child_nodes[first_item]->data, child_ub)) {
 //            cout << "can" << endl;
@@ -457,7 +444,6 @@ Node *Search::recurse(Array<Item> itemset,
             // otherwise, we use it
             else minlb = min(minlb, firstError + second_lb);
 
-            if (not cache->with_cache) cache->removeSubTree(itemset, attr);
             if (cache->maxcachesize > NO_CACHE_LIMIT) cache->updateSubTreeLoad(copy_itemset, item(attr, first_item), -1, false);
             else copy_itemset.free();
         }
@@ -492,7 +478,7 @@ Node *Search::recurse(Array<Item> itemset,
 }
 
 
-void Search::run() {
+void Search_cache::run() {
 
     // Create empty list for candidate attributes
     Array<Attribute> attributes_to_visit(nattributes, 0);
@@ -507,21 +493,14 @@ void Search::run() {
                 attributes_to_visit.push_back(attr);
         }
     }
-//    for(const auto &a : attributes_to_visit) cout << a << "-";
-//    cout << endl;
 
     //create an empty array of items representing an emptyset and insert it
     Array<Item> itemset;
-    itemset.size = 0;
-    itemset.elts = nullptr;
-
-    // insert the emptyset node
     pair<Node *, bool> rootnode_state = cache->insert(itemset, nodeDataManager);
-
     // call the recursive function to start the search
     cache->root = recurse(itemset, NO_ATTRIBUTE, rootnode_state.first, attributes_to_visit, 0, maxError, rootnode_state.second);
 
-    // never forget to return back what is not yours. Think to others who need it ;-)
+    // never forget to return what is not yours. Think to others who need it ;-)
     itemset.free();
     attributes_to_visit.free();
 

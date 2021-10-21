@@ -4,7 +4,8 @@ project(dl85)
 set(CMAKE_CXX_STANDARD 17)
 
 #[[add_executable(test
-        tests_run/test.cpp)]]
+        tests_run/test.cpp
+        src/globals.h)]]
 
 include_directories(src/)
 
@@ -41,8 +42,10 @@ add_executable(dl85
         src/globals.cpp
 #        src/lcm_iterative.h
 #        src/lcm_iterative.cpp
-        src/search.h
-        src/search.cpp
+        src/search_base.h
+        src/search_base.cpp
+        src/search_cache.h
+        src/search_cache.cpp
         src/search_nocache.h
         src/search_nocache.cpp
         src/logger.h
@@ -55,4 +58,4 @@ add_executable(dl85
         src/rCoverTotalFreq.h
         src/rCoverTotalFreq.cpp
         src/rCoverWeighted.h
-        src/rCoverWeighted.cpp src/search_base.cpp src/search_base.h)
+        src/rCoverWeighted.cpp)

@@ -11,28 +11,26 @@
 //#include <algorithm>
 
 
-class Search : public Search_base{
+class Search_cache : public Search_base{
 public:
-    Search (NodeDataManager *nodeDataManager,
-            bool infoGain,
-            bool infoAsc,
-            bool repeatSort,
-            Support minsup,
-            Depth maxdepth,
-            Cache *cache,
-            int timeLimit,
-            bool continuous,
-            float maxError = NO_ERR,
-            bool specialAlgo = true,
-            bool stopAfterError = false);
+    Search_cache (NodeDataManager *nodeDataManager,
+                  bool infoGain,
+                  bool infoAsc,
+                  bool repeatSort,
+                  Support minsup,
+                  Depth maxdepth,
+                  Cache *cache,
+                  int timeLimit,
+                  bool continuous,
+                  float maxError = NO_ERR,
+                  bool specialAlgo = true,
+                  bool stopAfterError = false);
 
-    ~Search();
+    ~Search_cache();
 
     void run ();
 
     Cache *cache;
-    int latticesize = 0;
-    time_point<high_resolution_clock> startTime;
     bool continuous = false;
 
     /*NodeDataManager *nodeDataManager;
@@ -58,9 +56,6 @@ private:
 
 
 };
-
-// a variable to express whether the error computation is not performed in python or not
-#define no_python_error !nodeDataManager->tids_error_callback && !nodeDataManager->tids_error_class_callback && !nodeDataManager->supports_error_class_callback
 
 // a variable to express whether the error computation is performed in python or not
 #define is_python_error nodeDataManager->tids_error_callback || nodeDataManager->tids_error_class_callback || nodeDataManager->supports_error_class_callback

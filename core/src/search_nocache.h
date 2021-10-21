@@ -10,6 +10,8 @@
 
 class Search_nocache : public Search_base{
 public:
+    bool use_ub;
+
     Search_nocache(NodeDataManager *nodeDataManager,
                    bool infoGain,
                    bool infoAsc,
@@ -19,30 +21,18 @@ public:
                    int timeLimit,
                    float maxError = NO_ERR,
                    bool specialAlgo = true,
-                   bool stopAfterError = false);
-
-    ~Search_nocache();
+                   bool stopAfterError = false,
+                   bool use_ub = true);
 
     void run();
-
-
     Error recurse(Attribute last_added, Array <Attribute> attributes_to_visit, Depth depth, Error ub);
-
     Array <Attribute> getSuccessors(Array <Attribute> last_freq_attributes, Attribute last_added);
-
     float informationGain(Supports notTaken, Supports taken);
-
-
-
+    ~Search_nocache();
 
 private:
     Node *getSolutionIfExists(Node *node, Error ub, Depth depth);
 
 };
-
-// a variable to express whether the error computation is not performed in python or not
-#define no_python_error !nodeDataManager->tids_error_callback && !nodeDataManager->tids_error_class_callback && !nodeDataManager->supports_error_class_callback
-
-
 
 #endif //DL85_SEARCH_NOCACHE_H

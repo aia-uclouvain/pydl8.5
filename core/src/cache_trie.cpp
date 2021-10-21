@@ -107,15 +107,15 @@ void Cache_Trie::wipe(Node *node1, WipeType wipe_type, Depth depth) {
         // as node the children of a node removed are useless, we perform a prefix search and recursively remove all children of a useless node
 
         // recursively
-        if (wipe_type == WipeEffort || wipe_type == WipeAll) wipe(edge_iterator->subtrie, wipe_type);
-        else if (wipe_type == WipeDepth || wipe_type == WipeDepthEffort) wipe(edge_iterator->subtrie, wipe_type, depth + 1);
+        if (wipe_type == All) wipe(edge_iterator->subtrie, wipe_type);
+        else if (wipe_type == All) wipe(edge_iterator->subtrie, wipe_type, depth + 1);
 
         // remove based on the right policy
         if (edge_iterator->subtrie->count_opti_path == 0) {
-            if ((wipe_type == WipeAll) ||
-                (wipe_type == WipeEffort && effortCondition) ||
-                (wipe_type == WipeDepth && depthCondition) ||
-                (wipe_type == WipeDepthEffort && depthEffortCondition)) {
+            if ((wipe_type == All) ||
+                (wipe_type == All && effortCondition) ||
+                (wipe_type == All && depthCondition) ||
+                (wipe_type == All && depthEffortCondition)) {
                 delete edge_iterator->subtrie;
                 node->edges.erase(edge_iterator);
                 --edge_iterator;

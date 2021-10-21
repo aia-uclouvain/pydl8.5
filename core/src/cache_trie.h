@@ -133,7 +133,7 @@ class Cache_Trie : public Cache {
 public:
     Size max_solution_effort = 1;
 
-    Cache_Trie(Depth maxdepth, WipeType wipe_type=WipeAll, int maxcachesize=0);
+    Cache_Trie(Depth maxdepth, WipeType wipe_type=All, int maxcachesize=0);
     ~Cache_Trie(){freeCache();};
     pair<Node *, bool> insert ( Array<Item> itemset, NodeDataManager* );
     Node *get ( Array<Item> itemset );
