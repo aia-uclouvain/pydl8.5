@@ -15,9 +15,7 @@ Search_nocache::Search_nocache(NodeDataManager *nodeDataManager, bool infoGain, 
                                bool specialAlgo,
                                bool stopAfterError,
                                bool use_ub) :
-        Search_base(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, maxError, specialAlgo, stopAfterError), use_ub(use_ub) {
-    startTime = high_resolution_clock::now();
-}
+        Search_base(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, maxError, specialAlgo, stopAfterError), use_ub(use_ub) {}
 
 Search_nocache::~Search_nocache() {}
 
@@ -106,9 +104,8 @@ Array<Attribute> Search_nocache::getSuccessors(Array<Attribute> last_candidates,
  *
  * @param last_added - the last added attribute
  * @param next_candidates - next attributes to visit
- * @param cover - the transactions covered by the itemset
  * @param depth - the current depth in the search tree
- * @param ub - the upper bound of the search. It cannot be reached
+ * @param ub - the upper bound of the search. We want an error lower than it.
  * @return the same node as get in parameter with added information about the best tree
  */
 Error Search_nocache::recurse(Attribute last_added,
@@ -227,6 +224,8 @@ void Search_nocache::run() {
 
     if (use_ub) cout << "upper bound is used" << endl;
     else cout << "upper bound is not used" << endl;
+    if (specialAlgo) cout << "depth 2 specialized algo is used" << endl;
+    else cout << "depth 2 specialized algo is not used" << endl;
     cout << "tree error = " << tree_error << endl;
 
     // never forget to return what is not yours. Think to others who need it ;-)

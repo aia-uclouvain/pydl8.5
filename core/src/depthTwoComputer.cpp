@@ -11,13 +11,13 @@ void addTreeToCache(Node* node, Array<Item> itemset, Cache* cache, NodeDataManag
     if (cache->maxcachesize > NO_CACHE_LIMIT) node->count_opti_path = node_data->size;
     if (node_data->left){
         Array<Item> itemset_left = addItem(itemset, item(node_data->test, 0));
-        Node *node_left = cache->insert(itemset_left, nodeDataManager).first;
+        Node *node_left = cache->insert(itemset_left, nodeDataManager);
         node_left->data = (NodeData *) node_data->left;
         addTreeToCache(node_left, itemset_left, cache, nodeDataManager);
         itemset_left.free();
 
         Array<Item> itemset_right = addItem(itemset, item(node_data->test, 1));
-        Node *node_right = cache->insert(itemset_right, nodeDataManager).first;
+        Node *node_right = cache->insert(itemset_right, nodeDataManager);
         node_right->data = (NodeData *) node_data->right;
         addTreeToCache(node_right, itemset_right, cache, nodeDataManager);
         itemset_right.free();
@@ -29,7 +29,7 @@ void setIteme(Freq_NodeData* node_data, const Array<Item>& itemset, Cache* cache
         Array<Item> itemset_left;
         itemset_left.alloc(itemset.size + 1);
         addItem(itemset, item(node_data->left->test, 0), itemset_left);
-        Node *node_left = cache->insert(itemset_left, nodeDataManager).first;
+        Node *node_left = cache->insert(itemset_left, nodeDataManager);
         node_left->data = (NodeData *) node_data->left;
         setIteme((Freq_NodeData *)node_left->data, itemset_left, cache, nodeDataManager);
         itemset_left.free();
@@ -39,7 +39,7 @@ void setIteme(Freq_NodeData* node_data, const Array<Item>& itemset, Cache* cache
         Array<Item> itemset_right;
         itemset_right.alloc(itemset.size + 1);
         addItem(itemset, item(node_data->right->test, 1), itemset_right);
-        Node *node_right = cache->insert(itemset_right, nodeDataManager).first;
+        Node *node_right = cache->insert(itemset_right, nodeDataManager);
         node_right->data = (NodeData *) node_data->right;
         setIteme((Freq_NodeData *)node_right->data, itemset_right, cache, nodeDataManager);
         itemset_right.free();

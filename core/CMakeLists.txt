@@ -22,26 +22,20 @@ add_executable(dl85
         src/cache_trie.cpp
         src/cache_ltd_trie.h
         src/cache_ltd_trie.cpp
-        src/data.h
-        src/data.cpp
-        src/dataBinaryPython.h
-        src/dataBinaryPython.cpp
+        src/dataHandler.h
+        src/dataHandler.cpp
         src/dataManager.h
         src/dataManager.cpp
         src/depthTwoComputer.h
         src/depthTwoComputer.cpp
         src/dl85.h
         src/dl85.cpp
-        src/experror.h
-        src/experror.cpp
-        src/freq_nodedataManager.h
-        src/freq_nodedataManager.cpp
-        src/freq_Solution.h
-        src/freq_Solution.cpp
+        src/nodeDataManagerFreq.h
+        src/nodeDataManagerFreq.cpp
+        src/solutionFreq.h
+        src/solutionFreq.cpp
         src/globals.h
         src/globals.cpp
-#        src/lcm_iterative.h
-#        src/lcm_iterative.cpp
         src/search_base.h
         src/search_base.cpp
         src/search_cache.h
@@ -49,13 +43,26 @@ add_executable(dl85
         src/search_nocache.h
         src/search_nocache.cpp
         src/logger.h
-        src/nodedataManager.h
-        src/nodedataManager.cpp
+        src/nodeDataManager.h
+        src/nodeDataManager.cpp
         src/solution.h
         src/solution.cpp
         src/rCover.h
         src/rCover.cpp
-        src/rCoverTotalFreq.h
-        src/rCoverTotalFreq.cpp
-        src/rCoverWeighted.h
-        src/rCoverWeighted.cpp)
+        src/rCoverFreq.h
+        src/rCoverFreq.cpp
+        src/rCoverWeight.h
+        src/rCoverWeight.cpp
+        )
+
+
+#        src/lcm_iterative.h
+#        src/lcm_iterative.cpp
+#        src/longRCover.h
+#        src/longRCover.cpp
+#        src/longRCoverFreq.h
+#        src/longRCoverFreq.cpp
+#        src/nodedataHandler.h
+#        src/nodedataHandler.cpp
+#        src/nodedataHandlerFreq.h
+#        src/nodedataHandlerFreq.cpp

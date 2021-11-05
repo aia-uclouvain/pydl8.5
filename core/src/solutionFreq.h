@@ -6,7 +6,7 @@
 #define DL85_FREQUENCY_SOLUTION_H
 
 #include "solution.h"
-#include "freq_nodedataManager.h"
+#include "nodeDataManagerFreq.h"
 
 /**
  * This structure a decision tree model learnt from input data
@@ -47,11 +47,11 @@ struct Freq_Tree {
 };
 
 
-class Freq_Solution : public Solution {
+class SolutionFreq : public Solution {
 public:
-    Freq_Solution(void*, NodeDataManager*);
+    SolutionFreq(void*, NodeDataManager*);
 
-    ~Freq_Solution();
+    ~SolutionFreq();
 
     Tree * getTree();
 

@@ -1,7 +1,7 @@
 #ifndef QUERY_TOTALFREQ_H
 #define QUERY_TOTALFREQ_H
 
-#include <nodedataManager.h>
+#include <nodeDataManager.h>
 #include <vector>
 
 struct Freq_NodeData {
@@ -31,15 +31,15 @@ struct Freq_NodeData {
     }*/
 };
 
-class Freq_NodeDataManager : public NodeDataManager {
+class NodeDataManagerFreq : public NodeDataManager {
 public:
-    Freq_NodeDataManager(
+    NodeDataManagerFreq(
             RCover* cover,
                     function<vector<float>(RCover *)> *tids_error_class_callback = nullptr,
                     function<vector<float>(RCover *)> *supports_error_class_callback = nullptr,
                     function<float(RCover *)> *tids_error_callback = nullptr);
 
-    ~Freq_NodeDataManager();
+    ~NodeDataManagerFreq();
 
 //    bool is_freq(pair<Supports, Support> supports);
 //

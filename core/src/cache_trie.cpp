@@ -1,6 +1,6 @@
 #include "cache_trie.h"
-#include "rCoverWeighted.h"
-#include "rCoverTotalFreq.h"
+#include "rCoverWeight.h"
+#include "rCoverFreq.h"
 #include <algorithm>
 
 using namespace std;
@@ -65,12 +65,12 @@ TrieNode *Cache_Trie::addNonExistingItemsetPart(Array<Item> itemset, int pos, ve
 }
 
 // insert itemset. Check from root and insert items only if they do not exist using addItemsetPart function
-pair<Node *, bool> Cache_Trie::insert(Array<Item> itemset, NodeDataManager *nodeDataManager) {
+Node * Cache_Trie::insert(Array<Item> itemset, NodeDataManager *nodeDataManager) {
     auto *cur_node = (TrieNode *) root;
     if (itemset.size == 0) {
         cachesize++;
         cur_node->data = nodeDataManager->initData();
-        return {cur_node, true};
+        return cur_node;
     }
 
     if (cachesize >= maxcachesize && maxcachesize > 0) {
@@ -86,7 +86,7 @@ pair<Node *, bool> Cache_Trie::insert(Array<Item> itemset, NodeDataManager *node
         if (geqEdge_it == cur_node->edges.end() || geqEdge_it->item != itemset[i]) { // the item does not exist
             // create path representing the part of the itemset not yet present in the trie.
             TrieNode *last_inserted_node = addNonExistingItemsetPart(itemset, i, geqEdge_it, cur_node, nodeDataManager);
-            return {last_inserted_node, true};
+            return last_inserted_node;
         } else {
             cur_node = geqEdge_it->subtrie;
             cur_node->count_opti_path++;
@@ -94,7 +94,7 @@ pair<Node *, bool> Cache_Trie::insert(Array<Item> itemset, NodeDataManager *node
     }
     bool is_newnode = cur_node->data == nullptr;
     if (is_newnode) cur_node->data = nodeDataManager->initData();
-    return {cur_node, is_newnode};
+    return cur_node;
 }
 
 #define effortCondition edge_iterator->subtrie->solution_effort < 10 * sqrt(max_solution_effort)

@@ -16,25 +16,17 @@
 #include <functional>
 #include <chrono>
 #include "globals.h"
-#include "data.h"
-#include "dataBinary.h"
-#include "dataContinuous.h"
-#include "dataBinaryPython.h"
 #include "dataManager.h"
-//#include "experror.h"
-#include "rCoverTotalFreq.h"
-#include "rCoverWeighted.h"
-//#include "search_base.h"
+#include "rCoverFreq.h"
+#include "rCoverWeight.h"
 #include "search_nocache.h"
 #include "search_cache.h"
-//#include "lcm_iterative.h"
-#include "freq_nodedataManager.h"
-#include "freq_Solution.h"
+#include "nodeDataManagerFreq.h"
+#include "solutionFreq.h"
 #include "cache_hash.h"
 #include "cache_trie.h"
 #include "cache_priority.h"
 #include "cache_ltd_trie.h"
-//#include "query_weighted.h"
 
 using namespace std;
 
@@ -77,7 +69,6 @@ string launch(
         Support minsup = 1,
         Error maxError = 0,
         bool stopAfterError = false,
-        bool iterative = false,
         //get a pointer on cover as param and return a vector of float. Due to iterator behaviour of RCover
         // object and the wrapping done in cython, this pointer in python is seen as a list of tids in the cover
         function<vector<float>(RCover *)> tids_error_class_callback = nullptr,
@@ -95,8 +86,6 @@ string launch(
         bool infoAsc = true,
         bool repeatSort = false,
         int timeLimit = 0,
-        map<int, pair<int, int>> *continuousMap = nullptr,
-        bool save = false,
         bool verbose_param = false,
         CacheType cache_type = CacheTrie,
         int cache_size = 1000,

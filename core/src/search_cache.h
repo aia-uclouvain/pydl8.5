@@ -3,12 +3,9 @@
 
 #include "globals.h"
 #include "cache.h"
-//#include "cache_hash.h"
 #include "cache_trie.h"
 #include "solution.h"
-#include "dataContinuous.h"
 #include "search_base.h"
-//#include <algorithm>
 
 
 class Search_cache : public Search_base{
@@ -21,7 +18,6 @@ public:
                   Depth maxdepth,
                   Cache *cache,
                   int timeLimit,
-                  bool continuous,
                   float maxError = NO_ERR,
                   bool specialAlgo = true,
                   bool stopAfterError = false);
@@ -31,7 +27,6 @@ public:
     void run ();
 
     Cache *cache;
-    bool continuous = false;
 
     /*NodeDataManager *nodeDataManager;
     bool infoGain = false;
@@ -46,7 +41,7 @@ public:
     bool timeLimitReached = false;*/
 
 private:
-    Node* recurse ( Array<Item> itemset, Attribute last_added, Node* node, Array<Attribute> attributes_to_visit, Depth depth, Error ub, bool newnode);
+    Node* recurse ( Array<Item> itemset, Attribute last_added, Node* node, Array<Attribute> attributes_to_visit, Depth depth, Error ub);
     Array<Attribute> getSuccessors(Array<Attribute> last_freq_attributes, Attribute last_added, Node* node);
     float informationGain ( Supports notTaken, Supports taken);
     Node *getSolutionIfExists(Node *node, Error ub, Depth depth);

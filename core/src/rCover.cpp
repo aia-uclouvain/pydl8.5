@@ -51,6 +51,7 @@ bitset<M>* RCover::getTopBitsetArray() const{
  * @param positive -  the item of the attribute
  * @return the value of the support of the intersection
  */
+
 Support RCover::temporaryIntersectSup(Attribute attribute, bool positive) {
     Support sup = 0;
     for (int i = 0; i < limit.top(); ++i) {
@@ -67,6 +68,7 @@ Support RCover::temporaryIntersectSup(Attribute attribute, bool positive) {
  * @param cover1 - a cover to perform the minus operation
  * @return the support per class of the resultant cover
  */
+
 /*Supports RCover::minusMe(bitset<M>* cover1) {
     int* tmpValid = new int[nWords];
     for (int j = 0; j < nWords; ++j) {
@@ -109,6 +111,7 @@ Support RCover::temporaryIntersectSup(Attribute attribute, bool positive) {
 //    sup_class = tmp;
     return toreturn;
 }*/
+
 Supports RCover::minusMe(bitset<M>* cover1) {
     int maxValidNumber = limit.top();
     bitset<M>** difcover = new bitset<M>*[maxValidNumber];
@@ -175,3 +178,115 @@ string RCover::outprint() {
     }
     return s;
 }
+
+
+/*
+RCover::RCover(DataManager *dmm): dm(dmm) {
+    nWords = (int)ceil((float)dm->getNTransactions()/M);
+    coverWords = new stack<ulong>[nWords];
+    validWords = new int[nWords];
+    for (int i = 0; i < nWords; ++i) {
+        stack<ulong> rword;
+        ulong word = ULONG_MAX;
+        if(i == 0 && dm->getNTransactions()%M != 0)
+            for (int j = dm->getNTransactions()%M; j < M; ++j) set_0(word, j);
+        rword.push(word);
+        coverWords[i] = rword;
+        validWords[i] = i;
+    }
+    limit.push(nWords);
+    support = dm->getNTransactions();
+}
+
+RCover::RCover(RCover &&cover) noexcept {
+    coverWords = cover.coverWords;
+    validWords = cover.validWords;
+    limit = cover.limit;
+    nWords = cover.nWords;
+    dm = cover.dm;
+    sup_class = cover.sup_class;
+    support= cover.support;
+}
+
+ulong* RCover::getTopBitsetArray() const{
+    auto* tmp = new ulong [nWords];
+    for (int j = 0; j < nWords; ++j) {
+        tmp[j] = coverWords[j].top();
+    }
+    return tmp;
+}
+
+Support RCover::temporaryIntersectSup(Attribute attribute, bool positive) {
+    Support sup = 0;
+    for (int i = 0; i < limit.top(); ++i) {
+        ulong word;
+        if (positive) word = coverWords[validWords[i]].top() & dm->getAttributeCover(attribute)[validWords[i]];
+        else word = coverWords[validWords[i]].top() & ~(dm->getAttributeCover(attribute)[validWords[i]]);
+        sup += countSetBits(word);
+    }
+    return sup;
+}
+
+Supports RCover::minusMe(ulong* cover) {
+    int maxValidNumber = limit.top();
+    ulong* diff_cover = new ulong[maxValidNumber];
+    int* validIndexes = new int[maxValidNumber];
+    int nvalid = 0;
+    for (int i = 0; i < maxValidNumber; ++i) {
+        ulong potential_word = cover[validWords[i]] & ~coverWords[validWords[i]].top();
+        if (potential_word != 0UL){
+            diff_cover[nvalid] = potential_word;
+            validIndexes[nvalid] = validWords[i];
+            ++nvalid;
+        }
+    }
+    Supports to_return = getSupportPerClass(diff_cover, nvalid, validIndexes);
+    delete [] diff_cover;
+    delete [] validIndexes;
+    return to_return;
+}
+
+SupportClass RCover::countDif(ulong* cover) {
+    SupportClass sup = 0;
+    for (int i = 0; i < limit.top(); ++i) {
+        ulong potential_word = cover[validWords[i]] & ~coverWords[validWords[i]].top();
+        if (potential_word != 0UL) sup += countSupportClass(potential_word, validWords[i]);
+    }
+    return sup;
+}
+
+int RCover::getSupport() {
+    if (support > -1) return support;
+    support = 0;
+    for (int i = 0; i < limit.top(); ++i) support += countSetBits(coverWords[validWords[i]].top());
+    return support;
+}
+
+void RCover::backtrack() {
+    limit.pop();
+    for (int i = 0; i < limit.top(); ++i) coverWords[validWords[i]].pop();
+    support = -1;
+    deleteSupports(sup_class);
+    sup_class = nullptr;
+}
+
+string printWord(ulong word){
+    string ret = "";
+    ulong i = 1UL << (sizeof(word) * CHAR_BIT - 1);
+    while (i > 0) {
+        ret += (word & i) ? "1" : "0";
+        i >>= 1;
+    }
+    return ret;
+}
+
+void RCover::print() {
+    for (int i = 0; i < nWords; ++i) cout << printWord(coverWords[i].top()) << " ";
+    cout << endl;
+}
+
+string RCover::outprint() {
+    string s = "";
+    for (int i = 0; i < nWords; ++i) s += printWord(coverWords[i].top()) + " ";
+    return s;
+}*/

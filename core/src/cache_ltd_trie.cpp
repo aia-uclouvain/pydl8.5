@@ -1,7 +1,8 @@
 #include "cache_ltd_trie.h"
-#include "rCoverWeighted.h"
-#include "rCoverTotalFreq.h"
+#include "rCoverWeight.h"
+#include "rCoverFreq.h"
 #include <algorithm>
+#include "logger.h"
 
 using namespace std;
 
@@ -79,12 +80,13 @@ TrieLtdNode *Cache_Ltd_Trie::addNonExistingItemsetPart(Array<Item> itemset, int 
 }
 
 // insert itemset. Check from root and insert items only if they do not exist using addItemsetPart function
-pair<Node *, bool> Cache_Ltd_Trie::insert(Array<Item> itemset, NodeDataManager *nodeDataManager) {
+Node * Cache_Ltd_Trie::insert(Array<Item> itemset, NodeDataManager *nodeDataManager) {
     auto *cur_node = (TrieLtdNode *) root;
     if (itemset.size == 0) {
         cachesize++;
         cur_node->data = nodeDataManager->initData();
-        return {cur_node, true};
+        Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) cur_node->data)->leafError);
+        return cur_node;
     }
     if (getCacheSize() >= maxcachesize && maxcachesize > 0) wipe();
 
@@ -94,7 +96,8 @@ pair<Node *, bool> Cache_Ltd_Trie::insert(Array<Item> itemset, NodeDataManager *
         if (geqEdge_it == cur_node->edges.end() || geqEdge_it->item != itemset[i]) { // the item does not exist
             // create path representing the part of the itemset not yet present in the trie.
             TrieLtdNode *last_inserted_node = addNonExistingItemsetPart(itemset, i, geqEdge_it, cur_node, nodeDataManager);
-            return {last_inserted_node, true};
+            Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) last_inserted_node->data)->leafError);
+            return last_inserted_node;
         } else {
             if (i == 0) cur_node->n_reuse++; // root node
             cur_node = geqEdge_it->subtrie;
@@ -108,9 +111,12 @@ pair<Node *, bool> Cache_Ltd_Trie::insert(Array<Item> itemset, NodeDataManager *
             else cur_node->support = nodeDataManager->cover->getSupport();
         }
     }
-    bool is_newnode = cur_node->data == nullptr;
-    if (is_newnode) cur_node->data = nodeDataManager->initData();
-    return {cur_node, is_newnode};
+    if (cur_node->data == nullptr) {
+        cur_node->data = nodeDataManager->initData();
+        Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) cur_node->data)->leafError);
+    }
+    else Logger::showMessageAndReturn("The node already exists");
+    return cur_node;
 }
 
 void wipeAll(TrieLtdNode *node) {

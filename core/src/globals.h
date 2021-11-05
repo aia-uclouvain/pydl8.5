@@ -41,6 +41,7 @@ typedef float SupportClass;
 // array of supports per class
 typedef SupportClass *Supports;
 //typedef Support *Supports;
+typedef unsigned long ulong;
 
 
 extern float epsilon;
@@ -111,7 +112,11 @@ void subSupports(Supports src1, Supports src2, Supports dest);
 
 bool floatEqual(float f1, float f2);
 
-void parallel_for(unsigned nb_elements, std::function<void(int start, int end)> functor, bool use_threads = true);
+inline void set_0(ulong &word, int n) {word &= ~(1UL << n);}
+
+inline void set_1(ulong &word, int n) {word |= (1UL << n);}
+
+int countSetBits(unsigned long i);
 
 
 // the array is a light-weight vector that does not do copying or resizing of storage space.

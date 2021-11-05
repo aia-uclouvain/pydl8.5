@@ -3,7 +3,7 @@
 
 #include "cache.h"
 #include <vector>
-#include "freq_nodedataManager.h"
+#include "nodeDataManagerFreq.h"
 
 using namespace std;
 
@@ -135,7 +135,7 @@ public:
 
     Cache_Trie(Depth maxdepth, WipeType wipe_type=All, int maxcachesize=0);
     ~Cache_Trie(){freeCache();};
-    pair<Node *, bool> insert ( Array<Item> itemset, NodeDataManager* );
+    Node * insert ( Array<Item> itemset, NodeDataManager* );
     Node *get ( Array<Item> itemset );
     void updateItemsetLoad(Array<Item> itemset, bool inc=false);
     void printload(TrieNode* node, vector<Item>& itemset);

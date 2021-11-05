@@ -14,8 +14,8 @@
 #include "rCover.h"
 #include "cache.h"
 #include "solution.h"
-#include "freq_nodedataManager.h"
-#include "rCoverTotalFreq.h"
+#include "nodeDataManagerFreq.h"
+#include "rCoverFreq.h"
 //#include "lcm_pruned.h"
 #include <chrono>
 #include <utility>

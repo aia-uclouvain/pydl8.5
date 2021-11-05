@@ -15,7 +15,7 @@
 #include <cmath>
 #include <chrono>
 #include "globals.h"
-#include "nodedataManager.h"
+#include "nodeDataManager.h"
 #include "dataManager.h"
 #include "rCover.h"
 #include "depthTwoComputer.h"

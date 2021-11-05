@@ -3,7 +3,7 @@
 #include "cache.h"
 #include <cmath>
 #include <unordered_map>
-#include "freq_nodedataManager.h"
+#include "nodeDataManagerFreq.h"
 
 using namespace std;
 
@@ -21,7 +21,7 @@ public:
 
     Array<unordered_map<Array<Item>, HashNode*>> store;
 
-    pair<Node *, bool>insert ( Array<Item> itemset, NodeDataManager* );
+    Node * insert ( Array<Item> itemset, NodeDataManager* );
     Node *get ( Array<Item> itemset);
     void updateSubTreeLoad(Array<Item> itemset, Item firstItem, Item secondItem, bool inc=false);
     void updateItemsetLoad ( Array<Item> itemset, bool inc=false );

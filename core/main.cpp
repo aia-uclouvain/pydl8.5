@@ -95,6 +95,8 @@ int main(int argc, char *argv[]) {
 //        datasetPath = "../../datasets/audiology.txt";
 //        datasetPath = "../../datasets/hypothyroid.txt";
 //        datasetPath = "../../datasets/ionosphere.txt";
+//        datasetPath = "../../datasets/pendigits.txt";
+//        datasetPath = "../../datasets/letter.txt";
 //        datasetPath = "../../datasets/hepatitis.txt";
 //        datasetPath = "../../datasets/tests/paper.txt";
 //        datasetPath = "../../datasets/tic-tac-toe.txt";
@@ -106,19 +108,19 @@ int main(int argc, char *argv[]) {
 //    CacheType cache_type = CacheTrie;
     CacheType cache_type = CacheLtdTrie;
 
-    Size cache_size = 300000;
-//    Size cache_size = NO_CACHE_LIMIT;
+//    Size cache_size = 300000;
+    Size cache_size = NO_CACHE_LIMIT;
 
     WipeType wipe_type = All;
 //    WipeType wipe_type = Subnodes;
 //    WipeType wipe_type = Recall;
     float wipe_factor = .5f;
 
-    bool with_cache = false;
-//    bool with_cache = true;
+//    bool with_cache = false;
+    bool with_cache = true;
 
-//    bool use_special_algo = true;
-    bool use_special_algo = false;
+    bool use_special_algo = true;
+//    bool use_special_algo = false;
 
 //    bool verb = true;
     bool verb = false;
@@ -157,7 +159,6 @@ int main(int argc, char *argv[]) {
             minsup, //minsup
             0, //maxError
             false, //stopAfterError
-            false, //iterative
             nullptr, //tids_error_class_callback
             nullptr, //supports_error_class_callback
             nullptr, //tids_error_callback
@@ -169,8 +170,6 @@ int main(int argc, char *argv[]) {
             true, //infoAsc
             false, //repeatSort
             0, //timeLimit
-            nullptr, //continuousMap
-            false, //save
             verb, // verbose parameter
             cache_type, //cache type
             cache_size, //cache size

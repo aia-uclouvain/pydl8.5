@@ -46,7 +46,6 @@ string launch(Supports supports,
               Support minsup,
               Error maxError,
               bool stopAfterError,
-              bool iterative,
               function<vector<float>(RCover *)> tids_error_class_callback,
               function<vector<float>(RCover *)> supports_error_class_callback,
               function<float(RCover *)> tids_error_callback,
@@ -58,8 +57,6 @@ string launch(Supports supports,
               bool infoAsc,
               bool repeatSort,
               int timeLimit,
-              map<int, pair<int, int>> *continuousMap,
-              bool save,
               bool verbose_param,
               CacheType cache_type,
               int max_cache_size,
@@ -69,7 +66,7 @@ string launch(Supports supports,
               bool useSpecial,
               bool use_ub) {
 
-//    auto start = high_resolution_clock::now(); // start the timer
+    auto start_time = high_resolution_clock::now(); // start the timer
 
     //as cython can't set null to function, we use a flag to set the apropriated functions to null in c++
     function<vector<float>(RCover *)> *tids_error_class_callback_pointer = &tids_error_class_callback;
@@ -88,8 +85,6 @@ string launch(Supports supports,
     cout << "Class Distribution: ";
     forEachClass(i) if (i == nclasses - 1) cout << i << ":" << dataReader->getSupports()[i]; else cout << i << ":" << dataReader->getSupports()[i] << ", ";
     cout << endl;
-
-    if (save) return 0; // this param is not supported yet
 
     vector<float> weights;
     if (in_weights) weights = vector<float>(in_weights, in_weights + ntransactions);
@@ -119,64 +114,31 @@ string launch(Supports supports,
 
     // use the correct cover depending on whether a weight array is provided or not
     RCover *cover;
-    if (in_weights) {
-        cover = new RCoverWeighted(dataReader, &weights);
-    } else {
-        cover = new RCoverTotalFreq(dataReader); // non-weighted cover
-    }
+    if (in_weights) cover = new RCoverWeight(dataReader, &weights);
+    else cover = new RCoverFreq(dataReader); // non-weighted cover
 
-    NodeDataManager *nodeDataManager = new Freq_NodeDataManager(cover, tids_error_class_callback_pointer,
-                                                                supports_error_class_callback_pointer,
-                                                                tids_error_callback_pointer);
+    NodeDataManager *nodeDataManager = new NodeDataManagerFreq(cover, tids_error_class_callback_pointer,
+                                                               supports_error_class_callback_pointer,
+                                                               tids_error_callback_pointer);
 
-    Solution *solution = nullptr;
-
-    string out = "(nItems, nTransactions) : ( " + to_string(dataReader->getNAttributes() * 2) + ", " +
-          to_string(dataReader->getNTransactions()) + " )\n";
-
+    string out = "(nItems, nTransactions) : ( " + to_string(dataReader->getNAttributes() * 2) + ", " + to_string(dataReader->getNTransactions()) + " )\n";
 
     Search_base *searcher;
-    /*if (iterative) {
-        lcm = new LcmIterative(dataReader, nodeDataManager, cache, infoGain, infoAsc, repeatSort, minsup, maxdepth,
-                               timeLimit,
-                               continuousMap, maxError <= 0 ? NO_ERR : maxError,
-                               maxError <= 0 ? false : stopAfterError);
-        auto start_tree = high_resolution_clock::now();
-        ((LcmIterative *) lcm)->run();
-        auto stop_tree = high_resolution_clock::now();
-        solution = new Freq_Solution(lcm, nodeDataManager);
-        Tree *tree_out = solution->getTree();
-        ((Freq_Tree *) tree_out)->cacheSize = ((LcmIterative *) lcm)->latticesize;
-        ((Freq_Tree *) tree_out)->runtime = duration<double>(stop_tree - start_tree).count();
-        out += ((Freq_Tree *) tree_out)->to_str();
-    } else {*/
-
+    Solution *solution = nullptr;
     if (with_cache) {
-        searcher = new Search_cache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, cache, timeLimit, continuousMap, maxError <= 0 ? NO_ERR : maxError, useSpecial, maxError <= 0 ? false : stopAfterError);
-        auto start_tree = high_resolution_clock::now();
+        searcher = new Search_cache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, cache, timeLimit, maxError <= 0 ? NO_ERR : maxError, useSpecial, maxError <= 0 ? false : stopAfterError);
         searcher->run(); // perform the search
-        auto stop_tree = high_resolution_clock::now();
-        solution = new Freq_Solution(searcher, nodeDataManager);
+        solution = new SolutionFreq(searcher, nodeDataManager);
         Tree *tree_out = solution->getTree();
-//        ((Freq_Tree *) tree_out)->cacheSize = ((LcmPruned *) lcm)->latticesize;
         ((Freq_Tree *) tree_out)->cacheSize = cache->getCacheSize();
-        ((Freq_Tree *) tree_out)->runtime = duration<float>(stop_tree - start_tree).count();
+        ((Freq_Tree *) tree_out)->runtime = duration<float>(high_resolution_clock::now() - start_time).count();
         out += ((Freq_Tree *) tree_out)->to_str();
-//        out += "latsize : " + to_string(((Freq_Tree *) tree_out)->cacheSize) + "\n";
-//        out += "maxdepth : " + to_string(maxdepth) + "\n";
-//        out += "error : " + to_string(((Freq_NodeData *) ((LcmPruned *) lcm)->cache->root->data)->error) + "\n";
-//        out += "runtime : " + to_string(duration<double>(stop_tree - start_tree).count()) + "\n";
-//        out += "cachesize : " + to_string(cache->cachesize) + "\n";
     }
     else {
         searcher = new Search_nocache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, maxError <= 0 ? NO_ERR : maxError, useSpecial,maxError > 0 && stopAfterError, use_ub);
-        auto start_tree = high_resolution_clock::now();
         searcher->run(); // perform the search
-        auto stop_tree = high_resolution_clock::now();
-        out += "runtime = " + to_string(duration<float>(stop_tree - start_tree).count()) + "\n";
+        out += "runtime = " + to_string(duration<float>(high_resolution_clock::now() - start_time).count()) + "\n";
     }
-
-//    }
 
     delete cache;
     delete nodeDataManager;

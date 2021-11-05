@@ -7,15 +7,15 @@
 
 #include "rCover.h"
 
-class RCoverWeighted : public RCover {
+class RCoverWeight : public RCover {
 
 public:
 
-    RCoverWeighted(DataManager* dmm, vector<float>* weights);
+    RCoverWeight(DataManager* dmm, vector<float>* weights);
 
-    RCoverWeighted(RCoverWeighted &&cover, vector<float>* weights);
+    RCoverWeight(RCoverWeight &&cover, vector<float>* weights);
 
-    ~RCoverWeighted(){}
+    ~RCoverWeight(){}
 
     void intersect(Attribute attribute, bool positive = true);
 

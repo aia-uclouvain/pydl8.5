@@ -1,7 +1,7 @@
 #ifndef CACHE_H
 #define CACHE_H
 #include "globals.h"
-#include "nodedataManager.h"
+#include "nodeDataManager.h"
 
 using namespace std;
 
@@ -33,7 +33,7 @@ public:
     Size maxcachesize; // the maximum size allowed by the cache system
     Depth maxdepth;
     WipeType wipe_type;
-    virtual pair<Node *, bool>insert ( Array<Item> itemset, NodeDataManager* ) = 0; // add a node to the tree
+    virtual Node * insert ( Array<Item> itemset, NodeDataManager* ) = 0; // add a node to the tree
     virtual Node* get ( Array<Item> itemset){return nullptr;} // get a node in the tree based on its corresponding itemset
     virtual void updateSubTreeLoad(Array<Item> itemset, Item firstI, Item secondI, bool inc=false){}
     virtual void updateItemsetLoad ( Array<Item> itemset, bool inc=false ){}

@@ -62,6 +62,12 @@ void subSupports ( Supports src1, Supports src2, Supports dest ) {
         dest[i] = src1[i] - src2[i];
 }
 
+int countSetBits(unsigned long i) {
+    i = i - ((i >> 1) & 0x5555555555555555UL);
+    i = (i & 0x3333333333333333UL) + ((i >> 2) & 0x3333333333333333UL);
+    return (int)((((i + (i >> 4)) & 0xF0F0F0F0F0F0F0FUL) * 0x101010101010101UL) >> 56);
+}
+
 void merge ( Array<Item> src1, Array<Item> src2, Array<Item> dest ) {
   int i = 0, j = 0, k = 0;
   while ( i < src1.size && j < src2.size )

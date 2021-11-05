@@ -2,23 +2,23 @@
 // Created by Gael Aglin on 17/04/2021.
 //
 
-#include "freq_Solution.h"
+#include "solutionFreq.h"
 #include "search_cache.h"
 
-Freq_Solution::Freq_Solution(void *searcher, NodeDataManager* nodeDataManager1) : Solution(searcher, nodeDataManager1) {
+SolutionFreq::SolutionFreq(void *searcher, NodeDataManager* nodeDataManager1) : Solution(searcher, nodeDataManager1) {
     tree = new Freq_Tree;
 }
 
-Freq_Solution::~Freq_Solution() {
+SolutionFreq::~SolutionFreq() {
     delete tree;
 }
 
-Tree* Freq_Solution::getTree() {
+Tree* SolutionFreq::getTree() {
     printResult((Freq_NodeData *) ((Search_cache*)searcher)->cache->root->data);
     return (Tree*) tree;
 }
 
-void Freq_Solution::printResult(Freq_NodeData *data) {
+void SolutionFreq::printResult(Freq_NodeData *data) {
     int depth;
     if (data->size == 0 || (data->size == 1 && floatEqual(data->error, FLT_MAX))) {
         tree->expression = "(No such tree)";
@@ -36,15 +36,14 @@ void Freq_Solution::printResult(Freq_NodeData *data) {
     }
 }
 
-int Freq_Solution::printResult(Freq_NodeData *data, int depth) {
+int SolutionFreq::printResult(Freq_NodeData *data, int depth) {
     if (!data->left) { // leaf
         if (nodeDataManager->tids_error_callback) tree->expression += R"({"value": "undefined", "error": )" + std::to_string(data->error);
         else tree->expression += "{\"value\": " + std::to_string(data->test) + ", \"error\": " + std::to_string(data->error);
         return depth;
     }
     else {
-        if (((Search_cache*)searcher)->continuous) tree->expression += "{\"feat\": " + ((DataContinuous *) nodeDataManager->cover->dm)->names[data->test] + ", \"left\": ";
-        else tree->expression += "{\"feat\": " + std::to_string(data->test) + ", \"left\": ";
+        tree->expression += "{\"feat\": " + std::to_string(data->test) + ", \"left\": ";
 
         // perhaps strange, but we have stored the positive outcome in right, generally, people think otherwise... :-)
         int left_depth = printResult(data->right, depth + 1);

@@ -2,10 +2,8 @@
 #define QUERY_BEST_H
 
 #include "cache.h"
-//#include "experror.h"
-#include <nodedataManager.h>
+#include "nodeDataManager.h"
 #include <vector>
-#include "dataContinuous.h"
 
 typedef void *Tree;
 

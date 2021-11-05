@@ -25,4 +25,6 @@ Search_base::Search_base(
         timeLimit(timeLimit),
         maxError(maxError),
         specialAlgo(specialAlgo),
-        stopAfterError(stopAfterError) {}
+        stopAfterError(stopAfterError) {
+    startTime = high_resolution_clock::now();
+}

@@ -30,9 +30,6 @@ public:
     float informationGain(Supports notTaken, Supports taken);
     ~Search_nocache();
 
-private:
-    Node *getSolutionIfExists(Node *node, Error ub, Depth depth);
-
 };
 
 #endif //DL85_SEARCH_NOCACHE_H

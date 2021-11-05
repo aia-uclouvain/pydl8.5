@@ -1,10 +1,10 @@
-#include "freq_nodedataManager.h"
+#include "nodeDataManagerFreq.h"
 #include "cache.h"
 #include <iostream>
 #include <stack>
 #include "logger.h"
 
-Freq_NodeDataManager::Freq_NodeDataManager(
+NodeDataManagerFreq::NodeDataManagerFreq(
         RCover* cover,
                                  function<vector<float>(RCover *)> *tids_error_class_callback,
                                  function<vector<float>(RCover *)> *supports_error_class_callback,
@@ -30,10 +30,10 @@ Freq_NodeDataManager::Freq_NodeDataManager(
                    {}
 
 
-Freq_NodeDataManager::~Freq_NodeDataManager() {}
+NodeDataManagerFreq::~NodeDataManagerFreq() {}
 
 
-bool Freq_NodeDataManager::updateData(NodeData *best, Error upperBound, Attribute attribute, NodeData *left, NodeData *right, Array<Item> itemset, Cache* cache) {
+bool NodeDataManagerFreq::updateData(NodeData *best, Error upperBound, Attribute attribute, NodeData *left, NodeData *right, Array<Item> itemset, Cache* cache) {
     auto *freq_best = (Freq_NodeData *) best, *freq_left = (Freq_NodeData *) left, *freq_right = (Freq_NodeData *) right;
     Error error = freq_left->error + freq_right->error;
     Size size = freq_left->size + freq_right->size + 1;
@@ -48,7 +48,7 @@ bool Freq_NodeDataManager::updateData(NodeData *best, Error upperBound, Attribut
     return false;
 }
 
-NodeData *Freq_NodeDataManager::initData(RCover *cov, Depth currentMaxDepth, int hashcode) {
+NodeData *NodeDataManagerFreq::initData(RCover *cov, Depth currentMaxDepth, int hashcode) {
     Class maxclass = -1;
     Error error;
 
@@ -95,7 +95,7 @@ NodeData *Freq_NodeDataManager::initData(RCover *cov, Depth currentMaxDepth, int
     return (NodeData *) data;
 }
 
-LeafInfo Freq_NodeDataManager::computeLeafInfo(RCover *cov) {
+LeafInfo NodeDataManagerFreq::computeLeafInfo(RCover *cov) {
     if (cov == nullptr) cov = cover;
     Class maxclass;
     Error error;
@@ -117,7 +117,7 @@ LeafInfo Freq_NodeDataManager::computeLeafInfo(RCover *cov) {
 }
 
 
-LeafInfo Freq_NodeDataManager::computeLeafInfo(Supports itemsetSupport) {
+LeafInfo NodeDataManagerFreq::computeLeafInfo(Supports itemsetSupport) {
     Class maxclass = 0;
     Error error;
     SupportClass maxclassval = itemsetSupport[0];
