@@ -2,8 +2,8 @@
 // Created by Gael Aglin on 17/04/2021.
 //
 
-#ifndef DL85_FREQUENCY_SOLUTION_H
-#define DL85_FREQUENCY_SOLUTION_H
+#ifndef SOLUTION_FREQ_H
+#define SOLUTION_FREQ_H
 
 #include "solution.h"
 #include "nodeDataManagerFreq.h"
@@ -68,4 +68,4 @@ protected:
 
 
 
-#endif //DL85_FREQUENCY_SOLUTION_H
+#endif //SOLUTION_FREQ_H

@@ -2,8 +2,8 @@
 // Created by Gael Aglin on 2019-12-23.
 //
 
-#ifndef RSBS_RCOVER_WEIGHTED_H
-#define RSBS_RCOVER_WEIGHTED_H
+#ifndef RCOVER_WEIGHT_H
+#define RCOVER_WEIGHT_H
 
 #include "rCover.h"
 
@@ -19,17 +19,17 @@ public:
 
     void intersect(Attribute attribute, bool positive = true);
 
-    pair<Supports, Support> temporaryIntersect(Attribute attribute, bool positive = true);
+    pair<ErrorVals, Support> temporaryIntersect(Attribute attribute, bool positive = true);
 
-    Supports getSupportPerClass();
+    ErrorVals getErrorValPerClass();
 
-    Supports getSupportPerClass(bitset<M>** cover, int nValidWords, int* validIndexes);
+    ErrorVals getErrorValPerClass(bitset<M>* cover, int nValidWords, int* validIndexes);
 
-    SupportClass countSupportClass(bitset<M>& coverWord, int wordIndex);
+    ErrorVal getErrorVal(bitset<M>& coverWord, int wordIndex);
 
     vector<int> getTransactionsID(bitset<M>& word, int real_word_index);
 
-    pair<SupportClass, Support> getSups(bitset<M>& word, int real_word_index);
+    pair<ErrorVal, Support> getSups(bitset<M>& word, int real_word_index);
 
     vector<int> getTransactionsID();
 
@@ -38,4 +38,4 @@ public:
 };
 
 
-#endif //RSBS_RCOVER_WEIGHTED_H
+#endif //RCOVER_WEIGHT_H

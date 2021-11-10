@@ -2,8 +2,8 @@
 // Created by Gael Aglin on 2019-10-06.
 //
 
-#ifndef DL85_DL85_H
-#define DL85_DL85_H
+#ifndef DL85_H
+#define DL85_H
 
 #include <iostream>
 #include <cstdlib>
@@ -59,7 +59,7 @@ using namespace std;
  * @return a string representing a serialized form of the found tree is returned
  */
 string launch(
-        Supports supports,
+        ErrorVals supports,
         Transaction ntransactions,
         Attribute nattributes,
         Class nclasses,
@@ -93,6 +93,8 @@ string launch(
         float wipe_factor = .5f,
         bool with_cache = true,
         bool useSpecial = true,
-        bool use_ub = true);
+        bool use_ub = true,
+        bool similarlb = false,
+        bool dynamic_branching = false);
 
-#endif //DL85_DL85_H
+#endif //DL85_H

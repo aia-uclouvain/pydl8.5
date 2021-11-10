@@ -4,7 +4,7 @@
 
 #include "dataManager.h"
 
-DataManager::DataManager(Supports supports, Transaction ntransactions, Attribute nattributes, Class nclasses, Bool *data, Class *target):supports(supports), ntransactions(ntransactions), nattributes(nattributes), nclasses(nclasses) {
+DataManager::DataManager(ErrorVals supports, Transaction ntransactions, Attribute nattributes, Class nclasses, Bool *data, Class *target): supports(supports), ntransactions(ntransactions), nattributes(nattributes), nclasses(nclasses) {
     nclasses = (nclasses == 1) ? 2 : nclasses;
     nWords = (int)ceil((float)ntransactions/M);
     b = new bitset<M> *[nattributes];

@@ -1,7 +1,7 @@
 
 
-#ifndef DL8_NEW_LOGGER_H
-#define DL8_NEW_LOGGER_H
+#ifndef LOGGER_H
+#define LOGGER_H
 
 #include <iostream>
 #include <string>
@@ -49,4 +49,4 @@ public:
 };
 
 
-#endif //DL8_NEW_LOGGER_H
+#endif //LOGGER_H

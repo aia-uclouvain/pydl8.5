@@ -1,5 +1,5 @@
-#ifndef QUERY_TOTALFREQ_H
-#define QUERY_TOTALFREQ_H
+#ifndef NODE_DATA_MANAGER_FREQ_H
+#define NODE_DATA_MANAGER_FREQ_H
 
 #include <nodeDataManager.h>
 #include <vector>
@@ -51,7 +51,7 @@ public:
 
     LeafInfo computeLeafInfo(RCover *cov = nullptr);
 
-    LeafInfo computeLeafInfo(Supports itemsetSupport);
+    LeafInfo computeLeafInfo(ErrorVals itemsetSupport);
 
     inline bool canimprove(NodeData *left, Error ub) { return ((Freq_NodeData *) left)->error < ub; }
 

@@ -45,8 +45,7 @@ int Cache_Trie::getCacheSize() {
 
 // classic top down
 TrieNode *Cache_Trie::addNonExistingItemsetPart(Array<Item> itemset, int pos, vector<TrieEdge>::iterator &geqEdge_it,
-                                                TrieNode *&cur_node,
-                                                NodeDataManager *nodeDataManager) {
+                                                TrieNode *&cur_node) {
     for (int i = pos; i < itemset.size; ++i) {
         auto node = new TrieNode;
         TrieEdge newedge;
@@ -60,17 +59,15 @@ TrieNode *Cache_Trie::addNonExistingItemsetPart(Array<Item> itemset, int pos, ve
         cachesize++;
         cur_node = node;
     }
-    cur_node->data = nodeDataManager->initData();
     return cur_node;
 }
 
 // insert itemset. Check from root and insert items only if they do not exist using addItemsetPart function
-Node * Cache_Trie::insert(Array<Item> itemset, NodeDataManager *nodeDataManager) {
+pair<Node*, bool> Cache_Trie::insert(Array<Item> itemset) {
     auto *cur_node = (TrieNode *) root;
     if (itemset.size == 0) {
         cachesize++;
-        cur_node->data = nodeDataManager->initData();
-        return cur_node;
+        return {cur_node, true};
     }
 
     if (cachesize >= maxcachesize && maxcachesize > 0) {
@@ -85,16 +82,16 @@ Node * Cache_Trie::insert(Array<Item> itemset, NodeDataManager *nodeDataManager)
         geqEdge_it = lower_bound(cur_node->edges.begin(), cur_node->edges.end(), itemset[i], lessTrieEdge);
         if (geqEdge_it == cur_node->edges.end() || geqEdge_it->item != itemset[i]) { // the item does not exist
             // create path representing the part of the itemset not yet present in the trie.
-            TrieNode *last_inserted_node = addNonExistingItemsetPart(itemset, i, geqEdge_it, cur_node, nodeDataManager);
-            return last_inserted_node;
+            TrieNode *last_inserted_node = addNonExistingItemsetPart(itemset, i, geqEdge_it, cur_node);
+            return {last_inserted_node, true};
         } else {
             cur_node = geqEdge_it->subtrie;
             cur_node->count_opti_path++;
         }
     }
     bool is_newnode = cur_node->data == nullptr;
-    if (is_newnode) cur_node->data = nodeDataManager->initData();
-    return cur_node;
+    if (is_newnode) return {cur_node, true};
+    else return {cur_node, false};
 }
 
 #define effortCondition edge_iterator->subtrie->solution_effort < 10 * sqrt(max_solution_effort)

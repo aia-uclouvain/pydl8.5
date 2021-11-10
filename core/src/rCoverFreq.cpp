@@ -12,7 +12,7 @@ RCoverFreq::RCoverFreq(DataManager *dmm): RCover(dmm) {}
 
 void RCoverFreq::intersect(Attribute attribute, bool positive) {
     int climit = limit.top();
-    sup_class = zeroSupports();
+    sup_class = zeroErrorVals();
     support = 0;
     for (int i = 0; i < climit; ++i) {
         bitset<M> word;
@@ -49,8 +49,8 @@ void RCoverFreq::intersect(Attribute attribute, bool positive) {
  * @return a pair of support per class and support
  */
 
-pair<Supports, Support> RCoverFreq::temporaryIntersect(Attribute attribute, bool positive) {
-    Supports sc = zeroSupports();
+pair<ErrorVals, Support> RCoverFreq::temporaryIntersect(Attribute attribute, bool positive) {
+    ErrorVals sc = zeroErrorVals();
     Support sup = 0;
     for (int i = 0; i < limit.top(); ++i) {
         bitset<M> word;
@@ -69,10 +69,9 @@ pair<Supports, Support> RCoverFreq::temporaryIntersect(Attribute attribute, bool
 }
 
 
-
-Supports RCoverFreq::getSupportPerClass(){
+ErrorVals RCoverFreq::getErrorValPerClass(){
     if (sup_class != nullptr) return sup_class;
-    sup_class = zeroSupports();
+    sup_class = zeroErrorVals();
     if (nclasses == 2){
         bitset<M> * classCover = dm->getClassCover(0);
         int sum = 0;
@@ -93,18 +92,32 @@ Supports RCoverFreq::getSupportPerClass(){
     return sup_class;
 }
 
-Supports RCoverFreq::getSupportPerClass(bitset<M>** cover, int nValidWords, int* validIndexes){
-    Supports sc = zeroSupports();
+ErrorVals RCoverFreq::getErrorValPerClass(bitset<M>* cover, int nValidWords, int* validIndexes){
+    ErrorVals sc = zeroErrorVals();
     for (int j = 0; j < nclasses; ++j) {
         bitset<M> * classCover = dm->getClassCover(j);
-        for (int i = 0; i < nValidWords; ++i) {
-            sc[j] += (*cover[i] & classCover[i]).count();
+        for (int i = 0; i < nWords; ++i) {
+            sc[j] += (cover[i] & classCover[i]).count();
         }
     }
+    forEachClass(i) cout << sc[i] << ",";
+//    cout << endl;
     return sc;
 }
 
-SupportClass RCoverFreq::countSupportClass(bitset<64> &coverWord, int wordIndex) {
+/*ErrorVals RCoverFreq::getErrorValPerClass(bitset<M>* cover, int nValidWords, int* validIndexes){
+    ErrorVals sc = zeroErrorVals();
+    for (int j = 0; j < nclasses; ++j) {
+        bitset<M> * classCover = dm->getClassCover(j);
+        for (int i = 0; i < nValidWords; ++i) {
+            sc[j] += (cover[i] & classCover[validIndexes[i]]).count();
+        }
+    }
+    return sc;
+}*/
+
+// count the support for the word
+ErrorVal RCoverFreq::getErrorVal(bitset<64> &coverWord, int wordIndex) {
     return coverWord.count();
 }
 

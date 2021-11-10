@@ -2,8 +2,8 @@
 // Created by Gael Aglin on 2019-12-23.
 //
 
-#ifndef RSBS_RCOVER_H
-#define RSBS_RCOVER_H
+#ifndef RCOVER_H
+#define RCOVER_H
 
 #include <stack>
 #include <vector>
@@ -26,7 +26,7 @@ public:
     stack<int> limit;
     int nWords;
     DataManager* dm;
-    Supports sup_class = nullptr;
+    ErrorVals sup_class = nullptr;
     int support = -1;
 
     RCover(DataManager* dmm);
@@ -41,23 +41,25 @@ public:
 
     virtual void intersect(Attribute attribute, bool positive = true) = 0;
 
-    virtual pair<Supports, Support> temporaryIntersect(Attribute attribute, bool positive = true) = 0;
+    virtual pair<ErrorVals, Support> temporaryIntersect(Attribute attribute, bool positive = true) = 0;
 
     Support temporaryIntersectSup(Attribute attribute, bool positive = true);
 
-    Supports minusMe(bitset<M>* cover1);
+    ErrorVal getDiffErrorVal(bitset<M>* cover1, int* valids, int nvalids, bool cover_is_first = false);
 
-    SupportClass countDif(bitset<M>* cover1);
+    ErrorVals getDiffErrorVals(bitset<M>* cover1, bool cover_is_first = false);
 
-    bitset<M>* getTopBitsetArray() const;
+    bitset<M>* getDiffCover(bitset<M>* cover1, bool cover_is_first = false);
+
+    bitset<M>* getTopCover() const;
 
     Support getSupport();
 
-    virtual Supports getSupportPerClass() = 0;
+    virtual ErrorVals getErrorValPerClass() = 0;
 
-    virtual SupportClass countSupportClass(bitset<M>& coverWord, int wordIndex) = 0;
+    virtual ErrorVal getErrorVal(bitset<M>& coverWord, int wordIndex) = 0;
 
-    virtual Supports getSupportPerClass(bitset<M>** cover, int nValidWords, int* validIndexes) = 0;
+    virtual ErrorVals getErrorValPerClass(bitset<M>* cover, int nValidWords, int* validIndexes) = 0;
 
     void backtrack();
 
@@ -375,4 +377,4 @@ public:
 };*/
 
 
-#endif //RSBS_RCOVER_H
+#endif //RCOVER_H

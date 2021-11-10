@@ -18,7 +18,6 @@ struct TrieLtdEdge {
 struct TrieLtdNode : Node {
     int n_subnodes = 0;
     int n_reuse = 0;
-    Support support = 0;
     Depth depth = 0;
     vector<TrieLtdEdge> edges;
 
@@ -39,7 +38,7 @@ public:
     Cache_Ltd_Trie(Depth maxdepth, WipeType wipe_type=Subnodes, int maxcachesize=0, float wipe_factor=.5f);
     ~Cache_Ltd_Trie(){ delete root; for (auto node: heap) { delete node.first; } };
 
-    Node * insert ( Array<Item> itemset, NodeDataManager* );
+    pair<Node*, bool> insert ( Array<Item> itemset);
     Node *get ( Array<Item> itemset );
     void updateItemsetLoad(Array<Item> itemset, bool inc=false);
     void updateSubTreeLoad(Array<Item> itemset, Item firstI, Item secondI, bool inc=false);
@@ -50,7 +49,7 @@ public:
     float wipe_factor;
 
 private:
-    TrieLtdNode *addNonExistingItemsetPart ( Array<Item> itemset, int pos, vector<TrieLtdEdge>::iterator& geqEdge_it, TrieLtdNode *parent, NodeDataManager* nodeDataManager );
+    TrieLtdNode *addNonExistingItemsetPart ( Array<Item> itemset, int pos, vector<TrieLtdEdge>::iterator& geqEdge_it, TrieLtdNode *parent);
     int computeSubNodes(TrieLtdNode* node);
     bool isConsistent(TrieLtdNode* node);
     bool isConsistent(TrieLtdNode* node, vector<Item>);

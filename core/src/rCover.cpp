@@ -35,7 +35,7 @@ RCover::RCover(RCover &&cover) noexcept {
     support= cover.support;
 }
 
-bitset<M>* RCover::getTopBitsetArray() const{
+bitset<M>* RCover::getTopCover() const{
     auto* tmp = new bitset<M>[nWords];
     for (int j = 0; j < nWords; ++j) {
         tmp[j] = coverWords[j].top();
@@ -64,7 +64,7 @@ Support RCover::temporaryIntersectSup(Attribute attribute, bool positive) {
 }
 
 /**
- * minusMe - this function computes the support per class for the cover c = cover1 - currentcover
+ * getDiffErrorVals - this function computes the support per class for the cover c = cover1 - currentcover
  * @param cover1 - a cover to perform the minus operation
  * @return the support per class of the resultant cover
  */
@@ -112,45 +112,87 @@ Support RCover::temporaryIntersectSup(Attribute attribute, bool positive) {
     return toreturn;
 }*/
 
-Supports RCover::minusMe(bitset<M>* cover1) {
-    int maxValidNumber = limit.top();
-    bitset<M>** difcover = new bitset<M>*[maxValidNumber];
-    int* validIndexes = new int[maxValidNumber];
-    int nvalid = 0;
+ErrorVal RCover::getDiffErrorVal(bitset<M>* cover1, int* valids, int nvalids, bool cover_is_first) {
+    ErrorVal err_val = 0;
+    bitset<M> tmp_word;
+//    for (int i = 0; i < limit.top(); ++i) {
+//        if (cover_is_first) tmp_word = coverWords[validWords[i]].top() & ~cover1[validWords[i]];
+//        else tmp_word = cover1[validWords[i]] & ~coverWords[validWords[i]].top();
+//        if (tmp_word.any()) err_val += getErrorVal(tmp_word, validWords[i]);
+//    }
+//    for (int i = 0; i < nWords; ++i) {
+//        if (cover_is_first) tmp_word = coverWords[i].top() & ~cover1[i];
+//        else tmp_word = cover1[i] & ~coverWords[i].top();
+//        if (tmp_word.any()) err_val += getErrorVal(tmp_word, i);
+//    }
+    int my_limit = (cover_is_first) ? limit.top() : nvalids;
+    int* my_valids = (cover_is_first) ? validWords : valids;
+    for (int i = 0; i < my_limit; ++i) {
+        if (cover_is_first) tmp_word = coverWords[my_valids[i]].top() & ~cover1[my_valids[i]];
+        else tmp_word = cover1[my_valids[i]] & ~coverWords[my_valids[i]].top();
+        if (tmp_word.any()) err_val += getErrorVal(tmp_word, my_valids[i]);
+    }
+    return err_val;
+}
+
+ErrorVals RCover::getDiffErrorVals(bitset<M>* cover1, bool cover_is_first) {
+    int maxValidNumber = limit.top(), nvalid = 0;
+    auto diff_cover = new bitset<M>[nWords];
+//    auto validIndexes = new int[maxValidNumber];
+    auto validIndexes = new int[nWords];
+    for (int i = 0; i < nWords; ++i) {
+        bitset<M> tmp_word;
+        if (cover_is_first) tmp_word = coverWords[validWords[i]].top() & ~cover1[validWords[i]];
+        else tmp_word = cover1[i] & ~coverWords[i].top();
+//        if (tmp_word.any()){
+//            diff_cover[nvalid] = tmp_word;
+//            validIndexes[nvalid] = validWords[i];
+//            ++nvalid;
+//        }
+        diff_cover[i] = tmp_word;
+        validIndexes[nvalid] = i;
+        ++nvalid;
+    }
+    ErrorVals err_vals = getErrorValPerClass(diff_cover, nvalid, validIndexes);
+    delete [] diff_cover;
+    delete [] validIndexes;
+    return err_vals;
+}
+
+/*ErrorVals RCover::getDiffErrorVals(bitset<M>* cover1, bool cover_is_first) {
+    int maxValidNumber = limit.top(), nvalid = 0;
+    auto diff_cover = new bitset<M>[maxValidNumber];
+    auto validIndexes = new int[maxValidNumber];
     for (int i = 0; i < maxValidNumber; ++i) {
-        bitset<M> potential_word = cover1[validWords[i]] & ~coverWords[validWords[i]].top();
-        if (!potential_word.none()){
-            difcover[nvalid] = &potential_word;
+        bitset<M> tmp_word;
+        if (cover_is_first) tmp_word = coverWords[validWords[i]].top() & ~cover1[validWords[i]];
+        else tmp_word = cover1[validWords[i]] & ~coverWords[validWords[i]].top();
+        if (tmp_word.any()){
+            diff_cover[nvalid] = tmp_word;
             validIndexes[nvalid] = validWords[i];
             ++nvalid;
         }
     }
-
-    Supports toreturn = getSupportPerClass(difcover, nvalid, validIndexes);
-    delete [] difcover;
+    ErrorVals err_vals = getErrorValPerClass(diff_cover, nvalid, validIndexes);
+    delete [] diff_cover;
     delete [] validIndexes;
-    return toreturn;
-}
+    return err_vals;
+}*/
 
-SupportClass RCover::countDif(bitset<M>* cover1) {
-    SupportClass sup = 0;
-    for (int i = 0; i < limit.top(); ++i) {
-        bitset<M> potential_word = cover1[validWords[i]] & ~coverWords[validWords[i]].top();
-        if (!potential_word.none()){
-            sup += countSupportClass(potential_word, validWords[i]);
-        }
-    }
-    return sup;
+bitset<M>* RCover::getDiffCover(bitset<M>* cover1, bool cover_is_first) {
+    int maxValidNumber = limit.top();
+    auto diff_cover = new bitset<M>[maxValidNumber];
+    for (int i = 0; i < nWords; ++i)
+        if (cover_is_first) diff_cover[i] = coverWords[i].top() & ~cover1[i];
+        else diff_cover[i] = cover1[i] & ~coverWords[i].top();
+    return diff_cover;
 }
 
 int RCover::getSupport() {
     if (support > -1) return support;
-    int sum = 0;
-    for (int i = 0; i < limit.top(); ++i) {
-        sum += coverWords[validWords[i]].top().count();
-    }
-    support = sum;
-    return sum;
+    support = 0;
+    for (int i = 0; i < limit.top(); ++i) support += coverWords[validWords[i]].top().count();
+    return support;
 }
 
 void RCover::backtrack() {
@@ -160,7 +202,7 @@ void RCover::backtrack() {
         coverWords[validWords[i]].pop();
     }
     support = -1;
-    deleteSupports(sup_class);
+    deleteErrorVals(sup_class);
     sup_class = nullptr;
 }
 

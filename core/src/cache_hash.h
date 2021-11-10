@@ -21,7 +21,7 @@ public:
 
     Array<unordered_map<Array<Item>, HashNode*>> store;
 
-    Node * insert ( Array<Item> itemset, NodeDataManager* );
+    pair<Node*, bool> insert ( Array<Item> itemset );
     Node *get ( Array<Item> itemset);
     void updateSubTreeLoad(Array<Item> itemset, Item firstItem, Item secondItem, bool inc=false);
     void updateItemsetLoad ( Array<Item> itemset, bool inc=false );

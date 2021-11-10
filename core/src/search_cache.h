@@ -1,5 +1,5 @@
-#ifndef LCMB_H
-#define LCMB_H
+#ifndef SEARCH_CACHE_H
+#define SEARCH_CACHE_H
 
 #include "globals.h"
 #include "cache.h"
@@ -7,6 +7,28 @@
 #include "solution.h"
 #include "search_base.h"
 
+typedef bool HasInter;
+
+struct SimilarVals{
+    bitset<M>* s_cover;
+    Support s_coversize;
+    Error s_error;
+    int* s_validWords;
+    int s_n_validWords;
+
+    SimilarVals(){
+        s_cover = nullptr;
+        s_validWords = nullptr;
+        s_coversize = 0;
+        s_error = 0;
+        s_n_validWords = 0;
+    }
+
+    void free() const{
+        delete[] s_cover;
+        delete[] s_validWords;
+    }
+};
 
 class Search_cache : public Search_base{
 public:
@@ -20,39 +42,27 @@ public:
                   int timeLimit,
                   float maxError = NO_ERR,
                   bool specialAlgo = true,
-                  bool stopAfterError = false);
+                  bool stopAfterError = false,
+                  bool similarlb = false,
+                  bool dynamic_branching = false);
 
     ~Search_cache();
 
     void run ();
 
     Cache *cache;
+    bool similarlb;
+    bool dynamic_branching;
 
-    /*NodeDataManager *nodeDataManager;
-    bool infoGain = false;
-    bool infoAsc = false; //if true ==> items with low IG are explored first
-    bool repeatSort = false;
-    Support minsup;
-    Depth maxdepth;
-    int timeLimit;
-    float maxError = NO_ERR;
-    bool stopAfterError = false;
-    bool specialAlgo = true;
-    bool timeLimitReached = false;*/
 
 private:
-    Node* recurse ( Array<Item> itemset, Attribute last_added, Node* node, Array<Attribute> attributes_to_visit, Depth depth, Error ub);
+    pair<Node*,HasInter> recurse ( Array<Item> itemset, Attribute last_added, Node* node, bool node_is_new, Array<Attribute> attributes_to_visit, Depth depth, Error ub);
     Array<Attribute> getSuccessors(Array<Attribute> last_freq_attributes, Attribute last_added, Node* node);
-    float informationGain ( Supports notTaken, Supports taken);
+    float informationGain (ErrorVals notTaken, ErrorVals taken);
     Node *getSolutionIfExists(Node *node, Error ub, Depth depth);
-//    Array<Attribute> getExistingSuccessors(TrieNode* node);
-//    Error computeSimilarityLowerBound(bitset<M> *b1_cover, bitset<M> *b2_cover, Error b1_error, Error b2_error);
-//    void addInfoForLowerBound(NodeData *node_data, bitset<M> *&b1_cover, bitset<M> *&b2_cover, Error &b1_error, Error &b2_error, Support &highest_coversize);
-
-
+    Error computeSimilarityLB(SimilarVals &similar_db1, SimilarVals &similar_db2);
+    void updateSimilarLBInfo1(NodeData *node_data, SimilarVals &highest_error_db, SimilarVals &highest_coversize_db);
+    void updateSimilarLBInfo2(NodeData *node_data, SimilarVals &similar_db1, SimilarVals &similar_db2);
 };
-
-// a variable to express whether the error computation is performed in python or not
-#define is_python_error nodeDataManager->tids_error_callback || nodeDataManager->tids_error_class_callback || nodeDataManager->supports_error_class_callback
 
 #endif

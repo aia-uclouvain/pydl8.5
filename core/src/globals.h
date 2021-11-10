@@ -37,9 +37,9 @@ typedef int Item;
 // number of transactions covered by an itemset
 typedef int Support;
 // weighted support for a class
-typedef float SupportClass;
+typedef float ErrorVal;
 // array of supports per class
-typedef SupportClass *Supports;
+typedef ErrorVal *ErrorVals;
 //typedef Support *Supports;
 typedef unsigned long ulong;
 
@@ -57,6 +57,8 @@ extern float comptime;
 #define NO_SUP INT_MAX // SHRT_MAX
 #define NO_ERR FLT_MAX
 #define NO_CACHE_LIMIT 0
+#define NEG_ITEM 0
+#define POS_ITEM 1
 #define NO_GAIN FLT_MAX
 #define NO_ITEM INT_MAX // SHRT_MAX
 #define NO_ATTRIBUTE INT_MAX // SHRT_MAX
@@ -81,34 +83,33 @@ extern float comptime;
 
 
 // create (dynamic allocation of vector of size = number of classes)
-Supports newSupports();
+ErrorVals newErrorVals();
 
 // create (dynamic allocation of vector of size = number of classes) and fill vector of support with zeros
-Supports zeroSupports();
+ErrorVals zeroErrorVals();
 
 // fill vector of supports passed in parameter with zeros
-void zeroSupports(Supports supports);
+void zeroErrorVals(ErrorVals supports);
 
 // free the memory
-void deleteSupports(Supports supports);
+void deleteErrorVals(ErrorVals supports);
 
 // copy values of support array src to dest
-void copySupports(Supports src, Supports dest);
+void copyErrorVals(ErrorVals src, ErrorVals dest);
 
 // create support array dest, copy values of array in parameter in dest and return dest
-Supports copySupports(Supports supports);
+ErrorVals copyErrorVals(ErrorVals supports);
 
 // return sum of value of support
-SupportClass sumSupports(Supports supports);
-
-// return dest which is array of substraction of src2 from src1
-void minSupports(Supports src1, Supports src2, Supports dest);
+ErrorVal sumErrorVals(ErrorVals supports);
 
 // return dest which is array of addition of src2 from src1
-void plusSupports(Supports src1, Supports src2, Supports dest);
+void addErrorVals(ErrorVals src1, ErrorVals src2, ErrorVals dest);
 
 // return dest which is array of substraction of src2 from src1
-void subSupports(Supports src1, Supports src2, Supports dest);
+void subErrorVals(ErrorVals src1, ErrorVals src2, ErrorVals dest);
+
+ErrorVals subErrorVals(ErrorVals src1, ErrorVals src2);
 
 bool floatEqual(float f1, float f2);
 

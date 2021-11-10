@@ -2,8 +2,8 @@
 // Created by Gael Aglin on 2019-12-23.
 //
 
-#ifndef RSBS_RCOVER_TOTAL_FREQ_H
-#define RSBS_RCOVER_TOTAL_FREQ_H
+#ifndef RCOVER_FREQ_H
+#define RCOVER_FREQ_H
 
 #include "rCover.h"
 
@@ -17,13 +17,15 @@ public:
 
     void intersect(Attribute attribute, bool positive = true);
 
-    pair<Supports, Support> temporaryIntersect(Attribute attribute, bool positive = true);
+    pair<ErrorVals, Support> temporaryIntersect(Attribute attribute, bool positive = true);
 
-    Supports getSupportPerClass();
+    ErrorVals getErrorValPerClass();
 
-    Supports getSupportPerClass(bitset<M>** cover, int nValidWords, int* validIndexes);
+    ErrorVals getErrorValPerClass(bitset<M>* cover, int nValidWords, int* validIndexes);
 
-    SupportClass countSupportClass(bitset<M>& coverWord, int wordIndex);
+    ErrorVal getErrorVal(bitset<M>& coverWord, int wordIndex);
+
+    ErrorVal diffErrorVal(bitset<M>* cover1, bitset<M>* cover2);
 
 };
 
@@ -47,4 +49,4 @@ public:
 
 };*/
 
-#endif //RSBS_RCOVER_TOTAL_FREQ_H
+#endif //RCOVER_FREQ_H

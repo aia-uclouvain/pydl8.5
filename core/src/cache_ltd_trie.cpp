@@ -63,7 +63,7 @@ int Cache_Ltd_Trie::getCacheSize() {
 }
 
 // classic top down
-TrieLtdNode *Cache_Ltd_Trie::addNonExistingItemsetPart(Array<Item> itemset, int pos, vector<TrieLtdEdge>::iterator &geqEdge_it, TrieLtdNode *parent_node, NodeDataManager *nodeDataManager) {
+TrieLtdNode *Cache_Ltd_Trie::addNonExistingItemsetPart(Array<Item> itemset, int pos, vector<TrieLtdEdge>::iterator &geqEdge_it, TrieLtdNode *parent_node) {
     TrieLtdNode* child_node;
     for (int i = pos; i < itemset.size; ++i) {
         child_node = new TrieLtdNode();
@@ -75,18 +75,16 @@ TrieLtdNode *Cache_Ltd_Trie::addNonExistingItemsetPart(Array<Item> itemset, int 
         child_node->depth = i + 1;
         parent_node = child_node;
     }
-    child_node->data = nodeDataManager->initData();
     return child_node;
 }
 
 // insert itemset. Check from root and insert items only if they do not exist using addItemsetPart function
-Node * Cache_Ltd_Trie::insert(Array<Item> itemset, NodeDataManager *nodeDataManager) {
+pair<Node*, bool> Cache_Ltd_Trie::insert(Array<Item> itemset) {
     auto *cur_node = (TrieLtdNode *) root;
     if (itemset.size == 0) {
         cachesize++;
-        cur_node->data = nodeDataManager->initData();
         Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) cur_node->data)->leafError);
-        return cur_node;
+        return {cur_node, true};
     }
     if (getCacheSize() >= maxcachesize && maxcachesize > 0) wipe();
 
@@ -95,28 +93,25 @@ Node * Cache_Ltd_Trie::insert(Array<Item> itemset, NodeDataManager *nodeDataMana
         geqEdge_it = lower_bound(cur_node->edges.begin(), cur_node->edges.end(), itemset[i], lessTrieEdge);
         if (geqEdge_it == cur_node->edges.end() || geqEdge_it->item != itemset[i]) { // the item does not exist
             // create path representing the part of the itemset not yet present in the trie.
-            TrieLtdNode *last_inserted_node = addNonExistingItemsetPart(itemset, i, geqEdge_it, cur_node, nodeDataManager);
+            TrieLtdNode *last_inserted_node = addNonExistingItemsetPart(itemset, i, geqEdge_it, cur_node);
             Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) last_inserted_node->data)->leafError);
-            return last_inserted_node;
+            return {last_inserted_node, true};
         } else {
             if (i == 0) cur_node->n_reuse++; // root node
             cur_node = geqEdge_it->subtrie;
             cur_node->count_opti_path++;
             cur_node->n_reuse++;
             cur_node->depth = i + 1;
-            // in case the node is not initialized yet, its support is estimated on the final node of the itemset
-            if (!cur_node->data && cur_node->support < nodeDataManager->cover->getSupport() + (itemset.size - i)){
-                cur_node->support = nodeDataManager->cover->getSupport() + (itemset.size - i);
-            }
-            else cur_node->support = nodeDataManager->cover->getSupport();
         }
     }
     if (cur_node->data == nullptr) {
-        cur_node->data = nodeDataManager->initData();
         Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) cur_node->data)->leafError);
+        return {cur_node, true};
     }
-    else Logger::showMessageAndReturn("The node already exists");
-    return cur_node;
+    else {
+        Logger::showMessageAndReturn("The node already exists");
+        return {cur_node, false};
+    }
 }
 
 void wipeAll(TrieLtdNode *node) {

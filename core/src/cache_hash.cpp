@@ -10,19 +10,17 @@ Cache_Hash::Cache_Hash(Depth maxdepth, WipeType wipe_type, int maxcachesize): Ca
     }
 }
 
-Node * Cache_Hash::insert(Array<Item> itemset, NodeDataManager* nodeDataManager) {
+pair<Node*, bool> Cache_Hash::insert(Array<Item> itemset) {
     if (itemset.size == 0) {
-        root->data = nodeDataManager->initData();
         cachesize++;
-        return root;
+        return {root, true};
     }
     else {
         if (cachesize >= maxcachesize && maxcachesize > 0) wipe(root);
         auto* node = new HashNode();
-        node->data = nodeDataManager->initData();
         store[itemset.size - 1].insert({itemset, node});
         cachesize++;
-        return node;
+        return {node, true};
     }
 }
 

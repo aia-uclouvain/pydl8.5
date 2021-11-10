@@ -2,8 +2,8 @@
 // Created by Gael Aglin on 19/10/2021.
 //
 
-#ifndef DL85_SEARCH_NOCACHE_H
-#define DL85_SEARCH_NOCACHE_H
+#ifndef SEARCH_NOCACHE_H
+#define SEARCH_NOCACHE_H
 
 #include "search_base.h"
 
@@ -27,9 +27,9 @@ public:
     void run();
     Error recurse(Attribute last_added, Array <Attribute> attributes_to_visit, Depth depth, Error ub);
     Array <Attribute> getSuccessors(Array <Attribute> last_freq_attributes, Attribute last_added);
-    float informationGain(Supports notTaken, Supports taken);
+    float informationGain(ErrorVals notTaken, ErrorVals taken);
     ~Search_nocache();
 
 };
 
-#endif //DL85_SEARCH_NOCACHE_H
+#endif //SEARCH_NOCACHE_H

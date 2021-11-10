@@ -1,5 +1,5 @@
-#ifndef QUERY_BEST_H
-#define QUERY_BEST_H
+#ifndef SOLUTION_H
+#define SOLUTION_H
 
 #include "cache.h"
 #include "nodeDataManager.h"

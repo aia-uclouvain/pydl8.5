@@ -63,7 +63,7 @@ NodeData *NodeDataManagerFreq::initData(RCover *cov, Depth currentMaxDepth, int 
         //python fast error
         if (supports_error_class_callback != nullptr) {
             function<vector<float>(RCover *)> callback = *supports_error_class_callback;
-            cov->getSupportPerClass(); // allocate the sup_array if it does not exist yet and compute the frequency counts
+            cov->getErrorValPerClass(); // allocate the sup_array if it does not exist yet and compute the frequency counts
             vector<float> infos = callback(cover);
             error = infos[0];
             maxclass = int(infos[1]);
@@ -99,8 +99,8 @@ LeafInfo NodeDataManagerFreq::computeLeafInfo(RCover *cov) {
     if (cov == nullptr) cov = cover;
     Class maxclass;
     Error error;
-    Supports itemsetSupport = cov->getSupportPerClass();
-    SupportClass maxclassval = itemsetSupport[0];
+    ErrorVals itemsetSupport = cov->getErrorValPerClass();
+    ErrorVal maxclassval = itemsetSupport[0];
     maxclass = 0;
 
     for (int i = 1; i < nclasses; ++i) {
@@ -112,15 +112,15 @@ LeafInfo NodeDataManagerFreq::computeLeafInfo(RCover *cov) {
                 maxclass = i;
         }
     }
-    error = sumSupports(itemsetSupport) - maxclassval;
+    error = sumErrorVals(itemsetSupport) - maxclassval;
     return {error, maxclass};
 }
 
 
-LeafInfo NodeDataManagerFreq::computeLeafInfo(Supports itemsetSupport) {
+LeafInfo NodeDataManagerFreq::computeLeafInfo(ErrorVals itemsetSupport) {
     Class maxclass = 0;
     Error error;
-    SupportClass maxclassval = itemsetSupport[0];
+    ErrorVal maxclassval = itemsetSupport[0];
 
     for (int i = 1; i < nclasses; ++i) {
         if (itemsetSupport[i] > maxclassval) {
@@ -131,6 +131,6 @@ LeafInfo NodeDataManagerFreq::computeLeafInfo(Supports itemsetSupport) {
                 maxclass = i;
         }
     }
-    error = sumSupports(itemsetSupport) - maxclassval;
+    error = sumErrorVals(itemsetSupport) - maxclassval;
     return {error, maxclass};
 }

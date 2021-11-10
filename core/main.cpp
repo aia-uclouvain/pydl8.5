@@ -16,7 +16,7 @@
 
 using namespace std;
 
-int getNFeatures(ifstream &dataset, vector<Class> &target, map<Class, SupportClass> &supports_map) {
+int getNFeatures(ifstream &dataset, vector<Class> &target, map<Class, ErrorVal> &supports_map) {
     // use the first line to count the number of features
     int nfeatures = -1, value;
     string line;
@@ -42,7 +42,7 @@ void readFirstLine(vector<Bool> *data_per_feat, Attribute nfeatures, vector<Clas
     }
 }
 
-void readRemainingFileAndComputeSups(ifstream &dataset, vector<Class> &target, map<Class, SupportClass> &supports_map,
+void readRemainingFileAndComputeSups(ifstream &dataset, vector<Class> &target, map<Class, ErrorVal> &supports_map,
                                      vector<Bool> *data_per_feat, Attribute nfeatures) {
     // read file from the second line and insert each value column by column in data_per_feat
     // fill-in target array and supports map
@@ -67,8 +67,8 @@ vector<Bool> getFlattenedData(vector<Bool> *data_per_feat, int nfeatures) {
     return data;
 }
 
-Supports getSupportPerClassArray(map<Class, SupportClass> &supports_map) {
-    auto *support_per_class = new SupportClass[supports_map.size()];
+ErrorVals getSupportPerClassArray(map<Class, ErrorVal> &supports_map) {
+    auto *support_per_class = new ErrorVal[supports_map.size()];
     for (int j = 0; j < (int) supports_map.size(); ++j) support_per_class[j] = supports_map[j];
     return support_per_class;
 }
@@ -91,16 +91,18 @@ int main(int argc, char *argv[]) {
     else {
         //datasetPath = "../datasets/tic-tac-toe.txt";
 //        datasetPath = "../../datasets/soybean.txt";
-        datasetPath = "../../datasets/anneal.txt";
+//        datasetPath = "../../datasets/anneal.txt";
 //        datasetPath = "../../datasets/audiology.txt";
+        datasetPath = "../../datasets/australian-credit.txt";
 //        datasetPath = "../../datasets/hypothyroid.txt";
 //        datasetPath = "../../datasets/ionosphere.txt";
+//        datasetPath = "../../datasets/diabetes.txt";
 //        datasetPath = "../../datasets/pendigits.txt";
 //        datasetPath = "../../datasets/letter.txt";
 //        datasetPath = "../../datasets/hepatitis.txt";
 //        datasetPath = "../../datasets/tests/paper.txt";
 //        datasetPath = "../../datasets/tic-tac-toe.txt";
-        maxdepth = 3;
+        maxdepth = 4;
         minsup = 1;
     }
 
@@ -108,13 +110,13 @@ int main(int argc, char *argv[]) {
 //    CacheType cache_type = CacheTrie;
     CacheType cache_type = CacheLtdTrie;
 
-//    Size cache_size = 300000;
+//    Size cache_size = 70000;
     Size cache_size = NO_CACHE_LIMIT;
 
-    WipeType wipe_type = All;
-//    WipeType wipe_type = Subnodes;
+//    WipeType wipe_type = All;
+    WipeType wipe_type = Subnodes;
 //    WipeType wipe_type = Recall;
-    float wipe_factor = .5f;
+    float wipe_factor = .4f;
 
 //    bool with_cache = false;
     bool with_cache = true;
@@ -128,8 +130,14 @@ int main(int argc, char *argv[]) {
     bool use_ub = true;
 //    bool use_ub = false;
 
+    bool sim_lb = true;
+//    bool sim_lb = false;
+
+    bool dyn_branch = true;
+//    bool dyn_branch = false;
+
     ifstream dataset(datasetPath);
-    map<Class, SupportClass> supports_map; // for each class, compute the number of transactions (support)
+    map<Class, ErrorVal> supports_map; // for each class, compute the number of transactions (support)
     vector<Class> target; //data is a flatten 2D-array containing the values of features matrix while target is the array of target
 
     int nfeatures = getNFeatures(dataset, target, supports_map);
@@ -139,7 +147,7 @@ int main(int argc, char *argv[]) {
     auto ntransactions = (Transaction) (data_per_feat[0].size());
     auto nclass = (Class) supports_map.size();
     vector<Bool> data_flattened = getFlattenedData(data_per_feat, nfeatures);
-    Supports support_per_class = getSupportPerClassArray(supports_map);
+    ErrorVals support_per_class = getSupportPerClassArray(supports_map);
 
     cout << "dataset: " << datasetPath.substr(datasetPath.find_last_of('/') + 1,datasetPath.find_last_of('.') - datasetPath.find_last_of('/') - 1) << endl;
 
@@ -177,7 +185,9 @@ int main(int argc, char *argv[]) {
             wipe_factor,
             with_cache,
             use_special_algo,
-            use_ub
+            use_ub,
+            sim_lb,
+            dyn_branch
     );
 
     cout << result;

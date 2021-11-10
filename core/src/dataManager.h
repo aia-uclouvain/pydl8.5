@@ -2,8 +2,8 @@
 // Created by Gael Aglin on 2019-12-23.
 //
 
-#ifndef RSBS_DATAMANAGER_H
-#define RSBS_DATAMANAGER_H
+#ifndef DATAMANAGER_H
+#define DATAMANAGER_H
 
 #include <bitset>
 #include "globals.h"
@@ -17,7 +17,7 @@ class DataManager {
 public:
     int nWords;
 
-    DataManager(Supports supports, Transaction ntransactions, Attribute nattributes, Class nclasses, Bool *data, Class *target);
+    DataManager(ErrorVals supports, Transaction ntransactions, Attribute nattributes, Class nclasses, Bool *data, Class *target);
 
     ~DataManager(){
         for (int i = 0; i < nattributes; ++i) {
@@ -28,7 +28,7 @@ public:
             delete[] c[j];
         }
         delete[]c;
-        deleteSupports(supports);
+        deleteErrorVals(supports);
     }
 
     bitset<M> * getAttributeCover(Attribute attr);
@@ -45,7 +45,7 @@ public:
     [[nodiscard]] Class getNClasses () const { return nclasses; }
 
     /// get array of support of each class
-    [[nodiscard]] Supports getSupports () const { return supports; }
+    [[nodiscard]] ErrorVals getSupports () const { return supports; }
 
 private:
     bitset<M> **b; /// matrix of data
@@ -53,7 +53,7 @@ private:
     Transaction ntransactions; /// number of transactions
     Attribute nattributes; /// number of features
     Class nclasses; /// number of classes
-    Supports supports; /// array of support for each class
+    ErrorVals supports; /// array of support for each class
 
 };
 
@@ -102,4 +102,4 @@ private:
 
 };*/
 
-#endif //RSBS_DATAMANAGER_H
+#endif //DATAMANAGER_H

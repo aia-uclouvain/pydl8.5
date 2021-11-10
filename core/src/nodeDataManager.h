@@ -1,5 +1,5 @@
-#ifndef QUERY_H
-#define QUERY_H
+#ifndef NODE_DATA_MANAGER_H
+#define NODE_DATA_MANAGER_H
 
 #include <utility>
 #include "globals.h"
@@ -54,7 +54,7 @@ public:
 
     virtual LeafInfo computeLeafInfo(RCover *cov = nullptr) = 0;
 
-    virtual LeafInfo computeLeafInfo(Supports itemsetSupport) = 0;
+    virtual LeafInfo computeLeafInfo(ErrorVals itemsetSupport) = 0;
 
     virtual bool updateData(NodeData *best, Error upperBound, Attribute attribute, NodeData *left, NodeData *right, Array<Item> itemset = Array<Item>(), Cache* cache = nullptr) = 0;
 

@@ -22,8 +22,6 @@ add_executable(dl85
         src/cache_trie.cpp
         src/cache_ltd_trie.h
         src/cache_ltd_trie.cpp
-        src/dataHandler.h
-        src/dataHandler.cpp
         src/dataManager.h
         src/dataManager.cpp
         src/depthTwoComputer.h
@@ -56,6 +54,8 @@ add_executable(dl85
         )
 
 
+#        src/dataHandler.h
+#        src/dataHandler.cpp
 #        src/lcm_iterative.h
 #        src/lcm_iterative.cpp
 #        src/longRCover.h

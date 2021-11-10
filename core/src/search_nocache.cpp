@@ -21,9 +21,9 @@ Search_nocache::~Search_nocache() {}
 
 
 // information gain calculation
-float Search_nocache::informationGain(Supports notTaken, Supports taken) {
-    int sumSupNotTaken = sumSupports(notTaken);
-    int sumSupTaken = sumSupports(taken);
+float Search_nocache::informationGain(ErrorVals notTaken, ErrorVals taken) {
+    int sumSupNotTaken = sumErrorVals(notTaken);
+    int sumSupTaken = sumErrorVals(taken);
     int actualDBSize = sumSupNotTaken + sumSupTaken;
 
     float condEntropy = 0, baseEntropy = 0;
@@ -56,7 +56,7 @@ Array<Attribute> Search_nocache::getSuccessors(Array<Attribute> last_candidates,
     Array<Attribute> next_candidates(last_candidates.size, 0);
 
     int current_sup = nodeDataManager->cover->getSupport();
-    Supports current_sup_class = nodeDataManager->cover->getSupportPerClass();
+    ErrorVals current_sup_class = nodeDataManager->cover->getErrorValPerClass();
 
     // access each candidate
     for (const auto &candidate: last_candidates) {
@@ -73,12 +73,12 @@ Array<Attribute> Search_nocache::getSuccessors(Array<Attribute> last_candidates,
             if (not infoGain) next_candidates.push_back(candidate);
             else {
                 // compute the support per class in each split of the attribute to compute its IG value
-                Supports sup_class_left = nodeDataManager->cover->temporaryIntersect(candidate, false).first;
-                Supports sup_class_right = newSupports();
-                subSupports(current_sup_class, sup_class_left, sup_class_right);
+                ErrorVals sup_class_left = nodeDataManager->cover->temporaryIntersect(candidate, false).first;
+                ErrorVals sup_class_right = newErrorVals();
+                subErrorVals(current_sup_class, sup_class_left, sup_class_right);
                 gain.insert(std::pair<float, Attribute>(informationGain(sup_class_left, sup_class_right), candidate));
-                deleteSupports(sup_class_left);
-                deleteSupports(sup_class_right);
+                deleteErrorVals(sup_class_left);
+                deleteErrorVals(sup_class_right);
             }
         }
     }
@@ -131,7 +131,7 @@ Error Search_nocache::recurse(Attribute last_added,
 
     // in case the solution cannot be derived without computation and remaining depth is 2, we use a specific algorithm
     if (specialAlgo && maxdepth - depth == 2 && nodeDataManager->cover->getSupport() >= 2 * minsup && no_python_error) {
-        return computeDepthTwo(nodeDataManager->cover, ub, next_candidates, last_added, Array<Item>(), nullptr, nodeDataManager, 0, nullptr, this).second;
+        return computeDepthTwo(nodeDataManager->cover, ub, next_candidates, last_added, Array<Item>(), nullptr, nodeDataManager, 0, nullptr, this);
     }
 
     /* the node solution cannot be computed without calculation. at this stage, we will make a search through successors*/

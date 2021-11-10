@@ -23,10 +23,9 @@ void Cache_Priority::remove(int index){
     bucket[index] = nullptr;
 }
 
-Node * Cache_Priority::insert(Array<Item> itemset, NodeDataManager* nodeDataManager) {
+pair<Node*, bool> Cache_Priority::insert(Array<Item> itemset) {
     if (itemset.size == 0) {
-        root->data = nodeDataManager->initData();
-        return root;
+        return {root, true};
     }
-    return root;
+    return {root, true};
 }

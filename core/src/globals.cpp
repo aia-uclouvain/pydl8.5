@@ -10,56 +10,53 @@ float comptime = 0;
 float epsilon = 1.0e-05f;
 bool verbose = false;
 
-Supports newSupports () {
-  return new SupportClass[nclasses];
+ErrorVals newErrorVals () {
+  return new ErrorVal[nclasses];
 }
 
-Supports zeroSupports () {
-  Supports supports = newSupports();
-  zeroSupports ( supports );
+ErrorVals zeroErrorVals () {
+  ErrorVals supports = newErrorVals();
+    zeroErrorVals(supports);
   return supports;
 }
 
-void zeroSupports ( Supports supports ) {
+void zeroErrorVals (ErrorVals supports ) {
   forEachClass ( i ) 
     supports[i] = 0;
 }
 
-void deleteSupports ( Supports supports ) {
+void deleteErrorVals (ErrorVals supports ) {
   delete[] supports;
 }
 
-void copySupports ( Supports src, Supports dest ) {
-  forEachClass ( i )
-    dest[i] = src[i];
+void copyErrorVals (ErrorVals src, ErrorVals dest ) {
+  forEachClass ( i ) dest[i] = src[i];
 }
 
-Supports copySupports ( Supports supports ) {
-  Supports supports2 = newSupports ();
-  copySupports ( supports, supports2 );
+ErrorVals copyErrorVals (ErrorVals supports ) {
+  ErrorVals supports2 = newErrorVals();
+  copyErrorVals(supports, supports2);
   return supports2;
 }
 
-SupportClass sumSupports ( Supports supports ) {
-  SupportClass sum = 0;
-  forEachClass ( i )
-    sum += supports[i];
+ErrorVal sumErrorVals (ErrorVals supports ) {
+  ErrorVal sum = 0;
+  forEachClass ( i ) sum += supports[i];
   return sum;
 }
 
-void minSupports ( Supports src1, Supports src2, Supports dest ) {
-  forEachClass ( i )
-    dest[i] = src1[i] - src2[i];
+void addErrorVals (ErrorVals src1, ErrorVals src2, ErrorVals dest ) {
+  forEachClass ( i ) dest[i] = src1[i] + src2[i];
 }
 
-void plusSupports ( Supports src1, Supports src2, Supports dest ) {
-  forEachClass ( i )
-    dest[i] = src1[i] + src2[i];
+void subErrorVals (ErrorVals src1, ErrorVals src2, ErrorVals dest ) {
+    forEachClass ( i ) dest[i] = src1[i] - src2[i];
 }
 
-void subSupports ( Supports src1, Supports src2, Supports dest ) {
-    forEachClass ( i )
-        dest[i] = src1[i] - src2[i];
+ErrorVals subErrorVals (ErrorVals src1, ErrorVals src2 ) {
+    ErrorVals sub = zeroErrorVals();
+    forEachClass ( i ) sub[i] = src1[i] - src2[i];
+    return sub;
 }
 
 int countSetBits(unsigned long i) {

@@ -36,7 +36,7 @@ int nextPrime(int N) {
     return prime;
 }
 
-string launch(Supports supports,
+string launch(ErrorVals supports,
               Transaction ntransactions,
               Attribute nattributes,
               Class nclasses,
@@ -64,7 +64,9 @@ string launch(Supports supports,
               float wipe_factor,
               bool with_cache,
               bool useSpecial,
-              bool use_ub) {
+              bool use_ub,
+              bool similarlb,
+              bool dynamic_branching) {
 
     auto start_time = high_resolution_clock::now(); // start the timer
 
@@ -126,7 +128,7 @@ string launch(Supports supports,
     Search_base *searcher;
     Solution *solution = nullptr;
     if (with_cache) {
-        searcher = new Search_cache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, cache, timeLimit, maxError <= 0 ? NO_ERR : maxError, useSpecial, maxError <= 0 ? false : stopAfterError);
+        searcher = new Search_cache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, cache, timeLimit, maxError <= 0 ? NO_ERR : maxError, useSpecial, maxError <= 0 ? false : stopAfterError, similarlb, dynamic_branching);
         searcher->run(); // perform the search
         solution = new SolutionFreq(searcher, nodeDataManager);
         Tree *tree_out = solution->getTree();

@@ -26,7 +26,7 @@ public:
     };
     PriorityNode** bucket;
     priority_queue<NodePriority, vector<NodePriority>, cmp> nodemapper;
-    Node * insert ( Array<Item> itemset, NodeDataManager* );
+    pair<Node*, bool> insert ( Array<Item> itemset );
 
 private:
     void remove( int index );

@@ -135,7 +135,7 @@ public:
 
     Cache_Trie(Depth maxdepth, WipeType wipe_type=All, int maxcachesize=0);
     ~Cache_Trie(){freeCache();};
-    Node * insert ( Array<Item> itemset, NodeDataManager* );
+    pair<Node*, bool> insert ( Array<Item> itemset );
     Node *get ( Array<Item> itemset );
     void updateItemsetLoad(Array<Item> itemset, bool inc=false);
     void printload(TrieNode* node, vector<Item>& itemset);
@@ -145,7 +145,7 @@ public:
     void freeCache();
 
 private:
-    TrieNode *addNonExistingItemsetPart ( Array<Item> itemset, int pos, vector<TrieEdge>::iterator& geqEdge_it, TrieNode *&last, NodeDataManager* nodeDataManager );
+    TrieNode *addNonExistingItemsetPart ( Array<Item> itemset, int pos, vector<TrieEdge>::iterator& geqEdge_it, TrieNode *&last);
 
 };
 

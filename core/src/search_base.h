@@ -2,8 +2,8 @@
 // Created by Gael Aglin on 19/10/2021.
 //
 
-#ifndef DL85_SEARCH_BASE_H
-#define DL85_SEARCH_BASE_H
+#ifndef SEARCH_BASE_H
+#define SEARCH_BASE_H
 
 #include <utility>
 #include <map>
@@ -51,8 +51,12 @@ public:
     virtual void run() = 0;
 };
 
+// a variable to express whether the error computation is performed in python or not
+#define is_python_error nodeDataManager->tids_error_callback or nodeDataManager->tids_error_class_callback or nodeDataManager->supports_error_class_callback
 // a variable to express whether the error computation is not performed in python or not
-#define no_python_error !nodeDataManager->tids_error_callback && !nodeDataManager->tids_error_class_callback && !nodeDataManager->supports_error_class_callback
+#define no_python_error not nodeDataManager->tids_error_callback and not nodeDataManager->tids_error_class_callback and not nodeDataManager->supports_error_class_callback
+#define get_node first
+#define has_intersected second
+#define is_new second
 
-
-#endif //DL85_SEARCH_BASE_H
+#endif //SEARCH_BASE_H
