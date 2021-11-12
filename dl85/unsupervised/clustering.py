@@ -1,7 +1,7 @@
 from sklearn.base import ClusterMixin
 from sklearn.utils.validation import assert_all_finite, check_array
 from sklearn.neighbors import DistanceMetric
-from ..predictors.predictor import DL85Predictor
+from ..predictors.predictor import DL85Predictor, Cache_Type, Wipe_Type
 import numpy as np
 
 
@@ -62,7 +62,7 @@ class DL85Cluster(DL85Predictor, ClusterMixin):
             max_depth=1,
             min_sup=1,
             error_function=None,
-            iterative=False,
+            # iterative=False,
             max_error=0,
             stop_after_better=False,
             time_limit=0,
@@ -71,15 +71,25 @@ class DL85Cluster(DL85Predictor, ClusterMixin):
             asc=False,
             repeat_sort=False,
             leaf_value_function=None,
-            nps=False,
-            print_output=False):
+            # nps=False,
+            print_output=False,
+            cache_type=Cache_Type.Cache_Ltd_Trie,
+            cache_size=0,
+            wipe_type=Wipe_Type.Sub_nodes,
+            wipe_factor=0.5,
+            use_cache=True,
+            depth_two_special_algo=True,
+            use_ub=True,
+            similar_lb=True,
+            dynamic_branch=True,
+            similar_for_branching=True):
 
         DL85Predictor.__init__(self,
                                max_depth=max_depth,
                                min_sup=min_sup,
                                error_function=error_function,
                                fast_error_function=None,
-                               iterative=iterative,
+                               # iterative=iterative,
                                max_error=max_error,
                                stop_after_better=stop_after_better,
                                time_limit=time_limit,
@@ -88,8 +98,18 @@ class DL85Cluster(DL85Predictor, ClusterMixin):
                                asc=asc,
                                repeat_sort=repeat_sort,
                                leaf_value_function=leaf_value_function,
-                               nps=nps,
-                               print_output=print_output)
+                               # nps=nps,
+                               print_output=print_output,
+                               cache_type=cache_type,
+                               cache_size=cache_size,
+                               wipe_type=wipe_type,
+                               wipe_factor=wipe_factor,
+                               use_cache=use_cache,
+                               depth_two_special_algo=depth_two_special_algo,
+                               use_ub=use_ub,
+                               similar_lb=similar_lb,
+                               dynamic_branch=dynamic_branch,
+                               similar_for_branching=similar_for_branching)
 
     @staticmethod
     def default_error(tids, X):

@@ -232,7 +232,7 @@ void Cache_Ltd_Trie::updateSubTreeLoad(Array<Item> itemset, Item firstItem, Item
 
         auto *node = (TrieLtdNode *) get(itemset1);
 
-        if (node && ((FND) node->data)->left && ((FND) node->data)->right) {
+        if (node and node->data and ((FND) node->data)->left and ((FND) node->data)->right) {
             Item nextFirstItem = item(((FND) node->data)->test, 0);
             Item nextSecondItem = item(((FND) node->data)->test, 1);
             updateSubTreeLoad(itemset1, nextFirstItem, nextSecondItem, inc);

@@ -8,7 +8,7 @@
 
 void addTreeToCache(Node* node, Array<Item> itemset, Cache* cache){
     auto* node_data = (Freq_NodeData *)node->data;
-    if (cache->maxcachesize > NO_CACHE_LIMIT) node->count_opti_path = node_data->size;
+//    if (cache->maxcachesize > NO_CACHE_LIMIT) node->count_opti_path = node_data->size;
     if (node_data->left){
         Array<Item> itemset_left = addItem(itemset, item(node_data->test, 0));
         Node *node_left = cache->insert(itemset_left).first;

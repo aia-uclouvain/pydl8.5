@@ -91,9 +91,9 @@ int main(int argc, char *argv[]) {
     else {
         //datasetPath = "../datasets/tic-tac-toe.txt";
 //        datasetPath = "../../datasets/soybean.txt";
-//        datasetPath = "../../datasets/anneal.txt";
+        datasetPath = "../../datasets/anneal.txt";
 //        datasetPath = "../../datasets/audiology.txt";
-        datasetPath = "../../datasets/australian-credit.txt";
+//        datasetPath = "../../datasets/australian-credit.txt";
 //        datasetPath = "../../datasets/hypothyroid.txt";
 //        datasetPath = "../../datasets/ionosphere.txt";
 //        datasetPath = "../../datasets/diabetes.txt";
@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
 //    CacheType cache_type = CacheTrie;
     CacheType cache_type = CacheLtdTrie;
 
-//    Size cache_size = 70000;
+//    Size cache_size = 50000;
     Size cache_size = NO_CACHE_LIMIT;
 
 //    WipeType wipe_type = All;
@@ -135,6 +135,9 @@ int main(int argc, char *argv[]) {
 
     bool dyn_branch = true;
 //    bool dyn_branch = false;
+
+//    bool similar_for_branching = true;
+    bool similar_for_branching = false;
 
     ifstream dataset(datasetPath);
     map<Class, ErrorVal> supports_map; // for each class, compute the number of transactions (support)
@@ -175,7 +178,7 @@ int main(int argc, char *argv[]) {
             true, //supports_error_class_is_null
             true, //tids_error_is_null
             false, //infoGain
-            true, //infoAsc
+            false, //infoAsc
             false, //repeatSort
             0, //timeLimit
             verb, // verbose parameter
@@ -187,7 +190,8 @@ int main(int argc, char *argv[]) {
             use_special_algo,
             use_ub,
             sim_lb,
-            dyn_branch
+            dyn_branch,
+            similar_for_branching
     );
 
     cout << result;

@@ -45,30 +45,27 @@ PROJECT_URLS = {
 
 EXTENSION_NAME = 'dl85Optimizer'
 EXTENSION_LANGUAGE = 'c++'
-EXTENSION_SOURCE_FILES = ['cython_extension/error_function.pyx',
-                          'cython_extension/dl85Optimizer.pyx',
+EXTENSION_SOURCE_FILES = ['cython_extension/dl85Optimizer.pyx',
+                          'cython_extension/error_function.pyx',
                           'core/src/cache.cpp',
                           'core/src/cache_hash.cpp',
+                          'core/src/cache_ltd_trie.cpp',
                           'core/src/cache_priority.cpp',
                           'core/src/cache_trie.cpp',
-                          'core/src/data.cpp',
-                          'core/src/dataBinary.cpp',
-                          'core/src/dataBinaryPython.cpp',
-                          'core/src/dataContinuous.cpp',
                           'core/src/dataManager.cpp',
                           'core/src/depthTwoComputer.cpp',
                           'core/src/dl85.cpp',
-                          'core/src/experror.cpp',
-                          'core/src/freq_nodedataManager.cpp',
-                          'core/src/freq_solution.cpp',
                           'core/src/globals.cpp',
-                          'core/src/lcm_pruned.cpp',
-                          'core/src/lcm_iterative.cpp',
-                          'core/src/nodedataManager.cpp',
+                          'core/src/nodeDataManager.cpp',
+                          'core/src/nodeDataManagerFreq.cpp',
                           'core/src/rCover.cpp',
-                          'core/src/rCoverTotalFreq.cpp',
-                          'core/src/rCoverWeighted.cpp',
-                          'core/src/solution.cpp']
+                          'core/src/rCoverFreq.cpp',
+                          'core/src/rCoverWeight.cpp',
+                          'core/src/search_base.cpp',
+                          'core/src/search_cache.cpp',
+                          'core/src/search_nocache.cpp',
+                          'core/src/solution.cpp',
+                          'core/src/solutionFreq.cpp']
 EXTENSION_INCLUDE_DIR = ['core/src', 'cython_extension']
 # EXTENSION_BUILD_ARGS = ['-std=c++11']
 EXTENSION_BUILD_ARGS = ['-std=c++11', '-DCYTHON_PEP489_MULTI_PHASE_INIT=0']

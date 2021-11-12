@@ -7,6 +7,7 @@ from distutils.util import strtobool
 import json
 import numpy as np
 import uuid
+from enum import Enum
 from subprocess import check_call
 
 
@@ -35,6 +36,19 @@ def get_dot_body(treedict, parent=None, left=True):
         gstring += "leaf_" + id + " [label=\"{{class|" + val + "}|{error|" + err + "}}\"];\n"
         gstring += "node_" + parent + " -> leaf_" + id + " [label=" + str(int(left)) + "];\n"
     return gstring
+
+
+class Cache_Type(Enum):
+    Cache_Trie = 1
+    Cache_Ltd_Trie = 2
+    Cache_Hash = 3
+    Cache_Priority = 4
+
+
+class Wipe_Type(Enum):
+    All_nodes = 1
+    Sub_nodes = 2
+    Reused_nodes = 3
 
 
 class DL85Predictor(BaseEstimator):
@@ -110,7 +124,18 @@ class DL85Predictor(BaseEstimator):
             leaf_value_function=None,
             nps=False,
             quiet=True,
-            print_output=False):
+            print_output=False,
+            cache_type=Cache_Type.Cache_Ltd_Trie,
+            cache_size=0,
+            wipe_type=Wipe_Type.Sub_nodes,
+            wipe_factor=0.5,
+            use_cache=True,
+            depth_two_special_algo=True,
+            use_ub=True,
+            similar_lb=True,
+            dynamic_branch=True,
+            similar_for_branching=True):
+
         self.max_depth = max_depth
         self.min_sup = min_sup
         # self.max_estimators = max_estimators
@@ -131,6 +156,16 @@ class DL85Predictor(BaseEstimator):
         self.nps = nps
         self.quiet = quiet
         self.print_output = print_output
+        self.cache_type = cache_type
+        self.cache_size = cache_size
+        self.wipe_type = wipe_type
+        self.wipe_factor = wipe_factor
+        self.use_cache = use_cache
+        self.depth_two_special_algo = depth_two_special_algo
+        self.use_ub = use_ub
+        self.similar_lb = similar_lb
+        self.dynamic_branch = dynamic_branch
+        self.similar_for_branching = similar_for_branching
 
         self.tree_ = None
         self.size_ = -1
@@ -207,15 +242,25 @@ class DL85Predictor(BaseEstimator):
                                        example_weights=self.sample_weight,
                                        max_error=self.max_error,
                                        stop_after_better=self.stop_after_better,
-                                       iterative=self.iterative,
+                                       # iterative=self.iterative,
                                        time_limit=self.time_limit,
                                        verb=self.verbose,
                                        desc=self.desc,
                                        asc=self.asc,
                                        repeat_sort=self.repeat_sort,
-                                       bin_save=False,
+                                       # bin_save=False,
                                        # nps=self.nps,
-                                       predictor=predict)
+                                       predictor=predict,
+                                       cachetype=dl85Optimizer.CacheType.CacheTrie if self.cache_type == Cache_Type.Cache_Trie else dl85Optimizer.CacheType.CacheLtdTrie if self.cache_type == Cache_Type.Cache_Ltd_Trie else dl85Optimizer.CacheType.CacheHash if self.cache_type == Cache_Type.Cache_Hash else dl85Optimizer.CacheType.CachePriority,
+                                       cachesize=self.cache_size,
+                                       wipetype=dl85Optimizer.WipeType.All if self.cache_size == Wipe_Type.All_nodes else dl85Optimizer.WipeType.Subnodes if self.cache_size == Wipe_Type.Sub_nodes else dl85Optimizer.WipeType.Recall,
+                                       wipefactor=self.wipe_factor,
+                                       withcache=self.use_cache,
+                                       usespecial=self.depth_two_special_algo,
+                                       useub=self.use_ub,
+                                       similar_lb=self.similar_lb,
+                                       dyn_branch=self.dynamic_branch,
+                                       similar_for_branching=self.similar_for_branching)
 
         # if self.print_output:
         #     print(solution)

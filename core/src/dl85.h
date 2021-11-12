@@ -95,6 +95,7 @@ string launch(
         bool useSpecial = true,
         bool use_ub = true,
         bool similarlb = false,
-        bool dynamic_branching = false);
+        bool dynamic_branching = false,
+        bool similar_for_branching = true);
 
 #endif //DL85_H
