@@ -90,7 +90,7 @@ NodeData *NodeDataManagerFreq::initData(RCover *cov, Depth currentMaxDepth, int 
     data->test = maxclass;
     data->leafError = error;
 //    data->error += experror->addError(cover->getSupport(), data->error, dm->getNTransactions());
-    data->solutionDepth = currentMaxDepth;
+//    data->solutionDepth = currentMaxDepth;
 
     return (NodeData *) data;
 }

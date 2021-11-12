@@ -91,9 +91,10 @@ int main(int argc, char *argv[]) {
     else {
         //datasetPath = "../datasets/tic-tac-toe.txt";
 //        datasetPath = "../../datasets/soybean.txt";
-        datasetPath = "../../datasets/anneal.txt";
+//        datasetPath = "../../datasets/anneal.txt";
 //        datasetPath = "../../datasets/audiology.txt";
 //        datasetPath = "../../datasets/australian-credit.txt";
+        datasetPath = "../../datasets/breast-wisconsin.txt";
 //        datasetPath = "../../datasets/hypothyroid.txt";
 //        datasetPath = "../../datasets/ionosphere.txt";
 //        datasetPath = "../../datasets/diabetes.txt";
@@ -102,7 +103,7 @@ int main(int argc, char *argv[]) {
 //        datasetPath = "../../datasets/hepatitis.txt";
 //        datasetPath = "../../datasets/tests/paper.txt";
 //        datasetPath = "../../datasets/tic-tac-toe.txt";
-        maxdepth = 4;
+        maxdepth = 7;
         minsup = 1;
     }
 
@@ -136,8 +137,8 @@ int main(int argc, char *argv[]) {
     bool dyn_branch = true;
 //    bool dyn_branch = false;
 
-//    bool similar_for_branching = true;
-    bool similar_for_branching = false;
+    bool similar_for_branching = true;
+//    bool similar_for_branching = false;
 
     ifstream dataset(datasetPath);
     map<Class, ErrorVal> supports_map; // for each class, compute the number of transactions (support)

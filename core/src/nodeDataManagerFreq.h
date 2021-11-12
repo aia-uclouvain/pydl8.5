@@ -11,7 +11,6 @@ struct Freq_NodeData {
     Error error;
     Error lowerBound;
     Size size;
-    Depth solutionDepth;
 
     Freq_NodeData() {
         test = -1;
@@ -21,7 +20,6 @@ struct Freq_NodeData {
         error = FLT_MAX;
         lowerBound = 0;
         size = 1;
-        solutionDepth = -1;
     }
 
     /*~QueryData_Best(){

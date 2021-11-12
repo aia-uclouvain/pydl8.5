@@ -389,7 +389,7 @@ pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
 
         Array<Item> itemsets[2];
         Node *child_nodes[2];
-        Error neg_lb = -1, pos_lb = -1;
+        Error neg_lb = 0, pos_lb = 0;
         Error first_lb, second_lb;
 
         /* the lower bound is computed for both items. they are used as heuristic to decide
