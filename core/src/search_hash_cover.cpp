@@ -1,9 +1,9 @@
-#include "search_cache.h"
+#include "search_hash_cover.h"
 
 using namespace std::chrono;
 
 
-Search_cache::Search_cache(NodeDataManager *nodeDataManager, bool infoGain, bool infoAsc, bool repeatSort,
+Search_hash_cover::Search_hash_cover(NodeDataManager *nodeDataManager, bool infoGain, bool infoAsc, bool repeatSort,
                            Support minsup,
                            Depth maxdepth,
                            Cache *cache,
@@ -16,16 +16,16 @@ Search_cache::Search_cache(NodeDataManager *nodeDataManager, bool infoGain, bool
                            bool similar_for_branching) :
         Search_base(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, maxError, specialAlgo, stopAfterError), cache(cache), similarlb(similarlb), dynamic_branching(dynamic_branching), similar_for_branching(similar_for_branching) {}
 
-Search_cache::~Search_cache()= default;
+Search_hash_cover::~Search_hash_cover()= default;
 
 // the solution already exists for this node
-Node *existingsolution(Node *node, Error *nodeError) {
+Node *existingsolution_(Node *node, Error *nodeError) {
     Logger::showMessageAndReturn("the solution exists and it is worth : ", *nodeError);
     return node;
 }
 
 // the node does not fullfil the constraints to be splitted (minsup, depth, etc.)
-Node *cannotsplitmore(Node *node, Error ub, Error *nodeError, Error leafError) {
+Node *cannotsplitmore_(Node *node, Error ub, Error *nodeError, Error leafError) {
     Logger::showMessageAndReturn("max depth reached. ub = ", ub, " and leaf error = ", leafError);
     // we return the leaf error as node error without checking the upperbound constraint. The parent will do it
     *nodeError = leafError;
@@ -33,40 +33,40 @@ Node *cannotsplitmore(Node *node, Error ub, Error *nodeError, Error leafError) {
 }
 
 // the node error is equal to the lower bound
-Node *reachlowest(Node *node, Error *nodeError, Error leafError) {
+Node *reachlowest_(Node *node, Error *nodeError, Error leafError) {
     *nodeError = leafError;
     Logger::showMessageAndReturn("lowest error. node error = leaf error = ", *nodeError);
     return node;
 }
 
 // the upper bound of the node is lower than the lower bound
-Node *infeasiblecase(Node *node, Error *saved_lb, Error ub) {
+Node *infeasiblecase_(Node *node, Error *saved_lb, Error ub) {
     Logger::showMessageAndReturn("no solution bcoz ub < lb. lb =", *saved_lb, " and ub = ", ub);
     return node;
 }
 
-Node * Search_cache::getSolutionIfExists(Node *node, Error ub, Depth depth){
+Node * Search_hash_cover::getSolutionIfExists(Node *node, Error ub, Depth depth){
 
     Error *nodeError = &(((FND) node->data)->error);
-    if (*nodeError < FLT_MAX) return existingsolution(node, nodeError); // solution exists (new node error is FLT_MAX)
+    if (*nodeError < FLT_MAX) return existingsolution_(node, nodeError); // solution exists (new node error is FLT_MAX)
 
     Error *saved_lb = &(((FND) node->data)->lowerBound);
     // in case the problem is infeasible
     if (ub <= *saved_lb or ub <= 0) {
-        return infeasiblecase(node, saved_lb, ub);
+        return infeasiblecase_(node, saved_lb, ub);
     }
 
     Error leafError = ((FND) node->data)->leafError;
     // we reach the lowest value possible. implicitely, the upper bound constraint is not violated
     if (floatEqual(leafError, *saved_lb)) {
-        return reachlowest(node, nodeError, leafError);
+        return reachlowest_(node, nodeError, leafError);
     }
 //    nodeDataManager->cover->getSupport();
 
     // we cannot split the node
     if (depth == maxdepth || nodeDataManager->cover->getSupport() < 2 * minsup) {
 //        node->solution_effort = 1;
-        return cannotsplitmore(node, ub, nodeError, leafError);
+        return cannotsplitmore_(node, ub, nodeError, leafError);
     }
 
     // if time limit is reached we backtrack
@@ -78,14 +78,14 @@ Node * Search_cache::getSolutionIfExists(Node *node, Error ub, Depth depth){
     return nullptr;
 }
 
-Node * Search_cache::inferSolutionFromLB(Node *node, Error ub){
+Node * Search_hash_cover::inferSolutionFromLB(Node *node, Error ub){
 
     Error *nodeError = &(((FND) node->data)->error);
     Error *saved_lb = &(((FND) node->data)->lowerBound);
-    if (ub <= *saved_lb) return infeasiblecase(node, saved_lb, ub); // infeasible case
+    if (ub <= *saved_lb) return infeasiblecase_(node, saved_lb, ub); // infeasible case
 
     Error leafError = ((FND) node->data)->leafError;
-    if (floatEqual(leafError, *saved_lb)) return reachlowest(node, nodeError, leafError); // lowest possible value reached
+    if (floatEqual(leafError, *saved_lb)) return reachlowest_(node, nodeError, leafError); // lowest possible value reached
 
     if (timeLimitReached) { *nodeError = leafError; return node; } // time limit reached
 
@@ -93,7 +93,7 @@ Node * Search_cache::inferSolutionFromLB(Node *node, Error ub){
 }
 
 // information gain calculation
-float Search_cache::informationGain(ErrorVals notTaken, ErrorVals taken) {
+float Search_hash_cover::informationGain(ErrorVals notTaken, ErrorVals taken) {
     int sumSupNotTaken = sumErrorVals(notTaken);
     int sumSupTaken = sumErrorVals(taken);
     int actualDBSize = sumSupNotTaken + sumSupTaken;
@@ -122,7 +122,7 @@ float Search_cache::informationGain(ErrorVals notTaken, ErrorVals taken) {
 }
 
 
-Array<Attribute> Search_cache::getSuccessors(Array<Attribute> last_candidates, Attribute last_added, Node* node) {
+Array<Attribute> Search_hash_cover::getSuccessors(Array<Attribute> last_candidates, Attribute last_added, Node* node) {
 
     std::multimap<float, Attribute> gain;
     Array<Attribute> next_candidates(last_candidates.size, 0);
@@ -182,7 +182,7 @@ Array<Attribute> Search_cache::getSuccessors(Array<Attribute> last_candidates, A
 }
 
 // compute the similarity lower bound based on the best ever seen node or the node with the highest coversize
-Error Search_cache::computeSimilarityLB(SimilarVals &similar_db1, SimilarVals &similar_db2) {
+Error Search_hash_cover::computeSimilarityLB(SimilarValss &similar_db1, SimilarValss &similar_db2) {
     //return 0;
     if (is_python_error) return 0;
     Error bound = 0;
@@ -204,7 +204,7 @@ Error Search_cache::computeSimilarityLB(SimilarVals &similar_db1, SimilarVals &s
 }
 
 
-void Search_cache::updateSimilarLBInfo2(NodeData *node_data, SimilarVals &similar_db1, SimilarVals &similar_db2) {
+void Search_hash_cover::updateSimilarLBInfo2(NodeData *node_data, SimilarValss &similar_db1, SimilarValss &similar_db2) {
 
     Error err = (((FND) node_data)->error < FLT_MAX) ? ((FND) node_data)->error : ((FND) node_data)->lowerBound;
     Support sup = nodeDataManager->cover->getSupport();
@@ -264,7 +264,7 @@ void Search_cache::updateSimilarLBInfo2(NodeData *node_data, SimilarVals &simila
 
 
 // store the node with the highest error as well as the one with the largest cover in order to find a similarity lower bound
-void Search_cache::updateSimilarLBInfo1(NodeData *node_data, SimilarVals &highest_error_db, SimilarVals &highest_coversize_db) {
+void Search_hash_cover::updateSimilarLBInfo1(NodeData *node_data, SimilarValss &highest_error_db, SimilarValss &highest_coversize_db) {
 
     Error err = (((FND) node_data)->error < FLT_MAX) ? ((FND) node_data)->error : ((FND) node_data)->lowerBound;
     Support sup = nodeDataManager->cover->getSupport();
@@ -313,26 +313,26 @@ void Search_cache::updateSimilarLBInfo1(NodeData *node_data, SimilarVals &highes
  * @param ub - the upper bound of the search. It cannot be reached
  * @return the same node as get in parameter with added information about the best tree
  */
-pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
+pair<Node*,HasInter> Search_hash_cover::recurse(Array<Item> itemset,
                             Item last_added_item,
                             Node *node,
                             bool node_is_new,
                             Array<Attribute> next_candidates,
                             Depth depth,
                             Error ub,
-                            SimilarVals &sim_db1,
-                            SimilarVals &sim_db2) {
+                            SimilarValss &sim_db1,
+                            SimilarValss &sim_db2) {
 
     // check if we ran out of time
     if (timeLimit > 0 and duration<float>(high_resolution_clock::now() - startTime).count() >= (float)timeLimit) timeLimitReached = true;
 
     Node* result = getSolutionIfExists(node, ub, depth);
     if (result) { // the solution can be inferred without computation
-        if ( ((FND)node->data)->left and ((FND)node->data)->right and cache->maxcachesize > NO_CACHE_LIMIT ){ // we should then update subtree load
-            Item leftItem_down = item(((FND)node->data)->test, NEG_ITEM), rightItem_down = item(((FND)node->data)->test, POS_ITEM);
-            Array<Item> copy_itemset = itemset.duplicate();
-            cache->updateSubTreeLoad( copy_itemset, leftItem_down, rightItem_down, true); // the function deletes the copy_itemset
-        }
+//        if ( ((FND)node->data)->left and ((FND)node->data)->right and cache->maxcachesize > NO_CACHE_LIMIT ){ // we should then update subtree load
+//            Item leftItem_down = item(((FND)node->data)->test, NEG_ITEM), rightItem_down = item(((FND)node->data)->test, POS_ITEM);
+//            Array<Item> copy_itemset = itemset.duplicate();
+//            cache->updateSubTreeLoad( copy_itemset, leftItem_down, rightItem_down, true); // the function deletes the copy_itemset
+//        }
         return {result, false}; // the second value is to state whether an intersection has been performed or not
     }
     Logger::showMessageAndReturn("Node solution cannot be found without calculation");
@@ -341,18 +341,18 @@ pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
     Attribute last_added_attr = (last_added_item == NO_ITEM) ? NO_ATTRIBUTE : item_attribute(last_added_item);
 
     // in case, the node exist, but solution cannot be inferred without a new computation, we set to cover to the current itemset
-    if (not node_is_new) nodeDataManager->cover->intersect(last_added_attr, item_value(last_added_item));
+    /*if (not node_is_new) nodeDataManager->cover->intersect(last_added_attr, item_value(last_added_item));
 
     if (similarlb and not similar_for_branching){
         ((FND) node->data)->lowerBound = max(((FND) node->data)->lowerBound, computeSimilarityLB(sim_db1, sim_db2));
         Node* res = inferSolutionFromLB(node, ub);
         if (res != nullptr) return {res, true};
-    }
+    }*/
 
 
     // in case the solution cannot be derived without computation and remaining depth is 2, we use a specific algorithm
     if (specialAlgo and maxdepth - depth == 2 and nodeDataManager->cover->getSupport() >= 2 * minsup and no_python_error) {
-        computeDepthTwo(nodeDataManager->cover, ub, next_candidates, last_added_attr, itemset, node, nodeDataManager, ((FND) node->data)->lowerBound, cache, this);
+        computeDepthTwo(nodeDataManager->cover, ub, next_candidates, last_added_attr, itemset, node, nodeDataManager, ((FND) node->data)->lowerBound, cache, this, true);
         return {node, true};
     }
 
@@ -376,7 +376,7 @@ pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
     }
 
     // parameters for similarity lower bound
-    SimilarVals similar_db1, similar_db2;
+    SimilarValss similar_db1, similar_db2;
     /* in case solution is not found, this value is the minimum of lower bounds
      * error of each attribute(sum per item). It can be used as a lower bound for the current node*/
     Error minlb = FLT_MAX, child_ub = ub; // upper bound for the first child (item)
@@ -398,27 +398,22 @@ pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
          this computation can be costly so, in some case can add some overhead. If you don't
          want to use it, set dynamic_branching to false. 0/1 order is used in this case.*/
         if (dynamic_branching) {
-            Array<Item> tmp_itemset = addItem(itemset, item(attr, NEG_ITEM));
-            Node* tmp_node = cache->get(tmp_itemset);
+
+            nodeDataManager->cover->intersect(attr, false);
+            Node* tmp_node = cache->get(nodeDataManager, itemset.size + 1);
             if (tmp_node != nullptr and tmp_node->data != nullptr) {
                 neg_lb = ((FND) tmp_node->data)->error < FLT_MAX ? ((FND) tmp_node->data)->error : ((FND) tmp_node->data)->lowerBound;
             }
-            tmp_itemset.free();
-            tmp_itemset = addItem(itemset, item(attr, POS_ITEM));
-            tmp_node = cache->get(tmp_itemset);
+            if (similarlb and similar_for_branching) neg_lb = max(neg_lb, computeSimilarityLB(similar_db1, similar_db2));
+            nodeDataManager->cover->backtrack();
+
+            nodeDataManager->cover->intersect(attr);
+            tmp_node = cache->get(nodeDataManager, itemset.size + 1);
             if (tmp_node != nullptr and tmp_node->data != nullptr) {
                 pos_lb = ((FND) tmp_node->data)->error < FLT_MAX ? ((FND) tmp_node->data)->error : ((FND) tmp_node->data)->lowerBound;
             }
-            tmp_itemset.free();
-            if (similarlb and similar_for_branching){
-                nodeDataManager->cover->intersect(attr, false);
-                neg_lb = max(neg_lb, computeSimilarityLB(similar_db1, similar_db2));
-                nodeDataManager->cover->backtrack();
-
-                nodeDataManager->cover->intersect(attr);
-                pos_lb = max(pos_lb, computeSimilarityLB(similar_db1, similar_db2));
-                nodeDataManager->cover->backtrack();
-            }
+            if (similarlb and similar_for_branching) pos_lb = max(pos_lb, computeSimilarityLB(similar_db1, similar_db2));
+            nodeDataManager->cover->backtrack();
         }
 
         // the first item is the one with the highest lower bound
@@ -429,32 +424,32 @@ pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
 
         // perform search on the first item
         itemsets[first_item] = addItem(itemset, item(attr, first_item));
-        pair<Node*, bool> node_state = cache->insert(itemsets[first_item]);
+        nodeDataManager->cover->intersect(attr, first_item);
+        pair<Node*, bool> node_state = cache->insert(nodeDataManager, itemsets[first_item].size);
         child_nodes[first_item] = node_state.get_node;
 //        nodeDataManager->cover->intersect(attr, first_item);
-//        if (node_state.is_new){ child_nodes[first_item]->data = nodeDataManager->initData(); } // if new node
-        if (node_state.is_new){ nodeDataManager->cover->intersect(attr, first_item); child_nodes[first_item]->data = nodeDataManager->initData(); } // if new node
-        if (node_state.is_new) Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) child_nodes[first_item]->data)->leafError);
+        if (node_state.is_new){ child_nodes[first_item]->data = nodeDataManager->initData(); } // if new node
+//        if (node_state.is_new){ nodeDataManager->cover->intersect(attr, first_item); child_nodes[first_item]->data = nodeDataManager->initData(); } // if new node
 //        if (similarlb) first_lb = max(first_lb, computeSimilarityLB(similar_db1, similar_db2)); // if lower bound was not computed
 //        ((FND) child_nodes[first_item]->data)->lowerBound = max(((FND) child_nodes[first_item]->data)->lowerBound, first_lb); // the best lb between the computed and the saved ones is selected
         ((FND) child_nodes[first_item]->data)->lowerBound = first_lb; // the best lb between the computed and the saved ones is selected
         pair<Node*, HasInter> node_inter = recurse(itemsets[first_item], item(attr, first_item), child_nodes[first_item], node_state.is_new, next_attributes,  depth + 1, child_ub - second_lb, similar_db1, similar_db2); // perform the search for the first item
         child_nodes[first_item] = node_inter.get_node;
         if (similarlb) updateSimilarLBInfo2(child_nodes[first_item]->data, similar_db1, similar_db2);
-//        nodeDataManager->cover->backtrack(); // cases of intersection
-        if (node_state.is_new or node_inter.has_intersected) nodeDataManager->cover->backtrack(); // cases of intersection
+        nodeDataManager->cover->backtrack(); // cases of intersection
+//        if (node_state.is_new or node_inter.has_intersected) nodeDataManager->cover->backtrack(); // cases of intersection
         Error firstError = ((FND) child_nodes[first_item]->data)->error;
         itemsets[first_item].free();
 
-        Array<Item> copy_itemset = itemset.duplicate();
+//        Array<Item> copy_itemset = itemset.duplicate();
         if (nodeDataManager->canimprove(child_nodes[first_item]->data, child_ub - second_lb)) { // perform search on the second item
             itemsets[second_item] = addItem(itemset, item(attr, second_item));
-            node_state = cache->insert(itemsets[second_item]);
+            nodeDataManager->cover->intersect(attr, second_item);
+            node_state = cache->insert(nodeDataManager, itemsets[second_item].size);
             child_nodes[second_item] = node_state.get_node;
 //            nodeDataManager->cover->intersect(attr, second_item);
-//            if (node_state.is_new){ child_nodes[second_item]->data = nodeDataManager->initData(); } // if new node
-            if (node_state.is_new){ nodeDataManager->cover->intersect(attr, second_item); child_nodes[second_item]->data = nodeDataManager->initData(); } // if new node
-            if (node_state.is_new) Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) child_nodes[second_item]->data)->leafError);
+            if (node_state.is_new){ child_nodes[second_item]->data = nodeDataManager->initData(); } // if new node
+//            if (node_state.is_new){ nodeDataManager->cover->intersect(attr, second_item); child_nodes[second_item]->data = nodeDataManager->initData(); } // if new node
 //            if (similarlb) second_lb = max(second_lb, computeSimilarityLB(similar_db1, similar_db2));
 //            ((FND) child_nodes[second_item]->data)->lowerBound = max(((FND) child_nodes[second_item]->data)->lowerBound, second_lb); // the best lb between the computed and the saved ones is selected
             ((FND) child_nodes[second_item]->data)->lowerBound = second_lb; // the best lb between the computed and the saved ones is selected
@@ -462,8 +457,8 @@ pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
             node_inter = recurse(itemsets[second_item], item(attr, second_item), child_nodes[second_item], node_state.is_new, next_attributes,  depth + 1, remainUb, similar_db1, similar_db2); // perform the search for the second item
             child_nodes[second_item] = node_inter.get_node;
             if (similarlb) updateSimilarLBInfo2(child_nodes[second_item]->data, similar_db1, similar_db2);
-//            nodeDataManager->cover->backtrack();
-            if (node_state.is_new or node_inter.has_intersected) nodeDataManager->cover->backtrack();
+            nodeDataManager->cover->backtrack();
+//            if (node_state.is_new or node_inter.has_intersected) nodeDataManager->cover->backtrack();
             Error secondError = ((FND) child_nodes[second_item]->data)->error;
             itemsets[second_item].free();
 
@@ -473,14 +468,14 @@ pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
             if (hasUpdated) {
                 child_ub = feature_error;
                 best_attr = attr;
-                if (lastBestAttr != -1 and cache->maxcachesize > NO_CACHE_LIMIT) cache->updateSubTreeLoad(copy_itemset, item(lastBestAttr, NEG_ITEM), item(lastBestAttr, POS_ITEM),false);
-                else copy_itemset.free();
+//                if (lastBestAttr != -1 and cache->maxcachesize > NO_CACHE_LIMIT) cache->updateSubTreeLoad(copy_itemset, item(lastBestAttr, NEG_ITEM), item(lastBestAttr, POS_ITEM),false);
+//                else copy_itemset.free();
                 Logger::showMessageAndReturn("-after this attribute ", attr, ", node error=", *nodeError, " and ub=", child_ub);
             }
             else { // in case we get the real error, we update the minimum possible error
                 minlb = min(minlb, feature_error);
-                if(cache->maxcachesize > NO_CACHE_LIMIT) cache->updateSubTreeLoad(copy_itemset, item(attr, NEG_ITEM), item(attr, POS_ITEM),false);
-                else copy_itemset.free();
+//                if(cache->maxcachesize > NO_CACHE_LIMIT) cache->updateSubTreeLoad(copy_itemset, item(attr, NEG_ITEM), item(attr, POS_ITEM),false);
+//                else copy_itemset.free();
             }
 
             if (nodeDataManager->canSkip(node->data) or timeLimitReached) { //lowerBound or time limit reached
@@ -493,8 +488,8 @@ pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
             if (floatEqual(firstError, FLT_MAX)) minlb = min(minlb, ((FND) child_nodes[first_item]->data)->lowerBound + second_lb);
             else minlb = min(minlb, firstError + second_lb);
 
-            if (cache->maxcachesize > NO_CACHE_LIMIT) cache->updateSubTreeLoad(copy_itemset, item(attr, first_item), -1, false);
-            else copy_itemset.free();
+//            if (cache->maxcachesize > NO_CACHE_LIMIT) cache->updateSubTreeLoad(copy_itemset, item(attr, first_item), -1, false);
+//            else copy_itemset.free();
         }
 
         if (stopAfterError and depth == 0 and ub < FLT_MAX and *nodeError < ub) break;
@@ -514,7 +509,7 @@ pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
 }
 
 
-void Search_cache::run() {
+void Search_hash_cover::run() {
 
     // Create empty list for candidate attributes
     Array<Attribute> attributes_to_visit(nattributes, 0);
@@ -532,15 +527,20 @@ void Search_cache::run() {
 
     //create an empty array of items representing an emptyset and insert it
     Array<Item> itemset;
-    Node * rootnode = cache->insert(itemset).first;
+    Node * rootnode = cache->insert(nodeDataManager, 0, true).first;
     rootnode->data = nodeDataManager->initData();
-    SimilarVals sdb1, sdb2;
+    SimilarValss sdb1, sdb2;
     // call the recursive function to start the search
     cache->root = recurse(itemset, NO_ATTRIBUTE, rootnode, true, attributes_to_visit, 0, maxError, sdb1, sdb2).first;
 
     // never forget to return what is not yours. Think to others who need it ;-)
     itemset.free();
     attributes_to_visit.free();
+
+   /* for (auto const &pair: ((Cache_Hash_Cover*)cache)->store) {
+        auto data = (FND)pair.second->data;
+        std::cout << "{\n\tcover:\t" << pair.first << "\n\ttest:\t" << data->test << "\n\tleaf:\t" << data->leafError << "\n\terr:\t" << data->error << "\n\tsize:\t" << data->size<< "\n\tleft:\t" << data->left << "\n}\n\n";
+    }*/
 
     /*cout << "ncall: " << ncall << endl;
     cout << "comptime: " << comptime << endl;

@@ -16,7 +16,7 @@ using namespace std::chrono;
 
 class Search_base;
 
-Error computeDepthTwo(RCover*, Error, Array<Attribute>, Attribute, Array<Item>, Node*, NodeDataManager*, Error, Cache*, Search_base*);
+Error computeDepthTwo(RCover*, Error, Array<Attribute>, Attribute, Array<Item>, Node*, NodeDataManager*, Error, Cache*, Search_base*, bool = false);
 
 struct TreeTwo{
     Freq_NodeData* root_data;

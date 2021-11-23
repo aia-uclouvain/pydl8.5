@@ -21,6 +21,7 @@
 #include "rCoverWeight.h"
 #include "search_nocache.h"
 #include "search_cache.h"
+#include "search_hash_cover.h"
 #include "nodeDataManagerFreq.h"
 #include "solutionFreq.h"
 #include "cache_hash.h"

@@ -19,7 +19,7 @@ Cache_Trie::Cache_Trie(Depth maxdepth, WipeType wipe_type, int maxcachesize) : C
 }
 
 //look for itemset in the trie from root. Return null if not exist and the node of the last item if it exists
-Node *Cache_Trie::get(Array<Item> itemset) {
+Node *Cache_Trie::get(Array<Item> itemset ) {
     auto *cur_node = (TrieNode *) root;
     vector<TrieEdge>::iterator geqEdge_it;
     forEach (i, itemset) {

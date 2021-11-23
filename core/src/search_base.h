@@ -48,6 +48,8 @@ public:
                 bool specialAlgo = true,
                 bool stopAfterError = false);
 
+    virtual ~Search_base() = default;
+
     virtual void run() = 0;
 };
 

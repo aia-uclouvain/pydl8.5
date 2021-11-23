@@ -38,7 +38,7 @@ public:
     Cache_Ltd_Trie(Depth maxdepth, WipeType wipe_type=Subnodes, int maxcachesize=0, float wipe_factor=.5f);
     ~Cache_Ltd_Trie(){ delete root; for (auto node: heap) { delete node.first; } };
 
-    pair<Node*, bool> insert ( Array<Item> itemset);
+    pair<Node*, bool> insert ( Array<Item> itemset );
     Node *get ( Array<Item> itemset );
     void updateItemsetLoad(Array<Item> itemset, bool inc=false);
     void updateSubTreeLoad(Array<Item> itemset, Item firstI, Item secondI, bool inc=false);

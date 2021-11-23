@@ -17,7 +17,7 @@ Search_nocache::Search_nocache(NodeDataManager *nodeDataManager, bool infoGain, 
                                bool use_ub) :
         Search_base(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, maxError, specialAlgo, stopAfterError), use_ub(use_ub) {}
 
-Search_nocache::~Search_nocache() {}
+Search_nocache::~Search_nocache() = default;
 
 
 // information gain calculation

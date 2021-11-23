@@ -2,11 +2,12 @@
 #define CACHE_H
 #include "globals.h"
 #include "nodeDataManager.h"
+//#include "cache_wipe.h"
 
 using namespace std;
 
 enum CacheType {
-    CacheTrie, CacheLtdTrie, CacheHash, CachePriority
+    CacheTrie, CacheLtdTrie, CacheHash, CachePriority, CacheHashCover
 };
 
 enum WipeType {
@@ -34,11 +35,19 @@ public:
     Depth maxdepth;
     WipeType wipe_type;
 
-    virtual pair<Node*, bool> insert ( Array<Item> itemset) = 0; // add a node to the tree
-    virtual Node* get ( Array<Item> itemset){return nullptr;} // get a node in the tree based on its corresponding itemset
+//    virtual pair<Node*, bool> insert ( Array<Item> itemset ) = 0; // add a node to the tree
+    virtual pair<Node*, bool> insert ( Array<Item> itemset ) { return {nullptr, false}; } // add a node to the tree
+    virtual pair<Node*, bool> insert ( NodeDataManager*, int depth = 0, bool rootnode = false ) { return {nullptr, false}; }
+
+    virtual Node* get ( Array<Item> itemset ){return nullptr;} // get a node in the tree based on its corresponding itemset
+    virtual Node *get ( NodeDataManager*, int depth) { return nullptr; }
+
     virtual void updateSubTreeLoad(Array<Item> itemset, Item firstI, Item secondI, bool inc=false){}
+
     virtual void updateItemsetLoad ( Array<Item> itemset, bool inc=false ){}
+
     virtual int getCacheSize(){return cachesize;}
+
     virtual void updateRootPath(Array<Item> itemset, int value){}
 };
 

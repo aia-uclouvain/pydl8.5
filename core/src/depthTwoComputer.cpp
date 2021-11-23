@@ -24,6 +24,24 @@ void addTreeToCache(Node* node, Array<Item> itemset, Cache* cache){
     }
 }
 
+void addTreeToCache(Node* node, NodeDataManager* ndm, Cache* cache){
+    auto* node_data = (Freq_NodeData *)node->data;
+//    if (cache->maxcachesize > NO_CACHE_LIMIT) node->count_opti_path = node_data->size;
+    if (node_data->left){
+        ndm->cover->intersect(node_data->test, NEG_ITEM);
+        Node *node_left = cache->insert(ndm).first;
+        node_left->data = (NodeData *) node_data->left;
+        addTreeToCache(node_left, ndm, cache);
+        ndm->cover->backtrack();
+
+        ndm->cover->intersect(node_data->test, POS_ITEM);
+        Node *node_right = cache->insert(ndm).first;
+        node_right->data = (NodeData *) node_data->right;
+        addTreeToCache(node_left, ndm, cache);
+        ndm->cover->backtrack();
+    }
+}
+
 void setIteme(Freq_NodeData* node_data, const Array<Item>& itemset, Cache* cache){
     if (node_data->left){
         Array<Item> itemset_left;
@@ -69,7 +87,8 @@ Error computeDepthTwo(RCover* cover,
                       NodeDataManager* nodeDataManager,
                       Error lb,
                       Cache* cache,
-                      Search_base* searcher) {
+                      Search_base* searcher,
+                      bool cachecover) {
 
     // infeasible case. Avoid computing useless solution
     if (ub <= lb){
@@ -419,7 +438,8 @@ Error computeDepthTwo(RCover* cover,
         }
 
         node->data = (NodeData *) best_tree->root_data;
-        addTreeToCache(node, itemset, cache);
+        if (cachecover) addTreeToCache(node, nodeDataManager, cache);
+        else addTreeToCache(node, itemset, cache);
 //        setIteme((Freq_NodeData *) node->data, itemset, cache);
 
         // update count_opti_path counter for each node of the current path

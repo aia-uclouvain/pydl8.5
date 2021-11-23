@@ -32,7 +32,7 @@ DataManager::DataManager(ErrorVals supports, Transaction ntransactions, Attribut
     }
 
 
-    if (target){
+    if (target != nullptr){
         for (int i = 0; i < nclasses; i++){
             bitset<M> * classCov = new bitset<M>[nWords];
             for (int j = 0; j < nWords; ++j) {

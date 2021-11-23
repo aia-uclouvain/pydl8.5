@@ -198,6 +198,30 @@ public:
 
 };
 
+// custom specialization of std::hash can be injected in namespace std
+namespace std {
+    template<>
+    struct hash<RCover> {
+        std::size_t operator()(const RCover& array) const noexcept {
+            std::size_t h = array.nWords;
+            for (int i = 0; i < array.nWords; ++i) {
+                h ^= array.coverWords[i].top().to_ulong() + 0x9e3779b9 + 64 * h + h / 4;
+            }
+            return h;
+        }
+    };
+
+    template<>
+    struct equal_to<RCover> {
+        bool operator()(const RCover& lhs, const RCover& rhs) const noexcept {
+            for (int i = 0; i < lhs.nWords; ++i) {
+                if (lhs.coverWords[i].top().to_ulong() != rhs.coverWords[i].top().to_ulong()) return false;
+            }
+            return true;
+        }
+    };
+}
+
 /*class RCover {
 
 public:

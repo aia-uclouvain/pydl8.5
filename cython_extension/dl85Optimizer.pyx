@@ -18,7 +18,7 @@ cdef extern from "../core/src/globals.h":
         iterator end()
         int getSize()
 
-cdef extern from "../core/src/cache.h":
+cdef extern from "../core/src/cache_wipe.h":
     cpdef enum CacheType:
         CacheTrie,
         CacheLtdTrie,

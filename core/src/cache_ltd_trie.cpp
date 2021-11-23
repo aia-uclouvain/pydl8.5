@@ -72,6 +72,7 @@ TrieLtdNode *Cache_Ltd_Trie::addNonExistingItemsetPart(Array<Item> itemset, int 
         if (i == pos) parent_node->edges.insert(geqEdge_it, newedge);
         else parent_node->edges.push_back(newedge); // new node added so add the edge without checking its place
         cachesize++;
+        cerr << "--- Searching, lattice size: " << cachesize << "\r" << flush;
         child_node->depth = i + 1;
         parent_node = child_node;
     }
@@ -83,7 +84,7 @@ pair<Node*, bool> Cache_Ltd_Trie::insert(Array<Item> itemset) {
     auto *cur_node = (TrieLtdNode *) root;
     if (itemset.size == 0) {
         cachesize++;
-        Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) cur_node->data)->leafError);
+        cerr << "--- Searching, lattice size: " << cachesize << "\r" << flush;
         return {cur_node, true};
     }
     if (getCacheSize() >= maxcachesize && maxcachesize > 0) wipe();
@@ -94,7 +95,6 @@ pair<Node*, bool> Cache_Ltd_Trie::insert(Array<Item> itemset) {
         if (geqEdge_it == cur_node->edges.end() || geqEdge_it->item != itemset[i]) { // the item does not exist
             // create path representing the part of the itemset not yet present in the trie.
             TrieLtdNode *last_inserted_node = addNonExistingItemsetPart(itemset, i, geqEdge_it, cur_node);
-            Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) last_inserted_node->data)->leafError);
             return {last_inserted_node, true};
         } else {
             if (i == 0) cur_node->n_reuse++; // root node
@@ -105,7 +105,6 @@ pair<Node*, bool> Cache_Ltd_Trie::insert(Array<Item> itemset) {
         }
     }
     if (cur_node->data == nullptr) {
-        Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) cur_node->data)->leafError);
         return {cur_node, true};
     }
     else {

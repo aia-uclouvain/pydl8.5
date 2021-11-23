@@ -1,40 +1,40 @@
-build/*
+build/
 
-dist/*
+dist/
 
-pydl8.5.egg-info/*
+pydl8.5.egg-info/
 
-doc/_build/*
-doc/auto_examples/*
-doc/generated/*
+doc/_build
+doc/auto_examples
+doc/generated
 
-.pytest_cache/*
+.pytest_cache/
 
-.idea/*
+.idea/
 
-.ipynb_checkpoints/*
+.ipynb_checkpoints/
 
-datasets/tests/*
+datasets/boosting/eharmony/
+datasets/boosting/mnist/
+datasets/boosting/usps/
+datasets/bin/
+datasets/binoct/
+datasets/tests/
 
-datasets/boosting/eharmony/*
+notebooks/
 
-datasets/boosting/mnist/*
+core/cmake-build-debug/
+core/cmake-build-release/
+core/tests_run/
+core/main_reg.cpp
 
-datasets/boosting/usps/*
-
-notebooks/*
-
-core/cmake-build-debug/*
-
-core/cmake-build-release/*
-
-dl85/__pycache__/*
-dl85/supervised/classifiers/__pycache__/*
-dl85/supervised/__pycache__/*
-dl85/unsupervised/__pycache__/*
-dl85/supervised/classifiers/tests/__pycache__/*
-dl85/errors/__pycache__/*
-dl85/predictors/__pycache__/*
+dl85/__pycache__/
+dl85/supervised/classifiers/__pycache__/
+dl85/supervised/__pycache__/
+dl85/unsupervised/__pycache__/
+dl85/supervised/classifiers/tests/__pycache__/
+dl85/errors/__pycache__/
+dl85/predictors/__pycache__/
 dl85/supervised/classifiers/old_classifier.py
 dl85/unsupervised/old_clustering.py
 dl85/predictors/old_predictor.py
@@ -46,6 +46,9 @@ cython_extension/error_function.h
 examples/gurobi.log
 examples/plots/anneal_odt
 examples/plots/anneal_odt.png
+examples/*.csv
+examples/output/
+examples/test/
 
 *.so
 
@@ -53,7 +56,7 @@ examples/plots/anneal_odt.png
 
 todo.txt
 
-examples/output/*
-examples/*.csv
+memory/
 
-core/tests_run/*
+mem_script.sh
+memory_plot.r

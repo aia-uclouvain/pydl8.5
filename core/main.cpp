@@ -7,14 +7,18 @@
 #include <vector>
 #include <iostream>
 #include <functional>
-#include <ctime>
-#include <cstdlib>
+//#include <ctime>
+//#include <cstdlib>
 #include "dl85.h"
 #include "globals.h"
-#include <sys/time.h>
-#include <sys/resource.h>
+//#include <ctime>
+//#include <sys/resource.h>
 
 using namespace std;
+
+typedef int Config;
+#define optimized 0
+#define basic 1
 
 int getNFeatures(ifstream &dataset, vector<Class> &target, map<Class, ErrorVal> &supports_map) {
     // use the first line to count the number of features
@@ -79,22 +83,35 @@ int functorExample(vector<float>& vec) {
 
 int main(int argc, char *argv[]) {
 
-    bool cli = false;
+    bool cli = true;
+//    bool cli = false;
     string datasetPath;
+    Config configuration;
     int maxdepth, minsup;
 
     if (cli){
-        datasetPath = (argc > 1) ? "../datasets/" + std::string(argv[1]) + ".txt" : "../datasets/anneal.txt";
-        maxdepth = (argc > 2) ? atoi(argv[2]) : 2;
-        minsup = (argc > 3) ? atoi(argv[3]) : 1;
+//        datasetPath = (argc > 1) ? "../../datasets/" + std::string(argv[1]) + ".txt" : "../datasets/anneal.txt";
+//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/anneal.txt";
+        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/yeast.txt";
+//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/tests/paper1.txt";
+//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/binoct/IndiansDiabetes.txt";
+//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/binoct/spambase.txt";
+//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/letter.txt";
+        maxdepth = (argc > 2) ? std::stoi(argv[2]) : 6;
+        configuration = (argc > 3 and std::string(argv[3]).find('b') == 0) ? basic : optimized;
+        minsup = (argc > 4) ? std::stoi(argv[4]) : 1;
     }
     else {
-        //datasetPath = "../datasets/tic-tac-toe.txt";
+//        datasetPath = "../datasets/tic-tac-toe.txt";
 //        datasetPath = "../../datasets/soybean.txt";
-//        datasetPath = "../../datasets/anneal.txt";
+        datasetPath = "../../datasets/anneal.txt";
+//        datasetPath = "../../datasets/australian-un_converted.txt";
+//        datasetPath = "../../datasets/bin/australian.txt";
+//        datasetPath = "../../datasets/Statlog_satellite_categorical_bin.txt";
+//        datasetPath = "../../datasets/Statlog_shuttle_categorical_bin.txt";
 //        datasetPath = "../../datasets/audiology.txt";
 //        datasetPath = "../../datasets/australian-credit.txt";
-        datasetPath = "../../datasets/breast-wisconsin.txt";
+//        datasetPath = "../../datasets/breast-wisconsin.txt";
 //        datasetPath = "../../datasets/hypothyroid.txt";
 //        datasetPath = "../../datasets/ionosphere.txt";
 //        datasetPath = "../../datasets/diabetes.txt";
@@ -103,42 +120,61 @@ int main(int argc, char *argv[]) {
 //        datasetPath = "../../datasets/hepatitis.txt";
 //        datasetPath = "../../datasets/tests/paper.txt";
 //        datasetPath = "../../datasets/tic-tac-toe.txt";
-        maxdepth = 7;
+//        configuration = basic;
+        configuration = optimized;
+        maxdepth = 5;
         minsup = 1;
     }
 
-//    CacheType cache_type = CacheHash;
-//    CacheType cache_type = CacheTrie;
-    CacheType cache_type = CacheLtdTrie;
+    CacheType cache_type;
+    Size cache_size;
+    WipeType wipe_type;
+    float wipe_factor;
+    bool with_cache, use_special_algo, verb, use_ub, sim_lb, dyn_branch, similar_for_branching;
 
-//    Size cache_size = 50000;
-    Size cache_size = NO_CACHE_LIMIT;
 
-//    WipeType wipe_type = All;
-    WipeType wipe_type = Subnodes;
-//    WipeType wipe_type = Recall;
-    float wipe_factor = .4f;
+    cache_type = CacheLtdTrie;
+    //cache_type = CacheHashCover;
 
-//    bool with_cache = false;
-    bool with_cache = true;
+    cache_size = NO_CACHE_LIMIT;
+    //cache_size = 10000;
 
-    bool use_special_algo = true;
-//    bool use_special_algo = false;
+    wipe_type = Subnodes;
+    //wipe_type = Recall;
+    //wipe_type = All;
 
-//    bool verb = true;
-    bool verb = false;
+    wipe_factor = .4f;
 
-    bool use_ub = true;
-//    bool use_ub = false;
+    with_cache = true;
+    //with_cache = false;
 
-    bool sim_lb = true;
-//    bool sim_lb = false;
+//    verb = true;
+    verb = false;
 
-    bool dyn_branch = true;
-//    bool dyn_branch = false;
+    use_ub = true;
+//    use_ub = false;
 
-    bool similar_for_branching = true;
-//    bool similar_for_branching = false;
+
+
+    switch (configuration) {
+        case basic:
+            use_special_algo = false;
+            sim_lb = false;
+            dyn_branch = false;
+            similar_for_branching = false;
+            break;
+        case optimized:
+            use_special_algo = true;
+            sim_lb = true;
+            dyn_branch = true;
+            similar_for_branching = true;
+            break;
+        default:
+            use_special_algo = true;
+            sim_lb = true;
+            dyn_branch = true;
+            similar_for_branching = true;
+    }
 
     ifstream dataset(datasetPath);
     map<Class, ErrorVal> supports_map; // for each class, compute the number of transactions (support)
@@ -154,6 +190,7 @@ int main(int argc, char *argv[]) {
     ErrorVals support_per_class = getSupportPerClassArray(supports_map);
 
     cout << "dataset: " << datasetPath.substr(datasetPath.find_last_of('/') + 1,datasetPath.find_last_of('.') - datasetPath.find_last_of('/') - 1) << endl;
+    cout << "maxdepth: " << maxdepth << " --- minsup: " << minsup << endl;
 
     /*function<vector<float>()> example_weights_callback = generate_example_weights;
     function<vector<float>(string)> predict_error_callback = get_training_error;*/

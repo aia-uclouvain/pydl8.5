@@ -51,7 +51,9 @@ public:
 
     LeafInfo computeLeafInfo(ErrorVals itemsetSupport);
 
-    inline bool canimprove(NodeData *left, Error ub) { return ((Freq_NodeData *) left)->error < ub; }
+    inline bool canimprove(NodeData *left, Error ub) {
+        return ((Freq_NodeData *) left)->error < ub;
+    }
 
     inline bool canSkip(NodeData *actualBest) { return floatEqual(((Freq_NodeData *) actualBest)->error, ((Freq_NodeData *) actualBest)->lowerBound); }
 

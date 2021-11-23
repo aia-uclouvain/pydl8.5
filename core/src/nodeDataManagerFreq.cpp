@@ -15,18 +15,6 @@ NodeDataManagerFreq::NodeDataManagerFreq(
         tids_error_class_callback,
         supports_error_class_callback,
         tids_error_callback)
-        /*Query_Best(minsup,
-                   maxdepth,
-                   trie,
-                   data,
-                   experror,
-                   timeLimit,
-                   continuous,
-                   tids_error_class_callback,
-                   supports_error_class_callback,
-                   tids_error_callback,
-                   (maxError <= 0) ? NO_ERR : maxError,
-                   (maxError <= 0) ? false : stopAfterError) */
                    {}
 
 
@@ -50,6 +38,7 @@ bool NodeDataManagerFreq::updateData(NodeData *best, Error upperBound, Attribute
 
 NodeData *NodeDataManagerFreq::initData(RCover *cov, Depth currentMaxDepth, int hashcode) {
     Class maxclass = -1;
+//    float maxclass = -1;
     Error error;
 
     auto *data = new Freq_NodeData();
@@ -57,19 +46,24 @@ NodeData *NodeDataManagerFreq::initData(RCover *cov, Depth currentMaxDepth, int 
     if (cov == nullptr) cov = cover;
 
 //    if (trie->use_priority) trie->nodemapper.push({cover->getSupport(), hashcode});
+//    cout << "fi1" << endl;
 
     //fast or default error. support will be used
     if (tids_error_class_callback == nullptr && tids_error_callback == nullptr) {
+//        cout << "fi2" << endl;
         //python fast error
         if (supports_error_class_callback != nullptr) {
+//            cout << "fi3" << endl;
             function<vector<float>(RCover *)> callback = *supports_error_class_callback;
             cov->getErrorValPerClass(); // allocate the sup_array if it does not exist yet and compute the frequency counts
             vector<float> infos = callback(cover);
             error = infos[0];
+//            maxclass = infos[1];
             maxclass = int(infos[1]);
         }
         //default error
         else {
+//            cout << "fi4" << endl;
             LeafInfo ev = computeLeafInfo();
             error = ev.error;
             maxclass = ev.maxclass;
@@ -77,14 +71,20 @@ NodeData *NodeDataManagerFreq::initData(RCover *cov, Depth currentMaxDepth, int 
     }
     //slow error or predictor error function. Not need to compute support
     else {
+//        cout << "fi5" << endl;
         if (tids_error_callback != nullptr) {
+//            cout << "fi6" << endl;
             function<float(RCover *)> callback = *tids_error_callback;
             error = callback(cov);
         } else {
+//            cout << "fi7" << endl;
             function<vector<float>(RCover *)> callback = *tids_error_class_callback;
             vector<float> infos = callback(cov);
             error = infos[0];
+//            maxclass = infos[1];
             maxclass = int(infos[1]);
+//            cout << infos[0] << " " << infos[1] << endl;
+//            cout << error << " " << maxclass << endl;
         }
     }
     data->test = maxclass;

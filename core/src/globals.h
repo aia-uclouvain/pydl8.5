@@ -17,6 +17,7 @@ typedef int Bool;
 //typedef unsigned char Bool;
 // a class value
 typedef int Class;
+//typedef float Class;
 //typedef unsigned char Class;
 // a transaction id
 typedef int Transaction;

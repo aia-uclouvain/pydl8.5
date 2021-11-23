@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 #[[add_executable(test
         tests_run/test.cpp
-        src/globals.h)]]
+        )]]
 
 include_directories(src/)
 
@@ -16,6 +16,8 @@ add_executable(dl85
         src/cache.cpp
         src/cache_hash.h
         src/cache_hash.cpp
+        src/cache_hash_cover.h
+        src/cache_hash_cover.cpp
         src/cache_priority.h
         src/cache_priority.cpp
         src/cache_trie.h
@@ -38,6 +40,8 @@ add_executable(dl85
         src/search_base.cpp
         src/search_cache.h
         src/search_cache.cpp
+        src/search_hash_cover.h
+        src/search_hash_cover.cpp
         src/search_nocache.h
         src/search_nocache.cpp
         src/logger.h
@@ -51,6 +55,7 @@ add_executable(dl85
         src/rCoverFreq.cpp
         src/rCoverWeight.h
         src/rCoverWeight.cpp
+#        src/cache_wipe.h
         )
 
 

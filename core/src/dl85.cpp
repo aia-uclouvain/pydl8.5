@@ -71,7 +71,7 @@ string launch(ErrorVals supports,
 
     auto start_time = high_resolution_clock::now(); // start the timer
 
-    //as cython can't set null to function, we use a flag to set the apropriated functions to null in c++
+    //as cython can't set null to function, we use a flag to set the appropriated functions to null in c++
     function<vector<float>(RCover *)> *tids_error_class_callback_pointer = &tids_error_class_callback;
     if (tids_error_class_is_null) tids_error_class_callback_pointer = nullptr;
 
@@ -106,6 +106,9 @@ string launch(ErrorVals supports,
         case CacheLtdTrie:
             cache = new Cache_Ltd_Trie(maxdepth, wipe_type, max_cache_size, wipe_factor);
             break;
+        case CacheHashCover:
+            cache = new Cache_Hash_Cover(maxdepth, wipe_type, max_cache_size);
+            break;
         default:
             cache = new Cache_Trie(maxdepth, wipe_type, max_cache_size);
 //            cout << "caching with trie" << endl;
@@ -129,7 +132,10 @@ string launch(ErrorVals supports,
     Search_base *searcher;
     Solution *solution = nullptr;
     if (with_cache) {
-        searcher = new Search_cache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, cache, timeLimit, maxError <= 0 ? NO_ERR : maxError, useSpecial, maxError <= 0 ? false : stopAfterError, similarlb, dynamic_branching, similar_for_branching);
+        if (cache_type == CacheHashCover)
+            searcher = new Search_hash_cover(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, cache, timeLimit, maxError <= 0 ? NO_ERR : maxError, useSpecial, maxError <= 0 ? false : stopAfterError, similarlb, dynamic_branching, similar_for_branching);
+        else
+            searcher = new Search_cache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, cache, timeLimit, maxError <= 0 ? NO_ERR : maxError, useSpecial, maxError <= 0 ? false : stopAfterError, similarlb, dynamic_branching, similar_for_branching);
         searcher->run(); // perform the search
         solution = new SolutionFreq(searcher, nodeDataManager);
         Tree *tree_out = solution->getTree();
@@ -148,6 +154,7 @@ string launch(ErrorVals supports,
     delete dataReader;
     delete cover;
     delete solution;
+    delete searcher;
 
 //    auto stop = high_resolution_clock::now();
 //    cout << "Durée totale de l'algo : " << duration<double>(stop - start).count() << endl;

@@ -43,7 +43,7 @@ int SolutionFreq::printResult(Freq_NodeData *data, int depth) {
         return depth;
     }
     else {
-        tree->expression += "{\"feat\": " + std::to_string(data->test) + ", \"left\": ";
+        tree->expression += "{\"feat\": " + std::to_string((int)data->test) + ", \"left\": ";
 
         // perhaps strange, but we have stored the positive outcome in right, generally, people think otherwise... :-)
         int left_depth = printResult(data->right, depth + 1);
