@@ -7,12 +7,8 @@
 #include <vector>
 #include <iostream>
 #include <functional>
-//#include <ctime>
-//#include <cstdlib>
 #include "dl85.h"
 #include "globals.h"
-//#include <ctime>
-//#include <sys/resource.h>
 
 using namespace std;
 
@@ -77,50 +73,23 @@ ErrorVals getSupportPerClassArray(map<Class, ErrorVal> &supports_map) {
     return support_per_class;
 }
 
-int functorExample(vector<float>& vec) {
-    return vec.size();
-}
-
 int main(int argc, char *argv[]) {
 
     bool cli = true;
-//    bool cli = false;
+    //bool cli = false;
     string datasetPath;
     Config configuration;
     int maxdepth, minsup;
 
     if (cli){
-//        datasetPath = (argc > 1) ? "../../datasets/" + std::string(argv[1]) + ".txt" : "../datasets/anneal.txt";
-//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/anneal.txt";
         datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/yeast.txt";
-//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/tests/paper1.txt";
-//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/binoct/IndiansDiabetes.txt";
-//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/binoct/spambase.txt";
-//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/letter.txt";
         maxdepth = (argc > 2) ? std::stoi(argv[2]) : 6;
         configuration = (argc > 3 and std::string(argv[3]).find('b') == 0) ? basic : optimized;
         minsup = (argc > 4) ? std::stoi(argv[4]) : 1;
     }
     else {
-//        datasetPath = "../datasets/tic-tac-toe.txt";
-//        datasetPath = "../../datasets/soybean.txt";
         datasetPath = "../../datasets/anneal.txt";
-//        datasetPath = "../../datasets/australian-un_converted.txt";
-//        datasetPath = "../../datasets/bin/australian.txt";
-//        datasetPath = "../../datasets/Statlog_satellite_categorical_bin.txt";
-//        datasetPath = "../../datasets/Statlog_shuttle_categorical_bin.txt";
-//        datasetPath = "../../datasets/audiology.txt";
-//        datasetPath = "../../datasets/australian-credit.txt";
-//        datasetPath = "../../datasets/breast-wisconsin.txt";
-//        datasetPath = "../../datasets/hypothyroid.txt";
-//        datasetPath = "../../datasets/ionosphere.txt";
-//        datasetPath = "../../datasets/diabetes.txt";
-//        datasetPath = "../../datasets/pendigits.txt";
-//        datasetPath = "../../datasets/letter.txt";
-//        datasetPath = "../../datasets/hepatitis.txt";
-//        datasetPath = "../../datasets/tests/paper.txt";
-//        datasetPath = "../../datasets/tic-tac-toe.txt";
-//        configuration = basic;
+        //configuration = basic;
         configuration = optimized;
         maxdepth = 5;
         minsup = 1;
@@ -148,7 +117,7 @@ int main(int argc, char *argv[]) {
     with_cache = true;
     //with_cache = false;
 
-//    verb = true;
+    //verb = true;
     verb = false;
 
     use_ub = true;
@@ -192,11 +161,6 @@ int main(int argc, char *argv[]) {
     cout << "dataset: " << datasetPath.substr(datasetPath.find_last_of('/') + 1,datasetPath.find_last_of('.') - datasetPath.find_last_of('/') - 1) << endl;
     cout << "maxdepth: " << maxdepth << " --- minsup: " << minsup << endl;
 
-    /*function<vector<float>()> example_weights_callback = generate_example_weights;
-    function<vector<float>(string)> predict_error_callback = get_training_error;*/
-    //function<int(vector<float>&)> callback = functorExample; //params type are in brackets while return type come before
-    //vector<float> sample_weight(ntransactions, 1);
-
     string result = launch(
             support_per_class, //supports
             ntransactions, //ntransactions
@@ -233,7 +197,7 @@ int main(int argc, char *argv[]) {
     );
 
     cout << result;
-    struct rusage usage;
+    struct rusage usage{};
     getrusage(RUSAGE_SELF, &usage);
     cout << "used memory: " << usage.ru_maxrss / 1024.f / 1024.f << "Mb" << endl;
 

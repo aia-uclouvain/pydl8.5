@@ -72,7 +72,6 @@ TrieLtdNode *Cache_Ltd_Trie::addNonExistingItemsetPart(Array<Item> itemset, int 
         if (i == pos) parent_node->edges.insert(geqEdge_it, newedge);
         else parent_node->edges.push_back(newedge); // new node added so add the edge without checking its place
         cachesize++;
-        cerr << "--- Searching, lattice size: " << cachesize << "\r" << flush;
         child_node->depth = i + 1;
         parent_node = child_node;
     }
@@ -84,7 +83,6 @@ pair<Node*, bool> Cache_Ltd_Trie::insert(Array<Item> itemset) {
     auto *cur_node = (TrieLtdNode *) root;
     if (itemset.size == 0) {
         cachesize++;
-        cerr << "--- Searching, lattice size: " << cachesize << "\r" << flush;
         return {cur_node, true};
     }
     if (getCacheSize() >= maxcachesize && maxcachesize > 0) wipe();

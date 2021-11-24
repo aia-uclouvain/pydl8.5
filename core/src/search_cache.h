@@ -59,7 +59,7 @@ public:
 
 private:
     pair<Node*,HasInter> recurse ( Array<Item> itemset, Attribute last_added, Node* node, bool node_is_new, Array<Attribute> attributes_to_visit, Depth depth, Error ub, SimilarVals &sim_db1, SimilarVals &sim_db2);
-    Array<Attribute> getSuccessors(Array<Attribute> last_freq_attributes, Attribute last_added, Node* node);
+    Array<Attribute> getSuccessors(Array<Attribute> last_freq_attributes, Attribute last_added, Array<Item> itemset);
     float informationGain (ErrorVals notTaken, ErrorVals taken);
     Node *getSolutionIfExists(Node *node, Error ub, Depth depth);
     Node* inferSolutionFromLB(Node *node, Error ub);
