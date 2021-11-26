@@ -30,6 +30,7 @@ core/main_reg.cpp
 
 dl85/__pycache__/
 dl85/supervised/classifiers/__pycache__/
+dl85/supervised/classifiers/utils/__pycache__/
 dl85/supervised/__pycache__/
 dl85/unsupervised/__pycache__/
 dl85/supervised/classifiers/tests/__pycache__/
