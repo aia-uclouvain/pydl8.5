@@ -14,7 +14,8 @@ Search_base::Search_base(
         int timeLimit,
         float maxError,
         bool specialAlgo,
-        bool stopAfterError
+        bool stopAfterError,
+        bool from_cpp
 ) :
         nodeDataManager(nodeDataManager),
         infoGain(infoGain),
@@ -25,6 +26,5 @@ Search_base::Search_base(
         timeLimit(timeLimit),
         maxError(maxError),
         specialAlgo(specialAlgo),
-        stopAfterError(stopAfterError) {
-    startTime = high_resolution_clock::now();
-}
+        stopAfterError(stopAfterError),
+        from_cpp(from_cpp) {}

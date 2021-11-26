@@ -28,7 +28,6 @@ public:
             delete[] c[j];
         }
         delete[]c;
-        deleteErrorVals(supports);
     }
 
     bitset<M> * getAttributeCover(Attribute attr);

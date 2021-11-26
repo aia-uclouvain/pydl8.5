@@ -3,20 +3,35 @@ from setuptools import Extension
 from Cython.Build import cythonize
 import platform
 import codecs
-from dl85 import __version__
+import os.path
+
+
+def read(rel_path):
+    here = os.path.abspath(os.path.dirname(__file__))
+    with codecs.open(os.path.join(here, rel_path), 'r', encoding='utf-8-sig') as fp:
+        return fp.read()
+
+
+def get_version(rel_path):
+    for line in read(rel_path).splitlines():
+        if line.startswith('__version__'):
+            delim = '"' if '"' in line else "'"
+            return line.split(delim)[1]
+    else:
+        raise RuntimeError("Unable to find version string.")
+
 
 DISTNAME = 'pydl8.5'
 DESCRIPTION = 'A package to build an optimal binary decision tree classifier.'
-with codecs.open('README.rst', encoding='utf-8-sig') as f:
-    LONG_DESCRIPTION = f.read()
+LONG_DESCRIPTION = read('README.rst')
 AUTHORS = 'Gael Aglin, Siegfried Nijssen, Pierre Schaus'
 AUTHORS_EMAIL = 'aglingael@gmail.com, siegfried.nijssen@gmail.com, pschaus@gmail.com'
 URL = 'https://github.com/aglingael/PyDL8.5'
 LICENSE = 'LICENSE.txt'
 DOWNLOAD_URL = 'https://github.com/aglingael/PyDL8.5'
-VERSION = __version__
-INSTALL_REQUIRES = ['setuptools', 'cython', 'numpy', 'scikit-learn', 'cvxpy']
-SETUP_REQUIRES = ['cython']
+VERSION = get_version("dl85/_version.py")
+INSTALL_REQUIRES = ['setuptools', 'cython', 'numpy', 'scikit-learn', 'gurobipy', 'cvxpy']
+SETUP_REQUIRES = ['setuptools', 'cython', 'numpy', 'scikit-learn', 'gurobipy', 'cvxpy']
 KEYWORDS = ['decision trees', 'discrete optimization', 'classification']
 CLASSIFIERS = ['Programming Language :: Python :: 3',
                'License :: OSI Approved :: MIT License',
@@ -49,8 +64,7 @@ EXTENSION_SOURCE_FILES = ['cython_extension/dl85Optimizer.pyx',
                           'cython_extension/error_function.pyx',
                           'core/src/cache.cpp',
                           'core/src/cache_hash.cpp',
-                          'core/src/cache_ltd_trie.cpp',
-                          'core/src/cache_priority.cpp',
+                          'core/src/cache_hash_cover.cpp',
                           'core/src/cache_trie.cpp',
                           'core/src/dataManager.cpp',
                           'core/src/depthTwoComputer.cpp',
@@ -64,11 +78,11 @@ EXTENSION_SOURCE_FILES = ['cython_extension/dl85Optimizer.pyx',
                           'core/src/search_base.cpp',
                           'core/src/search_cache.cpp',
                           'core/src/search_nocache.cpp',
+                          'core/src/search_hash_cover.cpp',
                           'core/src/solution.cpp',
                           'core/src/solutionFreq.cpp']
 EXTENSION_INCLUDE_DIR = ['core/src', 'cython_extension']
-# EXTENSION_BUILD_ARGS = ['-std=c++11']
-EXTENSION_BUILD_ARGS = ['-std=c++11', '-DCYTHON_PEP489_MULTI_PHASE_INIT=0']
+EXTENSION_BUILD_ARGS = ['-std=c++17', '-DCYTHON_PEP489_MULTI_PHASE_INIT=0']
 if platform.system() == 'Darwin':
     EXTENSION_BUILD_ARGS.append('-mmacosx-version-min=10.12')
 

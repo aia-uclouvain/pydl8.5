@@ -82,8 +82,9 @@ int main(int argc, char *argv[]) {
     int maxdepth, minsup;
 
     if (cli){
-        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/yeast.txt";
-        maxdepth = (argc > 2) ? std::stoi(argv[2]) : 6;
+        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/anneal.txt";
+//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/tests/bcb.txt";
+        maxdepth = (argc > 2) ? std::stoi(argv[2]) : 4;
         configuration = (argc > 3 and std::string(argv[3]).find('b') == 0) ? basic : optimized;
         minsup = (argc > 4) ? std::stoi(argv[4]) : 1;
     }
@@ -102,7 +103,7 @@ int main(int argc, char *argv[]) {
     bool with_cache, use_special_algo, verb, use_ub, sim_lb, dyn_branch, similar_for_branching;
 
 
-    cache_type = CacheLtdTrie;
+    cache_type = CacheTrie;
     //cache_type = CacheHashCover;
 
     cache_size = NO_CACHE_LIMIT;
@@ -159,7 +160,6 @@ int main(int argc, char *argv[]) {
     ErrorVals support_per_class = getSupportPerClassArray(supports_map);
 
     cout << "dataset: " << datasetPath.substr(datasetPath.find_last_of('/') + 1,datasetPath.find_last_of('.') - datasetPath.find_last_of('/') - 1) << endl;
-    cout << "maxdepth: " << maxdepth << " --- minsup: " << minsup << endl;
 
     string result = launch(
             support_per_class, //supports
@@ -193,12 +193,15 @@ int main(int argc, char *argv[]) {
             use_ub,
             sim_lb,
             dyn_branch,
-            similar_for_branching
+            similar_for_branching,
+            true
     );
 
+    deleteErrorVals(support_per_class);
+
     cout << result;
-    struct rusage usage{};
-    getrusage(RUSAGE_SELF, &usage);
-    cout << "used memory: " << usage.ru_maxrss / 1024.f / 1024.f << "Mb" << endl;
+//    struct rusage usage{};
+//    getrusage(RUSAGE_SELF, &usage);
+//    cout << "used memory: " << usage.ru_maxrss / 1024.f / 1024.f << "Mb" << endl;
 
 }

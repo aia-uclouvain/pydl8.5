@@ -5,6 +5,7 @@
 #ifndef DL85_H
 #define DL85_H
 
+#include "globals.h"
 #include <iostream>
 #include <cstdlib>
 #include <cmath>
@@ -14,8 +15,6 @@
 #include <vector>
 #include <utility>
 #include <functional>
-#include <chrono>
-#include "globals.h"
 #include "dataManager.h"
 #include "rCoverFreq.h"
 #include "rCoverWeight.h"
@@ -25,9 +24,10 @@
 #include "nodeDataManagerFreq.h"
 #include "solutionFreq.h"
 #include "cache_hash.h"
+#include "cache_hash_cover.h"
 #include "cache_trie.h"
-#include "cache_priority.h"
-#include "cache_ltd_trie.h"
+//#include "cache_trie.h"
+//#include "cache_priority.h"
 
 using namespace std;
 
@@ -97,6 +97,7 @@ string launch(
         bool use_ub = true,
         bool similarlb = false,
         bool dynamic_branching = false,
-        bool similar_for_branching = true);
+        bool similar_for_branching = true,
+        bool from_cpp = true);
 
 #endif //DL85_H

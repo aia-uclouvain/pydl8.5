@@ -28,7 +28,7 @@ from sklearn.metrics import accuracy_score
 import time
 from dl85 import DL85Predictor
 
-dataset = np.genfromtxt("../../datasets/anneal.txt", delimiter=' ')
+dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')
 X = dataset[:, 1:]
 y = dataset[:, 0]
 X = X.astype('int32')

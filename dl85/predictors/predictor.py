@@ -40,9 +40,8 @@ def get_dot_body(treedict, parent=None, left=True):
 
 class Cache_Type(Enum):
     Cache_Trie = 1
-    Cache_Ltd_Trie = 2
-    Cache_Hash = 3
-    Cache_Priority = 4
+    Cache_Hash = 2
+    Cache_HashCover = 3
 
 
 class Wipe_Type(Enum):
@@ -107,11 +106,8 @@ class DL85Predictor(BaseEstimator):
             self,
             max_depth=1,
             min_sup=1,
-            # max_estimators=1,
-            # example_weights=[],
             error_function=None,
             fast_error_function=None,
-            # example_weight_function=None,
             predict_error_function=None,
             iterative=False,
             max_error=0,
@@ -125,16 +121,16 @@ class DL85Predictor(BaseEstimator):
             nps=False,
             quiet=True,
             print_output=False,
-            cache_type=Cache_Type.Cache_Ltd_Trie,
+            cache_type=Cache_Type.Cache_Trie,
             cache_size=0,
             wipe_type=Wipe_Type.Sub_nodes,
             wipe_factor=0.5,
             use_cache=True,
-            depth_two_special_algo=True,
+            depth_two_special_algo=False,
             use_ub=True,
-            similar_lb=True,
+            similar_lb=False,
             dynamic_branch=True,
-            similar_for_branching=True):
+            similar_for_branching=False):
 
         self.max_depth = max_depth
         self.min_sup = min_sup
@@ -229,7 +225,7 @@ class DL85Predictor(BaseEstimator):
         # sys.path.insert(0, "../../")
         import dl85Optimizer
         # print(opt_func)
-        solution = dl85Optimizer.solve(data=X,
+        solution_str = dl85Optimizer.solve(data=X,
                                        target=y,
                                        tec_func_=opt_func,
                                        sec_func_=opt_fast_func,
@@ -251,7 +247,7 @@ class DL85Predictor(BaseEstimator):
                                        # bin_save=False,
                                        # nps=self.nps,
                                        predictor=predict,
-                                       cachetype=dl85Optimizer.CacheType.CacheTrie if self.cache_type == Cache_Type.Cache_Trie else dl85Optimizer.CacheType.CacheLtdTrie if self.cache_type == Cache_Type.Cache_Ltd_Trie else dl85Optimizer.CacheType.CacheHash if self.cache_type == Cache_Type.Cache_Hash else dl85Optimizer.CacheType.CachePriority,
+                                       cachetype=dl85Optimizer.CacheType.CacheTrie if self.cache_type == Cache_Type.Cache_Trie else dl85Optimizer.CacheType.CacheHash if self.cache_type == Cache_Type.Cache_Hash else dl85Optimizer.CacheType.CacheHashCover,
                                        cachesize=self.cache_size,
                                        wipetype=dl85Optimizer.WipeType.All if self.cache_size == Wipe_Type.All_nodes else dl85Optimizer.WipeType.Subnodes if self.cache_size == Wipe_Type.Sub_nodes else dl85Optimizer.WipeType.Recall,
                                        wipefactor=self.wipe_factor,
@@ -262,67 +258,31 @@ class DL85Predictor(BaseEstimator):
                                        dyn_branch=self.dynamic_branch,
                                        similar_for_branching=self.similar_for_branching)
 
-        # if self.print_output:
-        #     print(solution)
+        solution = solution_str.rstrip("\n").splitlines()
 
-        # print("sol")
-        # print(solution)
-        # print("end")
-        solution = solution.rstrip("\n").splitlines()
-        sol_size = len(solution)
+        self.tree_ = json.loads(solution[3].split('Tree: ')[1]) if "No such tree" not in solution[3] else None
+        self.size_ = int(solution[4].split(" ")[1])
+        self.depth_ = int(solution[5].split(" ")[1])
+        self.error_ = float(solution[6].split(" ")[1])
+        self.accuracy_ = float(solution[7].split(" ")[1])
+        self.lattice_size_ = int(solution[8].split(" ")[1])
+        self.runtime_ = float(solution[9].split(" ")[1])
+        self.timeout_ = bool(strtobool(solution[10].split(" ")[1]))
 
-        # if self.sol_size_ == 1:
-        #     raise ValueError(solution[0])
-
-        if sol_size == 9:  # solution found
-            self.tree_ = json.loads(solution[1].split('Tree: ')[1])
-            self.size_ = int(solution[2].split(" ")[1])
-            self.depth_ = int(solution[3].split(" ")[1])
-            self.error_ = float(solution[4].split(" ")[1])
-            self.lattice_size_ = int(solution[6].split(" ")[1])
-            self.runtime_ = float(solution[7].split(" ")[1])
-            self.timeout_ = bool(strtobool(solution[8].split(" ")[1]))
-            if self.size_ >= 3 or self.max_error <= 0:
-                self.accuracy_ = float(solution[5].split(" ")[1])
-
-            # if sol_size == 8:  # without timeout
-            if self.size_ < 3 and self.max_error > 0:  # return just a leaf as fake solution
-                if not self.timeout_:
-                    print("DL8.5 fitting: Solution not found. However, a solution exists with error equal to the "
-                      "max error you specify as unreachable. Please increase your bound if you want to reach it.")
-                else:
-                    print("DL8.5 fitting: Timeout reached without solution. However, a solution exists with "
-                          "error equal to the max error you specify as unreachable. Please increase "
-                          "your bound if you want to reach it.")
+        if self.tree_ is None:  # return just a leaf as fake solution
+            if not self.timeout_:
+                print("DL8.5 fitting: Solution not found. However, a solution exists with error equal to the max error (exlusive upper bound) you specify. Please increase your bound if you want to find it.")
             else:
-                if not self.quiet:
-                    if not self.timeout_:
-                        print("DL8.5 fitting: Solution found")
-                    else:
-                        print("DL8.5 fitting: Timeout reached but solution found")
-
-            # else:  # timeout reached
-            #     self.timeout_ = True
-            #     if self.size_ < 3 and self.max_error > 0:  # return just a leaf as fake solution
-            #         print("DL8.5 fitting: Timeout reached without solution. However, a solution exists with "
-            #               "error equal to the max error you specify as unreachable. Please increase "
-            #               "your bound if you want to reach it.")
-            #     else:
-            #         if not self.quiet:
-            #             print("DL8.5 fitting: Timeout reached but solution found")
-
+                print("DL8.5 fitting: Timeout reached without solution. Please increase the time limit or the max error (exlusive upper bound)")
             if target_is_need:  # problem with target
                 # Store the classes seen during fit
                 self.classes_ = unique_labels(y)
-
-        elif sol_size == 5:  # solution not found
-            self.lattice_size_ = int(solution[2].split(" ")[1])
-            self.runtime_ = float(solution[3].split(" ")[1])
-            self.timeout_ = bool(strtobool(solution[4].split(" ")[1]))
-            if not self.timeout_:
-                print("DL8.5 fitting: Solution not found")
-            else:  # timeout reached
-                print("DL8.5 fitting: Timeout reached and solution not found")
+        else:
+            if not self.quiet:
+                if not self.timeout_:
+                    print("DL8.5 fitting: Solution found")
+                else:
+                    print("DL8.5 fitting: Timeout reached. The solution found may not be optimal")
 
         if hasattr(self, 'tree_') and self.tree_ is not None:
             # add transactions to nodes of the tree
@@ -341,19 +301,7 @@ class DL85Predictor(BaseEstimator):
             self.remove_transactions()
 
         if self.print_output:
-            print(solution[0])
-            print("Tree:", self.tree_)
-            # if self.leaf_value_function is None:
-            #     print("Tree:", self.tree_)
-            # else:
-            #     print("Tree:", self.tree_without_transactions())
-            print("Size:", str(self.size_))
-            print("Depth:", str(self.depth_))
-            print("Error:", str(self.error_))
-            # print("Accuracy:", str(self.accuracy_))
-            print("LatticeSize:", str(self.lattice_size_))
-            print("Runtime:", str(self.runtime_))
-            print("Timeout:", str(self.timeout_))
+            print(solution_str)
 
         # Return the classifier
         self.is_fitted_ = True

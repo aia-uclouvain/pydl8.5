@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 import time
 from dl85 import DL85Cluster
 
-dataset = np.genfromtxt("../../datasets/anneal.txt", delimiter=' ')
+dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')
 X = dataset[:, 1:]
 X = X.astype('int32')
 

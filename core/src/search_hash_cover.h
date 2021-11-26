@@ -44,7 +44,8 @@ public:
                   bool stopAfterError = false,
                   bool similarlb = false,
                   bool dynamic_branching = false,
-                  bool similar_for_branching = true);
+                  bool similar_for_branching = true,
+                       bool from_cpp = true);
 
     ~Search_hash_cover();
 
@@ -57,8 +58,8 @@ public:
 
 
 private:
-    pair<Node*,HasInter> recurse ( Array<Item> itemset, Attribute last_added, Node* node, bool node_is_new, Array<Attribute> attributes_to_visit, Depth depth, Error ub, SimilarValss &sim_db1, SimilarValss &sim_db2);
-    Array<Attribute> getSuccessors(Array<Attribute> last_freq_attributes, Attribute last_added, Node* node);
+    pair<Node*,HasInter> recurse ( Itemset &itemset, Attribute last_added, Node* node, bool node_is_new, Attributes &attributes_to_visit, Depth depth, Error ub, SimilarValss &sim_db1, SimilarValss &sim_db2);
+    Attributes getSuccessors(Attributes &last_freq_attributes, Attribute last_added);
     float informationGain (ErrorVals notTaken, ErrorVals taken);
     Node *getSolutionIfExists(Node *node, Error ub, Depth depth);
     Node* inferSolutionFromLB(Node *node, Error ub);

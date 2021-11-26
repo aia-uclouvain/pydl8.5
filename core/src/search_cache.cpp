@@ -13,10 +13,11 @@ Search_cache::Search_cache(NodeDataManager *nodeDataManager, bool infoGain, bool
                            bool stopAfterError,
                            bool similarlb,
                            bool dynamic_branching,
-                           bool similar_for_branching) :
-        Search_base(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, maxError, specialAlgo, stopAfterError), cache(cache), similarlb(similarlb), dynamic_branching(dynamic_branching), similar_for_branching(similar_for_branching) {}
+                           bool similar_for_branching,
+                           bool from_cpp) :
+        Search_base(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, maxError, specialAlgo, stopAfterError, from_cpp), cache(cache), similarlb(similarlb), dynamic_branching(dynamic_branching), similar_for_branching(similar_for_branching) {}
 
-Search_cache::~Search_cache() = default;
+Search_cache::~Search_cache(){};
 
 // the solution already exists for this node
 Node *existingsolution(Node *node, Error *nodeError) {
@@ -110,10 +111,11 @@ float Search_cache::informationGain(ErrorVals notTaken, ErrorVals taken) {
     return actualGain; //high error to low error when it will be put in the map. If you want to have the reverse, just return the negative value of the entropy
 }
 
-Array<Attribute> Search_cache::getSuccessors(Array<Attribute> last_candidates, Attribute last_added, Array<Item> itemset) {
+Attributes Search_cache::getSuccessors(Attributes &last_candidates, Attribute last_added, Itemset &itemset) {
 
     std::multimap<float, Attribute> gain;
-    Array<Attribute> next_candidates(last_candidates.size, 0);
+    Attributes next_candidates;
+    next_candidates.reserve(last_candidates.size() - 1);
 
     // the current node does not fullfill the frequency criterion. In correct situation, this case won't happen
     if (nodeDataManager->cover->getSupport() < 2 * minsup) return next_candidates;
@@ -288,11 +290,11 @@ void Search_cache::updateSimilarLBInfo1(NodeData *node_data, SimilarVals &highes
  * @param ub - the upper bound of the search. It cannot be reached
  * @return the same node as get in parameter with added information about the best tree
  */
-pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
+pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
                             Item last_added_item,
                             Node *node,
                             bool node_is_new,
-                            Array<Attribute> next_candidates,
+                            Attributes &next_candidates,
                             Depth depth,
                             Error ub,
                             SimilarVals &sim_db1,
@@ -307,7 +309,7 @@ pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
         //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
         if ( ((FND)node->data)->left and ((FND)node->data)->right and cache->maxcachesize > NO_CACHE_LIMIT ){ // we should then update subtree load
             Item leftItem_down = item(((FND)node->data)->test, NEG_ITEM), rightItem_down = item(((FND)node->data)->test, POS_ITEM);
-            Array<Item> copy_itemset = itemset.duplicate();
+            Itemset copy_itemset = itemset;
             cache->updateSubTreeLoad( copy_itemset, leftItem_down, rightItem_down, true); // the function deletes the copy_itemset
         }//%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
 
@@ -342,12 +344,12 @@ pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
     if (timeLimitReached) { *nodeError = leafError; return {node, true}; }
 
     // if we can't get solution without computation, we compute the next candidates to perform the search
-    Array<Attribute> next_attributes = getSuccessors(next_candidates, last_added_attr, itemset);
+    Attributes next_attributes = getSuccessors(next_candidates, last_added_attr, itemset);
 
     // case in which there is no candidate
-    if (next_attributes.size == 0) {
+    if (next_attributes.empty()) {
         *nodeError = leafError;
-        next_attributes.free();
+        //Attributes().swap(next_attributes); // fre the vector memory
         Logger::showMessageAndReturn("No candidates. nodeError is set to leafError\n", "depth = ", depth, " and init ub = ", ub, " and error after search = ", *nodeError, "\nwe backtrack");
         return {node, true};
     }
@@ -362,7 +364,7 @@ pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
     for(const auto &attr : next_attributes) {
         Logger::showMessageAndReturn("\n\nWe are evaluating the attribute : ", attr);
 
-        Array<Item> itemsets[2];
+        Itemset itemsets[2];
         Node *child_nodes[2];
         Error neg_lb = 0, pos_lb = 0;
         Error first_lb, second_lb;
@@ -373,19 +375,17 @@ pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
          this computation can be costly so, in some case can add some overhead. If you don't
          want to use it, set dynamic_branching to false. 0/1 order is used in this case.*/
         if (dynamic_branching) {
-            Array<Item> tmp_itemset = addItem(itemset, item(attr, NEG_ITEM));
+            Itemset tmp_itemset = addItem(itemset, item(attr, NEG_ITEM));
             Node* tmp_node = cache->get(tmp_itemset);
             if (tmp_node != nullptr and tmp_node->data != nullptr) {
                 neg_lb = ((FND) tmp_node->data)->error < FLT_MAX ? ((FND) tmp_node->data)->error : ((FND) tmp_node->data)->lowerBound;
             }
-            tmp_itemset.free();
-            tmp_itemset = addItem(itemset, item(attr, POS_ITEM));
+            addItem(itemset, item(attr, POS_ITEM), tmp_itemset);
             tmp_node = cache->get(tmp_itemset);
             if (tmp_node != nullptr and tmp_node->data != nullptr) {
                 pos_lb = ((FND) tmp_node->data)->error < FLT_MAX ? ((FND) tmp_node->data)->error : ((FND) tmp_node->data)->lowerBound;
             }
-            tmp_itemset.free();
-            if (similarlb and similar_for_branching){
+            if (similarlb and similar_for_branching) {
                 nodeDataManager->cover->intersect(attr, false);
                 neg_lb = max(neg_lb, computeSimilarityLB(similar_db1, similar_db2));
                 nodeDataManager->cover->backtrack();
@@ -410,20 +410,16 @@ pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
             nodeDataManager->cover->intersect(attr, first_item);
             child_nodes[first_item]->data = nodeDataManager->initData();
             Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) child_nodes[first_item]->data)->leafError);
-            if (verbose) cerr << "--- Searching, lattice size: " << cache->getCacheSize() << endl;
-            else cerr << "--- Searching, lattice size: " << cache->getCacheSize() << "\r" << flush;
-        }
+            if (verbose) cout << "Searching ==> cache size: " << cache->getCacheSize() << endl;
+            else if (from_cpp) cerr << "Searching... cache size: " << cache->getCacheSize() << "\r" << flush;
+        } else Logger::showMessageAndReturn("The node already exists");
         ((FND) child_nodes[first_item]->data)->lowerBound = first_lb; // the best lb between the computed and the saved one is selected
         pair<Node*, HasInter> node_inter = recurse(itemsets[first_item], item(attr, first_item), child_nodes[first_item], node_state.is_new, next_attributes,  depth + 1, child_ub - second_lb, similar_db1, similar_db2); // perform the search for the first item
         child_nodes[first_item] = node_inter.get_node;
         if (similarlb) updateSimilarLBInfo2(child_nodes[first_item]->data, similar_db1, similar_db2);
         if (node_state.is_new or node_inter.has_intersected) nodeDataManager->cover->backtrack(); // cases of intersection
         Error firstError = ((FND) child_nodes[first_item]->data)->error;
-        itemsets[first_item].free();
-
-        //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
-        Array<Item> copy_itemset = itemset.duplicate();
-        //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
+        Itemset().swap(itemsets[first_item]); // fre the vector memory representing the first itemset
 
         if (nodeDataManager->canimprove(child_nodes[first_item]->data, child_ub - second_lb)) { // perform search on the second item
             itemsets[second_item] = addItem(itemset, item(attr, second_item));
@@ -433,9 +429,9 @@ pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
                 nodeDataManager->cover->intersect(attr, second_item);
                 child_nodes[second_item]->data = nodeDataManager->initData();
                 Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) child_nodes[second_item]->data)->leafError);
-                if (verbose) cerr << "--- Searching, lattice size: " << cache->getCacheSize() << endl;
-                else cerr << "--- Searching, lattice size: " << cache->getCacheSize() << "\r" << flush;
-            }
+                if (verbose) cout << "Searching ==> cache size: " << cache->getCacheSize() << endl;
+                else if (from_cpp) cerr << "Searching... cache size: " << cache->getCacheSize() << "\r" << flush;
+            } else Logger::showMessageAndReturn("The node already exists");
             ((FND) child_nodes[second_item]->data)->lowerBound = second_lb; // the best lb between the computed and the saved ones is selected
             Error remainUb = child_ub - firstError; // bound for the second child (item)
             node_inter = recurse(itemsets[second_item], item(attr, second_item), child_nodes[second_item], node_state.is_new, next_attributes,  depth + 1, remainUb, similar_db1, similar_db2); // perform the search for the second item
@@ -443,7 +439,7 @@ pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
             if (similarlb) updateSimilarLBInfo2(child_nodes[second_item]->data, similar_db1, similar_db2);
             if (node_state.is_new or node_inter.has_intersected) nodeDataManager->cover->backtrack();
             Error secondError = ((FND) child_nodes[second_item]->data)->error;
-            itemsets[second_item].free();
+            Itemset().swap(itemsets[second_item]); // fre the vector memory representing the second itemset
 
             Error feature_error = firstError + secondError;
 
@@ -451,21 +447,25 @@ pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
             Attribute lastBestAttr = ((FND) node->data)->left == nullptr ? -1 : best_attr;
             //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
 
-            bool hasUpdated = nodeDataManager->updateData(node->data, child_ub, attr, child_nodes[NEG_ITEM]->data, child_nodes[POS_ITEM]->data, itemset, cache);
+            bool hasUpdated = nodeDataManager->updateData(node->data, child_ub, attr, child_nodes[NEG_ITEM]->data, child_nodes[POS_ITEM]->data);
             if (hasUpdated) {
                 child_ub = feature_error;
                 //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
                 best_attr = attr;
-                if (lastBestAttr != -1 and cache->maxcachesize > NO_CACHE_LIMIT) cache->updateSubTreeLoad(copy_itemset, item(lastBestAttr, NEG_ITEM), item(lastBestAttr, POS_ITEM),false);
-                else copy_itemset.free();
+                if (lastBestAttr != -1 and cache->maxcachesize > NO_CACHE_LIMIT) {
+                    Itemset copy_itemset = itemset;
+                    cache->updateSubTreeLoad(copy_itemset, item(lastBestAttr, NEG_ITEM), item(lastBestAttr, POS_ITEM),false);
+                }
                 //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
                 Logger::showMessageAndReturn("after this attribute ", attr, ", node error=", *nodeError, " and ub=", child_ub);
             }
             else { // the current attribute error is not better than the existing
                 minlb = min(minlb, feature_error); // we get the error of the current attribute, we then update the minimum possible lb
                 //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
-                if(cache->maxcachesize > NO_CACHE_LIMIT) cache->updateSubTreeLoad(copy_itemset, item(attr, NEG_ITEM), item(attr, POS_ITEM),false);
-                else copy_itemset.free();
+                if(cache->maxcachesize > NO_CACHE_LIMIT) {
+                    Itemset copy_itemset = itemset;
+                    cache->updateSubTreeLoad(copy_itemset, item(attr, NEG_ITEM), item(attr, POS_ITEM),false);
+                }
                 //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
             }
 
@@ -480,8 +480,10 @@ pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
             else minlb = min(minlb, firstError + second_lb);
 
             //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
-            if (cache->maxcachesize > NO_CACHE_LIMIT) cache->updateSubTreeLoad(copy_itemset, item(attr, first_item), -1, false);
-            else copy_itemset.free();
+            if (cache->maxcachesize > NO_CACHE_LIMIT) {
+                Itemset copy_itemset = itemset;
+                cache->updateSubTreeLoad(copy_itemset, item(attr, first_item), -1, false);
+            }
             //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
         }
 
@@ -497,7 +499,6 @@ pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
 
     Logger::showMessageAndReturn("depth = ", depth, " and init ub = ", ub, " and error after search = ", *nodeError);
 
-    next_attributes.free();
     return {node, true};
 }
 
@@ -505,9 +506,10 @@ pair<Node*,HasInter> Search_cache::recurse(Array<Item> itemset,
 void Search_cache::run() {
 
     // Create empty list for candidate attributes
-    Array<Attribute> attributes_to_visit(nattributes, 0);
+    Attributes attributes_to_visit;
+    attributes_to_visit.reserve(nattributes);
 
-    // Update the candidate list based on frequency criterion
+    // Reduce the candidates list based on frequency criterion
     if (minsup == 1) { // do not check frequency if minsup = 1
         for (int attr = 0; attr < nattributes; ++attr) attributes_to_visit.push_back(attr);
     }
@@ -519,14 +521,10 @@ void Search_cache::run() {
     }
 
     //create an empty array of items representing an emptyset and insert it
-    Array<Item> itemset;
+    Itemset itemset;
     Node * rootnode = cache->insert(itemset).first;
     rootnode->data = nodeDataManager->initData();
     SimilarVals sdb1, sdb2;
     // call the recursive function to start the search
     cache->root = recurse(itemset, NO_ATTRIBUTE, rootnode, true, attributes_to_visit, 0, maxError, sdb1, sdb2).first;
-
-    // never forget to return what is not yours. Think to others who need it ;-)
-    itemset.free();
-    attributes_to_visit.free();
 }

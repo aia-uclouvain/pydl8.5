@@ -39,7 +39,7 @@ void SolutionFreq::printResult(Freq_NodeData *data) {
 int SolutionFreq::printResult(Freq_NodeData *data, int depth) {
     if (!data->left) { // leaf
         if (nodeDataManager->tids_error_callback) tree->expression += R"({"value": "undefined", "error": )" + std::to_string(data->error);
-        else tree->expression += "{\"value\": " + std::to_string(data->test) + ", \"error\": " + std::to_string(data->error);
+        else tree->expression += "{\"value\": " + std::to_string(data->test) + ", \"error\": " + custom_to_str(data->error);
         return depth;
     }
     else {

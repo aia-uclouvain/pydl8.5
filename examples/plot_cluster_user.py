@@ -16,7 +16,7 @@ from sklearn.neighbors import DistanceMetric
 import time
 from dl85 import DL85Predictor
 
-dataset = np.genfromtxt("../../datasets/anneal.txt", delimiter=' ')
+dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')
 X = dataset[:, 1:]
 X = X.astype('int32')
 

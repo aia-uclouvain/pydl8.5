@@ -17,7 +17,7 @@ Search_nocache::Search_nocache(NodeDataManager *nodeDataManager, bool infoGain, 
                                bool use_ub) :
         Search_base(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, maxError, specialAlgo, stopAfterError), use_ub(use_ub) {}
 
-Search_nocache::~Search_nocache() = default;
+Search_nocache::~Search_nocache() {}
 
 
 // information gain calculation
@@ -50,10 +50,14 @@ float Search_nocache::informationGain(ErrorVals notTaken, ErrorVals taken) {
 }
 
 
-Array<Attribute> Search_nocache::getSuccessors(Array<Attribute> last_candidates, Attribute last_added) {
+Attributes Search_nocache::getSuccessors(Attributes &last_candidates, Attribute last_added) {
 
     std::multimap<float, Attribute> gain;
-    Array<Attribute> next_candidates(last_candidates.size, 0);
+    Attributes next_candidates;
+    next_candidates.reserve(last_candidates.size() - 1);
+
+    // the current node does not fullfill the frequency criterion. In correct situation, this case won't happen
+    if (nodeDataManager->cover->getSupport() < 2 * minsup) return next_candidates;
 
     int current_sup = nodeDataManager->cover->getSupport();
     ErrorVals current_sup_class = nodeDataManager->cover->getErrorValPerClass();
@@ -109,7 +113,7 @@ Array<Attribute> Search_nocache::getSuccessors(Array<Attribute> last_candidates,
  * @return the same node as get in parameter with added information about the best tree
  */
 Error Search_nocache::recurse(Attribute last_added,
-                              Array<Attribute> next_candidates,
+                              Attributes &next_candidates,
                               Depth depth,
                               float ub) {
 
@@ -131,7 +135,8 @@ Error Search_nocache::recurse(Attribute last_added,
 
     // in case the solution cannot be derived without computation and remaining depth is 2, we use a specific algorithm
     if (specialAlgo && maxdepth - depth == 2 && nodeDataManager->cover->getSupport() >= 2 * minsup && no_python_error) {
-        return computeDepthTwo(nodeDataManager->cover, ub, next_candidates, last_added, Array<Item>(), nullptr, nodeDataManager, 0, nullptr, this);
+        Itemset fake_itemset;
+        return computeDepthTwo(nodeDataManager->cover, ub, next_candidates, last_added, fake_itemset, nullptr, nodeDataManager, 0, nullptr, this);
     }
 
     /* the node solution cannot be computed without calculation. at this stage, we will make a search through successors*/
@@ -140,15 +145,14 @@ Error Search_nocache::recurse(Attribute last_added,
     if (timeLimitReached) return leaf.error;
 
     // if we can't get solution without computation, we compute the next candidates to perform the search
-    Array<Attribute> next_attributes = getSuccessors(next_candidates, last_added);
+    Attributes next_attributes = getSuccessors(next_candidates, last_added);
     // next_attributes = getSuccessors(next_candidates, cover, last_added);
 
     // case in which there is no candidate
-    if (next_attributes.size == 0) {
+    if (next_attributes.empty()) {
         Logger::showMessageAndReturn("No candidates. nodeError is set to leafError");
         Logger::showMessageAndReturn("depth = ", depth, " and init ub = ", ub, " and error after search = ", leaf.error);
         Logger::showMessageAndReturn("we backtrack with leaf error ", leaf.error);
-        next_attributes.free();
         return leaf.error;
     }
 
@@ -193,7 +197,6 @@ Error Search_nocache::recurse(Attribute last_added,
 
     Logger::showMessageAndReturn("depth = ", depth, " and init ub = ", ub, " and error after search = ", best_error);
 
-    next_attributes.free();
     return best_error;
 
 
@@ -203,7 +206,8 @@ Error Search_nocache::recurse(Attribute last_added,
 void Search_nocache::run() {
 
     // Create empty list for candidate attributes
-    Array<Attribute> attributes_to_visit(nattributes, 0);
+    Attributes attributes_to_visit;
+    attributes_to_visit.reserve(nattributes);
 
     // Update the candidate list based on frequency criterion
     if (minsup == 1) { // do not check frequency if minsup = 1
@@ -217,7 +221,7 @@ void Search_nocache::run() {
     }
 
     //create an empty array of items representing an emptyset and insert it
-    Array<Item> itemset;
+    Itemset itemset;
 
     // call the recursive function to start the search
     Error tree_error = recurse(NO_ATTRIBUTE, attributes_to_visit, 0, maxError);
@@ -227,8 +231,4 @@ void Search_nocache::run() {
     if (specialAlgo) cout << "depth 2 specialized algo is used" << endl;
     else cout << "depth 2 specialized algo is not used" << endl;
     cout << "tree error = " << tree_error << endl;
-
-    // never forget to return what is not yours. Think to others who need it ;-)
-    itemset.free();
-    attributes_to_visit.free();
 }

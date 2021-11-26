@@ -33,9 +33,9 @@ public:
     float maxError = NO_ERR;
     bool stopAfterError = false;
     bool specialAlgo = true;
-    time_point<high_resolution_clock> startTime;
     bool timeLimitReached = false;
     NodeDataManager *nodeDataManager;
+    bool from_cpp = true;
 
     Search_base(NodeDataManager *nodeDataManager,
                 bool infoGain,
@@ -46,9 +46,10 @@ public:
                 int timeLimit,
                 float maxError = NO_ERR,
                 bool specialAlgo = true,
-                bool stopAfterError = false);
+                bool stopAfterError = false,
+                bool from_cpp = true);
 
-    virtual ~Search_base() = default;
+    virtual ~Search_base(){}
 
     virtual void run() = 0;
 };

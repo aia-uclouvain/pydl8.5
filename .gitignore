@@ -44,8 +44,7 @@ cython_extension/error_function.cpp
 cython_extension/error_function.h
 
 examples/gurobi.log
-examples/plots/anneal_odt
-examples/plots/anneal_odt.png
+examples/plots/
 examples/*.csv
 examples/output/
 examples/test/
@@ -55,6 +54,10 @@ examples/test/
 .coverage
 
 todo.txt
+
+testenv/
+
+doc_old/
 
 memory/
 

@@ -6,21 +6,23 @@
 #include "search_base.h"
 //#include "search_nocache.h"
 
-void addTreeToCache(Node* node, Array<Item> itemset, Cache* cache){
+void addTreeToCache(Node* node, const Itemset &itemset, Cache* cache){
     auto* node_data = (Freq_NodeData *)node->data;
 //    if (cache->maxcachesize > NO_CACHE_LIMIT) node->count_opti_path = node_data->size;
     if (node_data->left){
-        Array<Item> itemset_left = addItem(itemset, item(node_data->test, 0));
+        Itemset itemset_left(itemset.size() + 1);
+        addItem(itemset, item(node_data->test, 0), itemset_left);
         Node *node_left = cache->insert(itemset_left).first;
         node_left->data = (NodeData *) node_data->left;
         addTreeToCache(node_left, itemset_left, cache);
-        itemset_left.free();
+//        itemset_left.free();
 
-        Array<Item> itemset_right = addItem(itemset, item(node_data->test, 1));
+        Itemset itemset_right(itemset.size() + 1);
+        addItem(itemset, item(node_data->test, 1), itemset_right);
         Node *node_right = cache->insert(itemset_right).first;
         node_right->data = (NodeData *) node_data->right;
         addTreeToCache(node_right, itemset_right, cache);
-        itemset_right.free();
+//        itemset_right.free();
     }
 }
 
@@ -42,25 +44,23 @@ void addTreeToCache(Node* node, NodeDataManager* ndm, Cache* cache){
     }
 }
 
-void setIteme(Freq_NodeData* node_data, const Array<Item>& itemset, Cache* cache){
+void setIteme(Freq_NodeData* node_data, const Itemset & itemset, Cache* cache){
     if (node_data->left){
-        Array<Item> itemset_left;
-        itemset_left.alloc(itemset.size + 1);
+        Itemset itemset_left(itemset.size() + 1);
         addItem(itemset, item(node_data->left->test, 0), itemset_left);
         Node *node_left = cache->insert(itemset_left).first;
         node_left->data = (NodeData *) node_data->left;
         setIteme((Freq_NodeData *)node_left->data, itemset_left, cache);
-        itemset_left.free();
+//        itemset_left.free();
     }
 
     if (node_data->right){
-        Array<Item> itemset_right;
-        itemset_right.alloc(itemset.size + 1);
+        Itemset itemset_right(itemset.size() + 1);
         addItem(itemset, item(node_data->right->test, 1), itemset_right);
         Node *node_right = cache->insert(itemset_right).first;
         node_right->data = (NodeData *) node_data->right;
         setIteme((Freq_NodeData *)node_right->data, itemset_right, cache);
-        itemset_right.free();
+//        itemset_right.free();
     }
 }
 
@@ -80,9 +80,9 @@ void setIteme(Freq_NodeData* node_data, const Array<Item>& itemset, Cache* cache
  */
 Error computeDepthTwo(RCover* cover,
                       Error ub,
-                      Array <Attribute> attributes_to_visit,
+                      Attributes &attributes_to_visit,
                       Attribute last_added,
-                      Array <Item> itemset,
+                      Itemset &itemset,
                       Node *node,
                       NodeDataManager* nodeDataManager,
                       Error lb,
@@ -96,22 +96,16 @@ Error computeDepthTwo(RCover* cover,
         if (verbose) cout << "infeasible case. ub = " << ub << " lb = " << lb << endl;
         return ((FND)node->data)->error;
     }
-//    cout << "fifi" << endl;
 
     // The fact to not bound the search make it find the best solution in any case and remove the chance to recall this
     // function for the same node with an higher upper bound. Since this function is not exponential, we can afford that.
-    ub = FLT_MAX;
-    /*if(cache == nullptr) searcher = (Search_nocache*)searcher;
-    else searcher = (Search*)searcher;*/
+//    ub = FLT_MAX;
 
-    //count the number of call to this function for stats
-    ncall += 1;
     //initialize the timer to count the time spent in this function
     auto start = high_resolution_clock::now();
 
     //local variable to make the function verbose or not. Can be improved :-)
     bool local_verbose = verbose;
-//    if (last_added == 64) local_verbose = true;
 
     // get the support and the support per class of the root node
     ErrorVals root_sup_clas = copyErrorVals(cover->getErrorValPerClass());
@@ -119,8 +113,8 @@ Error computeDepthTwo(RCover* cover,
 
     // update the next candidates list by removing the one already added
     vector<Attribute> attr;
-    attr.reserve(attributes_to_visit.size - 1);
-    for(const auto& attribute : attributes_to_visit) {
+    attr.reserve(attributes_to_visit.size() - 1);
+    for(const auto attribute : attributes_to_visit) {
         if (last_added == attribute) continue;
         attr.push_back(attribute);
     }
@@ -138,14 +132,12 @@ Error computeDepthTwo(RCover* cover,
         sups[l] = new Support[attr.size()];
 
         // compute values for first level of the tree
-//        cout << "item : " << attr[l] << " ";
         cover->intersect(attr[l]);
         sups_sc[l][l] = copyErrorVals(cover->getErrorValPerClass());
         sups[l][l] = cover->getSupport();
 
         // compute value for second level
         for (int i = l + 1; i < attr.size(); ++i) {
-//            cout << "\titem_fils : " << attr[i] << " ";
             pair<ErrorVals, Support> p = cover->temporaryIntersect(attr[i]);
             sups_sc[l][i] = p.first;
             sups[l][i] = p.second;
@@ -153,26 +145,20 @@ Error computeDepthTwo(RCover* cover,
         // backtrack to recover the cover state
         cover->backtrack();
     }
-    auto stop_comp = high_resolution_clock::now();
-    comptime += duration<double>(stop_comp - start_comp).count();
 
     auto* best_tree = new TreeTwo();
-    //TreeTwo* feat_best_tree;
 
     // find the best tree for each feature
     for (int i = 0; i < attr.size(); ++i) {
         if (local_verbose) cout << "root test: " << attr[i] << endl;
-        //cout << "beeest " << best_tree->root_data->error << endl;
 
         // best tree for the current feature
         auto* feat_best_tree = new TreeTwo();
-//        cout << "beeest " << best_tree->root_data->error << endl;
         // set the root to the current feature
         feat_best_tree->root_data->test = attr[i];
         // compute its error and set it as initial error
         LeafInfo ev = nodeDataManager->computeLeafInfo();
         feat_best_tree->root_data->leafError = ev.error;
-        // feat_best_tree.root_data->test = ev.maxclass;
 
         ErrorVals idsc = sups_sc[i][i];
         Support ids = sups[i][i]; // Support ids = sumSupports(idsc);
@@ -203,7 +189,6 @@ Error computeDepthTwo(RCover* cover,
         // the root node can theorically be split at left
         else {
             if (local_verbose) cout << "root gauche peut théoriquement spliter. Creusons plus..." << endl;
-//            cout << "beeest " << best_tree->root_data->error << endl;
             // at worst it can't in practice and error will be considered as leaf node
             // so the error is initialized at this case
             LeafInfo ev = nodeDataManager->computeLeafInfo(igsc);
@@ -229,15 +214,12 @@ Error computeDepthTwo(RCover* cover,
                     // the root node can in practice be split into two children
                     if (igjgs >= searcher->minsup && igjds >= searcher->minsup) {
                         if (local_verbose) cout << "le left testé peut splitter. on le regarde" << endl;
-//                        cout << "beeest " << best_tree->root_data->error << endl;
 
                         LeafInfo ev2 = nodeDataManager->computeLeafInfo(igjdsc);
                         if (local_verbose) cout << "le left a droite produit une erreur de " << ev2.error << endl;
-//                        cout << "beeest " << best_tree->root_data->error << endl;
 
                         if (ev2.error >= min(best_tree->root_data->error, feat_best_tree->root_data->left->error)) {
-                            if (local_verbose)
-                                cout << "l'erreur gauche du left montre rien de bon. best root: " << best_tree->root_data->error << " best left: " << feat_best_tree->root_data->left->error << " Un autre left..." << endl;
+                            if (local_verbose) cout << "l'erreur gauche du left montre rien de bon. best root: " << best_tree->root_data->error << " best left: " << feat_best_tree->root_data->left->error << " Un autre left..." << endl;
                             deleteErrorVals(igjdsc);
                             continue;
                         }
@@ -246,7 +228,6 @@ Error computeDepthTwo(RCover* cover,
                         subErrorVals(igsc, igjdsc, igjgsc);
                         LeafInfo ev1 = nodeDataManager->computeLeafInfo(igjgsc);
                         if (local_verbose) cout << "le left a gauche produit une erreur de " << ev1.error << endl;
-//                        cout << "beeest " << best_tree->root_data->error << endl;
 
                         if (ev1.error + ev2.error < min(best_tree->root_data->error, feat_best_tree->root_data->left->error)) {
                             feat_best_tree->root_data->left->error = ev1.error + ev2.error;
@@ -256,14 +237,12 @@ Error computeDepthTwo(RCover* cover,
                                 feat_best_tree->root_data->left->left = new Freq_NodeData();
                                 feat_best_tree->root_data->left->right = new Freq_NodeData();
                             }
-                            //else feat_best_tree.cleanLeft();
+
                             feat_best_tree->root_data->left->left->error = ev1.error;
                             feat_best_tree->root_data->left->left->test = ev1.maxclass;
                             feat_best_tree->root_data->left->right->error = ev2.error;
                             feat_best_tree->root_data->left->right->test = ev2.maxclass;
                             feat_best_tree->root_data->left->test = attr[j];
-//                            feat_best_tree.root_data->left->left = feat_best_tree.left1_data;
-//                            feat_best_tree.root_data->left->right = feat_best_tree.left2_data;
                             feat_best_tree->root_data->left->size = 3;
 
                             if (floatEqual(feat_best_tree->root_data->left->error, lb)) {
@@ -272,10 +251,8 @@ Error computeDepthTwo(RCover* cover,
                                 break;
                             }
                         } else {
-                            if (local_verbose)
-                                cout << "l'erreur du left = " << ev1.error + ev2.error << " n'ameliore pas l'existant. Un autre left..." << endl;
+                            if (local_verbose) cout << "l'erreur du left = " << ev1.error + ev2.error << " n'ameliore pas l'existant. Un autre left..." << endl;
                         }
-//                        cout << "beeest " << best_tree->root_data->error << endl;
                         deleteErrorVals(igjgsc);
                     } else if (local_verbose) cout << "le left testé ne peut splitter en pratique...un autre left!!!" << endl;
                     deleteErrorVals(igjdsc);
@@ -293,7 +270,6 @@ Error computeDepthTwo(RCover* cover,
 
 
         //feature to right
-//        cout << "bestoor si error " << best_tree->root_data->error << endl;
         if (feat_best_tree->root_data->left->error < best_tree->root_data->error) {
             if (local_verbose) cout << "vu l'erreur du root gauche et du left. on peut tenter quelque chose à droite" << endl;
 
@@ -302,8 +278,7 @@ Error computeDepthTwo(RCover* cover,
                 LeafInfo ev = nodeDataManager->computeLeafInfo(idsc);
                 feat_best_tree->root_data->right->error = ev.error;
                 feat_best_tree->root_data->right->test = ev.maxclass;
-                if (local_verbose)
-                    cout << "root droite ne peut théoriquement spliter; donc feuille. erreur droite = " << feat_best_tree->root_data->right->error << " on backtrack" << endl;
+                if (local_verbose) cout << "root droite ne peut théoriquement spliter; donc feuille. erreur droite = " << feat_best_tree->root_data->right->error << " on backtrack" << endl;
             } else {
                 if (local_verbose) cout << "root droite peut théoriquement spliter. Creusons plus..." << endl;
                 // at worst it can't in practice and error will be considered as leaf node
@@ -320,8 +295,7 @@ Error computeDepthTwo(RCover* cover,
                     for (int j = 0; j < attr.size(); ++j) {
                         if (local_verbose) cout << "right test: " << attr[j] << endl;
                         if (attr[i] == attr[j]) {
-                            if (local_verbose)
-                                cout << "right pareil que le parent ou non sup...on essaie un autre right" << endl;
+                            if (local_verbose) cout << "right pareil que le parent ou non sup...on essaie un autre right" << endl;
                             continue;
                         }
 
@@ -351,14 +325,12 @@ Error computeDepthTwo(RCover* cover,
                                     feat_best_tree->root_data->right->left = new Freq_NodeData();
                                     feat_best_tree->root_data->right->right = new Freq_NodeData();
                                 }
-                                //else feat_best_tree.removeRight();
+
                                 feat_best_tree->root_data->right->left->error = ev1.error;
                                 feat_best_tree->root_data->right->left->test = ev1.maxclass;
                                 feat_best_tree->root_data->right->right->error = ev2.error;
                                 feat_best_tree->root_data->right->right->test = ev2.maxclass;
                                 feat_best_tree->root_data->right->test = attr[j];
-//                                feat_best_tree.right_data->left = feat_best_tree.right1_data;
-//                                feat_best_tree.right_data->right = feat_best_tree.right2_data;
                                 feat_best_tree->root_data->right->size = 3;
 
                                 if (floatEqual(feat_best_tree->root_data->right->error, lb)) {
@@ -383,8 +355,6 @@ Error computeDepthTwo(RCover* cover,
                 feat_best_tree->root_data->error = feat_best_tree->root_data->left->error + feat_best_tree->root_data->right->error;
                 feat_best_tree->root_data->size += feat_best_tree->root_data->left->size + feat_best_tree->root_data->right->size;
 
-                //best_tree = feat_best_tree;
-                //cout << "replaccc" << endl;
                 best_tree->replaceTree(feat_best_tree);
                 if (local_verbose) cout << "ce triple (root, left, right) ci donne une meilleure erreur que les précédents triplets: " << best_tree->root_data->error << " " << best_tree->root_data->test << endl;
             } else {
@@ -395,9 +365,8 @@ Error computeDepthTwo(RCover* cover,
         else delete feat_best_tree;
         deleteErrorVals(igsc);
 
-        //if (feat_best_tree && best_tree->root_data != feat_best_tree->root_data) delete feat_best_tree;
     }
-//    cout << "ffffi" << endl;
+
     for (int k = 0; k < attr.size(); ++k) {
         for (int i = k; i < attr.size(); ++i) {
             deleteErrorVals(sups_sc[k][i]);
@@ -431,8 +400,6 @@ Error computeDepthTwo(RCover* cover,
             delete best_tree->root_data->right;
             best_tree->root_data->right = nullptr;
             node->data = (NodeData *)best_tree->root_data;
-            auto stop = high_resolution_clock::now();
-            spectime += duration<double>(stop - stop_comp).count();
             if (verbose) cout << "best twotree error = " << to_string(best_tree->root_data->error) << endl;
             return ((FND)node->data)->error;
         }
@@ -440,13 +407,6 @@ Error computeDepthTwo(RCover* cover,
         node->data = (NodeData *) best_tree->root_data;
         if (cachecover) addTreeToCache(node, nodeDataManager, cache);
         else addTreeToCache(node, itemset, cache);
-//        setIteme((Freq_NodeData *) node->data, itemset, cache);
-
-        // update count_opti_path counter for each node of the current path
-        //if (itemset.size > 0 && cache->maxcachesize > NO_CACHE_LIMIT) cache->updateRootPath(itemset, ((Freq_NodeData *) node->data)->size - 1);
-
-        auto stop = high_resolution_clock::now();
-        spectime += duration<double>(stop - stop_comp).count();
 
         if (verbose) cout << "best twotree error = " << to_string(best_tree->root_data->error) << endl;
 
@@ -459,8 +419,6 @@ Error computeDepthTwo(RCover* cover,
         ((Freq_NodeData *) node->data)->error = FLT_MAX;
         ((Freq_NodeData *) node->data)->leafError = ev.error;
         ((Freq_NodeData *) node->data)->test = ev.maxclass;
-        auto stop = high_resolution_clock::now();
-        spectime += duration<double>(stop - stop_comp).count();
         if (verbose) cout << "best twotree error = " << to_string(best_tree->root_data->error) << endl;
         return ((FND)node->data)->error;
     }

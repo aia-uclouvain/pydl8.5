@@ -10,6 +10,7 @@ from sklearn.base import ClassifierMixin
 
 from .classifier import DL85Classifier
 from ...predictors.predictor import DL85Predictor
+from ..classifiers.classifier import Cache_Type, Wipe_Type, DL85Classifier
 from ...errors.errors import SearchFailedError, TreeNotFoundError
 from sklearn.exceptions import NotFittedError
 from sklearn.utils.multiclass import unique_labels
@@ -160,7 +161,6 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             gamma=None,
             error_function=None,
             fast_error_function=None,
-            iterative=False,
             min_trans_cost=0,
             opti_gap=0.01,
             max_error=0,
@@ -172,8 +172,18 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             asc=False,
             repeat_sort=False,
             print_output=False,
-            quiet=True):
+            quiet=True,
+            cache_type=Cache_Type.Cache_Trie,
+            cache_size=0,
+            wipe_type=Wipe_Type.Sub_nodes,
+            wipe_factor=0.5,
+            use_cache=True,
+            use_ub=True,
+            dynamic_branch=True):
         self.clf_params = dict(locals())
+        self.clf_params["depth_two_special_algo"] = False
+        self.clf_params["similar_lb"] = True
+        self.clf_params["similar_for_branching"] = False
         del self.clf_params["self"]
         del self.clf_params["regulator"]
         del self.clf_params["base_estimator"]
@@ -189,7 +199,6 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         self.max_iterations = max_iterations
         self.error_function = error_function
         self.fast_error_function = fast_error_function
-        self.iterative = iterative
         self.max_error = max_error
         self.stop_after_better = stop_after_better
         self.time_limit = time_limit
@@ -291,7 +300,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             clf = DL85Classifier(**self.clf_params) if self.base_estimator is None else self.base_estimator
 
             # fit the model
-            if self.quiet or True:
+            if self.quiet:
                 old_stdout = sys.stdout
                 sys.stdout = open(os.devnull, "w")
                 clf.fit(X, y, sample_weight=sample_weights.tolist())

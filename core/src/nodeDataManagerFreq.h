@@ -43,7 +43,7 @@ public:
 //
 //    bool is_pure(pair<Supports, Support> supports);
 
-    bool updateData(NodeData *best, Error upperBound, Attribute attribute, NodeData *left, NodeData *right, Array<Item> itemset = Array<Item>(), Cache* cache = nullptr);
+    bool updateData(NodeData *best, Error upperBound, Attribute attribute, NodeData *left, NodeData *right);
 
     NodeData *initData(RCover *cov = nullptr, Depth currentMaxDepth = -1, int hashcode = -1);
 

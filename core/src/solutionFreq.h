@@ -32,17 +32,21 @@ struct Freq_Tree {
     string to_str() const {
         string out = "";
         out += "Tree: " + expression + "\n";
-        if (expression != "(No such tree)") {
+        out += (expression != "(No such tree)") ? "Size: " + to_string(size) + "\n" : "Size: 0\n";
+        out += (expression != "(No such tree)") ? "Depth: " + to_string(depth) + "\n" : "Depth: 0\n";
+        out += (expression != "(No such tree)") ? "Error: " + custom_to_str(trainingError) + "\n" : "Error: inf\n";
+        out += (expression != "(No such tree)") ? "Accuracy: " + custom_to_str(accuracy) + "\n" : "Accuracy: 0\n";
+        out += "CacheSize: " + to_string(cacheSize) + "\n";
+        out += "RunTime: " + custom_to_str(runtime) + "\n";
+        if (timeout) out += "Timeout: True\n";
+        else out += "Timeout: False\n";
+        return out;
+        /*if (expression != "(No such tree)") {
             out += "Size: " + to_string(size) + "\n";
             out += "Depth: " + to_string(depth) + "\n";
             out += "Error: " + to_string(trainingError) + "\n";
             out += "Accuracy: " + to_string(accuracy) + "\n";
-        }
-        out += "CacheSize: " + to_string(cacheSize) + "\n";
-        out += "RunTime: " + to_string(runtime) + "\n";
-        if (timeout) out += "Timeout: True\n";
-        else out += "Timeout: False\n";
-        return out;
+        }*/
     }
 };
 

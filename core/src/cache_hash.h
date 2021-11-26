@@ -14,17 +14,26 @@ struct HashNode : Node {
     ~HashNode() { if (itemset.elts) itemset.free(); }*/
 };
 
+template<>
+struct hash<Itemset> {
+    std::size_t operator()(const Itemset& array) const noexcept {
+        std::size_t h = array.size();
+        for (auto elt: array) h ^= elt + 0x9e3779b9 + 64 * h + h / 4;
+        return h;
+    }
+};
+
 class Cache_Hash: public Cache {
 public:
     Cache_Hash(Depth maxdepth, WipeType wipe_type, int maxcachesize);
-    ~Cache_Hash() {delete root; forEach(i, store) for(auto &elt: store[i]) delete elt.second;}
+    ~Cache_Hash() {delete root; for(auto &depth : store) for(auto &elt: depth) delete elt.second;}
 
-    Array<unordered_map<Array<Item>, HashNode*>> store;
+    vector<unordered_map<Itemset, HashNode*, hash<Itemset>>> store;
 
-    pair<Node*, bool> insert ( Array<Item> itemset );
-    Node *get ( Array<Item> itemset);
-    void updateSubTreeLoad(Array<Item> itemset, Item firstItem, Item secondItem, bool inc=false);
-    void updateItemsetLoad ( Array<Item> itemset, bool inc=false );
+    pair<Node*, bool> insert ( Itemset& itemset );
+    Node *get ( Itemset& itemset);
+    void updateSubTreeLoad(Itemset &itemset, Item firstItem, Item secondItem, bool inc=false);
+    void updateItemsetLoad ( Itemset &itemset, bool inc=false );
     int getCacheSize();
     void wipe(Node* node);
 

@@ -1,13 +1,9 @@
 #include "globals.h"
 #include <math.h>
 
+auto startTime = std::chrono::high_resolution_clock::now();
 Class nclasses;
 Attribute nattributes;
-std::map<int,int> attrFeat;
-int ncall = 0;
-float spectime = 0;
-float comptime = 0;
-float epsilon = 1.0e-05f;
 bool verbose = false;
 
 ErrorVals newErrorVals () {
@@ -25,11 +21,11 @@ void zeroErrorVals (ErrorVals supports ) {
     supports[i] = 0;
 }
 
-void deleteErrorVals (ErrorVals supports ) {
+void deleteErrorVals (constErrorVals supports ) {
   delete[] supports;
 }
 
-void copyErrorVals (ErrorVals src, ErrorVals dest ) {
+void copyErrorVals (constErrorVals src, ErrorVals dest ) {
   forEachClass ( i ) dest[i] = src[i];
 }
 
@@ -39,21 +35,21 @@ ErrorVals copyErrorVals (ErrorVals supports ) {
   return supports2;
 }
 
-ErrorVal sumErrorVals (ErrorVals supports ) {
+ErrorVal sumErrorVals (constErrorVals supports ) {
   ErrorVal sum = 0;
   forEachClass ( i ) sum += supports[i];
   return sum;
 }
 
-void addErrorVals (ErrorVals src1, ErrorVals src2, ErrorVals dest ) {
+void addErrorVals (constErrorVals src1, constErrorVals src2, ErrorVals dest ) {
   forEachClass ( i ) dest[i] = src1[i] + src2[i];
 }
 
-void subErrorVals (ErrorVals src1, ErrorVals src2, ErrorVals dest ) {
+void subErrorVals (constErrorVals src1, constErrorVals src2, ErrorVals dest ) {
     forEachClass ( i ) dest[i] = src1[i] - src2[i];
 }
 
-ErrorVals subErrorVals (ErrorVals src1, ErrorVals src2 ) {
+ErrorVals subErrorVals (constErrorVals src1, constErrorVals src2 ) {
     ErrorVals sub = zeroErrorVals();
     forEachClass ( i ) sub[i] = src1[i] - src2[i];
     return sub;
@@ -65,69 +61,75 @@ int countSetBits(unsigned long i) {
     return (int)((((i + (i >> 4)) & 0xF0F0F0F0F0F0F0FUL) * 0x101010101010101UL) >> 56);
 }
 
-void merge ( Array<Item> src1, Array<Item> src2, Array<Item> dest ) {
+void merge ( const Itemset &src1, const Itemset &src2, Itemset &dest ) {
   int i = 0, j = 0, k = 0;
-  while ( i < src1.size && j < src2.size )
-    if ( src1[i] < src2[j] )
-      dest[k++] = src1[i++];
-    else
-      dest[k++] = src2[j++];
-  while ( i < src1.size )
-    dest[k++] = src1[i++];
-  while ( j < src2.size )
-    dest[k++] = src2[j++];
+  while ( i < src1.size() && j < src2.size() ) {
+      if (src1[i] < src2[j]) dest[k++] = src1[i++];
+      else dest[k++] = src2[j++];
+  }
+  while ( i < src1.size() ) dest[k++] = src1[i++];
+  while ( j < src2.size() ) dest[k++] = src2[j++];
 }
 
-void addItem ( Array<Item> src1, Item item, Array<Item> dest ) {
+void addItem (const Itemset &src, Item item, Itemset &dest ) {
   int i = 0, j = 0, k = 0;
-  while ( i < src1.size && j < 1 )
-    if ( src1[i] < item )
-      dest[k++] = src1[i++];
-    else{
-      dest[k++] = item;
-      j++;
-    }
-  while ( i < src1.size )
-    dest[k++] = src1[i++];
-  if ( j < 1 )
-    dest[k++] = item;
+  while (i < src.size() && j < 1 ) {
+      if (src[i] < item) dest[k++] = src[i++];
+      else { dest[k++] = item; j++; }
+  }
+  while (i < src.size() ) dest[k++] = src[i++];
+  if ( j < 1 ) dest[k++] = item;
 }
 
-Array<Item> addItem ( Array<Item> src1, Item item ) {
-    Array<Item> dest;
-    dest.alloc(src1.size + 1);
+Itemset addItem (const Itemset &src, Item item ) {
+    Itemset dest(src.size() + 1);
     int i = 0, j = 0, k = 0;
-    while ( i < src1.size && j < 1 )
-        if ( src1[i] < item )
-            dest[k++] = src1[i++];
-        else{
-            dest[k++] = item;
-            j++;
-        }
-    while ( i < src1.size )
-        dest[k++] = src1[i++];
-    if ( j < 1 )
-        dest[k++] = item;
+    while (i < src.size() && j < 1 ) {
+        if (src[i] < item ) dest[k++] = src[i++];
+        else { dest[k++] = item; j++; }
+    }
+    while (i < src.size() ) dest[k++] = src[i++];
+    if ( j < 1 ) dest[k++] = item;
 
-    if (verbose) std::cout << "-\nitemset avant ajout : "; printItemset(src1);
+    if (verbose) std::cout << "-\nitemset avant ajout : "; printItemset(src);
     if (verbose) std::cout << "Item à ajouter : " << item << std::endl;
     if (verbose) std::cout << "itemset après ajout : "; printItemset(dest);
     return dest;
 }
 
-void printItemset(Array<Item> itemset, bool force) {
-    if (verbose || force) {
-        if (itemset.size == 0) std::cout << "\\phi";
-        for (int i = 0; i < itemset.size; ++i) {
-            std::cout << itemset[i] << ",";
-        }
+void printItemset(const Itemset &itemset, bool force) {
+    if (verbose or force) {
+        if (itemset.empty()) std::cout << "\\phi";
+        for (const auto& item : itemset) std::cout << item << ",";
         std::cout << std::endl;
     }
 }
 
-bool floatEqual(float f1, float f2)
-{
+bool floatEqual(float f1, float f2) {
     return fabs(f1 - f2) <= FLT_EPSILON;
+}
+
+int find_not_zero(std::string& str) {
+    for (int i = 0; i < str.size(); ++i) {
+        if (str.at(i) != '0') {
+            if (str.at(i) == '.') return -1;
+            else return i;
+        }
+    }
+    return -1;
+}
+
+std::string custom_to_str(float val) {
+    std::string valstr = std::to_string(val);
+    if (valstr.at(valstr.size()-1) != '0') return valstr;
+    std::reverse(valstr.begin(), valstr.end());
+    auto index = find_not_zero(valstr);
+    std::reverse(valstr.begin(), valstr.end());
+    if (index == -1) return valstr.substr(0, valstr.find('.'));
+    else {
+        auto ind = valstr.size() - index - 1;
+        return valstr.substr(0, ind + 1);
+    }
 }
 
 /*bool floatEqual(float f1, float f2)

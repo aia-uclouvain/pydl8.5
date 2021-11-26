@@ -73,16 +73,13 @@ class DL85Cluster(DL85Predictor, ClusterMixin):
             leaf_value_function=None,
             # nps=False,
             print_output=False,
-            cache_type=Cache_Type.Cache_Ltd_Trie,
+            cache_type=Cache_Type.Cache_Trie,
             cache_size=0,
             wipe_type=Wipe_Type.Sub_nodes,
             wipe_factor=0.5,
             use_cache=True,
-            depth_two_special_algo=True,
             use_ub=True,
-            similar_lb=True,
-            dynamic_branch=True,
-            similar_for_branching=True):
+            dynamic_branch=True):
 
         DL85Predictor.__init__(self,
                                max_depth=max_depth,
@@ -105,11 +102,11 @@ class DL85Cluster(DL85Predictor, ClusterMixin):
                                wipe_type=wipe_type,
                                wipe_factor=wipe_factor,
                                use_cache=use_cache,
-                               depth_two_special_algo=depth_two_special_algo,
+                               depth_two_special_algo=False,
                                use_ub=use_ub,
-                               similar_lb=similar_lb,
+                               similar_lb=False,
                                dynamic_branch=dynamic_branch,
-                               similar_for_branching=similar_for_branching)
+                               similar_for_branching=False)
 
     @staticmethod
     def default_error(tids, X):

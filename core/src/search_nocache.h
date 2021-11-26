@@ -25,8 +25,8 @@ public:
                    bool use_ub = true);
 
     void run();
-    Error recurse(Attribute last_added, Array <Attribute> attributes_to_visit, Depth depth, Error ub);
-    Array <Attribute> getSuccessors(Array <Attribute> last_freq_attributes, Attribute last_added);
+    Error recurse(Attribute last_added, Attributes &attributes_to_visit, Depth depth, Error ub);
+    Attributes getSuccessors(Attributes &last_attributes, Attribute last_added);
     float informationGain(ErrorVals notTaken, ErrorVals taken);
     ~Search_nocache();
 

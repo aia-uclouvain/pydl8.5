@@ -3,7 +3,7 @@
 
 #include "globals.h"
 #include "cache.h"
-#include "cache_trie.h"
+//#include "cache_trie.h"
 #include "solution.h"
 #include "search_base.h"
 
@@ -45,7 +45,8 @@ public:
                   bool stopAfterError = false,
                   bool similarlb = false,
                   bool dynamic_branching = false,
-                  bool similar_for_branching = true);
+                  bool similar_for_branching = true,
+                  bool from_cpp = true);
 
     ~Search_cache();
 
@@ -58,8 +59,8 @@ public:
 
 
 private:
-    pair<Node*,HasInter> recurse ( Array<Item> itemset, Attribute last_added, Node* node, bool node_is_new, Array<Attribute> attributes_to_visit, Depth depth, Error ub, SimilarVals &sim_db1, SimilarVals &sim_db2);
-    Array<Attribute> getSuccessors(Array<Attribute> last_freq_attributes, Attribute last_added, Array<Item> itemset);
+    pair<Node*,HasInter> recurse ( Itemset &itemset, Attribute last_added, Node* node, bool node_is_new, Attributes &attributes_to_visit, Depth depth, Error ub, SimilarVals &sim_db1, SimilarVals &sim_db2);
+    Attributes getSuccessors(Attributes &last_freq_attributes, Attribute last_added, Itemset &itemset);
     float informationGain (ErrorVals notTaken, ErrorVals taken);
     Node *getSolutionIfExists(Node *node, Error ub, Depth depth);
     Node* inferSolutionFromLB(Node *node, Error ub);

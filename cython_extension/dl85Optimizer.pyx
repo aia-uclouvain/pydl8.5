@@ -1,29 +1,17 @@
-from libc.stdlib cimport malloc, free
+#from libc.stdlib cimport malloc, free
+#from libcpp.map cimport map
+#from libcpp.utility cimport pair
 from libcpp.string cimport string
-from libcpp.map cimport map
-from libcpp.utility cimport pair
 from libcpp cimport bool, nullptr
 from libcpp.vector cimport vector
 from libcpp.functional cimport function
 import numpy as np
 
-cdef extern from "../core/src/globals.h":
-    cdef cppclass Array[T]:
-        cppclass iterator:
-            T operator*()
-            iterator operator++()
-            bool operator==(iterator)
-            bool operator!=(iterator)
-        iterator begin()
-        iterator end()
-        int getSize()
-
-cdef extern from "../core/src/cache_wipe.h":
+cdef extern from "../core/src/cache.h":
     cpdef enum CacheType:
         CacheTrie,
-        CacheLtdTrie,
         CacheHash,
-        CachePriority
+        CacheHashCover
 
     cpdef enum WipeType:
         All,
@@ -81,7 +69,8 @@ cdef extern from "../core/src/dl85.h":
                     bool use_ub,
                     bool similarlb,
                     bool dynamic_branching,
-                    bool similar_for_branching) except +
+                    bool similar_for_branching,
+                    bool from_cpp) except +
 
 
 def solve(data,
@@ -100,7 +89,7 @@ def solve(data,
           asc=False,
           repeat_sort=False,
           predictor=False,
-          cachetype=CacheLtdTrie,
+          cachetype=CacheTrie,
           cachesize=0,
           wipetype=Subnodes,
           wipefactor=0.5,
@@ -210,6 +199,7 @@ def solve(data,
                  use_ub = useub,
                  similarlb = similar_lb,
                  dynamic_branching = dyn_branch,
-                 similar_for_branching = similar_for_branching)
+                 similar_for_branching = similar_for_branching,
+                 from_cpp = False)
 
     return out.decode("utf-8")
