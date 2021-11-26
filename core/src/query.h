@@ -66,6 +66,7 @@ struct Tree {
         out += "LatticeSize: " + to_string(latSize) + "\n";
         out += "RunTime: " + to_string(searchRt) + "\n";
         if (timeout) out += "Timeout: True\n";
+        else out += "Timeout: False\n";
         return out;
     }
 };

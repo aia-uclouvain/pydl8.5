@@ -72,8 +72,6 @@ string search(Supports supports,
     tree_out->latSize = ((LcmPruned *) lcm)->latticesize;
     tree_out->searchRt = duration<double>(stop_tree - start_tree).count();
     out += tree_out->to_str();
-    if (query->timeLimitReached) out += "Timeout: True\n";
-    else out += "Timeout: False\n";
 
 
     delete trie;
