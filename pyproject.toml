@@ -1,0 +1,12 @@
+[build-system]
+requires = [
+    "setuptools>=42",
+    "wheel",
+    "Cython", 
+    "numpy", 
+    "scikit-learn", 
+    "gurobipy", 
+    "cvxpy"
+]
+
+build-backend = "setuptools.build_meta"
