@@ -20,6 +20,8 @@ add_executable(dl85
         src/lcm_pruned.h
         src/lcm_pruned.cpp
         src/logger.h
+        src/predefined_error_functions.h
+        src/predefined_error_functions.cpp
         src/query.h
         src/query.cpp
         src/query_best.h

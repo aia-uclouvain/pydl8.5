@@ -74,9 +74,14 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
         }
         //default error
         else {
-            LeafInfo ev = computeLeafInfo(cover);
-            error = ev.error;
-            maxclass = ev.maxclass;
+            if (dm->getBackupError() == MISCLASSIFICATION_ERROR) {
+                LeafInfo ev = computeLeafInfo(cover);
+                error = ev.error;
+                maxclass = ev.maxclass;
+            } else if (dm->getBackupError() == MSE_ERROR) {
+                error = sse_tids_error(cover);
+            }
+            
         }
     }
     //slow error or predictor error function. Not need to compute support
