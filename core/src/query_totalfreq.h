@@ -2,6 +2,7 @@
 #define QUERY_TOTALFREQ_H
 
 #include <query_best.h>
+#include <predefined_error_functions.h>
 #include <vector>
 
 class Query_TotalFreq : public Query_Best {

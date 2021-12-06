@@ -62,6 +62,8 @@ class DL85Predictor(BaseEstimator):
         A parameter used to indicate whether the heuristic sort will be applied at each level of the lattice or only at the root
     print_output : bool, default=False
         A parameter used to indicate if the search output will be printed or not
+    backup_error : str, default="misclassification"
+        Predefined error function to be optimized and corresponding leaf values. It is used if the corresponding user defined arguments (error_function, fast_error_function for the error and leaf_value_function) are None. Must be one of {"misclassification", "mse", "quantile}
 
     Attributes
     ----------
@@ -100,7 +102,8 @@ class DL85Predictor(BaseEstimator):
             repeat_sort=False,
             leaf_value_function=None,
             quiet=True,
-            print_output=False):
+            print_output=False, 
+            backup_error="misclassification"):
         self.max_depth = max_depth
         self.min_sup = min_sup
         self.sample_weight = []
@@ -114,6 +117,7 @@ class DL85Predictor(BaseEstimator):
         self.asc = asc
         self.repeat_sort = repeat_sort
         self.leaf_value_function = leaf_value_function
+        self.backup_error = backup_error
         self.quiet = quiet
         self.print_output = print_output
 
@@ -149,6 +153,7 @@ class DL85Predictor(BaseEstimator):
         """
 
         target_is_need = True if y is not None else False
+        is_classification_task = self.backup_error in ["misclassification"]
         opt_func = self.error_function
         opt_fast_func = self.fast_error_function
         opt_pred_func = self.error_function
@@ -184,6 +189,7 @@ class DL85Predictor(BaseEstimator):
                                        tec_func_=opt_func,
                                        sec_func_=opt_fast_func,
                                        te_func_=opt_pred_func,
+                                       backup_error=self.backup_error,
                                        max_depth=self.max_depth,
                                        min_sup=self.min_sup,
                                        example_weights=self.sample_weight,
@@ -194,7 +200,6 @@ class DL85Predictor(BaseEstimator):
                                        desc=self.desc,
                                        asc=self.asc,
                                        repeat_sort=self.repeat_sort)
-
         # if self.print_output:
         #     print(solution)
 
@@ -228,7 +233,7 @@ class DL85Predictor(BaseEstimator):
                     else:
                         print("DL8.5 fitting: Timeout reached but solution found")
 
-            if target_is_need:  # problem with target
+            if target_is_need and is_classification_task:  # problem with target
                 # Store the classes seen during fit
                 self.classes_ = unique_labels(y)
 

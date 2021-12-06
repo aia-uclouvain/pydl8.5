@@ -10,6 +10,7 @@ string search(Supports supports,
               Class nclasses,
               Bool *data,
               Class *target,
+              double *float_target,
               int maxdepth,
               int minsup,
               float maxError,
@@ -24,6 +25,7 @@ string search(Supports supports,
               bool infoGain,
               bool infoAsc,
               bool repeatSort,
+              int backup_error,
               int timeLimit,
               bool verbose_param) {
 
@@ -40,7 +42,7 @@ string search(Supports supports,
     verbose = verbose_param;
     string out = "";
 
-    auto *dataReader = new DataManager(supports, ntransactions, nattributes, nclasses, data, target);
+    auto *dataReader = new DataManager(supports, ntransactions, nattributes, nclasses, data, target, float_target, backup_error);
 
 
     vector<float> weights;
@@ -72,7 +74,6 @@ string search(Supports supports,
     tree_out->latSize = ((LcmPruned *) lcm)->latticesize;
     tree_out->searchRt = duration<double>(stop_tree - start_tree).count();
     out += tree_out->to_str();
-
 
     delete trie;
     delete query;
