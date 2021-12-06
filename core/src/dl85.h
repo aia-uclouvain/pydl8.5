@@ -32,7 +32,8 @@ using namespace std;
  * @param nattributes - the number of attributes in the dataset
  * @param nclasses - the number of classes in the dataset
  * @param data - a pointer of pointer representing the matrix of data (features values only)
- * @param target - array of targets of the dataset
+ * @param target - array of targets of the dataset as ints for classification purposes
+ * @param float_target - array of targets of the dataset as floats for regression purposes
  * @param maxError - the maximum error that cannot be reached. default value is 0 means that there is no bound
  * @param stopAfterError - boolean variable to state that the search must stop as soon as an error better than "maxError" is reached. Default value is false
  * @param iterative - boolean variable to express whether the search performed will be IDS or not; the default being DFS. Default value is false
@@ -47,6 +48,7 @@ using namespace std;
  * @param infoGain - boolean variable to set whether the information gain will be used or not as heuristic to sort the branch to explore. Default is false
  * @param infoAsc - boolean variable to set whether the sort based on information gain will be done increasingly or not. Default is true
  * @param repeatSort - boolean variable to set whether the sort is done at each node or not. If not, it is performed only at the beginning of the search. Default value is false
+ * @param backup_error - integer value representing the default error to use if no user coded error is provided. Default is misclassification error.
  * @param timeLimit - the maximum time allocated for the search, expressed in seconds. Default value 0 means that there is no time limit
  * @param continuousMap - a value planned to handle continuous datasets. It is not used currently. Must be set to null
  * @param save - a value planned to handle continuous datasets. It is not used currently. Must be set to false
@@ -59,6 +61,7 @@ string search(Supports supports,
               int nclasses,
               Bool *data,
               Class *target,
+              double *float_target,
               int maxdepth = 1,
               int minsup = 1,
               float maxError = 0,
@@ -80,6 +83,7 @@ string search(Supports supports,
               bool infoGain = false,
               bool infoAsc = true,
               bool repeatSort = false,
+              int backup_error = MISCLASSIFICATION_ERROR,
               int timeLimit = 0,
               bool verbose_param = false);
 

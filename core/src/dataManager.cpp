@@ -4,8 +4,7 @@
 
 #include "dataManager.h"
 
-
-DataManager::DataManager(Supports supports, int ntransactions, int nattributes, int nclasses, int *data, int *target):supports(supports), ntransactions(ntransactions), nattributes(nattributes), nclasses(nclasses) {
+DataManager::DataManager(Supports supports, int ntransactions, int nattributes, int nclasses, int *data, int *target, double *float_target, int backup_error):supports(supports), ntransactions(ntransactions), nattributes(nattributes), nclasses(nclasses), y(float_target), backup_error(backup_error) {
     nclasses = (nclasses == 1) ? 2 : nclasses;
     nWords = (int)ceil((float)ntransactions/M);
     b = new bitset<M> *[nattributes];
@@ -61,10 +60,9 @@ DataManager::DataManager(Supports supports, int ntransactions, int nattributes, 
             }
             c[i] = classCov;
         }
-    }
-    else
+    } else {
         c = nullptr;
-
+    }
 
     ::nattributes = nattributes;
     ::nclasses = nclasses;

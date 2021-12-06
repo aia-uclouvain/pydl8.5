@@ -408,7 +408,8 @@ TrieNode* computeDepthTwo(RCover* cover,
         ((QueryData_Best *) node->data)->test = ev.maxclass;
         auto stop = high_resolution_clock::now();
         spectime += duration<double>(stop - stop_comp).count();
-        if (verbose) cout << "best twotree error = " << to_string(best_tree->root_data->error) << endl;
+        // if (verbose) cout << "best twotree error = " << to_string(best_tree->root_data->error) << endl;
+
         return node;
     }
 

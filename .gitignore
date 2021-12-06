@@ -10,6 +10,9 @@ doc/generated
 
 .pytest_cache/
 
+.vscode/*
+.DS_Store
+
 .idea/
 
 .ipynb_checkpoints/

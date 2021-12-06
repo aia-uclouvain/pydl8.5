@@ -246,7 +246,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
     }
 
     // in case the solution cannot be derived without computation and remaining depth is 2, we use a specific algorithm
-    if (query->maxdepth - depth == 2 && cover->getSupport() >= 2 * query->minsup && no_python_error) {
+    if (query->maxdepth - depth == 2 && cover->getSupport() >= 2 * query->minsup && no_python_error && default_is_misclassificaton) {
         return computeDepthTwo(cover, ub, next_candidates, last_added, itemset, node, query, computed_lb, query->trie);
     }
 

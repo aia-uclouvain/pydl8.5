@@ -17,6 +17,9 @@ cdef extern from "../core/src/globals.h":
         iterator begin()
         iterator end()
         int getSize()
+    cdef int MISCLASSIFICATION_ERROR
+    cdef int MSE_ERROR 
+    cdef int QUANTILE_ERROR
 
 cdef extern from "py_tid_error_class_function_wrapper.h":
     cdef cppclass PyTidErrorClassWrapper:
@@ -44,6 +47,7 @@ cdef extern from "../core/src/dl85.h":
                     int nclasses,
                     int *data,
                     int *target,
+                    double *float_target,
                     int maxdepth,
                     int minsup,
                     float maxError,
@@ -59,6 +63,7 @@ cdef extern from "../core/src/dl85.h":
                     bool infoGain,
                     bool infoAsc,
                     bool repeatSort,
+                    int backup_error,
                     int timeLimit,
                     # map[int, pair[int, int]]* continuousMap,
                     # bool save,
@@ -81,6 +86,7 @@ def solve(data,
           desc=False,
           asc=False,
           repeat_sort=False,
+          backup_error="misclassification"
           # continuousMap=None,
           # bin_save=False,
           # predictor=False
@@ -101,6 +107,13 @@ def solve(data,
     if te_func_ is not None:
         te_null_flag = False
 
+    if backup_error == "misclassification":
+        backup_error_code = MISCLASSIFICATION_ERROR
+    elif backup_error == "mse":
+        backup_error_code = MSE_ERROR 
+    elif backup_error == "quantile":
+        backup_error_code = QUANTILE_ERROR
+
     data = data.astype('int32')
     ntransactions, nattributes = data.shape
     data = data.transpose()
@@ -120,14 +133,29 @@ def solve(data,
     # get pointer form target
     cdef int [::1] target_view
     cdef int *target_array = NULL
-    if target is not None:
+
+    cdef double *float_target_array = NULL
+
+    if target is None:
+        nclasses = 0 
+    
+    elif backup_error in ["misclassification"]:
         target = target.astype('int32')
         if not target.flags['C_CONTIGUOUS']:
             target = np.ascontiguousarray(target) # Makes a contiguous copy of the numpy array.
         target_view = target
         target_array = &target_view[0]
-    else:
-        nclasses = 0
+
+    elif backup_error in ["mse", "quantile"]:
+        nclasses = 0 
+        target = target.astype(np.double)
+        if not target.flags['C_CONTIGUOUS']:
+            target = np.ascontiguousarray(target) # Makes a contiguous copy of the numpy array.
+
+        # with simple memory views and no malloc, we get free errors
+        float_target_array = <double *> malloc(len(target)*sizeof(double))
+        for i, v in enumerate(target):
+            float_target_array[i] = v
 
     # get pointer from support
     if not supports.flags['C_CONTIGUOUS']:
@@ -165,6 +193,7 @@ def solve(data,
                  nclasses = nclasses,
                  data = data_matrix,
                  target = target_array,
+                 float_target = float_target_array,
                  maxdepth = max_depth,
                  minsup = min_sup,
                  maxError = max_error,
@@ -180,6 +209,7 @@ def solve(data,
                  infoGain = info_gain,
                  infoAsc = asc,
                  repeatSort = repeat_sort,
+                 backup_error = backup_error_code,
                  timeLimit = time_limit,
                  # continuousMap = NULL,
                  # save = bin_save,
