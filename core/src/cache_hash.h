@@ -15,7 +15,7 @@ struct HashNode : Node {
 };
 
 template<>
-struct hash<Itemset> {
+struct std::hash<Itemset> {
     std::size_t operator()(const Itemset& array) const noexcept {
         std::size_t h = array.size();
         for (auto elt: array) h ^= elt + 0x9e3779b9 + 64 * h + h / 4;
@@ -35,7 +35,7 @@ public:
     void updateSubTreeLoad(Itemset &itemset, Item firstItem, Item secondItem, bool inc=false);
     void updateItemsetLoad ( Itemset &itemset, bool inc=false );
     int getCacheSize();
-    void wipe(Node* node);
+    void wipe();
 
 private:
 

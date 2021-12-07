@@ -82,8 +82,9 @@ int main(int argc, char *argv[]) {
     int maxdepth, minsup;
 
     if (cli){
-        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/anneal.txt";
-//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/tests/bcb.txt";
+        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/tic-tac-toe.txt";
+//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/anneal.txt";
+//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/tests/paper.txt";
         maxdepth = (argc > 2) ? std::stoi(argv[2]) : 4;
         configuration = (argc > 3 and std::string(argv[3]).find('b') == 0) ? basic : optimized;
         minsup = (argc > 4) ? std::stoi(argv[4]) : 1;
@@ -104,10 +105,11 @@ int main(int argc, char *argv[]) {
 
 
     cache_type = CacheTrie;
-    //cache_type = CacheHashCover;
+//    cache_type = CacheHashCover;
 
-    cache_size = NO_CACHE_LIMIT;
-    //cache_size = 10000;
+//    cache_size = NO_CACHE_LIMIT;
+//    cache_size = 150000000;
+    cache_size = 250;
 
     wipe_type = Subnodes;
     //wipe_type = Recall;
@@ -118,7 +120,7 @@ int main(int argc, char *argv[]) {
     with_cache = true;
     //with_cache = false;
 
-    //verb = true;
+//    verb = true;
     verb = false;
 
     use_ub = true;

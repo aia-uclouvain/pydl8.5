@@ -1,7 +1,7 @@
 #include "globals.h"
 #include <math.h>
 
-auto startTime = std::chrono::high_resolution_clock::now();
+std::chrono::time_point<std::chrono::high_resolution_clock> startTime = std::chrono::high_resolution_clock::now();
 Class nclasses;
 Attribute nattributes;
 bool verbose = false;
@@ -81,7 +81,7 @@ void addItem (const Itemset &src, Item item, Itemset &dest ) {
   if ( j < 1 ) dest[k++] = item;
 }
 
-Itemset addItem (const Itemset &src, Item item ) {
+Itemset addItem (const Itemset &src, Item item, bool quiet) {
     Itemset dest(src.size() + 1);
     int i = 0, j = 0, k = 0;
     while (i < src.size() && j < 1 ) {
@@ -91,17 +91,19 @@ Itemset addItem (const Itemset &src, Item item ) {
     while (i < src.size() ) dest[k++] = src[i++];
     if ( j < 1 ) dest[k++] = item;
 
-    if (verbose) std::cout << "-\nitemset avant ajout : "; printItemset(src);
-    if (verbose) std::cout << "Item à ajouter : " << item << std::endl;
-    if (verbose) std::cout << "itemset après ajout : "; printItemset(dest);
+    if (not quiet and verbose) {
+        std::cout << "-\nitemset avant ajout : "; printItemset(src);
+        std::cout << "Item à ajouter : " << item << std::endl;
+        std::cout << "itemset après ajout : "; printItemset(dest);
+    }
     return dest;
 }
 
-void printItemset(const Itemset &itemset, bool force) {
+void printItemset(const Itemset &itemset, bool force, bool newline) {
     if (verbose or force) {
         if (itemset.empty()) std::cout << "\\phi";
         for (const auto& item : itemset) std::cout << item << ",";
-        std::cout << std::endl;
+        if (newline) std::cout << std::endl;
     }
 }
 

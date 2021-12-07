@@ -39,7 +39,7 @@ public:
     virtual pair<Node*, bool> insert ( Itemset &itemset ) { return {nullptr, false}; } // add a node to the tree
     virtual pair<Node*, bool> insert ( NodeDataManager*, int depth = 0, bool rootnode = false ) { return {nullptr, false}; }
 
-    virtual Node* get ( Itemset &itemset ){return nullptr;} // get a node in the tree based on its corresponding itemset
+    virtual Node* get ( const Itemset &itemset ){return nullptr;} // get a node in the tree based on its corresponding itemset
     virtual Node *get ( NodeDataManager*, int depth) { return nullptr; }
 
     virtual void updateSubTreeLoad(Itemset &itemset, Item firstI, Item secondI, bool inc=false){}
@@ -49,6 +49,10 @@ public:
     virtual int getCacheSize(){return cachesize;}
 
     virtual void updateRootPath(Itemset &itemset, int value){}
+
+    virtual void wipe(){}
+
+    virtual void updateParents(Node* best, Node* left, Node* right){}
 };
 
 #endif

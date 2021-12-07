@@ -4,8 +4,7 @@ project(dl85)
 set(CMAKE_CXX_STANDARD 17)
 
 #[[add_executable(test
-        tests_run/test.cpp
-        )]]
+        tests_run/main.cpp)]]
 
 include_directories(src/)
 

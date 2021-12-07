@@ -418,8 +418,8 @@ pair<Node*,HasInter> Search_hash_cover::recurse(Itemset &itemset,
         if (node_state.is_new){
             child_nodes[first_item]->data = nodeDataManager->initData();
             Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) child_nodes[first_item]->data)->leafError);
-            if (verbose) cout << "Searching ==> cache size: " << cache->getCacheSize() << endl;
-            else if (from_cpp) cerr << "Searching... cache size: " << cache->getCacheSize() << "\r" << flush;
+            if (not from_cpp) Logger::showMessageAndReturn("Searching ==> cache size: ", cache->getCacheSize());
+            else cerr << "Searching... cache size: " << cache->getCacheSize() << "\r" << flush;
         } else Logger::showMessageAndReturn("The node already exists");
         ((FND) child_nodes[first_item]->data)->lowerBound = first_lb; // the best lb between the computed and the saved ones is selected
         pair<Node*, HasInter> node_inter = recurse(itemsets[first_item], item(attr, first_item), child_nodes[first_item], node_state.is_new, next_attributes,  depth + 1, child_ub - second_lb, similar_db1, similar_db2); // perform the search for the first item
@@ -438,8 +438,8 @@ pair<Node*,HasInter> Search_hash_cover::recurse(Itemset &itemset,
             if (node_state.is_new){
                 child_nodes[second_item]->data = nodeDataManager->initData();
                 Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((FND) child_nodes[second_item]->data)->leafError);
-                if (verbose) cout << "Searching ==> cache size: " << cache->getCacheSize() << endl;
-                else if (from_cpp) cerr << "Searching... cache size: " << cache->getCacheSize() << "\r" << flush;
+                if (not from_cpp) Logger::showMessageAndReturn("Searching ==> cache size: ", cache->getCacheSize());
+                else cerr << "Searching... cache size: " << cache->getCacheSize() << "\r" << flush;
             } else Logger::showMessageAndReturn("The node already exists");
             ((FND) child_nodes[second_item]->data)->lowerBound = second_lb; // the best lb between the computed and the saved ones is selected
             Error remainUb = child_ub - firstError; // bound for the second child (item)
@@ -452,7 +452,7 @@ pair<Node*,HasInter> Search_hash_cover::recurse(Itemset &itemset,
 
             Error feature_error = firstError + secondError;
             Attribute lastBestAttr = ((FND) node->data)->left == nullptr ? -1 : best_attr;
-            bool hasUpdated = nodeDataManager->updateData(node->data, child_ub, attr, child_nodes[NEG_ITEM]->data, child_nodes[POS_ITEM]->data);
+            bool hasUpdated = nodeDataManager->updateData(node, child_ub, attr, child_nodes[NEG_ITEM], child_nodes[POS_ITEM], cache);
             if (hasUpdated) {
                 child_ub = feature_error;
                 best_attr = attr;

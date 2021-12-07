@@ -4,6 +4,8 @@ using namespace std::chrono;
 
 //bool verbose = false;
 
+//bool Logger::enable = true;
+
 string launch(ErrorVals supports,
               Transaction ntransactions,
               Attribute nattributes,
@@ -49,6 +51,8 @@ string launch(ErrorVals supports,
     if (tids_error_is_null) tids_error_callback_pointer = nullptr;
 
     verbose = verbose_param;
+//    if (verbose_param) Logger::setTrue();
+//    else Logger::setFalse();
 
     auto *dataReader = new DataManager(supports, ntransactions, nattributes, nclasses, data, target);
 
@@ -79,7 +83,7 @@ string launch(ErrorVals supports,
                                                                supports_error_class_callback_pointer,
                                                                tids_error_callback_pointer);
 
-    string out = "(nItems, nTransactions) : ( " + to_string(dataReader->getNAttributes() * 2) + ", " + to_string(dataReader->getNTransactions()) + " )\n";
+    string out = "(nFeats, nTransactions) : ( " + to_string(dataReader->getNAttributes()) + ", " + to_string(dataReader->getNTransactions()) + " )\n";
     out += "Class Distribution: ";
     forEachClass(i) {
         if (i == nclasses - 1) out += to_string(i) + ":" + custom_to_str(dataReader->getSupports()[i]);

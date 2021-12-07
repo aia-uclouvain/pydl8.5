@@ -16,7 +16,7 @@ pair<Node*, bool> Cache_Hash::insert(Itemset &itemset) {
         return {root, true};
     }
     else {
-        if (cachesize >= maxcachesize && maxcachesize > 0) wipe(root);
+        if (cachesize >= maxcachesize && maxcachesize > 0) wipe();
         auto* node = new HashNode();
         store[itemset.size() - 1].insert({itemset, node});
         cachesize++;
@@ -62,7 +62,7 @@ int Cache_Hash::getCacheSize() {
     return size;
 }
 
-void Cache_Hash::wipe(Node* node1) {
+void Cache_Hash::wipe() {
     for (auto & depth : store) {
         for (auto itr = depth.begin(); itr != depth.end(); ++itr) {
             if (itr->second->data && itr->second->count_opti_path == 0) depth.erase(itr->first);

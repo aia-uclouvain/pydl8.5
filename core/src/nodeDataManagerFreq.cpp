@@ -21,8 +21,8 @@ NodeDataManagerFreq::NodeDataManagerFreq(
 NodeDataManagerFreq::~NodeDataManagerFreq() {}
 
 
-bool NodeDataManagerFreq::updateData(NodeData *best, Error upperBound, Attribute attribute, NodeData *left, NodeData *right) {
-    auto *freq_best = (Freq_NodeData *) best, *freq_left = (Freq_NodeData *) left, *freq_right = (Freq_NodeData *) right;
+bool NodeDataManagerFreq::updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache) {
+    auto *freq_best = (Freq_NodeData *) best->data, *freq_left = (Freq_NodeData *) left->data, *freq_right = (Freq_NodeData *) right->data;
     Error error = freq_left->error + freq_right->error;
     Size size = freq_left->size + freq_right->size + 1;
     if (error < upperBound || (floatEqual(error, upperBound) && size < freq_best->size)) {
@@ -31,6 +31,9 @@ bool NodeDataManagerFreq::updateData(NodeData *best, Error upperBound, Attribute
         freq_best->right = freq_right;
         freq_best->size = size;
         freq_best->test = attribute;
+
+//        cache->updateParents(best, left, right);
+
         return true;
     }
     return false;

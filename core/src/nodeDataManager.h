@@ -56,7 +56,7 @@ public:
 
     virtual LeafInfo computeLeafInfo(ErrorVals itemsetSupport) = 0;
 
-    virtual bool updateData(NodeData *best, Error upperBound, Attribute attribute, NodeData *left, NodeData *right) = 0;
+    virtual bool updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache = nullptr) = 0;
 
 //    virtual void printResult(Tree *tree) = 0;
 

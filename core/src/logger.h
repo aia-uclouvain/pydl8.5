@@ -12,9 +12,9 @@ using namespace std;
 class Logger {
 
 public:
-    //static const bool enable = false;
-    static void writeConsole(string s);
-    static void writeConsoleAndReturn(string s);
+    static const bool enable = false;
+//    static void writeConsole(string s);
+//    static void writeConsoleAndReturn(string s);
 
     template<typename T>
     static void showMessageAndReturn(T &&t) {

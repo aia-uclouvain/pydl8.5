@@ -118,9 +118,9 @@ void merge(const Itemset &src1, const Itemset &src2, Itemset &dest);
 
 void addItem(const Itemset &src, Item item, Itemset &dest);
 
-Itemset addItem(const Itemset &src, Item item);
+Itemset addItem(const Itemset &src, Item item, bool quiet = true);
 
-void printItemset(const Itemset &itemset, bool force = false);
+void printItemset(const Itemset &itemset, bool force = false, bool newline = true);
 
 std::string custom_to_str(float val);
 
