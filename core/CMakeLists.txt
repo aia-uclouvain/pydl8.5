@@ -54,7 +54,6 @@ add_executable(dl85
         src/rCoverFreq.cpp
         src/rCoverWeight.h
         src/rCoverWeight.cpp
-#        src/cache_wipe.h
         )
 
 
@@ -70,3 +69,4 @@ add_executable(dl85
 #        src/nodedataHandler.cpp
 #        src/nodedataHandlerFreq.h
 #        src/nodedataHandlerFreq.cpp
+#        src/cache_wipe.h

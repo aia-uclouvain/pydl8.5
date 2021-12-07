@@ -37,7 +37,6 @@ Node *cannotsplitmore(Node *node, Error ub, Error *nodeError, Error leafError) {
 // the node error is equal to the lower bound
 Node *reachlowest(Node *node, Error *nodeError, Error leafError) {
     *nodeError = leafError;
-//    cout << ((FND) node->data)->left << " " << ((FND) node->data)->right << endl;
     Logger::showMessageAndReturn("lowest error. node error = leaf error = ", *nodeError);
     return node;
 }
@@ -52,31 +51,23 @@ Node * Search_cache::getSolutionIfExists(Node *node, Error ub, Depth depth, Item
 
     Error *nodeError = &(((FND) node->data)->error);
     if (*nodeError < FLT_MAX) {
-//        Itemset left = addItem(itemset, item(((FND) node->data)->test, NEG_ITEM));
-//        Itemset right = addItem(itemset, item(((FND) node->data)->test, POS_ITEM));
-//        if (cache->get(left) and cache->get(right)) {
-//            cout << "exiist " << ((FND) node->data)->test << endl;
             return existingsolution(node, nodeError); // solution exists (new node error is FLT_MAX)
-//        }
     }
 
     Error *saved_lb = &(((FND) node->data)->lowerBound);
     // in case the problem is infeasible
     if (ub <= *saved_lb or ub <= 0) {
-//        cout << "infeassssss" << endl;
         return infeasiblecase(node, saved_lb, ub);
     }
 
     Error leafError = ((FND) node->data)->leafError;
     // we reach the lowest value possible. implicitely, the upper bound constraint is not violated
     if (floatEqual(leafError, *saved_lb)) {
-//        cout << "looooooowww" << endl;
         return reachlowest(node, nodeError, leafError);
     }
 
     // we cannot split the node
     if (depth == maxdepth || nodeDataManager->cover->getSupport() < 2 * minsup) {
-//        cout << "leaaaaaaaff" << endl;
         return cannotsplitmore(node, ub, nodeError, leafError);
     }
 
@@ -317,9 +308,6 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
                             Error ub,
                             SimilarVals &sim_db1,
                             SimilarVals &sim_db2) {
-    if (itemset.size() == 2 and itemset.at(0) == 5 and itemset.at(1) == 14) cout << "this_attr****: " << endl;
-
-    if (itemset.size() == 1 and itemset.at(0) == 2) cout << "WE ARE HEEEEEEEEERE" << endl;
 
     // check if we ran out of time
     if (timeLimit > 0 and duration<float>(high_resolution_clock::now() - startTime).count() >= (float)timeLimit) timeLimitReached = true;
@@ -332,16 +320,7 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
             Logger::showMessageAndReturn("Solution already exists. Subtree load is updating");
             Item leftItem_down = item(((FND)node->data)->test, NEG_ITEM), rightItem_down = item(((FND)node->data)->test, POS_ITEM);
             Itemset copy_itemset = itemset;
-            cout << "findou existing" << endl;
-            printItemset(itemset, true);
-            cout << "test " << ((FND)node->data)->test << endl;
             cache->updateSubTreeLoad( copy_itemset, leftItem_down, rightItem_down, true); // the function deletes the copy_itemset
-//            cout << "inc curr found attr load_const: " << ((Cache_Trie*)cache)->isLoadConsistent((TrieNode*)cache->root);
-//            if (not ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root)) cout << " inc curr found attr non_neg_const: " << ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root) << endl;
-//            if (not ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root)) {
-//                cout << " inc curr found attr non_neg_const: 0" << endl;
-//                exit(0);
-//            }
         }//%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
 
         return {result, false}; // the second value is to state whether an intersection has been performed or not
@@ -365,13 +344,7 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
     if (specialAlgo and maxdepth - depth == 2 and nodeDataManager->cover->getSupport() >= 2 * minsup and no_python_error) {
 //        Logger::setFalse();
         computeDepthTwo(nodeDataManager->cover, ub, next_candidates, last_added_attr, itemset, node, nodeDataManager, ((FND) node->data)->lowerBound, cache, this);
-//        if (cache->maxcachesize > NO_CACHE_LIMIT and not ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root)) {
-//            cout << " inc curr found attr non_neg_const: 0" << endl;
-//            exit(0);
-//        }
 //Logger::setTrue();
-        if (itemset.size() == 2 and itemset.at(0) == 5 and itemset.at(1) == 14) cout << "res__ " << ((FND) node->data)->test << endl;
-
         return {node, true};
     }
 
@@ -402,9 +375,6 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
     // we evaluate the split on each candidate attribute
     for(const auto attr : next_attributes) {
         Logger::showMessageAndReturn("\n\nWe are evaluating the attribute : ", attr);
-
-        if (itemset.size() == 2 and itemset.at(0) == 5 and itemset.at(1) == 14) cout << "this_attr: " << attr << endl;
-//        if (itemset.size() == 1 and itemset.at(0) == 0) cout << "this attr: " << attr << endl;
 
         Itemset itemsets[2];
         Node *child_nodes[2];
@@ -447,16 +417,6 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
         // perform search on the first item
         itemsets[first_item] = addItem(itemset, item(attr, first_item), false);
         pair<Node*, bool> node_state = cache->insert(itemsets[first_item]);
-//        if ( not ((Cache_Trie*)cache)->isLoadConsistent((TrieNode*)cache->root) ) {
-//            cout << "insert load_const: 0" << endl;
-//            exit(0);
-//        }
-//        cout << "insert load_const: " << ((Cache_Trie*)cache)->isLoadConsistent((TrieNode*)cache->root);
-//        if (not ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root)) cout << " insert non_neg_const: " << ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root) << endl;
-//        if (cache->maxcachesize > NO_CACHE_LIMIT and not ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root)) {
-//            cout << " insert non_neg_const: 0" << endl;
-//            exit(0);
-//        }
         child_nodes[first_item] = node_state.get_node;
         if (node_state.is_new) { // if new node
             nodeDataManager->cover->intersect(attr, first_item);
@@ -468,8 +428,6 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
         ((FND) child_nodes[first_item]->data)->lowerBound = first_lb; // the best lb between the computed and the saved one is selected
         pair<Node*, HasInter> node_inter = recurse(itemsets[first_item], item(attr, first_item), child_nodes[first_item], node_state.is_new, next_attributes,  depth + 1, child_ub - second_lb, similar_db1, similar_db2); // perform the search for the first item
 
-        if (itemset.size() == 2 and itemset.at(0) == 5 and itemset.at(1) == 14) cout << "res__" << ((FND) child_nodes[first_item]->data)->test << endl;
-
         child_nodes[first_item] = node_inter.get_node;
         if (similarlb) updateSimilarLBInfo2(child_nodes[first_item]->data, similar_db1, similar_db2);
         if (node_state.is_new or node_inter.has_intersected) nodeDataManager->cover->backtrack(); // cases of intersection
@@ -479,16 +437,6 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
         if (nodeDataManager->canimprove(child_nodes[first_item]->data, child_ub - second_lb)) { // perform search on the second item
             itemsets[second_item] = addItem(itemset, item(attr, second_item), false);
             node_state = cache->insert(itemsets[second_item]);
-//            if ( not ((Cache_Trie*)cache)->isLoadConsistent((TrieNode*)cache->root) ) {
-//                cout << "insert load_const: 0" << endl;
-//                exit(0);
-//            }
-//            cout << "insert load_const: " << ((Cache_Trie*)cache)->isLoadConsistent((TrieNode*)cache->root);
-//            if (not ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root)) cout << " insert non_neg_const: " << ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root) << endl;
-//            if (cache->maxcachesize > NO_CACHE_LIMIT and not ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root)) {
-//                cout << " insert non_neg_const: 0" << endl;
-//                exit(0);
-//            }
             child_nodes[second_item] = node_state.get_node;
             if (node_state.is_new){
                 nodeDataManager->cover->intersect(attr, second_item);
@@ -500,8 +448,6 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
             ((FND) child_nodes[second_item]->data)->lowerBound = second_lb; // the best lb between the computed and the saved ones is selected
             Error remainUb = child_ub - firstError; // bound for the second child (item)
             node_inter = recurse(itemsets[second_item], item(attr, second_item), child_nodes[second_item], node_state.is_new, next_attributes,  depth + 1, remainUb, similar_db1, similar_db2); // perform the search for the second item
-
-            if (itemset.size() == 2 and itemset.at(0) == 5 and itemset.at(1) == 14) cout << "res__ " << ((FND) child_nodes[first_item]->data)->test << endl;
 
             child_nodes[second_item] = node_inter.get_node;
             if (similarlb) updateSimilarLBInfo2(child_nodes[second_item]->data, similar_db1, similar_db2);
@@ -524,62 +470,14 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
                 ((TrieNode*)child_nodes[NEG_ITEM])->search_parents.push_back(cpy1);
                 ((TrieNode*)child_nodes[POS_ITEM])->search_parents.push_back(cpy2);
 
-//                if (itemset.size() == 2 and itemset.at(0) == 0 and itemset.at(1) == 2 and lastBestAttr == 3) {
-//                    Itemset t;
-//                    t.push_back(0);
-//                    t.push_back(2);
-//                    auto* n = cache->get(t);
-//                    cout << "update new " << ((FND)n->data)->test << endl;
-//                }
-
                 child_ub = feature_error;
                 //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
                 best_attr = attr;
                 if (lastBestAttr != -1 and cache->maxcachesize > NO_CACHE_LIMIT) {
                     Logger::showMessageAndReturn("Current attribute better than previous.  Previous subtree load is updating");
 
-//                    if (itemset.size() == 2 and itemset.at(0) == 9 and itemset.at(1) == 140 and lastBestAttr == 60){
-
                     Itemset copy_itemset = itemset;
-//                    cout << endl << endl << "print load: ";
-//                    printItemset(itemset, true, false);
-//                    cout << " copy_itemset: ";
-//                    printItemset(copy_itemset, true, false);
-//                    cout << " last atrr: " << lastBestAttr << endl;
-//                    ((Cache_Trie*)cache)->printSubTreeLoad(copy_itemset, item(lastBestAttr, first_item), item(lastBestAttr, second_item),false);
-//                    cout << "before update subtree load, non-neg consistency is " << ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root) ;
-//                    cout << " last atrr: " << lastBestAttr;
-//                    copy_itemset = itemset;
-//                    cout << " copy_itemset: ";
-//                    printItemset(copy_itemset, true, true);
-//                    cout << "curr is better" << endl;
-//                    printItemset(itemset, true);
                         cache->updateSubTreeLoad(copy_itemset, item(lastBestAttr, first_item), item(lastBestAttr, second_item),false);
-//                    cout << "after update subtree load" << endl;
-//                    cout << "dec prev attr load_const: " << ((Cache_Trie*)cache)->isLoadConsistent((TrieNode*)cache->root);
-//                    if (not ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root)) cout << " dec prev attr non_neg_const: " << ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root) << endl;
-//                        if (not ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root)) {
-//                            cout << " dec prev attr non_neg_const: 0" << endl;
-//                            exit(0);
-//                        }
-//                    }
-//                    else {
-//                        Itemset copy_itemset = itemset;
-//                        cache->updateSubTreeLoad(copy_itemset, item(lastBestAttr, first_item), item(lastBestAttr, second_item),false);
-//                        if (not ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root)) {
-//                            cout << " dec prev attr non_neg_const: 0" << endl;
-//                            exit(0);
-//                        }
-//                    }
-                    if (itemset.size() == 2 and itemset.at(0) == 5 and itemset.at(1) == 14) {
-//                    if (itemset.size() == 1 and itemset.at(0) == 0) {
-                        Itemset t;
-                        t.push_back(5);
-                        t.push_back(14);
-                        auto* n = cache->get(t);
-                        cout << "decrement last best " << lastBestAttr << " (" << toto << "). new best is " << attr << " (" << ((FND)n->data)->test << ")" << endl;
-                    }
-
 
                 }
                 //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
@@ -593,34 +491,7 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
                     Logger::showMessageAndReturn("Current attribute worse than previous.  Current subtree load is updating");
 
                     Itemset copy_itemset = itemset;
-//                    cout << endl << endl << "print load: ";
-//                    printItemset(itemset, true, false);
-//                    cout << " copy_itemset: ";
-//                    printItemset(copy_itemset, true, false);
-//                    cout << " curr atrr: " << attr << endl;
-//                    ((Cache_Trie*)cache)->printSubTreeLoad(copy_itemset, item(attr, first_item), item(attr, second_item),false);
-//                    cout << "before update subtree load, non-neg consistency is " << ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root) ;
-//                    cout << " curr atrr: " << attr;
-//                    copy_itemset = itemset;
-//                    cout << " copy_itemset: ";
-//                    printItemset(copy_itemset, true, true);
-//                    cout << "old is better" << endl;
-//                    printItemset(itemset, true);
                     cache->updateSubTreeLoad(copy_itemset, item(attr, first_item), item(attr, second_item),false);
-//                    cout << "dec curr attr load_const: " << ((Cache_Trie*)cache)->isLoadConsistent((TrieNode*)cache->root);
-//                    if (not ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root)) cout << " dec curr attr non_neg_const: " << ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root) << endl;
-//                    if (not ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root)) {
-//                        cout << " dec curr attr non_neg_const: 0" << endl;
-//                        exit(0);
-//                    }
-                    if (itemset.size() == 2 and itemset.at(0) == 5 and itemset.at(1) == 14) {
-//                    if (itemset.size() == 1 and itemset.at(0) == 0) {
-                        Itemset t;
-                        t.push_back(5);
-                        t.push_back(14);
-                        auto* n = cache->get(t);
-                        cout << "decrement this attr " << attr << ". best unchanged is " << lastBestAttr << " (" << ((FND)n->data)->test << ")" << endl;
-                    }
                 }
                 //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
             }
@@ -639,15 +510,7 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
             if (cache->maxcachesize > NO_CACHE_LIMIT) {
                 Logger::showMessageAndReturn("Current first item is not satisfying. Current subtree load is updating");
                 Itemset copy_itemset = itemset;
-//                cout << "first item not good" << endl;
-//                printItemset(itemset, true);
                 cache->updateSubTreeLoad(copy_itemset, item(attr, first_item), -1, false);
-//                cout << "dec curr item load_const: " << ((Cache_Trie*)cache)->isLoadConsistent((TrieNode*)cache->root);
-//                if (not ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root)) cout << " dec curr item non_neg_const: " << ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root) << endl;
-//                if (not ((Cache_Trie*)cache)->isNonNegConsistent((TrieNode*)cache->root)) {
-//                    cout << " dec curr item non_neg_const: 0" << endl;
-//                    exit(0);
-//                }
             }
             //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
         }
