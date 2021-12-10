@@ -18,7 +18,26 @@ class Cache;
 using namespace std;
 using namespace std::chrono;
 
-typedef void *NodeData; // using void pointers is much lighter than class derivation
+//typedef void *NodeData; // using void pointers is much lighter than class derivation
+
+struct NodeData {
+    Attribute test;
+    Node *left, *right;
+    Error leafError;
+    Error error;
+    Error lowerBound;
+    Size size;
+
+    NodeData() {
+        test = -1;
+        left = nullptr;
+        right = nullptr;
+        leafError = FLT_MAX;
+        error = FLT_MAX;
+        lowerBound = 0;
+        size = 1;
+    }
+};
 
 /**
  * ErrorValues - this structure represents the important values computed at a leaf node; mainly the error and the class

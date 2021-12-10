@@ -4,29 +4,10 @@
 #include <nodeDataManager.h>
 #include <vector>
 
-struct Freq_NodeData {
-    Attribute test;
-    Freq_NodeData *left, *right;
-    Error leafError;
-    Error error;
-    Error lowerBound;
-    Size size;
+struct Freq_NodeData : NodeData {
 
-    Freq_NodeData() {
-        test = -1;
-        left = nullptr;
-        right = nullptr;
-        leafError = FLT_MAX;
-        error = FLT_MAX;
-        lowerBound = 0;
-        size = 1;
-    }
+    Freq_NodeData(): NodeData() {}
 
-    /*~QueryData_Best(){
-        cout << "data is deleted" << endl;
-        delete left;
-        delete right;
-    }*/
 };
 
 class NodeDataManagerFreq : public NodeDataManager {
@@ -52,10 +33,10 @@ public:
     LeafInfo computeLeafInfo(ErrorVals itemsetSupport);
 
     inline bool canimprove(NodeData *left, Error ub) {
-        return ((Freq_NodeData *) left)->error < ub;
+        return left->error < ub;
     }
 
-    inline bool canSkip(NodeData *actualBest) { return floatEqual(((Freq_NodeData *) actualBest)->error, ((Freq_NodeData *) actualBest)->lowerBound); }
+    inline bool canSkip(NodeData *actualBest) { return floatEqual(actualBest->error, actualBest->lowerBound); }
 
 protected:
 };

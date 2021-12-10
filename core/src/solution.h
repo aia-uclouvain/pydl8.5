@@ -5,7 +5,18 @@
 #include "nodeDataManager.h"
 #include <vector>
 
-typedef void *Tree;
+struct Tree {
+    string expression;
+    int size;
+    Depth depth;
+    Error trainingError;
+    int cacheSize;
+    float runtime;
+    float accuracy;
+    bool timeout;
+
+    virtual string to_str() const = 0;
+};
 
 
 class Solution {

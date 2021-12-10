@@ -93,7 +93,7 @@ string launch(ErrorVals supports,
     if (from_cpp) { cout << out; out = ""; }
 
     Search_base *searcher;
-    Solution *solution = nullptr;
+    Solution *solution;
     if (with_cache) {
         if (cache_type == CacheHashCover)
             searcher = new Search_hash_cover(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, cache, timeLimit, maxError <= 0 ? NO_ERR : maxError, useSpecial, maxError <= 0 ? false : stopAfterError, similarlb, dynamic_branching, similar_for_branching, from_cpp);
@@ -102,9 +102,9 @@ string launch(ErrorVals supports,
         searcher->run(); // perform the search
         solution = new SolutionFreq(searcher, nodeDataManager);
         Tree *tree_out = solution->getTree();
-        ((Freq_Tree *) tree_out)->cacheSize = cache->getCacheSize();
-        ((Freq_Tree *) tree_out)->runtime = duration<float>(high_resolution_clock::now() - startTime).count();
-        out += ((Freq_Tree *) tree_out)->to_str();
+        tree_out->cacheSize = cache->getCacheSize();
+        tree_out->runtime = duration<float>(high_resolution_clock::now() - startTime).count();
+        out += tree_out->to_str();
     }
     else {
         searcher = new Search_nocache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, maxError <= 0 ? NO_ERR : maxError, useSpecial,maxError > 0 && stopAfterError, use_ub);

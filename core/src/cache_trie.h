@@ -20,10 +20,8 @@ struct TrieNode : Node {
     int n_reuse = 0;
     Depth depth = 0;
     vector<TrieEdge> edges;
-//    vector<TrieNode*> search_parents;
-    vector<Itemset> search_parents;
-    Itemset trie_parent;
-//    TrieNode* trie_parent;
+    vector<TrieNode*> search_parents;
+    TrieNode* trie_parent;
 
     TrieNode(): Node() { count_opti_path = 1; }
     ~TrieNode() {}
@@ -40,7 +38,7 @@ class Cache_Trie : public Cache {
 
 public:
     Cache_Trie(Depth maxdepth, WipeType wipe_type=Subnodes, int maxcachesize=0, float wipe_factor=.5f);
-    ~Cache_Trie(){ delete root; for (auto node: heap) { delete node.first.first; } };
+    ~Cache_Trie(){ delete root; for (auto node: heap) { delete node; } };
 
     pair<Node*, bool> insert ( Itemset &itemset );
     Node *get ( const Itemset &itemset );
@@ -49,14 +47,16 @@ public:
     int getCacheSize();
     void wipe();
     void updateRootPath(Itemset &itemset, int value);
-    vector<pair< pair<TrieNode*,Itemset> ,pair<TrieNode*, Itemset> >> heap;
+    vector<TrieNode*> heap;
     float wipe_factor;
-//    void updateParents(Node* best, Node* left, Node* right);
+    void updateParents(Node* best, Node* left, Node* right);
 
     void printItemsetLoad(Itemset &itemset, bool inc=false);
     void printSubTreeLoad(Itemset &itemset, Item firstI, Item secondI, bool inc=false);
     bool isLoadConsistent(TrieNode* node, Itemset itemset=Itemset());
     bool isNonNegConsistent(TrieNode* node);
+
+    Node* newNode(){return new TrieNode();}
 
 private:
     TrieNode *addNonExistingItemsetPart (Itemset &itemset, int pos, vector<TrieEdge>::iterator& geqEdge_it, TrieNode *parent);

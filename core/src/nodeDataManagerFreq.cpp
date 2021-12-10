@@ -1,5 +1,6 @@
 #include "nodeDataManagerFreq.h"
 #include "cache.h"
+#include "cache_trie.h"
 #include <iostream>
 #include <stack>
 #include "logger.h"
@@ -22,18 +23,16 @@ NodeDataManagerFreq::~NodeDataManagerFreq() {}
 
 
 bool NodeDataManagerFreq::updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache) {
-    auto *freq_best = (Freq_NodeData *) best->data, *freq_left = (Freq_NodeData *) left->data, *freq_right = (Freq_NodeData *) right->data;
+    auto *freq_best = best->data, *freq_left = left->data, *freq_right = right->data;
     Error error = freq_left->error + freq_right->error;
     Size size = freq_left->size + freq_right->size + 1;
     if (error < upperBound || (floatEqual(error, upperBound) && size < freq_best->size)) {
+        if ( cache->maxcachesize > NO_CACHE_LIMIT ) cache->updateParents(best, left, right);
         freq_best->error = error;
-        freq_best->left = freq_left;
-        freq_best->right = freq_right;
+        freq_best->left = left;
+        freq_best->right = right;
         freq_best->size = size;
         freq_best->test = attribute;
-
-//        cache->updateParents(best, left, right);
-
         return true;
     }
     return false;
@@ -44,7 +43,7 @@ NodeData *NodeDataManagerFreq::initData(RCover *cov, Depth currentMaxDepth, int 
 //    float maxclass = -1;
     Error error;
 
-    auto *data = new Freq_NodeData();
+    auto *data = new NodeData();
 
     if (cov == nullptr) cov = cover;
 

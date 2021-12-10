@@ -18,16 +18,7 @@
  * @param searchRt - the time that the search took
  * @param timeout - a boolean variable to represent the fact that the search reached a timeout or not
  */
-struct Freq_Tree {
-    string expression;
-    int size;
-    Depth depth;
-    Error trainingError;
-    int cacheSize;
-    float runtime;
-    float accuracy;
-    bool timeout;
-
+struct Freq_Tree : Tree {
 
     string to_str() const {
         string out = "";

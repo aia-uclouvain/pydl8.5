@@ -36,7 +36,7 @@ public:
     WipeType wipe_type;
 
 //    virtual pair<Node*, bool> insert ( Array<Item> itemset ) = 0; // add a node to the tree
-    virtual pair<Node*, bool> insert ( Itemset &itemset ) { return {nullptr, false}; } // add a node to the tree
+    virtual pair<Node*, bool> insert ( Itemset &itemset ) {return {nullptr, false}; } // add a node to the tree
     virtual pair<Node*, bool> insert ( NodeDataManager*, int depth = 0, bool rootnode = false ) { return {nullptr, false}; }
 
     virtual Node* get ( const Itemset &itemset ){return nullptr;} // get a node in the tree based on its corresponding itemset
@@ -53,6 +53,8 @@ public:
     virtual void wipe(){}
 
     virtual void updateParents(Node* best, Node* left, Node* right){}
+
+    virtual Node* newNode(){return new Node();}
 };
 
 #endif

@@ -25,6 +25,9 @@ notebooks/
 
 core/cmake-build-debug/
 core/cmake-build-release/
+core/cmake-build-debug-docker/
+core/cmake-build-release-docker/
+
 core/tests_run/
 core/main_reg.cpp
 
