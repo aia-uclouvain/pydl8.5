@@ -17,12 +17,16 @@ void addTreeToCache(Node* node,  Itemset &itemset, Cache* cache){
         Itemset itemset_left = addItem(itemset, item(node_data->test, 0));
         Node *node_left = cache->insert(itemset_left).first;
         node_left->data = node_data->left->data;
+        node_data->left->data = nullptr;
+        delete node_data->left;
         node_data->left = node_left;
         addTreeToCache(node_left, itemset_left, cache);
 
         Itemset itemset_right = addItem(itemset, item(node_data->test, 1));
         Node *node_right = cache->insert(itemset_right).first;
         node_right->data = node_data->right->data;
+        node_data->right->data = nullptr;
+        delete node_data->right;
         node_data->right = node_right;
         addTreeToCache(node_right, itemset_right, cache);
 
@@ -447,7 +451,9 @@ Error computeDepthTwo(RCover* cover,
             return ((FND)node->data)->error;
         }
 
+        //delete node->data;
         node->data = (NodeData *) best_tree->root_data;
+        best_tree->root_data = nullptr;
         if (cachecover) addTreeToCache(node, nodeDataManager, cache);
         else {
             if (cache->maxcachesize > NO_CACHE_LIMIT and cache->getCacheSize() + best_tree->root_data->size - 1 > cache->maxcachesize) {
@@ -460,14 +466,16 @@ Error computeDepthTwo(RCover* cover,
         }
 
 //        if (verbose) cout << "best twotree error = " << to_string(best_tree->root_data->error) << endl;
-        Logger::showMessageAndReturn("best twotree error = ", to_string(best_tree->root_data->error));
+        Logger::showMessageAndReturn("best twotree error = ", to_string(node->data->error));
 
+        delete best_tree;
+//        best_tree->free();
         return ((FND)node->data)->error;
     } else {
         //error not lower than ub (this case will never happen as the ub is set to FLT_MAX)
         //it can happen if ub = FLT_MAX and no successor can split
 //        cout << "pas possible" << endl;
-        //delete best_tree;
+//        delete best_tree;
         best_tree->free();
         ((FND) node->data)->error = ((FND) node->data)->leafError;
         return ((FND)node->data)->error;

@@ -55,7 +55,8 @@ public:
     ~Cache_Hash_Cover() {
         delete root;
         for (int i = 0; i < maxdepth; ++i) {
-            store[i].clear();
+            for(auto &elt: store[i]) delete elt.second;
+//            store[i].clear();
         }
     }
 

@@ -24,9 +24,9 @@ bool sortDecOrder( TrieNode *&pair1,  TrieNode *&pair2) {
 //    TrieNode* node1 = (*(pair1));
 //    TrieNode* node2 = (*(pair2));
 //cout << "loads: " << node1->count_opti_path << " " << node2->count_opti_path << endl;
-    if (node1->count_opti_path > 0 && node2->count_opti_path == 0)
+    if (node1->count_opti_path > 0 && node2->count_opti_path <= 0)
         return true; // place node1 to left (high value) when it belongs to a potential optimal path
-    if (node1->count_opti_path == 0 && node2->count_opti_path > 0) return false; // same for the node2
+    if (node1->count_opti_path <= 0 && node2->count_opti_path > 0) return false; // same for the node2
     return node1->n_subnodes > node2->n_subnodes; // in case both nodes are in potential optimal paths or both of not
 }
 

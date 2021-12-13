@@ -37,6 +37,8 @@ struct NodeData {
         lowerBound = 0;
         size = 1;
     }
+
+    virtual ~NodeData() {}
 };
 
 /**
