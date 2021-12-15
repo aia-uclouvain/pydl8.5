@@ -32,8 +32,6 @@ public:
 
     pair<Node*, bool> insert ( Itemset& itemset );
     Node *get ( Itemset& itemset);
-    void updateSubTreeLoad(Itemset &itemset, Item firstItem, Item secondItem, bool inc=false);
-    void updateItemsetLoad ( Itemset &itemset, bool inc=false );
     int getCacheSize();
     void wipe();
 

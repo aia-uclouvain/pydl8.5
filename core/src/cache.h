@@ -17,13 +17,16 @@ enum WipeType {
 /*This struct is used to represent a node in the tree search algorithm*/
 struct Node {
     NodeData *data; // data is the information kept by a node during the tree search
-    int count_opti_path;
-    Node() { data = nullptr; }
+    bool is_used;
+    Node() {
+        data = nullptr;
+        is_used = false;
+    }
     virtual ~Node() { delete data; }
 };
 
 
-/*This class represents the tree structure built during the tree search algorithm*/
+/*This class represents the cache structure saved during the tree search algorithm*/
 class Cache {
 public:
     Cache(Depth maxdepth, WipeType wipe_type, Size maxcachesize);
@@ -42,20 +45,12 @@ public:
     virtual Node* get ( const Itemset &itemset ){return nullptr;} // get a node in the tree based on its corresponding itemset
     virtual Node *get ( NodeDataManager*, int depth) { return nullptr; }
 
-    virtual void updateSubTreeLoad(Itemset &itemset, Item firstI, Item secondI, bool inc=false){}
-
-    virtual void updateItemsetLoad ( Itemset &itemset, bool inc=false ){}
-
     virtual int getCacheSize(){return cachesize;}
-
-    virtual void updateRootPath(Itemset &itemset, int value){}
 
     virtual void wipe(){}
 
     virtual void updateParents(Node* best, Node* left, Node* right, Itemset = Itemset()){}
 //    virtual void updateParents(Node* best, Node* left, Node* right){}
-
-    virtual Node* newNode(){return new Node();}
 };
 
 #endif

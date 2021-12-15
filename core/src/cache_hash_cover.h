@@ -56,7 +56,6 @@ public:
         delete root;
         for (int i = 0; i < maxdepth; ++i) {
             for(auto &elt: store[i]) delete elt.second;
-//            store[i].clear();
         }
     }
 
@@ -65,8 +64,6 @@ public:
     pair<Node*, bool> insert ( NodeDataManager*, int depth = 0, bool rootnode = false );
     Node *get ( NodeDataManager*, int);
     int getCacheSize();
-//    void updateSubTreeLoad(Array<Item> itemset, Item firstItem, Item secondItem, bool inc=false);
-//    void updateItemsetLoad ( Array<Item> itemset, bool inc=false );
 //    void wipe(Node* node);
 
 private:
