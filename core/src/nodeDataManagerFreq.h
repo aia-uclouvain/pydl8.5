@@ -24,7 +24,8 @@ public:
 //
 //    bool is_pure(pair<Supports, Support> supports);
 
-    bool updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache);
+    bool updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache, Itemset);
+//    bool updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache);
 
     NodeData *initData(RCover *cov = nullptr, Depth currentMaxDepth = -1, int hashcode = -1);
 

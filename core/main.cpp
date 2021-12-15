@@ -82,12 +82,13 @@ int main(int argc, char *argv[]) {
     int maxdepth, minsup;
 
     if (cli){
-        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/tic-tac-toe.txt";
-//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/anneal.txt";
+//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/tic-tac-toe.txt";
+        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/anneal.txt";
 //        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/yeast.txt";
 //        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/tests/paper.txt";
-        maxdepth = (argc > 2) ? std::stoi(argv[2]) : 4;
+        maxdepth = (argc > 2) ? std::stoi(argv[2]) : 5;
         configuration = (argc > 3 and std::string(argv[3]).find('b') == 0) ? basic : optimized;
+//        configuration = (argc > 3 and std::string(argv[3]).find('b') == 0) ? basic : basic;
         minsup = (argc > 4) ? std::stoi(argv[4]) : 1;
     }
     else {
@@ -108,9 +109,11 @@ int main(int argc, char *argv[]) {
     cache_type = CacheTrie;
 //    cache_type = CacheHashCover;
 
-    cache_size = NO_CACHE_LIMIT;
-//    cache_size = 2000000;
-//    cache_size = 30000;
+//    cache_size = NO_CACHE_LIMIT;
+    cache_size = 50000;
+//    cache_size = 50;
+
+//cout << "ert" << endl;
 
     wipe_type = Subnodes;
     //wipe_type = Recall;

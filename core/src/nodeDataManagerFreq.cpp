@@ -22,7 +22,8 @@ NodeDataManagerFreq::NodeDataManagerFreq(
 NodeDataManagerFreq::~NodeDataManagerFreq() {}
 
 
-bool NodeDataManagerFreq::updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache) {
+//bool NodeDataManagerFreq::updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache) {
+bool NodeDataManagerFreq::updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache, Itemset itemset) {
     auto *freq_best = best->data, *freq_left = left->data, *freq_right = right->data;
     Error error = freq_left->error + freq_right->error;
     Size size = freq_left->size + freq_right->size + 1;

@@ -49,6 +49,8 @@ Node *infeasiblecase(Node *node, Error *saved_lb, Error ub) {
 
 Node * Search_cache::getSolutionIfExists(Node *node, Error ub, Depth depth, Itemset &itemset){
 
+    if (node->data->test < 0) return node;
+
     Error *nodeError = &(node->data->error);
     if (*nodeError < FLT_MAX) return existingsolution(node, nodeError); // solution exists (new node error is FLT_MAX)
 
@@ -114,14 +116,22 @@ float Search_cache::informationGain(ErrorVals notTaken, ErrorVals taken) {
     return actualGain; //high error to low error when it will be put in the map. If you want to have the reverse, just return the negative value of the entropy
 }
 
-Attributes Search_cache::getSuccessors(Attributes &last_candidates, Attribute last_added, Itemset &itemset) {
+Attributes Search_cache::getSuccessors(Attributes &last_candidates, Attribute last_added, Itemset &itemset, Node* node) {
 
     std::multimap<float, Attribute> gain;
     Attributes next_candidates;
-    next_candidates.reserve(last_candidates.size() - 1);
+    int found = -1;
 
     // the current node does not fullfill the frequency criterion. In correct situation, this case won't happen
     if (nodeDataManager->cover->getSupport() < 2 * minsup) return next_candidates;
+
+    next_candidates.reserve(last_candidates.size() - 1);
+
+//    if (node->data->test < 0) {
+//        found = (node->data->test * -1) - 1;
+//        next_candidates.push_back(found);
+////        return next_candidates;
+//    }
 
     int current_sup = nodeDataManager->cover->getSupport();
     ErrorVals current_sup_class = nodeDataManager->cover->getErrorValPerClass();
@@ -130,7 +140,7 @@ Attributes Search_cache::getSuccessors(Attributes &last_candidates, Attribute la
     for (const auto &candidate : last_candidates) {
 
         // this attribute is already in the current itemset
-        if (last_added == candidate) continue;
+        if (last_added == candidate or candidate == found) continue;
 
         // compute the support of each candidate
         int sup_left = nodeDataManager->cover->temporaryIntersectSup(candidate, false);
@@ -308,14 +318,16 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
 
     Node* result = getSolutionIfExists(node, ub, depth, itemset);
     if (result) { // the solution can be inferred without computation
+//    if (result and result->data->test >= 0) { // the solution can be inferred without computation
 
         //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
-        if ( node->data->left and node->data->right and cache->maxcachesize > NO_CACHE_LIMIT ){ // we should then update subtree load
+        /*if ( node->data->left and node->data->right and cache->maxcachesize > NO_CACHE_LIMIT ){ // we should then update subtree load
             Logger::showMessageAndReturn("Solution already exists. Subtree load is updating");
             Item leftItem_down = item(node->data->test, NEG_ITEM), rightItem_down = item(node->data->test, POS_ITEM);
             Itemset copy_itemset = itemset;
             cache->updateSubTreeLoad( copy_itemset, leftItem_down, rightItem_down, true); // the function deletes the copy_itemset
-        }//%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
+        }*/
+        //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
 
         return {result, false}; // the second value is to state whether an intersection has been performed or not
     }
@@ -328,6 +340,7 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
     if (not node_is_new) nodeDataManager->cover->intersect(last_added_attr, item_value(last_added_item));
 
     if (similarlb and not similar_for_branching){
+//    if (similarlb and not similar_for_branching and node->data->test >= 0){
         node->data->lowerBound = max(node->data->lowerBound, computeSimilarityLB(sim_db1, sim_db2));
         Node* res = inferSolutionFromLB(node, ub);
         if (res != nullptr) return {res, true};
@@ -336,6 +349,7 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
 
     // in case the solution cannot be derived without computation and remaining depth is 2, we use a specific algorithm
     if (specialAlgo and maxdepth - depth == 2 and nodeDataManager->cover->getSupport() >= 2 * minsup and no_python_error) {
+//    if (specialAlgo and maxdepth - depth == 2 and nodeDataManager->cover->getSupport() >= 2 * minsup and no_python_error and node->data->test >= 0) {
 //        Logger::setFalse();
         computeDepthTwo(nodeDataManager->cover, ub, next_candidates, last_added_attr, itemset, node, nodeDataManager, node->data->lowerBound, cache, this);
 //Logger::setTrue();
@@ -350,7 +364,7 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
     if (timeLimitReached) { *nodeError = leafError; return {node, true}; }
 
     // if we can't get solution without computation, we compute the next candidates to perform the search
-    Attributes next_attributes = getSuccessors(next_candidates, last_added_attr, itemset);
+    Attributes next_attributes = getSuccessors(next_candidates, last_added_attr, itemset, node);
 
     // case in which there is no candidate
     if (next_attributes.empty()) {
@@ -364,10 +378,11 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
     Error minlb = FLT_MAX; // in case solution is not found, the minimum of lb of each attribute(sum per item) can be used as a lb for the current node
     Error child_ub = ub; // upper bound for the first child (item)
     bool first_item, second_item; // variable to store the order to explore items of features
-    Attribute best_attr;
+    //Attribute best_attr;
 
     // we evaluate the split on each candidate attribute
     for(const auto attr : next_attributes) {
+        node->data->curr_test = attr;
         Logger::showMessageAndReturn("\n\nWe are evaluating the attribute : ", attr);
 
         Itemset itemsets[2];
@@ -426,7 +441,7 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
         if (similarlb) updateSimilarLBInfo2(child_nodes[first_item]->data, similar_db1, similar_db2);
         if (node_state.is_new or node_inter.has_intersected) nodeDataManager->cover->backtrack(); // cases of intersection
         Error firstError = child_nodes[first_item]->data->error;
-        Itemset().swap(itemsets[first_item]); // fre the vector memory representing the first itemset
+        Itemset().swap(itemsets[first_item]); // free the vector memory representing the first itemset
 
         if (nodeDataManager->canimprove(child_nodes[first_item]->data, child_ub - second_lb)) { // perform search on the second item
             itemsets[second_item] = addItem(itemset, item(attr, second_item), false);
@@ -452,22 +467,23 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
             Error feature_error = firstError + secondError;
 
             //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
-            Attribute lastBestAttr = node->data->left == nullptr ? -1 : best_attr;
+            //Attribute lastBestAttr = node->data->left == nullptr ? -1 : best_attr;
             //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
 
-            bool hasUpdated = nodeDataManager->updateData(node, child_ub, attr, child_nodes[NEG_ITEM], child_nodes[POS_ITEM], cache);
+            bool hasUpdated = nodeDataManager->updateData(node, child_ub, attr, child_nodes[NEG_ITEM], child_nodes[POS_ITEM], cache, itemset);
+//            bool hasUpdated = nodeDataManager->updateData(node, child_ub, attr, child_nodes[NEG_ITEM], child_nodes[POS_ITEM], cache);
             if (hasUpdated) {
 
                 child_ub = feature_error;
                 //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
-                best_attr = attr;
+                /*best_attr = attr;
                 if (lastBestAttr != -1 and cache->maxcachesize > NO_CACHE_LIMIT) {
                     Logger::showMessageAndReturn("Current attribute better than previous.  Previous subtree load is updating");
 
                     Itemset copy_itemset = itemset;
                         cache->updateSubTreeLoad(copy_itemset, item(lastBestAttr, first_item), item(lastBestAttr, second_item),false);
 
-                }
+                }*/
                 //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
                 Logger::showMessageAndReturn("after this attribute ", attr, ", node error=", *nodeError, " and ub=", child_ub);
             }
@@ -475,12 +491,12 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
 
                 minlb = min(minlb, feature_error); // we get the error of the current attribute, we then update the minimum possible lb
                 //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
-                if(cache->maxcachesize > NO_CACHE_LIMIT) {
+                /*if(cache->maxcachesize > NO_CACHE_LIMIT) {
                     Logger::showMessageAndReturn("Current attribute worse than previous.  Current subtree load is updating");
 
                     Itemset copy_itemset = itemset;
                     cache->updateSubTreeLoad(copy_itemset, item(attr, first_item), item(attr, second_item),false);
-                }
+                }*/
                 //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
             }
 
@@ -495,16 +511,18 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
             else minlb = min(minlb, firstError + second_lb);
 
             //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
-            if (cache->maxcachesize > NO_CACHE_LIMIT) {
+            /*if (cache->maxcachesize > NO_CACHE_LIMIT) {
                 Logger::showMessageAndReturn("Current first item is not satisfying. Current subtree load is updating");
                 Itemset copy_itemset = itemset;
                 cache->updateSubTreeLoad(copy_itemset, item(attr, first_item), -1, false);
-            }
+            }*/
             //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
         }
 
         if (stopAfterError and depth == 0 and ub < FLT_MAX and *nodeError < ub) break;
     }
+    node->data->curr_test = -1;
+
     if (similarlb){
         similar_db1.free();
         similar_db2.free();

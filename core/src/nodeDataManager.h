@@ -22,6 +22,7 @@ using namespace std::chrono;
 
 struct NodeData {
     Attribute test;
+    Attribute curr_test;
     Node *left, *right;
     Error leafError;
     Error error;
@@ -29,7 +30,8 @@ struct NodeData {
     Size size;
 
     NodeData() {
-        test = -1;
+        test = INT32_MAX;
+        curr_test = -1;
         left = nullptr;
         right = nullptr;
         leafError = FLT_MAX;
@@ -77,7 +79,8 @@ public:
 
     virtual LeafInfo computeLeafInfo(ErrorVals itemsetSupport) = 0;
 
-    virtual bool updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache = nullptr) = 0;
+//    virtual bool updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache = nullptr, Itemset = Itemset()) = 0;
+    virtual bool updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache = nullptr, Itemset = Itemset()) = 0;
 
 //    virtual void printResult(Tree *tree) = 0;
 

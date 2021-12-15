@@ -52,7 +52,8 @@ public:
 
     virtual void wipe(){}
 
-    virtual void updateParents(Node* best, Node* left, Node* right){}
+    virtual void updateParents(Node* best, Node* left, Node* right, Itemset = Itemset()){}
+//    virtual void updateParents(Node* best, Node* left, Node* right){}
 
     virtual Node* newNode(){return new Node();}
 };

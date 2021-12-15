@@ -20,7 +20,25 @@ void addTreeToCache(Node* node,  Itemset &itemset, Cache* cache){
         node_data->left->data = nullptr;
         delete node_data->left;
         node_data->left = node_left;
+//        ((TrieNode*)node_left)->search_parents.push_back((TrieNode*)node);
+//        ((TrieNode*)node_left)->search_parents.insert(make_pair((TrieNode*)node, itemset));
         addTreeToCache(node_left, itemset_left, cache);
+
+//        if(itemset_left.size() == 5 and itemset_left.at(0) == 16 and itemset_left.at(1) == 26 and itemset_left.at(2) == 40 and itemset_left.at(3) == 43 and itemset_left.at(4) == 46) {
+//            cout << "\nparchild*(";
+//            printItemset(itemset, true, true);
+//            cout << node_data->test << " " << node_data->leafError << " " << node_data->error << endl;
+//            printItemset(itemset_left, true);
+//            exit(0);
+//        }
+
+//        if(itemset_left.size() == 5 and itemset_left.at(0) == 16 and itemset_left.at(1) == 28 and itemset_left.at(2) == 40 and itemset_left.at(3) == 43 and itemset_left.at(4) == 46) {
+//            cout << "\nparchild*(";
+//            printItemset(itemset, true, true);
+//            cout << node_data->test << " " << node_data->leafError << " " << node_data->error << endl;
+//            printItemset(itemset_left, true);
+//            exit(0);
+//        }
 
         Itemset itemset_right = addItem(itemset, item(node_data->test, 1));
         Node *node_right = cache->insert(itemset_right).first;
@@ -28,10 +46,21 @@ void addTreeToCache(Node* node,  Itemset &itemset, Cache* cache){
         node_data->right->data = nullptr;
         delete node_data->right;
         node_data->right = node_right;
+//        ((TrieNode*)node_right)->search_parents.push_back((TrieNode*)node);
+//        ((TrieNode*)node_right)->search_parents.insert(make_pair((TrieNode*)node, itemset));
         addTreeToCache(node_right, itemset_right, cache);
 
+//        if(itemset_right.size() == 5 and itemset_right.at(0) == 16 and itemset_right.at(1) == 28 and itemset_right.at(2) == 40 and itemset_right.at(3) == 43 and itemset_right.at(4) == 46) {
+//            cout << "\nparchild-(";
+//            printItemset(itemset, true, true);
+//            cout << node_data->test << endl;
+//            printItemset(itemset_right, true);
+//            exit(0);
+//        }
+
 //        if (node_data->test >= 0) node_data->test *= -1;
-        cache->updateParents(node, node_left, node_right);
+//        cache->updateParents(node, node_left, node_right);
+        cache->updateParents(node, node_left, node_right, itemset);
 //        node_data->test *= -1;
     }
 }
@@ -129,6 +158,11 @@ Error computeDepthTwo(RCover* cover,
         if (last_added == attribute) continue;
         attr.push_back(attribute);
     }
+//    if(itemset.size() ==3 and itemset.at(0) == 16 and itemset.at(1) == 43 and itemset.at(2) == 46){
+//        verbose = true;
+//        if (std::find(attr.begin(), attr.end(), 22) == attr.end())
+//            attr.push_back(22);
+//    }
 
     // compute the different support per class we need to perform the search
     // only a few mandatory are computed. The remaining are derived from them
@@ -269,11 +303,11 @@ Error computeDepthTwo(RCover* cover,
                             feat_best_tree->root_data->left->data->test = attr[j];
                             feat_best_tree->root_data->left->data->size = 3;
 
-                            if (floatEqual(feat_best_tree->root_data->left->data->error, lb)) {
-                                deleteErrorVals(igjdsc);
-                                deleteErrorVals(igjgsc);
-                                break;
-                            }
+//                            if (floatEqual(feat_best_tree->root_data->left->data->error, lb)) {
+//                                deleteErrorVals(igjdsc);
+//                                deleteErrorVals(igjgsc);
+//                                break;
+//                            }
                         } else {
 //                            if (local_verbose) cout << "l'erreur du left = " << ev1.error + ev2.error << " n'ameliore pas l'existant. Un autre left..." << endl;
                             Logger::showMessageAndReturn("l'erreur du left = ", ev1.error + ev2.error, " n'ameliore pas l'existant. Un autre left...");
@@ -372,7 +406,7 @@ Error computeDepthTwo(RCover* cover,
                                 feat_best_tree->root_data->right->data->test = attr[j];
                                 feat_best_tree->root_data->right->data->size = 3;
 
-                                if (floatEqual(feat_best_tree->root_data->right->data->error, lb)) {
+                                if (floatEqual(feat_best_tree->root_data->right->data->error + feat_best_tree->root_data->left->data->error, lb)) {
                                     deleteErrorVals(idjgsc);
                                     break;
                                 }
@@ -445,22 +479,39 @@ Error computeDepthTwo(RCover* cover,
             best_tree->root_data->left = nullptr;
             delete best_tree->root_data->right;
             best_tree->root_data->right = nullptr;
-            node->data = (NodeData *)best_tree->root_data;
 //            if (verbose) cout << "best twotree error = " << to_string(best_tree->root_data->error) << endl;
             Logger::showMessageAndReturn("best twotree error = ", to_string(best_tree->root_data->error));
-            return ((FND)node->data)->error;
+            node->data = (NodeData *)best_tree->root_data;
+            best_tree->root_data = nullptr;
+            delete best_tree;
+            return node->data->error;
         }
 
         //delete node->data;
-        node->data = (NodeData *) best_tree->root_data;
-        best_tree->root_data = nullptr;
-        if (cachecover) addTreeToCache(node, nodeDataManager, cache);
+
+        if (cachecover) {
+            node->data = (NodeData *) best_tree->root_data;
+            best_tree->root_data = nullptr;
+            addTreeToCache(node, nodeDataManager, cache);
+        }
         else {
-            if (cache->maxcachesize > NO_CACHE_LIMIT and cache->getCacheSize() + best_tree->root_data->size - 1 > cache->maxcachesize) {
+//            if (cache->maxcachesize > NO_CACHE_LIMIT and cache->getCacheSize() + best_tree->root_data->size - 1 > cache->maxcachesize) {
+//            cout << cache->getCacheSize() << " " << cache->getCacheSize() + ((searcher->maxdepth + 1) * 4) << " " << cache->maxcachesize << endl;
+            if (cache->maxcachesize > NO_CACHE_LIMIT and cache->getCacheSize() + ((searcher->maxdepth + 1) * 4) > cache->maxcachesize) {
 //                cout << "wipe_in" << endl;
                 cache->wipe();
             }
 //            cout << endl;
+            node->data = (NodeData *) best_tree->root_data;
+            best_tree->root_data = nullptr;
+//            cout << "ite:";
+//            printItemset(itemset, true);
+//            printItemset(attributes_to_visit, true);
+//            printItemset(attr, true);
+//            cout << node->data->error << endl;
+//            if(itemset.size() ==3 and itemset.at(0) == 16 and itemset.at(1) == 43 and itemset.at(2) == 46){
+//                verbose = false;
+//            }
             addTreeToCache(node, itemset, cache);
 //            cout << endl;
         }
@@ -470,15 +521,15 @@ Error computeDepthTwo(RCover* cover,
 
         delete best_tree;
 //        best_tree->free();
-        return ((FND)node->data)->error;
+        return node->data->error;
     } else {
         //error not lower than ub (this case will never happen as the ub is set to FLT_MAX)
         //it can happen if ub = FLT_MAX and no successor can split
 //        cout << "pas possible" << endl;
 //        delete best_tree;
         best_tree->free();
-        ((FND) node->data)->error = ((FND) node->data)->leafError;
-        return ((FND)node->data)->error;
+        node->data->error = node->data->leafError;
+        return node->data->error;
     }
 
 }
