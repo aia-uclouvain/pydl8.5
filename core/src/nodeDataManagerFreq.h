@@ -8,6 +8,14 @@ struct Freq_NodeData : NodeData {
 
     Freq_NodeData(): NodeData() {}
 
+    Freq_NodeData(const Freq_NodeData& other): NodeData(other) {}
+
+    Freq_NodeData& operator=(const Freq_NodeData& other)
+    {
+        NodeData::operator=(other);
+        return *this;
+    }
+
 };
 
 class NodeDataManagerFreq : public NodeDataManager {

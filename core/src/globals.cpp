@@ -21,7 +21,8 @@ void zeroErrorVals (ErrorVals supports ) {
     supports[i] = 0;
 }
 
-void deleteErrorVals (constErrorVals supports ) {
+//void deleteErrorVals (constErrorVals supports ) {
+void deleteErrorVals (ErrorVals supports ) {
   delete[] supports;
 }
 

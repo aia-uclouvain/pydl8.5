@@ -2,6 +2,7 @@
 #define CACHE_H
 #include "globals.h"
 #include "nodeDataManager.h"
+#include "nodeDataManagerFreq.h"
 //#include "cache_wipe.h"
 
 using namespace std;

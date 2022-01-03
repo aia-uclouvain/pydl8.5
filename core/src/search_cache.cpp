@@ -1,5 +1,4 @@
 #include "search_cache.h"
-#include "cache_trie.h"
 
 using namespace std::chrono;
 
@@ -49,7 +48,7 @@ Node *infeasiblecase(Node *node, Error *saved_lb, Error ub) {
 
 Node * Search_cache::getSolutionIfExists(Node *node, Error ub, Depth depth, Itemset &itemset){
 
-    if (node->data->test < 0) return node;
+    if (node->data->test < 0) return nullptr;
 
     Error *nodeError = &(node->data->error);
     if (*nodeError < FLT_MAX) return existingsolution(node, nodeError); // solution exists (new node error is FLT_MAX)
@@ -120,18 +119,13 @@ Attributes Search_cache::getSuccessors(Attributes &last_candidates, Attribute la
 
     std::multimap<float, Attribute> gain;
     Attributes next_candidates;
-    int found = -1;
 
-    // the current node does not fullfill the frequency criterion. In correct situation, this case won't happen
+    // the current node does not fulfill the frequency criterion. In correct situation, this case won't happen
     if (nodeDataManager->cover->getSupport() < 2 * minsup) return next_candidates;
 
     next_candidates.reserve(last_candidates.size() - 1);
 
-//    if (node->data->test < 0) {
-//        found = (node->data->test * -1) - 1;
-//        next_candidates.push_back(found);
-////        return next_candidates;
-//    }
+    if (node->data->test < 0) next_candidates.push_back((node->data->test * -1) - 1);
 
     int current_sup = nodeDataManager->cover->getSupport();
     ErrorVals current_sup_class = nodeDataManager->cover->getErrorValPerClass();
@@ -140,7 +134,8 @@ Attributes Search_cache::getSuccessors(Attributes &last_candidates, Attribute la
     for (const auto &candidate : last_candidates) {
 
         // this attribute is already in the current itemset
-        if (last_added == candidate or candidate == found) continue;
+//        if (last_added == candidate) continue;
+        if ( last_added == candidate or (node->data->test < 0 and candidate == next_candidates.at(0)) ) continue;
 
         // compute the support of each candidate
         int sup_left = nodeDataManager->cover->temporaryIntersectSup(candidate, false);
@@ -333,14 +328,25 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
     }
     Logger::showMessageAndReturn("Node solution cannot be found without calculation");
 
+    if ( node->data->test < 0  and node->data->error < FLT_MAX ) {
+//        cout << "here: ";
+//        printItemset(itemset, true, true);
+        if(itemset.size() == 3 and itemset.at(0) == 2 and itemset.at(1) == 6 and itemset.at(2) == 17) {
+            cout << "here: ";
+            printItemset(itemset, true, true);
+            cout << node->data->test << " " << node->data->lowerBound << " " << depth << endl;
+        }
+    }
+//    if ( node->data->test < 0 ) cout << "here" << endl;
+
     // in case of root (empty item), there is no last added attribute
     Attribute last_added_attr = (last_added_item == NO_ITEM) ? NO_ATTRIBUTE : item_attribute(last_added_item);
 
     // in case, the node exists, but solution cannot be inferred without a new computation, we set to cover to the current itemset
     if (not node_is_new) nodeDataManager->cover->intersect(last_added_attr, item_value(last_added_item));
 
-    if (similarlb and not similar_for_branching){
-//    if (similarlb and not similar_for_branching and node->data->test >= 0){
+//    if (similarlb and not similar_for_branching) {
+    if (similarlb and not similar_for_branching and node->data->test >= 0){
         node->data->lowerBound = max(node->data->lowerBound, computeSimilarityLB(sim_db1, sim_db2));
         Node* res = inferSolutionFromLB(node, ub);
         if (res != nullptr) return {res, true};
@@ -351,8 +357,22 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
     if (specialAlgo and maxdepth - depth == 2 and nodeDataManager->cover->getSupport() >= 2 * minsup and no_python_error) {
 //    if (specialAlgo and maxdepth - depth == 2 and nodeDataManager->cover->getSupport() >= 2 * minsup and no_python_error and node->data->test >= 0) {
 //        Logger::setFalse();
+//if (itemset.size() != 6 || (itemset.at(0) != 8 || itemset.at(1) != 11 || itemset.at(2) != 24 || itemset.at(3) != 28 || itemset.at(4) != 112 || itemset.at(5) != 116 ))
+//verbose = false;
+        if(itemset.size() == 3 and itemset.at(0) == 2 and itemset.at(1) == 6 and itemset.at(2) == 17) {
+            cout << "calll av" << endl;
+            cout << "best(" << node->data->test << ") err(" << node->data->error << ") low(" << node->data->lowerBound << ") depth(" << depth << endl;
+            if (node->data->test < 0)
+            verbose = true;
+        }
         computeDepthTwo(nodeDataManager->cover, ub, next_candidates, last_added_attr, itemset, node, nodeDataManager, node->data->lowerBound, cache, this);
-//Logger::setTrue();
+        if(itemset.size() == 3 and itemset.at(0) == 2 and itemset.at(1) == 6 and itemset.at(2) == 17) {
+            cout << "best(" << node->data->test << ") err(" << node->data->error << ") low(" << node->data->lowerBound << ") depth(" << depth << endl;
+            verbose = false;
+        }
+        //Logger::setTrue();
+//verbose = true;
+//cout << "2d error : " << node->data->error << endl;
         return {node, true};
     }
 
@@ -435,6 +455,8 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
 //            else cerr << "Searching... cache size: " << cache->getCacheSize() << "\r" << flush;
         } else Logger::showMessageAndReturn("The node already exists");
         child_nodes[first_item]->data->lowerBound = first_lb; // the best lb between the computed and the saved one is selected
+//        cout << "parent :";
+//        printItemset(itemset, true);
         pair<Node*, HasInter> node_inter = recurse(itemsets[first_item], item(attr, first_item), child_nodes[first_item], node_state.is_new, next_attributes,  depth + 1, child_ub - second_lb, similar_db1, similar_db2); // perform the search for the first item
 
         child_nodes[first_item] = node_inter.get_node;
@@ -456,6 +478,8 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
             } else Logger::showMessageAndReturn("The node already exists");
             child_nodes[second_item]->data->lowerBound = second_lb; // the best lb between the computed and the saved ones is selected
             Error remainUb = child_ub - firstError; // bound for the second child (item)
+//            cout << "parent :";
+//            printItemset(itemset, true);
             node_inter = recurse(itemsets[second_item], item(attr, second_item), child_nodes[second_item], node_state.is_new, next_attributes,  depth + 1, remainUb, similar_db1, similar_db2); // perform the search for the second item
 
             child_nodes[second_item] = node_inter.get_node;
@@ -553,6 +577,8 @@ void Search_cache::run() {
                 attributes_to_visit.push_back(attr);
         }
     }
+//    attributes_to_visit.erase(find(attributes_to_visit.begin(), attributes_to_visit.end(), 34));
+//    attributes_to_visit.insert(attributes_to_visit.begin(), 34);
 
     //create an empty array of items representing an emptyset and insert it
     Itemset itemset;
@@ -561,4 +587,33 @@ void Search_cache::run() {
     SimilarVals sdb1, sdb2;
     // call the recursive function to start the search
     cache->root = recurse(itemset, NO_ATTRIBUTE, rootnode, true, attributes_to_visit, 0, maxError, sdb1, sdb2).first;
+
+    cout << " AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << endl;
+    fillin(cache->root, itemset, attributes_to_visit, 0);
+}
+
+void Search_cache::fillin(Node *node, Itemset &itemset, Attributes &attributes, Depth depth) {
+    Node* children[2] = {node->data->left, node->data->right};
+    if (children[0] == nullptr and children[1] == nullptr) return;
+    Attribute attr = node->data->test;
+    for (auto &item_val: {0, 1}) {
+        Node* c_node = children[item_val];
+        Item item = item(attr, item_val);
+        nodeDataManager->cover->intersect(attr, item_val);
+        Itemset child_itemset = addItem(itemset, item);
+        Attributes attributes_to_visit = attributes;
+        attributes_to_visit.erase(std::find(attributes_to_visit.begin(), attributes_to_visit.end(),attr));
+        Depth my_depth = depth + 1;
+        if (c_node->data != nullptr and c_node->data->test < 0) {
+            cout << "compketer" << endl;
+            printItemset(child_itemset, true, true);
+            cout << "depth " << my_depth << " " << c_node->data->error << " " << c_node->data->lowerBound << endl;
+            SimilarVals sdb1, sdb2;
+            recurse(child_itemset, item, c_node, true, attributes_to_visit, my_depth, c_node->data->lowerBound + 1, sdb1, sdb2).first;
+        }
+        else {
+            fillin(c_node, child_itemset, attributes_to_visit, my_depth);
+        }
+        nodeDataManager->cover->backtrack();
+    }
 }

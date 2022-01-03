@@ -3,6 +3,11 @@ project(dl85)
 
 set(CMAKE_CXX_STANDARD 17)
 
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer -fsanitize-address-use-after-scope -g -O1")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=leak -fno-omit-frame-pointer -g -O3")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined -fno-omit-frame-pointer -g -O3")
+
+
 #[[add_executable(test
         tests_run/main.cpp)]]
 

@@ -125,6 +125,14 @@ TrieNode *Cache_Trie::addNonExistingItemsetPart(Itemset &itemset, int pos, vecto
             heap.push_back(make_pair(child_node, its));
             //heap.push_back(child_node);
 
+            if(its.size() == 3 and its.at(0) == 2 and its.at(1) == 6 and its.at(2) == 17) {
+                cout << "created " << child_node << endl;
+                if(itemset.size() == 3 and itemset.at(0) == 2 and itemset.at(1) == 6 and itemset.at(2) == 17) {
+                    cout << "meme" << endl;
+                }
+                else cout << "chemin" << endl;
+            }
+
             child_node->trie_parent = parent_node;
         }
 
@@ -146,8 +154,8 @@ pair<Node *, bool> Cache_Trie::insert(Itemset &itemset) {
         return {cur_node, true};
     }
 
-    Logger::showMessage("increasing load of itemset: ");
-    printItemset(itemset);
+//    Logger::showMessage("increasing load of itemset: ");
+//    printItemset(itemset);
 
     vector<TrieEdge>::iterator geqEdge_it;
     for (int i = 0; i < itemset.size(); ++i) {
@@ -262,8 +270,11 @@ void Cache_Trie::retroPropagate(TrieNode *node) {
 
     for (auto parent_el: node->search_parents) {
         auto parent = parent_el.first;
+        if (parent == root) continue;
         if (parent != nullptr and parent->data != nullptr) {
             if (parent->data->test >= 0) parent->data->test = (parent->data->test + 1) * -1;
+            parent->data->lowerBound = max(parent->data->lowerBound, parent->data->error);
+//            parent->data->error = FLT_MAX;
         }
         if (parent != nullptr) {
             retroPropagate(parent);
@@ -389,8 +400,9 @@ void Cache_Trie::wipe() {
     Itemset itemset;
     setUsingNodes((TrieNode *) root, itemset, n_used);
 
-//    cout << "n_used: " << n_used << endl;
+    cout << "n_used: " << n_used << endl;
 
+    // sort the nodes in the cache based on the heuristic used to remove them
     switch (wipe_type) {
         case Subnodes:
             computeSubNodes((TrieNode *) root);
@@ -416,63 +428,92 @@ void Cache_Trie::wipe() {
         // the node to remove
         TrieNode *node_del = it->first;
 
+//        cout << "node_del:";
+//        printItemset(it->second, true, true);
+        if(it->second.size() == 3 and it->second.at(0) == 2 and it->second.at(1) == 6 and it->second.at(2) == 17) {
+            cout << "node_del:";
+            printItemset(it->second, true, false);
+            if (node_del->data) {
+                cout << " " << node_del << " " << node_del->data->test << " ";// << endl;
+//                if (node_del->data->left and node_del->data->right)
+                    cout << " child l:" << node_del->data->left << " child r:" << node_del->data->right << endl;
+            }
+            cout << endl;
+//            if (node_del->data and node_del->data->left) {
+//                for (auto p: ((TrieNode*)node_del->data->left)->search_parents) {
+//                    cout << p.first << ",";
+//                }
+//                cout << endl;
+//            }
+        }
+
         // stop condition
         if (counter == n_del or node_del->is_used) break;
 
-        // if the node to delete found its best solution, remove its pointer its left and right children
+        // remove from its children, the fact that the node to delete is one of their parents
         if (node_del->data != nullptr and node_del->data->left != nullptr) {
-            TrieNode *node_del_left = ((TrieNode *) (node_del->data->left));
-            TrieNode *node_del_right = ((TrieNode *) (node_del->data->right));
-            node_del_left->search_parents.erase(
-                    std::find_if(node_del_left->search_parents.begin(), node_del_left->search_parents.end(),
-                                 [node_del](const pair<TrieNode *, Itemset> &look) { return look.first == node_del; }));
-            node_del_right->search_parents.erase(
-                    std::find_if(node_del_right->search_parents.begin(), node_del_right->search_parents.end(),
-                                 [node_del](const pair<TrieNode *, Itemset> &look) { return look.first == node_del; }));
+            TrieNode *left_child = ((TrieNode *) (node_del->data->left));
+            TrieNode *right_child = ((TrieNode *) (node_del->data->right));
+            left_child->search_parents.erase(std::find_if(left_child->search_parents.begin(), left_child->search_parents.end(), [node_del](const pair<TrieNode *, Itemset> &look) { return look.first == node_del; }));
+            right_child->search_parents.erase(std::find_if(right_child->search_parents.begin(), right_child->search_parents.end(), [node_del](const pair<TrieNode *, Itemset> &look) { return look.first == node_del; }));
         }
 
-        // remove from its search space parents, the fact that the node to delete is their best solution
-        for (auto search_parent_node: node_del->search_parents) {
+        // remove from its parents, the fact that the node to delete is their best solution
+        for (auto parent_node: node_del->search_parents) {
+//            cout << "parrra:";
+//            printItemset(parent_node.second, true, true);
+            if(parent_node.second.size() == 3 and
+            (
+                    (parent_node.second.at(0) == 11 and parent_node.second.at(1) == 14 and parent_node.second.at(2) == 28) or
+                    (parent_node.second.at(0) == 12 and parent_node.second.at(1) == 14 and parent_node.second.at(2) == 32) or
+                    (parent_node.second.at(0) == 2 and parent_node.second.at(1) == 6 and parent_node.second.at(2) == 17)
+                    )
+            ) {
+                cout << "parent:";
+                printItemset(parent_node.second, true, true);
+                printItemset(it->second, true, true);
+                cout << parent_node.first << endl;
+                cout << parent_node.first->data << endl;
+                cout << parent_node.first->data->test << endl;
+                cout << parent_node.first->data->test << " " << parent_node.first->data->left << " " << parent_node.first->data->right << endl;
+            }
 
-
-            if (search_parent_node.first != nullptr and search_parent_node.first->data != nullptr and
-                (search_parent_node.first->data->left == node_del or
-                 search_parent_node.first->data->right == node_del)) {
-
+            if (parent_node.first != nullptr and parent_node.first->data != nullptr and (parent_node.first->data->left == node_del or parent_node.first->data->right == node_del) ) {
 
                 // remove the fact that the parent found the best solution
-                if (search_parent_node.first->data->error < FLT_MAX) {
-                    search_parent_node.first->data->lowerBound = search_parent_node.first->data->error; // set the error as lb to help the re-computation
-                    search_parent_node.first->data->error = FLT_MAX;
-                    if (search_parent_node.first->data->test >= 0)
-                        search_parent_node.first->data->test = (search_parent_node.first->data->test + 1) * -1; // keep the best attribute in order to explore it first during the re-computation
+                if (parent_node.first->data->error < FLT_MAX) {
+                    parent_node.first->data->lowerBound = parent_node.first->data->error; // set the error as lb to help the re-computation
+                    parent_node.first->data->error = FLT_MAX;
+                    if (parent_node.first->data->test >= 0)
+                        parent_node.first->data->test = (parent_node.first->data->test + 1) * -1; // keep the best attribute in order to explore it first during the re-computation
                 }
 
                 // inform the corresponding left or right node (e.g. A will inform not A) that their parent won't recognize them anymore
-                TrieNode *left_node = ((TrieNode *) search_parent_node.first->data->left);
-                TrieNode *right_node = ((TrieNode *) search_parent_node.first->data->right);
-                if (search_parent_node.first->data->left == node_del)
+                TrieNode *left_node = ((TrieNode *) parent_node.first->data->left);
+                TrieNode *right_node = ((TrieNode *) parent_node.first->data->right);
+                if (parent_node.first->data->left == node_del)
                     right_node->search_parents.erase(
                             std::find_if(right_node->search_parents.begin(), right_node->search_parents.end(),
-                                         [search_parent_node](const pair<TrieNode *, Itemset> &look) {
-                                             return look.first == search_parent_node.first;
+                                         [parent_node](const pair<TrieNode *, Itemset> &look) {
+                                             return look.first == parent_node.first;
                                          }));
-                if (search_parent_node.first->data->right == node_del)
+                if (parent_node.first->data->right == node_del)
                     left_node->search_parents.erase(
                             std::find_if(left_node->search_parents.begin(), left_node->search_parents.end(),
-                                         [search_parent_node](const pair<TrieNode *, Itemset> &look) {
-                                             return look.first == search_parent_node.first;
+                                         [parent_node](const pair<TrieNode *, Itemset> &look) {
+                                             return look.first == parent_node.first;
                                          }));
 
                 // invalidate the parent children
-                search_parent_node.first->data->left = nullptr;
-                search_parent_node.first->data->right = nullptr;
+                parent_node.first->data->left = nullptr;
+                parent_node.first->data->right = nullptr;
 
                 // retro-propagate the information
-                retroPropagate(search_parent_node.first);
+//                retroPropagate(parent_node.first);
 
             }
         }
+//        cout << "fin" << endl;
 
         // remove the edge bringing to the node
         node_del->trie_parent->edges.erase(

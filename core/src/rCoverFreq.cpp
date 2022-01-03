@@ -12,6 +12,7 @@ RCoverFreq::RCoverFreq(DataManager *dmm): RCover(dmm) {}
 
 void RCoverFreq::intersect(Attribute attribute, bool positive) {
     int climit = limit.top();
+    deleteErrorVals(sup_class);
     sup_class = zeroErrorVals();
     support = 0;
     for (int i = 0; i < climit; ++i) {

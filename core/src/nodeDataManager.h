@@ -40,6 +40,27 @@ struct NodeData {
         size = 1;
     }
 
+    NodeData(const NodeData& other) {
+        test = other.test;
+        curr_test = other.curr_test;
+        left = other.left;
+        right = other.right;
+        leafError = other.leafError;
+        error = other.error;
+        lowerBound = other.lowerBound;
+        size = other.size;
+    }
+
+    NodeData& operator=(const NodeData& other)
+    {
+        test = other.test;
+        left = other.left;
+        right = other.right;
+        error = other.error;
+        size = other.size;
+        return *this;
+    }
+
     virtual ~NodeData() {}
 };
 
@@ -79,7 +100,7 @@ public:
 
     virtual LeafInfo computeLeafInfo(ErrorVals itemsetSupport) = 0;
 
-//    virtual bool updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache = nullptr, Itemset = Itemset()) = 0;
+//    virtual bool updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache = nullptr) = 0;
     virtual bool updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache = nullptr, Itemset = Itemset()) = 0;
 
 //    virtual void printResult(Tree *tree) = 0;

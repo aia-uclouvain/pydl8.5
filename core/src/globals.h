@@ -41,8 +41,8 @@ typedef int Support;
 // weighted support for a class
 typedef float ErrorVal;
 // array of supports per class
-typedef ErrorVal *ErrorVals;
-typedef const ErrorVal * constErrorVals;
+typedef ErrorVal* ErrorVals;
+typedef const ErrorVal* constErrorVals;
 //typedef Support *Supports;
 typedef unsigned long ulong;
 typedef std::vector<Item> Itemset;
@@ -93,7 +93,8 @@ ErrorVals zeroErrorVals();
 void zeroErrorVals(ErrorVals supports);
 
 // free the memory
-void deleteErrorVals(constErrorVals supports);
+void deleteErrorVals(ErrorVals supports);
+//void deleteErrorVals(constErrorVals supports);
 
 // copy values of support array src to dest
 void copyErrorVals(constErrorVals src, ErrorVals dest);

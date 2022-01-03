@@ -11,6 +11,7 @@
 #include "rCoverFreq.h"
 #include <chrono>
 #include <utility>
+#include <memory>
 
 using namespace std::chrono;
 
@@ -25,29 +26,32 @@ struct TreeTwo{
         root_data = new Freq_NodeData();
     }
 
-    void replaceTree(TreeTwo* cpy){
-        free();
+    void replaceTree(unique_ptr<TreeTwo> cpy){
+//        free();
         root_data = cpy->root_data;
     }
 
-    void free(){
-        if (root_data->left != nullptr or root_data->right != nullptr){
-            if (root_data->left->data->left != nullptr or root_data->left->data->right != nullptr){
-                delete root_data->left->data->left;
-                delete root_data->left->data->right;
-            }
-            if (root_data->right->data->left != nullptr or root_data->right->data->right != nullptr){
-                delete root_data->right->data->left;
-                delete root_data->right->data->right;
-            }
+    void free() const {
+        if (root_data == nullptr) return;
+
+        if (root_data->left != nullptr){
+            if (root_data->left->data != nullptr) delete root_data->left->data->left;
+            if (root_data->left->data != nullptr) delete root_data->left->data->right;
             delete root_data->left;
+        }
+
+        if (root_data->right != nullptr){
+            if (root_data->right->data != nullptr) delete root_data->right->data->left;
+            if (root_data->right->data != nullptr) delete root_data->right->data->right;
             delete root_data->right;
         }
+
         delete root_data;
     }
 
 
     ~TreeTwo(){
+        free();
     }
 };
 

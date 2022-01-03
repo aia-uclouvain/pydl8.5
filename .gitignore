@@ -27,6 +27,8 @@ core/cmake-build-debug/
 core/cmake-build-release/
 core/cmake-build-debug-docker/
 core/cmake-build-release-docker/
+core/cmake-build-debug-remote-host/
+core/cmake-build-release-remote-host/
 
 core/tests_run/
 core/main_reg.cpp

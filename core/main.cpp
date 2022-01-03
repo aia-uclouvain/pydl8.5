@@ -80,16 +80,19 @@ int main(int argc, char *argv[]) {
     string datasetPath;
     Config configuration;
     int maxdepth, minsup;
+    Size cache_size;
 
     if (cli){
-//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/tic-tac-toe.txt";
-        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/anneal.txt";
+        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/tic-tac-toe.txt";
+        // datasetPath = (argc > 1) ? std::string(argv[1]) : "../datasets/anneal.txt";
 //        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/yeast.txt";
 //        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/tests/paper.txt";
         maxdepth = (argc > 2) ? std::stoi(argv[2]) : 5;
-        configuration = (argc > 3 and std::string(argv[3]).find('b') == 0) ? basic : optimized;
-//        configuration = (argc > 3 and std::string(argv[3]).find('b') == 0) ? basic : basic;
-        minsup = (argc > 4) ? std::stoi(argv[4]) : 1;
+        cache_size = (argc > 3) ? std::stoi(argv[3]) : NO_CACHE_LIMIT;
+        // cache_size = (argc > 3) ? std::stoi(argv[3]) : 1000000;
+        configuration = (argc > 4 and std::string(argv[4]).find('b') == 0) ? basic : optimized;
+//        configuration = (argc > 4 and std::string(argv[4]).find('b') == 0) ? basic : basic;
+        minsup = (argc > 5) ? std::stoi(argv[5]) : 1;
     }
     else {
         datasetPath = "../../datasets/anneal.txt";
@@ -100,7 +103,6 @@ int main(int argc, char *argv[]) {
     }
 
     CacheType cache_type;
-    Size cache_size;
     WipeType wipe_type;
     float wipe_factor;
     bool with_cache, use_special_algo, verb, use_ub, sim_lb, dyn_branch, similar_for_branching;
@@ -110,7 +112,7 @@ int main(int argc, char *argv[]) {
 //    cache_type = CacheHashCover;
 
 //    cache_size = NO_CACHE_LIMIT;
-    cache_size = 50000;
+    cache_size = 10000;
 //    cache_size = 50;
 
 //cout << "ert" << endl;
@@ -153,6 +155,13 @@ int main(int argc, char *argv[]) {
     }
 
     ifstream dataset(datasetPath);
+
+    if (not dataset) {
+        cout << "The path you specified is not correct" << endl;
+        exit(0);
+    }
+
+//    ifstream dataset(datasetPath);
     map<Class, ErrorVal> supports_map; // for each class, compute the number of transactions (support)
     vector<Class> target; //data is a flatten 2D-array containing the values of features matrix while target is the array of target
 

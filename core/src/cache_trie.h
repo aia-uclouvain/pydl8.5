@@ -50,7 +50,7 @@ public:
     Cache_Trie(Depth maxdepth, WipeType wipe_type=Subnodes, int maxcachesize=0, float wipe_factor=.5f);
 
     //~Cache_Trie(){ delete root; for (auto node: heap) { delete node; } };
-    ~Cache_Trie(){ delete root; for (auto node: heap) { delete node.first; } };
+    ~Cache_Trie(){ delete root; for (const auto& node: heap) { delete node.first; } };
 
     float wipe_factor;
     vector<pair<TrieNode*,Itemset>> heap;
