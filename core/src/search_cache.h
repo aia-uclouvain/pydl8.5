@@ -69,7 +69,8 @@ private:
     Error computeSimilarityLB(SimilarVals &similar_db1, SimilarVals &similar_db2);
     void updateSimilarLBInfo1(NodeData *node_data, SimilarVals &highest_error_db, SimilarVals &highest_coversize_db);
     void updateSimilarLBInfo2(NodeData *node_data, SimilarVals &similar_db1, SimilarVals &similar_db2);
-    void fillin(Node *node, Itemset &itemset, Attributes &attributes, Depth depth);
+    void retrieveWipedSubtrees(Node *node, Itemset &itemset, Attributes &attributes, Depth depth);
+    bool isTreeComplete(Node* node);
 };
 
 #endif

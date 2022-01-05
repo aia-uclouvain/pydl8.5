@@ -125,7 +125,7 @@ Attributes Search_cache::getSuccessors(Attributes &last_candidates, Attribute la
 
     next_candidates.reserve(last_candidates.size() - 1);
 
-    if (node->data->test < 0) next_candidates.push_back((node->data->test * -1) - 1);
+    if (node->data->test < 0) next_candidates.push_back(node->data->test * -1 - 1);
 
     int current_sup = nodeDataManager->cover->getSupport();
     ErrorVals current_sup_class = nodeDataManager->cover->getErrorValPerClass();
@@ -328,15 +328,15 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
     }
     Logger::showMessageAndReturn("Node solution cannot be found without calculation");
 
-    if ( node->data->test < 0  and node->data->error < FLT_MAX ) {
-//        cout << "here: ";
-//        printItemset(itemset, true, true);
-        if(itemset.size() == 3 and itemset.at(0) == 2 and itemset.at(1) == 6 and itemset.at(2) == 17) {
-            cout << "here: ";
-            printItemset(itemset, true, true);
-            cout << node->data->test << " " << node->data->lowerBound << " " << depth << endl;
-        }
-    }
+//    if ( node->data->test < 0  and node->data->error < FLT_MAX ) {
+////        cout << "here: ";
+////        printItemset(itemset, true, true);
+//        if(itemset.size() == 3 and itemset.at(0) == 2 and itemset.at(1) == 6 and itemset.at(2) == 17) {
+//            cout << "here: ";
+//            printItemset(itemset, true, true);
+//            cout << node->data->test << " " << node->data->lowerBound << " " << depth << endl;
+//        }
+//    }
 //    if ( node->data->test < 0 ) cout << "here" << endl;
 
     // in case of root (empty item), there is no last added attribute
@@ -359,17 +359,17 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
 //        Logger::setFalse();
 //if (itemset.size() != 6 || (itemset.at(0) != 8 || itemset.at(1) != 11 || itemset.at(2) != 24 || itemset.at(3) != 28 || itemset.at(4) != 112 || itemset.at(5) != 116 ))
 //verbose = false;
-        if(itemset.size() == 3 and itemset.at(0) == 2 and itemset.at(1) == 6 and itemset.at(2) == 17) {
-            cout << "calll av" << endl;
-            cout << "best(" << node->data->test << ") err(" << node->data->error << ") low(" << node->data->lowerBound << ") depth(" << depth << endl;
-            if (node->data->test < 0)
-            verbose = true;
-        }
+//        if(itemset.size() == 3 and itemset.at(0) == 2 and itemset.at(1) == 6 and itemset.at(2) == 17) {
+//            cout << "calll av" << endl;
+//            cout << "best(" << node->data->test << ") err(" << node->data->error << ") low(" << node->data->lowerBound << ") depth(" << depth << endl;
+//            if (node->data->test < 0)
+//            verbose = true;
+//        }
         computeDepthTwo(nodeDataManager->cover, ub, next_candidates, last_added_attr, itemset, node, nodeDataManager, node->data->lowerBound, cache, this);
-        if(itemset.size() == 3 and itemset.at(0) == 2 and itemset.at(1) == 6 and itemset.at(2) == 17) {
-            cout << "best(" << node->data->test << ") err(" << node->data->error << ") low(" << node->data->lowerBound << ") depth(" << depth << endl;
-            verbose = false;
-        }
+//        if(itemset.size() == 3 and itemset.at(0) == 2 and itemset.at(1) == 6 and itemset.at(2) == 17) {
+//            cout << "best(" << node->data->test << ") err(" << node->data->error << ") low(" << node->data->lowerBound << ") depth(" << depth << endl;
+//            verbose = false;
+//        }
         //Logger::setTrue();
 //verbose = true;
 //cout << "2d error : " << node->data->error << endl;
@@ -588,32 +588,65 @@ void Search_cache::run() {
     // call the recursive function to start the search
     cache->root = recurse(itemset, NO_ATTRIBUTE, rootnode, true, attributes_to_visit, 0, maxError, sdb1, sdb2).first;
 
-    cout << " AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << endl;
-    fillin(cache->root, itemset, attributes_to_visit, 0);
+    std::cout << endl;
+    std::cout << "final error: " << cache->root->data->error << endl;
+
+    if (cache->maxcachesize > NO_CACHE_LIMIT) {
+        cout << "Tree already found. Trying to reconstitute the wiped subtrees" << endl;
+        cout << "===================================================================" << endl << endl;
+        while(not isTreeComplete(cache->root)) retrieveWipedSubtrees(cache->root, itemset, attributes_to_visit, 0);
+    }
+
 }
 
-void Search_cache::fillin(Node *node, Itemset &itemset, Attributes &attributes, Depth depth) {
+// loop in each node of the final tree and re-launch the search for nodes whose descendants are wiped
+void Search_cache::retrieveWipedSubtrees(Node *node, Itemset &itemset, Attributes &attributes, Depth depth) {
+
     Node* children[2] = {node->data->left, node->data->right};
+
+    // backtrack when leaf node is encountered
     if (children[0] == nullptr and children[1] == nullptr) return;
+
     Attribute attr = node->data->test;
-    for (auto &item_val: {0, 1}) {
+    Attributes next_attributes = attributes;
+
+    for (auto &item_val: {NEG_ITEM, POS_ITEM}) {
+
+        // set needed values for the search
         Node* c_node = children[item_val];
         Item item = item(attr, item_val);
         nodeDataManager->cover->intersect(attr, item_val);
         Itemset child_itemset = addItem(itemset, item);
-        Attributes attributes_to_visit = attributes;
-        attributes_to_visit.erase(std::find(attributes_to_visit.begin(), attributes_to_visit.end(),attr));
         Depth my_depth = depth + 1;
+//        Attributes next_attributes = attributes;
+//        attributes_to_visit.erase(std::find(next_attributes.begin(), next_attributes.end(),attr));
+
+        // incomplete node is found
         if (c_node->data != nullptr and c_node->data->test < 0) {
-            cout << "compketer" << endl;
-            printItemset(child_itemset, true, true);
-            cout << "depth " << my_depth << " " << c_node->data->error << " " << c_node->data->lowerBound << endl;
+//            cout << "compketer" << endl;
+//            printItemset(child_itemset, true, true);
+//            cout << "depth " << my_depth << " " << c_node->data->error << " " << c_node->data->lowerBound << endl;
             SimilarVals sdb1, sdb2;
-            recurse(child_itemset, item, c_node, true, attributes_to_visit, my_depth, c_node->data->lowerBound + 1, sdb1, sdb2).first;
+            recurse(child_itemset, item, c_node, true, next_attributes, my_depth, c_node->data->lowerBound + 1, sdb1, sdb2).first;
         }
         else {
-            fillin(c_node, child_itemset, attributes_to_visit, my_depth);
+            if (item_val == NEG_ITEM) next_attributes.erase(std::find(next_attributes.begin(), next_attributes.end(), attr));
+            retrieveWipedSubtrees(c_node, child_itemset, next_attributes, my_depth);
         }
+
         nodeDataManager->cover->backtrack();
+
     }
+
+}
+
+bool Search_cache::isTreeComplete(Node* node) {
+    for (auto child : {node->data->left, node->data->right}) {
+        if (child != nullptr) {
+            if (child->data != nullptr and child->data->test < 0) return false;
+            if (not isTreeComplete(child)) return false;
+        }
+        else return true;
+    }
+    return true;
 }

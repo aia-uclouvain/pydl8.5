@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
         // datasetPath = (argc > 1) ? std::string(argv[1]) : "../datasets/anneal.txt";
 //        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/yeast.txt";
 //        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/tests/paper.txt";
-        maxdepth = (argc > 2) ? std::stoi(argv[2]) : 5;
+        maxdepth = (argc > 2) ? std::stoi(argv[2]) : 6;
         cache_size = (argc > 3) ? std::stoi(argv[3]) : NO_CACHE_LIMIT;
         // cache_size = (argc > 3) ? std::stoi(argv[3]) : 1000000;
         configuration = (argc > 4 and std::string(argv[4]).find('b') == 0) ? basic : optimized;
@@ -112,13 +112,13 @@ int main(int argc, char *argv[]) {
 //    cache_type = CacheHashCover;
 
 //    cache_size = NO_CACHE_LIMIT;
-    cache_size = 10000;
+    cache_size = 50000;
 //    cache_size = 50;
 
 //cout << "ert" << endl;
 
     wipe_type = Subnodes;
-    //wipe_type = Recall;
+//    wipe_type = Recall;
     //wipe_type = All;
 
     wipe_factor = .4f;

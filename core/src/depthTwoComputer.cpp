@@ -164,41 +164,49 @@ Error computeDepthTwo(RCover* cover,
 
     // update the next candidates list by removing the one already added
     vector<Attribute> attr;
-
-    if (node->data->test < 0) {
-        int best_root = node->data->test * -1 - 1, best_left = -1, best_right = -1;
-        Node* best_left_node = cache->get(addItem(itemset, item(best_root, NEG_ITEM)));
-        Node* best_right_node = cache->get(addItem(itemset, item(best_root, POS_ITEM)));
-        if (best_left_node != nullptr and best_left_node->data != nullptr and best_left_node->data->test != INT32_MAX) best_left = best_left_node->data->test >= 0 ? best_left_node->data->test : best_left_node->data->test * -1 - 1;
-        if (best_right_node != nullptr and best_right_node->data != nullptr and best_right_node->data->test != INT32_MAX) best_right = best_right_node->data->test >= 0 ? best_right_node->data->test : best_right_node->data->test * -1 - 1;
-
-        Logger::showMessageAndReturn("anc test: ", (node->data->test * -1) - 1);
-
-        if (best_left != -1 and best_right != -1) {
-            attr.reserve(3);
-            attr.push_back(best_root);
-            attr.push_back(best_left);
-            attr.push_back(best_right);
-        }
-        else {
-            attr.reserve(attributes_to_visit.size() - 1);
-            attr.push_back(best_root);
-            if (best_left != -1) attr.push_back(best_left);
-            if (best_right != -1) attr.push_back(best_right);
-            int n_found = attr.size();
-            for(const auto attribute : attributes_to_visit) {
-                if ( attribute == last_added or attribute == attr.at(0) or (n_found == 2 and attribute == attr.at(1)) ) continue;
-                attr.push_back(attribute);
-            }
-        }
+    attr.reserve(attributes_to_visit.size() - 1);
+    if (node->data->test < 0) attr.push_back((node->data->test * -1) - 1);
+    for(const auto attribute : attributes_to_visit) {
+//        if (last_added == attribute) continue;
+        if (attribute == last_added or (node->data->test < 0 and attribute == attr.at(0)) ) continue;
+        attr.push_back(attribute);
     }
-    else {
-        attr.reserve(attributes_to_visit.size() - 1);
-        for(const auto attribute : attributes_to_visit) {
-        if (last_added == attribute) continue;
-            attr.push_back(attribute);
-        }
-    }
+//    vector<Attribute> attr;
+//
+//    if (node->data->test < 0) {
+//        int best_root = node->data->test * -1 - 1, best_left = -1, best_right = -1;
+//        Node* best_left_node = cache->get(addItem(itemset, item(best_root, NEG_ITEM)));
+//        Node* best_right_node = cache->get(addItem(itemset, item(best_root, POS_ITEM)));
+//        if (best_left_node != nullptr and best_left_node->data != nullptr and best_left_node->data->test != INT32_MAX) best_left = best_left_node->data->test >= 0 ? best_left_node->data->test : best_left_node->data->test * -1 - 1;
+//        if (best_right_node != nullptr and best_right_node->data != nullptr and best_right_node->data->test != INT32_MAX) best_right = best_right_node->data->test >= 0 ? best_right_node->data->test : best_right_node->data->test * -1 - 1;
+//
+//        Logger::showMessageAndReturn("anc test: ", (node->data->test * -1) - 1);
+//
+//        if (best_left != -1 and best_right != -1) {
+//            attr.reserve(3);
+//            attr.push_back(best_root);
+//            attr.push_back(best_left);
+//            attr.push_back(best_right);
+//        }
+//        else {
+//            attr.reserve(attributes_to_visit.size() - 1);
+//            attr.push_back(best_root);
+//            if (best_left != -1) attr.push_back(best_left);
+//            if (best_right != -1) attr.push_back(best_right);
+//            int n_found = attr.size();
+//            for(const auto attribute : attributes_to_visit) {
+//                if ( attribute == last_added or attribute == attr.at(0) or (n_found == 2 and attribute == attr.at(1)) ) continue;
+//                attr.push_back(attribute);
+//            }
+//        }
+//    }
+//    else {
+//        attr.reserve(attributes_to_visit.size() - 1);
+//        for(const auto attribute : attributes_to_visit) {
+//        if (last_added == attribute) continue;
+//            attr.push_back(attribute);
+//        }
+//    }
 
 
 
