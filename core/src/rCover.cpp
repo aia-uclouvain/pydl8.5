@@ -6,10 +6,10 @@
 
 RCover::RCover(DataManager *dmm):dm(dmm) {
     nWords = (int)ceil((float)dm->getNTransactions()/M);
-    coverWords = new stack<bitset<M>>[nWords];
+    coverWords = new stack<bitset<M>, vector<bitset<M>>>[nWords];
     validWords = new int[nWords];
     for (int i = 0; i < nWords; ++i) {
-        stack<bitset<M>> rword;
+        stack<bitset<M>, vector<bitset<M>>> rword;
         bitset<M> word;
         word.set();
         if(i == 0 && dm->getNTransactions()%M != 0){

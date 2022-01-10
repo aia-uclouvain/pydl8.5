@@ -21,9 +21,9 @@ using namespace std;
 class RCover {
 
 public:
-    stack<bitset<M>>* coverWords;
+    stack<bitset<M>, vector<bitset<M>>>* coverWords;
     int* validWords;
-    stack<int> limit;
+    stack<int, vector<int>> limit;
     int nWords;
     DataManager* dm;
     ErrorVals sup_class = nullptr;

@@ -125,7 +125,7 @@ Attributes Search_cache::getSuccessors(Attributes &last_candidates, Attribute la
 
     next_candidates.reserve(last_candidates.size() - 1);
 
-    if (node->data->test < 0) next_candidates.push_back(node->data->test * -1 - 1);
+//    if (node->data->test < 0) next_candidates.push_back(node->data->test * -1 - 1);
 
     int current_sup = nodeDataManager->cover->getSupport();
     ErrorVals current_sup_class = nodeDataManager->cover->getErrorValPerClass();
@@ -134,8 +134,8 @@ Attributes Search_cache::getSuccessors(Attributes &last_candidates, Attribute la
     for (const auto &candidate : last_candidates) {
 
         // this attribute is already in the current itemset
-//        if (last_added == candidate) continue;
-        if ( last_added == candidate or (node->data->test < 0 and candidate == next_candidates.at(0)) ) continue;
+        if (last_added == candidate) continue;
+//        if ( last_added == candidate or (node->data->test < 0 and candidate == next_candidates.at(0)) ) continue;
 
         // compute the support of each candidate
         int sup_left = nodeDataManager->cover->temporaryIntersectSup(candidate, false);
@@ -359,7 +359,7 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
 //        Logger::setFalse();
 //if (itemset.size() != 6 || (itemset.at(0) != 8 || itemset.at(1) != 11 || itemset.at(2) != 24 || itemset.at(3) != 28 || itemset.at(4) != 112 || itemset.at(5) != 116 ))
 //verbose = false;
-//        if(itemset.size() == 3 and itemset.at(0) == 2 and itemset.at(1) == 6 and itemset.at(2) == 17) {
+//        if(itemset.size() == 4 and itemset.at(0) == 0 and itemset.at(1) == 2 and itemset.at(2) == 11 and itemset.at(3) == 12) {
 //            cout << "calll av" << endl;
 //            cout << "best(" << node->data->test << ") err(" << node->data->error << ") low(" << node->data->lowerBound << ") depth(" << depth << endl;
 //            if (node->data->test < 0)
@@ -401,7 +401,23 @@ pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
     //Attribute best_attr;
 
     // we evaluate the split on each candidate attribute
-    for(const auto attr : next_attributes) {
+//    for(const auto attr : next_attributes) {
+bool found = false;
+    for (int i = 0; i < next_attributes.size(); ++i) {
+//        Attribute attr = next_attributes[i];
+        Attribute attr;
+        if (node->data->test < 0) {
+            if (i == 0) attr = -node->data->test - 1;
+            else if (next_attributes[i] == -node->data->test - 1) {
+                found = true;
+                continue;
+            }
+            else {
+                if (not found) attr = next_attributes[i-1];
+                else attr = next_attributes[i];
+            }
+        }
+        else attr = next_attributes[i];
         node->data->curr_test = attr;
         Logger::showMessageAndReturn("\n\nWe are evaluating the attribute : ", attr);
 
@@ -588,7 +604,7 @@ void Search_cache::run() {
     // call the recursive function to start the search
     cache->root = recurse(itemset, NO_ATTRIBUTE, rootnode, true, attributes_to_visit, 0, maxError, sdb1, sdb2).first;
 
-    std::cout << endl;
+//    std::cout << endl;
     std::cout << "final error: " << cache->root->data->error << endl;
 
     if (cache->maxcachesize > NO_CACHE_LIMIT) {

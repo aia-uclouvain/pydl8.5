@@ -125,9 +125,17 @@ TrieNode *Cache_Trie::addNonExistingItemsetPart(Itemset &itemset, int pos, vecto
             heap.push_back(make_pair(child_node, its));
             //heap.push_back(child_node);
 
-//            if(its.size() == 3 and its.at(0) == 2 and its.at(1) == 6 and its.at(2) == 17) {
+//            if(its.size() == 6 and its.at(0) == 0 and its.at(1) == 2 and its.at(2) == 11 and its.at(3) == 12 and its.at(4) == 17 and its.at(5) == 28) {
 //                cout << "created " << child_node << endl;
-//                if(itemset.size() == 3 and itemset.at(0) == 2 and itemset.at(1) == 6 and itemset.at(2) == 17) {
+//                if(itemset.size() == 6 and itemset.at(0) == 0 and itemset.at(1) == 2 and itemset.at(2) == 11 and itemset.at(3) == 12 and itemset.at(4) == 17 and itemset.at(5) == 28) {
+//                    cout << "meme" << endl;
+//                }
+//                else cout << "chemin" << endl;
+//            }
+//
+//            if(its.size() == 5 and its.at(0) == 0 and its.at(1) == 2 and its.at(2) == 11 and its.at(3) == 12 and its.at(4) == 28) {
+//                cout << "- parent created " << child_node << endl;
+//                if(itemset.size() == 5 and itemset.at(0) == 0 and itemset.at(1) == 2 and itemset.at(2) == 11 and itemset.at(3) == 12 and itemset.at(4) == 28) {
 //                    cout << "meme" << endl;
 //                }
 //                else cout << "chemin" << endl;
@@ -430,22 +438,34 @@ void Cache_Trie::wipe() {
 
 //        cout << "node_del:";
 //        printItemset(it->second, true, true);
-        if(it->second.size() == 5 and it->second.at(0) == 3 and it->second.at(1) == 6 and it->second.at(2) == 10 and it->second.at(3) == 15 and it->second.at(4) == 28) {
-            cout << "node_del:";
-            printItemset(it->second, true, false);
-            if (node_del->data) {
-                cout << " " << node_del << " " << node_del->data->test << " ";// << endl;
-//                if (node_del->data->left and node_del->data->right)
-                    cout << " child l:" << node_del->data->left << " child r:" << node_del->data->right << endl;
-            }
-            cout << endl;
-//            if (node_del->data and node_del->data->left) {
-//                for (auto p: ((TrieNode*)node_del->data->left)->search_parents) {
-//                    cout << p.first << ",";
-//                }
-//                cout << endl;
+//        cout << "yopooo" << endl;
+//        if(it->second.size() == 6 and it->second.at(0) == 0 and it->second.at(1) == 2 and it->second.at(2) == 11 and it->second.at(3) == 12 and it->second.at(4) == 17 and it->second.at(5) == 28) {
+//            cout << "node_del:";
+//            printItemset(it->second, true, false);
+//            if (node_del->data) {
+//                cout << " " << node_del << " " << node_del->data->test << " ";// << endl;
+////                if (node_del->data->left and node_del->data->right)
+//                    cout << " child l:" << node_del->data->left << " child r:" << node_del->data->right << endl;
 //            }
-        }
+//            cout << " parents: ";
+//            for (auto p: node_del->search_parents) {
+//                printItemset(p.second, true, false);
+//                cout << " (" << p.first->data->error << "), ";
+//            }
+//            cout << endl;
+////            if (node_del->data and node_del->data->left) {
+////                for (auto p: ((TrieNode*)node_del->data->left)->search_parents) {
+////                    cout << p.first << ",";
+////                }
+////                cout << endl;
+////            }
+//        }
+
+//        if(it->second.size() == 5 and it->second.at(0) == 0 and it->second.at(1) == 2 and it->second.at(2) == 11 and it->second.at(3) == 12 and it->second.at(4) == 28) {
+//            cout << "- parent node_del:";
+//            printItemset(it->second, true, true);
+////            cout << "best child: " << it->first->data->test << endl;
+//        }
 
         // stop condition
         if (counter == n_del or node_del->is_used) break;
@@ -484,8 +504,13 @@ void Cache_Trie::wipe() {
                 if (parent_node.first->data->error < FLT_MAX) {
                     parent_node.first->data->lowerBound = parent_node.first->data->error; // set the error as lb to help the re-computation
                     parent_node.first->data->error = FLT_MAX;
-//                    if (parent_node.first->data->test >= 0)
-//                        parent_node.first->data->test = (parent_node.first->data->test + 1) * -1; // keep the best attribute in order to explore it first during the re-computation
+//                    if(parent_node.second.size() == 5 and parent_node.second.at(0) == 0 and parent_node.second.at(1) == 2 and parent_node.second.at(2) == 11 and parent_node.second.at(3) == 12 and parent_node.second.at(4) == 28) {
+//                        cout << "- for parent, child to del is:";
+//                        printItemset(it->second, true, true);
+//                        cout << "best child of parent: " << parent_node.first->data->test << endl;
+//                    }
+                    if (parent_node.first->data->test >= 0)
+                        parent_node.first->data->test = (parent_node.first->data->test + 1) * -1; // keep the best attribute in order to explore it first during the re-computation
                 }
 
                 // inform the corresponding left or right node (e.g. A will inform not A) that their parent won't recognize them anymore
