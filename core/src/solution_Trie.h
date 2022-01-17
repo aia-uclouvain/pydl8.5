@@ -2,11 +2,12 @@
 // Created by Gael Aglin on 17/04/2021.
 //
 
-#ifndef SOLUTION_FREQ_H
-#define SOLUTION_FREQ_H
+#ifndef SOLUTION_TRIE_FREQ_H
+#define SOLUTION_TRIE_FREQ_H
 
 #include "solution.h"
-#include "nodeDataManagerFreq.h"
+//#include "nodeDataManager_TrieFreq.h"
+//#include "search_trie_cache.h"
 
 /**
  * This structure a decision tree model learnt from input data
@@ -18,9 +19,9 @@
  * @param searchRt - the time that the search took
  * @param timeout - a boolean variable to represent the fact that the search reached a timeout or not
  */
-struct Freq_Tree : Tree {
+struct Trie_Tree : Tree {
 
-    string to_str() const {
+    string to_str() const override {
         string out = "";
         out += "Tree: " + expression + "\n";
         out += (expression != "(No such tree)") ? "Size: " + to_string(size) + "\n" : "Size: 0\n";
@@ -39,28 +40,30 @@ struct Freq_Tree : Tree {
             out += "Accuracy: " + to_string(accuracy) + "\n";
         }*/
     }
+
+    ~Trie_Tree() override {}
 };
 
 
-class SolutionFreq : public Solution {
+class Solution_Trie : public Solution {
 public:
-    SolutionFreq(void*, NodeDataManager*);
+    Solution_Trie(Search_base*);
 
-    ~SolutionFreq();
+    ~Solution_Trie();
 
     Tree * getTree();
 
 //    virtual void printTimeOut(Tree* tree );
-    void printResult(Freq_NodeData *data);
 
 //    virtual Error getTrainingError(const string &tree_json) {}
 
-    Freq_Tree* tree;
+//    TrieFreq_Tree* tree;
 
 protected:
-    int printResult(Freq_NodeData *node_data, int depth);
+//    void printResult(Node* node, const Itemset& itemset);
+    int printResult(Node* node, int depth, const Itemset& itemset);
 };
 
 
 
-#endif //SOLUTION_FREQ_H
+#endif //SOLUTION_TRIE_FREQ_H

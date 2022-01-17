@@ -1,29 +1,30 @@
 #ifndef NODE_DATA_MANAGER_H
 #define NODE_DATA_MANAGER_H
 
-#include <utility>
-#include "globals.h"
+//#include <utility>
+//#include "globals.h"
 #include "rCover.h"
 #include "dataManager.h"
-#include <iostream>
-#include <cfloat>
+//#include <iostream>
+//#include <cfloat>
 #include <functional>
-#include <vector>
-#include <chrono>
+//#include <vector>
+//#include <chrono>
 
 struct Node;
 
-class Cache;
+//class Cache;
 
 using namespace std;
-using namespace std::chrono;
+//using namespace std::chrono;
 
 //typedef void *NodeData; // using void pointers is much lighter than class derivation
 
 struct NodeData {
     Attribute test;
-    Attribute curr_test;
-    Node *left, *right;
+//    Attribute curr_test;
+//    Node *left, *right;
+//    Node *curr_left, *curr_right;
     Error leafError;
     Error error;
     Error lowerBound;
@@ -31,9 +32,11 @@ struct NodeData {
 
     NodeData() {
         test = INT32_MAX;
-        curr_test = -1;
-        left = nullptr;
-        right = nullptr;
+//        curr_test = -1;
+//        left = nullptr;
+//        right = nullptr;
+//        curr_left = nullptr;
+//        curr_right = nullptr;
         leafError = FLT_MAX;
         error = FLT_MAX;
         lowerBound = 0;
@@ -42,9 +45,11 @@ struct NodeData {
 
     NodeData(const NodeData& other) {
         test = other.test;
-        curr_test = other.curr_test;
-        left = other.left;
-        right = other.right;
+//        curr_test = other.curr_test;
+//        left = other.left;
+//        right = other.right;
+//        curr_left = other.curr_left;
+//        curr_right = other.curr_right;
         leafError = other.leafError;
         error = other.error;
         lowerBound = other.lowerBound;
@@ -54,8 +59,8 @@ struct NodeData {
     NodeData& operator=(const NodeData& other)
     {
         test = other.test;
-        left = other.left;
-        right = other.right;
+//        left = other.left;
+//        right = other.right;
         error = other.error;
         size = other.size;
         return *this;
@@ -90,18 +95,18 @@ public:
 //
 //    virtual bool is_pure(pair<Supports, Support> supports) = 0;
 
-    virtual bool canimprove(NodeData *left, Error ub) = 0;
+    virtual inline bool canimprove(NodeData *left, Error ub) { return left->error < ub; }
 
-    virtual bool canSkip(NodeData *actualBest) = 0;
+    virtual inline bool canSkip(NodeData *actualBest) { return floatEqual(actualBest->error, actualBest->lowerBound); }
 
     virtual NodeData *initData(RCover *cov = nullptr, Depth currentMaxDepth = -1, int hashcode = -1) = 0;
 
-    virtual LeafInfo computeLeafInfo(RCover *cov = nullptr) = 0;
+    virtual LeafInfo computeLeafInfo(RCover *cov = nullptr);
 
-    virtual LeafInfo computeLeafInfo(ErrorVals itemsetSupport) = 0;
+    virtual LeafInfo computeLeafInfo(ErrorVals itemsetSupport);
 
 //    virtual bool updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache = nullptr) = 0;
-    virtual bool updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache = nullptr, Itemset = Itemset()) = 0;
+    virtual bool updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Itemset = Itemset()) = 0;
 
 //    virtual void printResult(Tree *tree) = 0;
 

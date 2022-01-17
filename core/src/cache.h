@@ -2,7 +2,8 @@
 #define CACHE_H
 #include "globals.h"
 #include "nodeDataManager.h"
-#include "nodeDataManagerFreq.h"
+//#include "node.h"
+//#include "nodeDataManager_CoverFreq.h"
 //#include "cache_wipe.h"
 
 using namespace std;
@@ -23,9 +24,10 @@ struct Node {
         data = nullptr;
         is_used = false;
     }
-    virtual ~Node() { delete data; }
+    virtual ~Node() {
+        delete data;
+    }
 };
-
 
 /*This class represents the cache structure saved during the tree search algorithm*/
 class Cache {
@@ -40,17 +42,17 @@ public:
     WipeType wipe_type;
 
 //    virtual pair<Node*, bool> insert ( Array<Item> itemset ) = 0; // add a node to the tree
-    virtual pair<Node*, bool> insert ( Itemset &itemset ) {return {nullptr, false}; } // add a node to the tree
-    virtual pair<Node*, bool> insert ( NodeDataManager*, int depth = 0, bool rootnode = false ) { return {nullptr, false}; }
+    virtual pair<Node*, bool> insert ( Itemset &itemset ) { return {nullptr, false}; } // add a node to the tree
+    virtual pair<Node*, bool> insert ( NodeDataManager*, int depth = 0, Itemset itemset = Itemset()) { return {nullptr, false}; }
 
-    virtual Node* get ( const Itemset &itemset ){return nullptr;} // get a node in the tree based on its corresponding itemset
+    virtual Node* get ( const Itemset &itemset ){ return nullptr; } // get a node in the tree based on its corresponding itemset
     virtual Node *get ( NodeDataManager*, int depth) { return nullptr; }
 
-    virtual int getCacheSize(){return cachesize;}
+    virtual int getCacheSize(){ return cachesize; }
 
     virtual void wipe(){}
 
-    virtual void updateParents(Node* best, Node* left, Node* right, Itemset = Itemset()){}
+//    virtual void updateParents(Node* best, Node* left, Node* right, Itemset = Itemset()){}
 //    virtual void updateParents(Node* best, Node* left, Node* right){}
 };
 

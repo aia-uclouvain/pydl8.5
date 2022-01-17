@@ -11,11 +11,12 @@ Search_nocache::Search_nocache(NodeDataManager *nodeDataManager, bool infoGain, 
                                Support minsup,
                                Depth maxdepth,
                                int timeLimit,
+                               Cache *cache,
                                float maxError,
                                bool specialAlgo,
                                bool stopAfterError,
                                bool use_ub) :
-        Search_base(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, maxError, specialAlgo, stopAfterError), use_ub(use_ub) {}
+        Search_base(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, cache, maxError, specialAlgo, stopAfterError), use_ub(use_ub) {}
 
 Search_nocache::~Search_nocache() {}
 

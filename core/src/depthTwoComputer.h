@@ -1,29 +1,36 @@
 //
-// Created by Gael Aglin on 26/09/2020.
+// Created by Gael Aglin on 15/01/2022.
 //
-#ifndef DEPTH_TWO_COMPUTER_H
-#define DEPTH_TWO_COMPUTER_H
+
+#ifndef DL85_DEPTHTWOCOMPUTER_H
+#define DL85_DEPTHTWOCOMPUTER_H
 
 #include "rCover.h"
-#include "cache.h"
-#include "solution.h"
-#include "nodeDataManagerFreq.h"
+//#include "cache.h"
+#include "cache_hash_cover.h"
+#include "cache_trie.h"
+//#include "solution.h"
+#include "nodeDataManager_Cover.h"
+#include "nodeDataManager_Trie.h"
 #include "rCoverFreq.h"
-#include <chrono>
-#include <utility>
-#include <memory>
+#include "depthTwoNodeData.h"
+//#include <chrono>
+//#include <utility>
+//#include <memory>
 
-using namespace std::chrono;
+//using namespace std::chrono;
 
 class Search_base;
 
-Error computeDepthTwo(RCover*, Error, Attributes &, Attribute, Itemset &, Node*, NodeDataManager*, Error, Cache*, Search_base*, bool = false);
+Error computeDepthTwo(RCover*, Error, Attributes &, Attribute, const Itemset &, Node*, NodeDataManager*, Error, Cache*, Search_base*, bool = false);
+
+
 
 struct TreeTwo{
-    Freq_NodeData* root_data;
+    DepthTwo_NodeData* root_data;
 
     TreeTwo(){
-        root_data = new Freq_NodeData();
+        root_data = new DepthTwo_NodeData();
     }
 
     void replaceTree(unique_ptr<TreeTwo> cpy){
@@ -35,14 +42,14 @@ struct TreeTwo{
         if (root_data == nullptr) return;
 
         if (root_data->left != nullptr){
-            if (root_data->left->data != nullptr) delete root_data->left->data->left;
-            if (root_data->left->data != nullptr) delete root_data->left->data->right;
+            if (root_data->left != nullptr) delete root_data->left->left;
+            if (root_data->left != nullptr) delete root_data->left->right;
             delete root_data->left;
         }
 
         if (root_data->right != nullptr){
-            if (root_data->right->data != nullptr) delete root_data->right->data->left;
-            if (root_data->right->data != nullptr) delete root_data->right->data->right;
+            if (root_data->right != nullptr) delete root_data->right->left;
+            if (root_data->right != nullptr) delete root_data->right->right;
             delete root_data->right;
         }
 
@@ -55,4 +62,4 @@ struct TreeTwo{
     }
 };
 
-#endif //DEPTH_TWO_COMPUTER_H
+#endif //DL85_DEPTHTWOCOMPUTER_H

@@ -1,10 +1,11 @@
-#ifndef SEARCH_HASH_COVER_H
-#define SEARCH_HASH_COVER_H
+#ifndef SEARCH_COVER_CACHE_H
+#define SEARCH_COVER_CACHE_H
 
-#include "globals.h"
-#include "cache_hash_cover.h"
-#include "solution.h"
+//#include "globals.h"
+//#include "cache_hash_cover.h"
+//#include "solution.h"
 #include "search_base.h"
+#include "nodeDataManager_Cover.h"
 
 typedef bool HasInter;
 
@@ -29,29 +30,29 @@ struct SimilarValss{
     }
 };
 
-class Search_hash_cover : public Search_base{
+class Search_cover_cache : public Search_base {
 public:
-    Search_hash_cover (NodeDataManager *nodeDataManager,
-                  bool infoGain,
-                  bool infoAsc,
-                  bool repeatSort,
-                  Support minsup,
-                  Depth maxdepth,
-                  Cache *cache,
-                  int timeLimit,
-                  float maxError = NO_ERR,
-                  bool specialAlgo = true,
-                  bool stopAfterError = false,
-                  bool similarlb = false,
-                  bool dynamic_branching = false,
-                  bool similar_for_branching = true,
-                       bool from_cpp = true);
+    Search_cover_cache (NodeDataManager *nodeDataManager,
+                        bool infoGain,
+                        bool infoAsc,
+                        bool repeatSort,
+                        Support minsup,
+                        Depth maxdepth,
+                        int timeLimit,
+                        Cache *cache,
+                        float maxError = NO_ERR,
+                        bool specialAlgo = true,
+                        bool stopAfterError = false,
+                        bool similarlb = false,
+                        bool dynamic_branching = false,
+                        bool similar_for_branching = true,
+                        bool from_cpp = true);
 
-    ~Search_hash_cover();
+    ~Search_cover_cache();
 
     void run ();
 
-    Cache *cache;
+//    Cache *cache;
     bool similarlb;
     bool dynamic_branching;
     bool similar_for_branching;

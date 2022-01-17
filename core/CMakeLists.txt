@@ -15,53 +15,63 @@ include_directories(src/)
 
 add_executable(dl85
         main.cpp
-#        tests_run/main_arg.cpp
         src/cache.h
         src/cache.cpp
-        src/cache_hash.h
-        src/cache_hash.cpp
+#        src/cache_hash.h
+#        src/cache_hash.cpp
         src/cache_hash_cover.h
         src/cache_hash_cover.cpp
-#        src/cache_priority.h
-#        src/cache_priority.cpp
-#        src/cache_trie.h
-#        src/cache_trie.cpp
         src/cache_trie.h
         src/cache_trie.cpp
         src/dataManager.h
         src/dataManager.cpp
-        src/depthTwoComputer.h
-        src/depthTwoComputer.cpp
+#        src/depthTwoComputer_TrieFreq.h
+#        src/depthTwoComputer_TrieFreq.cpp
+#        src/depthTwoComputer_CoverFreq.h
+#        src/depthTwoComputer_CoverFreq.cpp
         src/dl85.h
         src/dl85.cpp
-        src/nodeDataManagerFreq.h
-        src/nodeDataManagerFreq.cpp
-        src/solutionFreq.h
-        src/solutionFreq.cpp
         src/globals.h
         src/globals.cpp
-        src/search_base.h
-        src/search_base.cpp
-        src/search_cache.h
-        src/search_cache.cpp
-        src/search_hash_cover.h
-        src/search_hash_cover.cpp
-        src/search_nocache.h
-        src/search_nocache.cpp
         src/logger.h
         src/nodeDataManager.h
         src/nodeDataManager.cpp
-        src/solution.h
-        src/solution.cpp
+        src/nodeDataManager_Cover.h
+        src/nodeDataManager_Cover.cpp
+        src/nodeDataManager_Trie.h
+        src/nodeDataManager_Trie.cpp
         src/rCover.h
         src/rCover.cpp
         src/rCoverFreq.h
         src/rCoverFreq.cpp
         src/rCoverWeight.h
         src/rCoverWeight.cpp
-        )
+        src/search_base.h
+        src/search_base.cpp
+        src/search_cover_cache.h
+        src/search_cover_cache.cpp
+        src/search_nocache.h
+        src/search_nocache.cpp
+        src/search_trie_cache.h
+        src/search_trie_cache.cpp
+        src/solution.h
+        src/solution.cpp
+        src/solution_Cover.h
+        src/solution_Cover.cpp
+        src/solution_Trie.h
+        src/solution_Trie.cpp
+#        src/node.h
+#        src/node_trie.h
+        src/depthTwoComputer.h
+        src/depthTwoComputer.cpp
+        src/depthTwoNodeData.h)
 
 
+
+#        src/cache_priority.h
+#        src/cache_priority.cpp
+#        src/cache_trie.h
+#        src/cache_trie.cpp
 #        src/dataHandler.h
 #        src/dataHandler.cpp
 #        src/lcm_iterative.h

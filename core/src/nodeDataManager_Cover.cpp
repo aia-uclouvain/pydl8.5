@@ -1,11 +1,11 @@
-#include "nodeDataManagerFreq.h"
-#include "cache.h"
-#include "cache_trie.h"
-#include <iostream>
-#include <stack>
-#include "logger.h"
+#include "nodeDataManager_Cover.h"
+//#include "cache.h"
+#include "cache_hash_cover.h"
+//#include <iostream>
+//#include <stack>
+//#include "logger.h"
 
-NodeDataManagerFreq::NodeDataManagerFreq(
+NodeDataManager_Cover::NodeDataManager_Cover(
         RCover* cover,
                                  function<vector<float>(RCover *)> *tids_error_class_callback,
                                  function<vector<float>(RCover *)> *supports_error_class_callback,
@@ -19,19 +19,19 @@ NodeDataManagerFreq::NodeDataManagerFreq(
                    {}
 
 
-NodeDataManagerFreq::~NodeDataManagerFreq() {}
+NodeDataManager_Cover::~NodeDataManager_Cover() {}
 
 
 //bool NodeDataManagerFreq::updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache) {
-bool NodeDataManagerFreq::updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache, Itemset itemset) {
-    auto *freq_best = best->data, *freq_left = left->data, *freq_right = right->data;
+bool NodeDataManager_Cover::updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Itemset itemset) {
+    auto *freq_best = (CoverNodeData*)best->data, *freq_left = (CoverNodeData*)left->data, *freq_right = (CoverNodeData*)right->data;
     Error error = freq_left->error + freq_right->error;
     Size size = freq_left->size + freq_right->size + 1;
     if (error < upperBound || (floatEqual(error, upperBound) && size < freq_best->size)) {
-        if ( cache->maxcachesize > NO_CACHE_LIMIT ) cache->updateParents(best, left, right);
+//        if ( cache->maxcachesize > NO_CACHE_LIMIT ) cache->updateParents(best, left, right);
         freq_best->error = error;
-        freq_best->left = left;
-        freq_best->right = right;
+        freq_best->left = (HashCoverNode*)left;
+        freq_best->right = (HashCoverNode*)right;
         freq_best->size = size;
         freq_best->test = attribute;
         return true;
@@ -39,12 +39,12 @@ bool NodeDataManagerFreq::updateData(Node *best, Error upperBound, Attribute att
     return false;
 }
 
-NodeData *NodeDataManagerFreq::initData(RCover *cov, Depth currentMaxDepth, int hashcode) {
+NodeData *NodeDataManager_Cover::initData(RCover *cov, Depth currentMaxDepth, int hashcode) {
     Class maxclass = -1;
 //    float maxclass = -1;
     Error error;
 
-    auto *data = new NodeData();
+    auto *data = new CoverNodeData();
 
     if (cov == nullptr) cov = cover;
 
@@ -95,10 +95,10 @@ NodeData *NodeDataManagerFreq::initData(RCover *cov, Depth currentMaxDepth, int 
 //    data->error += experror->addError(cover->getSupport(), data->error, dm->getNTransactions());
 //    data->solutionDepth = currentMaxDepth;
 
-    return (NodeData *) data;
+    return data;
 }
 
-LeafInfo NodeDataManagerFreq::computeLeafInfo(RCover *cov) {
+/*LeafInfo NodeDataManager_CoverFreq::computeLeafInfo(RCover *cov) {
     if (cov == nullptr) cov = cover;
     Class maxclass;
     Error error;
@@ -120,7 +120,7 @@ LeafInfo NodeDataManagerFreq::computeLeafInfo(RCover *cov) {
 }
 
 
-LeafInfo NodeDataManagerFreq::computeLeafInfo(ErrorVals itemsetSupport) {
+LeafInfo NodeDataManager_CoverFreq::computeLeafInfo(ErrorVals itemsetSupport) {
     Class maxclass = 0;
     Error error;
     ErrorVal maxclassval = itemsetSupport[0];
@@ -136,4 +136,4 @@ LeafInfo NodeDataManagerFreq::computeLeafInfo(ErrorVals itemsetSupport) {
     }
     error = sumErrorVals(itemsetSupport) - maxclassval;
     return {error, maxclass};
-}
+}*/

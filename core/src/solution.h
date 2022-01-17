@@ -1,9 +1,10 @@
 #ifndef SOLUTION_H
 #define SOLUTION_H
 
-#include "cache.h"
-#include "nodeDataManager.h"
-#include <vector>
+//#include "cache.h"
+#include "search_base.h"
+//#include "nodeDataManager.h"
+//#include <vector>
 
 struct Tree {
     string expression;
@@ -16,19 +17,20 @@ struct Tree {
     bool timeout;
 
     virtual string to_str() const = 0;
+    virtual ~Tree() {}
 };
 
 
 class Solution {
 public:
-    Solution(void*, NodeDataManager*);
-
+    Solution(Search_base*);
     virtual ~Solution();
 
     virtual Tree * getTree() = 0;
 
-    void* searcher;
-    NodeDataManager* nodeDataManager;
+    Tree* tree;
+    Search_base* searcher;
+//    NodeDataManager* nodeDataManager;
 };
 
 #endif

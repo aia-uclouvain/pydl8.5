@@ -5,21 +5,22 @@
 #ifndef SEARCH_BASE_H
 #define SEARCH_BASE_H
 
-#include <utility>
+//#include <utility>
 #include <map>
-#include <unordered_set>
-#include <unordered_map>
-#include <iostream>
-#include <climits>
-#include <cassert>
-#include <cmath>
-#include <chrono>
+//#include <unordered_set>
+//#include <unordered_map>
+//#include <iostream>
+//#include <climits>
+//#include <cassert>
+//#include <cmath>
+//#include <chrono>
 #include "globals.h"
+#include "logger.h"
 #include "nodeDataManager.h"
 #include "dataManager.h"
 #include "rCover.h"
+#include "cache.h"
 #include "depthTwoComputer.h"
-#include "logger.h"
 
 class Search_base {
 
@@ -30,6 +31,7 @@ public:
     Support minsup;
     Depth maxdepth;
     int timeLimit;
+    Cache* cache = nullptr;
     float maxError = NO_ERR;
     bool stopAfterError = false;
     bool specialAlgo = true;
@@ -44,6 +46,7 @@ public:
                 Support minsup,
                 Depth maxdepth,
                 int timeLimit,
+                Cache *cache = nullptr,
                 float maxError = NO_ERR,
                 bool specialAlgo = true,
                 bool stopAfterError = false,

@@ -1,23 +1,23 @@
-#include "search_cache.h"
+#include "search_trie_cache.h"
 
 using namespace std::chrono;
 
 
-Search_cache::Search_cache(NodeDataManager *nodeDataManager, bool infoGain, bool infoAsc, bool repeatSort,
-                           Support minsup,
-                           Depth maxdepth,
-                           Cache *cache,
-                           int timeLimit,
-                           float maxError,
-                           bool specialAlgo,
-                           bool stopAfterError,
-                           bool similarlb,
-                           bool dynamic_branching,
-                           bool similar_for_branching,
-                           bool from_cpp) :
-        Search_base(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, maxError, specialAlgo, stopAfterError, from_cpp), cache(cache), similarlb(similarlb), dynamic_branching(dynamic_branching), similar_for_branching(similar_for_branching) {}
+Search_trie_cache::Search_trie_cache(NodeDataManager *nodeDataManager, bool infoGain, bool infoAsc, bool repeatSort,
+                                     Support minsup,
+                                     Depth maxdepth,
+                                     int timeLimit,
+                                     Cache *cache,
+                                     float maxError,
+                                     bool specialAlgo,
+                                     bool stopAfterError,
+                                     bool similarlb,
+                                     bool dynamic_branching,
+                                     bool similar_for_branching,
+                                     bool from_cpp) :
+        Search_base(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, cache, maxError, specialAlgo, stopAfterError, from_cpp), similarlb(similarlb), dynamic_branching(dynamic_branching), similar_for_branching(similar_for_branching) {}
 
-Search_cache::~Search_cache(){};
+Search_trie_cache::~Search_trie_cache(){};
 
 // the solution already exists for this node
 Node *existingsolution(Node *node, Error *nodeError) {
@@ -46,9 +46,9 @@ Node *infeasiblecase(Node *node, Error *saved_lb, Error ub) {
     return node;
 }
 
-Node * Search_cache::getSolutionIfExists(Node *node, Error ub, Depth depth, Itemset &itemset){
+Node * Search_trie_cache::getSolutionIfExists(Node *node, Error ub, Depth depth, const Itemset &itemset){
 
-    if (node->data->test < 0) return nullptr;
+//    if (node->data->test < 0) return nullptr;
 
     Error *nodeError = &(node->data->error);
     if (*nodeError < FLT_MAX) return existingsolution(node, nodeError); // solution exists (new node error is FLT_MAX)
@@ -72,7 +72,7 @@ Node * Search_cache::getSolutionIfExists(Node *node, Error ub, Depth depth, Item
     return nullptr;
 }
 
-Node * Search_cache::inferSolutionFromLB(Node *node, Error ub){
+Node * Search_trie_cache::inferSolutionFromLB(Node *node, Error ub){
 
     Error *nodeError = &(node->data->error);
     Error *saved_lb = &(node->data->lowerBound);
@@ -87,7 +87,7 @@ Node * Search_cache::inferSolutionFromLB(Node *node, Error ub){
 }
 
 // information gain calculation
-float Search_cache::informationGain(ErrorVals notTaken, ErrorVals taken) {
+float Search_trie_cache::informationGain(ErrorVals notTaken, ErrorVals taken) {
     ErrorVal sumSupNotTaken = sumErrorVals(notTaken);
     ErrorVal sumSupTaken = sumErrorVals(taken);
     ErrorVal actualDBSize = sumSupNotTaken + sumSupTaken;
@@ -115,7 +115,7 @@ float Search_cache::informationGain(ErrorVals notTaken, ErrorVals taken) {
     return actualGain; //high error to low error when it will be put in the map. If you want to have the reverse, just return the negative value of the entropy
 }
 
-Attributes Search_cache::getSuccessors(Attributes &last_candidates, Attribute last_added, Itemset &itemset, Node* node) {
+Attributes Search_trie_cache::getSuccessors(Attributes &last_candidates, Attribute last_added, const Itemset &itemset, Node* node) {
 
     std::multimap<float, Attribute> gain;
     Attributes next_candidates;
@@ -167,7 +167,7 @@ Attributes Search_cache::getSuccessors(Attributes &last_candidates, Attribute la
 }
 
 // compute the similarity lower bound based on the best ever seen node or the node with the highest coversize
-Error Search_cache::computeSimilarityLB(SimilarVals &similar_db1, SimilarVals &similar_db2) {
+Error Search_trie_cache::computeSimilarityLB(SimilarVals &similar_db1, SimilarVals &similar_db2) {
     //return 0;
     if (is_python_error) return 0;
     Error bound = 0;
@@ -189,7 +189,7 @@ Error Search_cache::computeSimilarityLB(SimilarVals &similar_db1, SimilarVals &s
 }
 
 // replace the most similar db
-void Search_cache::updateSimilarLBInfo2(NodeData *node_data, SimilarVals &similar_db1, SimilarVals &similar_db2) {
+void Search_trie_cache::updateSimilarLBInfo2(NodeData *node_data, SimilarVals &similar_db1, SimilarVals &similar_db2) {
 
     Error err = (node_data->error < FLT_MAX) ? node_data->error : node_data->lowerBound;
     Support sup = nodeDataManager->cover->getSupport();
@@ -249,7 +249,7 @@ void Search_cache::updateSimilarLBInfo2(NodeData *node_data, SimilarVals &simila
 
 // store the node with the highest error as well as the one with the largest cover in order to find a similarity lower bound
 // replace db1 if current error is lower than db1 error. Otherwise replace db2 if the current coversize is longer than db2's one
-void Search_cache::updateSimilarLBInfo1(NodeData *node_data, SimilarVals &highest_error_db, SimilarVals &highest_coversize_db) {
+void Search_trie_cache::updateSimilarLBInfo1(NodeData *node_data, SimilarVals &highest_error_db, SimilarVals &highest_coversize_db) {
 
     Error err = (node_data->error < FLT_MAX) ? node_data->error : node_data->lowerBound;
     Support sup = nodeDataManager->cover->getSupport();
@@ -298,15 +298,15 @@ void Search_cache::updateSimilarLBInfo1(NodeData *node_data, SimilarVals &highes
  * @param ub - the upper bound of the search. It cannot be reached
  * @return the same node as get in parameter with added information about the best tree
  */
-pair<Node*,HasInter> Search_cache::recurse(Itemset &itemset,
-                            Item last_added_item,
-                            Node *node,
-                            bool node_is_new,
-                            Attributes &next_candidates,
-                            Depth depth,
-                            Error ub,
-                            SimilarVals &sim_db1,
-                            SimilarVals &sim_db2) {
+pair<Node*,HasInter> Search_trie_cache::recurse(const Itemset &itemset,
+                                                Item last_added_item,
+                                                Node *node,
+                                                bool node_is_new,
+                                                Attributes &next_candidates,
+                                                Depth depth,
+                                                Error ub,
+                                                SimilarVals &sim_db1,
+                                                SimilarVals &sim_db2) {
 
     // check if we ran out of time
     if (timeLimit > 0 and duration<float>(high_resolution_clock::now() - startTime).count() >= (float)timeLimit) timeLimitReached = true;
@@ -418,8 +418,9 @@ bool found = false;
             }
         }
         else attr = next_attributes[i];
-        node->data->curr_test = attr;
         Logger::showMessageAndReturn("\n\nWe are evaluating the attribute : ", attr);
+
+        ((TrieNodeData*)(node->data))->curr_test = attr;
 
         Itemset itemsets[2];
         Node *child_nodes[2];
@@ -510,7 +511,7 @@ bool found = false;
             //Attribute lastBestAttr = node->data->left == nullptr ? -1 : best_attr;
             //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
 
-            bool hasUpdated = nodeDataManager->updateData(node, child_ub, attr, child_nodes[NEG_ITEM], child_nodes[POS_ITEM], cache, itemset);
+            bool hasUpdated = nodeDataManager->updateData(node, child_ub, attr, child_nodes[NEG_ITEM], child_nodes[POS_ITEM], itemset);
 //            bool hasUpdated = nodeDataManager->updateData(node, child_ub, attr, child_nodes[NEG_ITEM], child_nodes[POS_ITEM], cache);
             if (hasUpdated) {
 
@@ -561,7 +562,7 @@ bool found = false;
 
         if (stopAfterError and depth == 0 and ub < FLT_MAX and *nodeError < ub) break;
     }
-    node->data->curr_test = -1;
+    ((TrieNodeData*)(node->data))->curr_test = -1;
 
     if (similarlb){
         similar_db1.free();
@@ -577,7 +578,7 @@ bool found = false;
 }
 
 
-void Search_cache::run() {
+void Search_trie_cache::run() {
 
     // Create empty list for candidate attributes
     Attributes attributes_to_visit;
@@ -602,67 +603,168 @@ void Search_cache::run() {
     rootnode->data = nodeDataManager->initData();
     SimilarVals sdb1, sdb2;
     // call the recursive function to start the search
-    cache->root = recurse(itemset, NO_ATTRIBUTE, rootnode, true, attributes_to_visit, 0, maxError, sdb1, sdb2).first;
+    cache->root = recurse(itemset, NO_ITEM, rootnode, true, attributes_to_visit, 0, maxError, sdb1, sdb2).first;
 
 //    std::cout << endl;
-    std::cout << "final error: " << cache->root->data->error << endl;
+//    std::cout << "final error: " << cache->root->data->error << endl;
 
     if (cache->maxcachesize > NO_CACHE_LIMIT) {
-        cout << "Tree already found. Trying to reconstitute the wiped subtrees" << endl;
-        cout << "===================================================================" << endl << endl;
-        while(not isTreeComplete(cache->root)) retrieveWipedSubtrees(cache->root, itemset, attributes_to_visit, 0);
+        cout << "Tree already found with error = " << cache->root->data->error << ". Trying to reconstitute the wiped subtrees" << endl;
+        cout << "===============================================================================" << endl;
+//        rSubtrees(cache->root, itemset);
+//        cout << endl << endl;
+        while(not isTreeComplete(cache->root, itemset)) {
+//            cout << "coucou" << endl;
+            retrieveWipedSubtrees(cache->root, itemset, NO_ITEM, attributes_to_visit, 0, 0, FLT_MAX);
+        }
+//        cout << endl;
+//        cout << endl;
+//        rSubtrees(cache->root, itemset);
+//        cout << endl;
+//        exit(0);
     }
 
 }
 
 // loop in each node of the final tree and re-launch the search for nodes whose descendants are wiped
-void Search_cache::retrieveWipedSubtrees(Node *node, Itemset &itemset, Attributes &attributes, Depth depth) {
+void Search_trie_cache::retrieveWipedSubtrees(Node *node, const Itemset &itemset, Item last_added, Attributes &attributes, Depth depth, Error ub, Error lb) {
+//    printItemset(itemset, true);
 
-    Node* children[2] = {node->data->left, node->data->right};
+    if (node->data == nullptr) {
+        node->data = nodeDataManager->initData();
+        node->data->lowerBound = lb;
+        SimilarVals sdb1, sdb2;
+        node = recurse(itemset, last_added, node, true, attributes, depth, lb, sdb1, sdb2).first;
+        return;
+    }
 
     // backtrack when leaf node is encountered
-    if (children[0] == nullptr and children[1] == nullptr) return;
+    if (node->data->test < 0) return;
 
     Attribute attr = node->data->test;
-    Attributes next_attributes = attributes;
+    Itemset children_itemset[2] = {addItem(itemset, item(attr, NEG_ITEM)), addItem(itemset, item(attr, POS_ITEM))};
+    Node* children_node[2] = {cache->get(children_itemset[0]), cache->get(children_itemset[1])};
 
-    for (auto &item_val: {NEG_ITEM, POS_ITEM}) {
+    Attributes next_attributes;
+    if (children_node[0] == nullptr or children_node[1] == nullptr) {
+        SimilarVals sdb1, sdb2;
+        next_attributes.reserve(attributes.size());
+        next_attributes.push_back(attr);
+        for (int i = 0; i < attributes.size(); ++i) {
+            if (attributes[i] == attr) {
+                for (int j = i+1; j < attributes.size(); ++j) {
+                    next_attributes.push_back(attributes[j]);
+                }
+                break;
+            }
+            else next_attributes.push_back(attributes[i]);
+        }
+//        Attributes a = attributes;
+//        node = recurse(itemset, last_added, node, true, a, depth, FLT_MAX, sdb1, sdb2).first;
+        node->data->lowerBound = lb;
+        node->data->error = FLT_MAX;
+//        cout << "launch" << endl;
+//        printItemset(itemset, true);
+//        printItemset(next_attributes, true);
+//        verbose = true;
+        node = recurse(itemset, last_added, node, true, next_attributes, depth, ub, sdb1, sdb2).first;
+//        verbose = false;
+//        cout << "end launch" << endl;
+    }
+    else {
+        next_attributes = attributes;
+        next_attributes.erase(std::find(next_attributes.begin(), next_attributes.end(), attr));
 
-        // set needed values for the search
-        Node* c_node = children[item_val];
-        Item item = item(attr, item_val);
-        nodeDataManager->cover->intersect(attr, item_val);
-        Itemset child_itemset = addItem(itemset, item);
-        Depth my_depth = depth + 1;
-//        Attributes next_attributes = attributes;
-//        attributes_to_visit.erase(std::find(next_attributes.begin(), next_attributes.end(),attr));
+        Error upperb, left_lb, right_lb;
 
-        // incomplete node is found
-        if (c_node->data != nullptr and c_node->data->test < 0) {
-//            cout << "compketer" << endl;
-//            printItemset(child_itemset, true, true);
-//            cout << "depth " << my_depth << " " << c_node->data->error << " " << c_node->data->lowerBound << endl;
-            SimilarVals sdb1, sdb2;
-            recurse(child_itemset, item, c_node, true, next_attributes, my_depth, c_node->data->lowerBound + 1, sdb1, sdb2).first;
+        if (children_node[0]->data != nullptr) {
+            left_lb = children_node[0]->data->error;
+            upperb = left_lb + 1;
+        }
+        else if (children_node[1]->data != nullptr) {
+            left_lb = node->data->error - children_node[1]->data->error;
+            upperb = left_lb + 1;
         }
         else {
-            if (item_val == NEG_ITEM) next_attributes.erase(std::find(next_attributes.begin(), next_attributes.end(), attr));
-            retrieveWipedSubtrees(c_node, child_itemset, next_attributes, my_depth);
+            upperb = node->data->error;
+            left_lb = 0;
         }
 
+        nodeDataManager->cover->intersect(attr, NEG_ITEM);
+        retrieveWipedSubtrees(children_node[NEG_ITEM], children_itemset[NEG_ITEM], item(attr, NEG_ITEM), next_attributes, depth + 1, upperb, left_lb);
         nodeDataManager->cover->backtrack();
 
+        if (children_node[1]->data != nullptr) {
+            right_lb = children_node[1]->data->error;
+            ub = right_lb + 1;
+        }
+        else if (children_node[0]->data != nullptr) {
+            right_lb = node->data->error - children_node[0]->data->error;
+            ub = right_lb + 1;
+        }
+        else {
+            ub = node->data->error;
+            right_lb = 0;
+        }
+
+        nodeDataManager->cover->intersect(attr, POS_ITEM);
+        retrieveWipedSubtrees(children_node[POS_ITEM], children_itemset[POS_ITEM], item(attr, POS_ITEM), next_attributes, depth + 1, upperb, right_lb);
+        nodeDataManager->cover->backtrack();
     }
 
 }
 
-bool Search_cache::isTreeComplete(Node* node) {
-    for (auto child : {node->data->left, node->data->right}) {
-        if (child != nullptr) {
-            if (child->data != nullptr and child->data->test < 0) return false;
-            if (not isTreeComplete(child)) return false;
+void Search_trie_cache::rSubtrees(Node *node, const Itemset &itemset) {
+    printItemset(itemset, true);
+    // backtrack when leaf node is encountered
+    if (node->data->test < 0) {
+//    if (node == nullptr) {
+//        cout << "leaf; ";
+        return;
+    }
+
+    Attribute attr = node->data->test;
+//    cout << "test:" << attr << " ";
+    Itemset children_itemset[2] = {addItem(itemset, item(attr, NEG_ITEM)), addItem(itemset, item(attr, POS_ITEM))};
+//    printItemset(children_itemset[0], true);
+//    printItemset(children_itemset[1], true);
+    Node* children_node[2] = {cache->get(children_itemset[0]), cache->get(children_itemset[1])};
+
+    if (children_node[0] == nullptr) {
+//        cout << "left wiped " ;
+        printItemset(children_itemset[0], true, false);
+        cout << "left wiped " << endl ;
+    }
+    else {
+//        cout << "left: ";
+        rSubtrees(children_node[0], children_itemset[0]);
+    }
+
+    if (children_node[1] == nullptr) {
+//        cout << "right wiped " ;
+        printItemset(children_itemset[1], true, false);
+        cout << "right wiped " << endl ;
+    }
+    else {
+//        cout << "right: ";
+        rSubtrees(children_node[1], children_itemset[1]);
+    }
+}
+
+bool Search_trie_cache::isTreeComplete(Node* node, const Itemset &itemset) {
+
+    // backtrack when leaf node is encountered
+    if (node->data->test < 0) return true;
+
+    Attribute attr = node->data->test;
+    Itemset children_itemset[2] = {addItem(itemset, item(attr, NEG_ITEM)), addItem(itemset, item(attr, POS_ITEM))};
+    Node* children_node[2] = {cache->get(children_itemset[0]), cache->get(children_itemset[1])};
+
+    for (auto item_val : {NEG_ITEM, POS_ITEM}) {
+        if (children_node[item_val] == nullptr) return false;
+        else {
+            if (not isTreeComplete(children_node[item_val], children_itemset[item_val])) return false;
         }
-        else return true;
     }
     return true;
 }

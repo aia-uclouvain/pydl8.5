@@ -1,9 +1,10 @@
 #include "cache_trie.h"
-#include "rCoverWeight.h"
-#include "rCoverFreq.h"
-#include <algorithm>
+//#include "rCoverWeight.h"
+//#include "rCoverFreq.h"
+//#include <algorithm>
 #include "logger.h"
-#include <cstdlib>
+#include "nodeDataManager_Trie.h"
+//#include <cstdlib>
 
 using namespace std;
 
@@ -66,11 +67,31 @@ bool minHeapOrder(pair<TrieNode *, Itemset> &pair1, pair<TrieNode *, Itemset> &p
     return sortDecOrder(pair1, pair2);
 }
 
-Cache_Trie::Cache_Trie(Depth maxdepth, WipeType wipe_type, int maxcachesize, float wipe_factor) : Cache(maxdepth,
-                                                                                                        wipe_type,
-                                                                                                        maxcachesize),
-                                                                                                  wipe_factor(
-                                                                                                          wipe_factor) {
+/*bool sortDecOrder(pair<TrieNode *, TrieNode *> &pair1, pair<TrieNode *, TrieNode *> &pair2) {
+    const auto node1 = pair1.first, node2 = pair2.first;
+    if (node1->is_used and not node2->is_used)
+        return true; // place node1 to left (high value) when it belongs to a potential optimal path
+    if (not node1->is_used and node2->is_used) return false; // same for the node2
+    return node1->n_subnodes > node2->n_subnodes; // in case both nodes are in potential optimal paths or both of not
+}*/
+
+/*bool sortReuseDecOrder(pair<TrieNode *, TrieNode *> &pair1, pair<TrieNode *, TrieNode *> &pair2) {
+    const auto node1 = pair1.first, node2 = pair2.first;
+    if (node1->is_used && not node2->is_used)
+        return true; // place node1 to left (high value) when it belongs to a potential optimal path
+    if (not node1->is_used && node2->is_used) return false; // same for the node2
+    if (node1->n_reuse == node2->n_reuse && node1->depth != node2->depth)
+        return node1->depth < node2->depth; // depth from bigger to lower, so sorted in creasing order
+//    if (node1->n_reuse == node2->n_reuse && node1->depth != node2->depth) return node1->support > node2->support;
+    return node1->n_reuse > node2->n_reuse; // in case both nodes are in potential optimal paths or both of not
+}*/
+
+/*bool minHeapOrder(pair<TrieNode *, TrieNode *> &pair1, pair<TrieNode *, TrieNode *> &pair2) {
+    return sortDecOrder(pair1, pair2);
+}*/
+
+
+Cache_Trie::Cache_Trie(Depth maxdepth, WipeType wipe_type, int maxcachesize, float wipe_factor) : Cache(maxdepth, wipe_type, maxcachesize), wipe_factor( wipe_factor) {
     root = new TrieNode;
     if (maxcachesize > NO_CACHE_LIMIT) heap.reserve(maxcachesize - 1);
 }
@@ -88,7 +109,7 @@ Node *Cache_Trie::get(const Itemset &itemset) {
     return cur_node;
 }
 
-Node *Cache_Trie::getandSet(const Itemset &itemset, int &n_used) {
+TrieNode *Cache_Trie::getandSet(const Itemset &itemset, int &n_used) {
     auto *cur_node = (TrieNode *) root;
     vector<TrieEdge>::iterator geqEdge_it;
     for (const auto &item: itemset) {
@@ -123,11 +144,13 @@ TrieNode *Cache_Trie::addNonExistingItemsetPart(Itemset &itemset, int pos, vecto
                 its.push_back(e);
             }
             heap.push_back(make_pair(child_node, its));
+//            heap.push_back(make_pair(child_node, parent_node));
             //heap.push_back(child_node);
 
-//            if(its.size() == 6 and its.at(0) == 0 and its.at(1) == 2 and its.at(2) == 11 and its.at(3) == 12 and its.at(4) == 17 and its.at(5) == 28) {
+
+//            if(its.size() == 4 and its.at(0) == 5 and its.at(1) == 8 and its.at(2) == 27 and its.at(3) == 41) {
 //                cout << "created " << child_node << endl;
-//                if(itemset.size() == 6 and itemset.at(0) == 0 and itemset.at(1) == 2 and itemset.at(2) == 11 and itemset.at(3) == 12 and itemset.at(4) == 17 and itemset.at(5) == 28) {
+//                if(itemset.size() == 4 and itemset.at(0) == 5 and itemset.at(1) == 8 and itemset.at(2) == 27 and itemset.at(3) == 41) {
 //                    cout << "meme" << endl;
 //                }
 //                else cout << "chemin" << endl;
@@ -197,25 +220,34 @@ pair<Node *, bool> Cache_Trie::insert(Itemset &itemset) {
     else return {cur_node, false};
 }
 
-void Cache_Trie::setOptimalNodes(TrieNode *node, int &n_used) {
-    if (node->data->left != nullptr) {
-        ((TrieNode *) node->data->left)->is_used = true;
-        ++n_used;
-        setOptimalNodes((TrieNode *) node->data->left, n_used);
+void Cache_Trie::setOptimalNodes(TrieNode *node, const Itemset& itemset, int &n_used) {
+    if (node->data != nullptr and node->data->test >= 0) {
+        Itemset left_itemset = addItem(itemset, item(node->data->test, NEG_ITEM));
+        auto *left_node = (TrieNode *) get(left_itemset);
+        if (left_node) {
+            left_node->is_used = true;
+            ++n_used;
+            setOptimalNodes(left_node, left_itemset, n_used);
+        }
 
-        ((TrieNode *) node->data->right)->is_used = true;
-        ++n_used;
-        setOptimalNodes((TrieNode *) node->data->right, n_used);
+        Itemset right_itemset = addItem(itemset, item(node->data->test, POS_ITEM));
+        auto *right_node = (TrieNode *) get(right_itemset);
+        if (right_node) {
+            right_node->is_used = true;
+            ++n_used;
+            setOptimalNodes(right_node, right_itemset, n_used);
+        }
+
     }
 }
 
-void Cache_Trie::setUsingNodes(TrieNode *node, Itemset &itemset, int &n_used) {
-    if (node and node->data and node->data->curr_test != -1) {
-        Itemset itemset1 = addItem(itemset, item(node->data->curr_test, NEG_ITEM));
+void Cache_Trie::setUsingNodes(TrieNode *node, const Itemset &itemset, int &n_used) {
+    if (node and node->data and ((TrieNodeData*)node->data)->curr_test != -1) {
+        Itemset itemset1 = addItem(itemset, item(((TrieNodeData*)node->data)->curr_test, NEG_ITEM));
         auto node1 = (TrieNode *) getandSet(itemset1, n_used);
         setUsingNodes(node1, itemset1, n_used);
 
-        Itemset itemset2 = addItem(itemset, item(node->data->curr_test, POS_ITEM));
+        Itemset itemset2 = addItem(itemset, item(((TrieNodeData*)node->data)->curr_test, POS_ITEM));
         auto node2 = (TrieNode *) getandSet(itemset2, n_used);
         setUsingNodes(node2, itemset2, n_used);
     }
@@ -245,7 +277,7 @@ bool Cache_Trie::isConsistent(TrieNode *node) {
 
 
 //void Cache_Trie::updateParents(Node *best_, Node *left, Node *right) {
-void Cache_Trie::updateParents(Node *best_, Node *left, Node *right, Itemset itemset) {
+/*void Cache_Trie::updateParents(Node *best_, Node *left, Node *right, Itemset itemset) {
     TrieNode *best = (TrieNode *) best_, *new_left = (TrieNode *) left, *new_right = (TrieNode *) right;
     TrieNode *old_left = ((TrieNode *) best->data->left), *old_right = ((TrieNode *) best->data->right);
 
@@ -272,9 +304,9 @@ void Cache_Trie::updateParents(Node *best_, Node *left, Node *right, Itemset ite
 //    new_right->search_parents.push_back(best);
     new_left->search_parents.insert(make_pair(best, itemset));
     new_right->search_parents.insert(make_pair(best, itemset));
-}
+}*/
 
-void Cache_Trie::retroPropagate(TrieNode *node) {
+/*void Cache_Trie::retroPropagate(TrieNode *node) {
 
     for (auto parent_el: node->search_parents) {
         auto parent = parent_el.first;
@@ -288,7 +320,7 @@ void Cache_Trie::retroPropagate(TrieNode *node) {
             retroPropagate(parent);
         }
     }
-}
+}*/
 
 /*void Cache_Trie::wipe() {
 //    cout << "wipe " << getCacheSize() << endl;
@@ -404,7 +436,7 @@ void Cache_Trie::wipe() {
 
     int n_del = (int) (maxcachesize * wipe_factor);
     int n_used = 0;
-    setOptimalNodes((TrieNode *) root, n_used);
+    setOptimalNodes((TrieNode *) root, Itemset(), n_used);
     Itemset itemset;
     setUsingNodes((TrieNode *) root, itemset, n_used);
 
@@ -435,6 +467,11 @@ void Cache_Trie::wipe() {
 
         // the node to remove
         TrieNode *node_del = it->first;
+        Itemset itemset = it->second;
+
+//        if(itemset.size() == 4 and itemset.at(0) == 5 and itemset.at(1) == 8 and itemset.at(2) == 27 and itemset.at(3) == 41) {
+//            cout << "coucouAAAAAAA del del" << endl;
+//        }
 
 //        cout << "node_del:";
 //        printItemset(it->second, true, true);
@@ -471,15 +508,19 @@ void Cache_Trie::wipe() {
         if (counter == n_del or node_del->is_used) break;
 
         // remove from its children, the fact that the node to delete is one of their parents
-        if (node_del->data != nullptr and node_del->data->left != nullptr) {
+        /*if (node_del->data != nullptr and node_del->data->left != nullptr) {
             TrieNode *left_child = ((TrieNode *) (node_del->data->left));
             TrieNode *right_child = ((TrieNode *) (node_del->data->right));
-            left_child->search_parents.erase(std::find_if(left_child->search_parents.begin(), left_child->search_parents.end(), [node_del](const pair<TrieNode *, Itemset> &look) { return look.first == node_del; }));
-            right_child->search_parents.erase(std::find_if(right_child->search_parents.begin(), right_child->search_parents.end(), [node_del](const pair<TrieNode *, Itemset> &look) { return look.first == node_del; }));
-        }
+            left_child->search_parents.erase(
+                    std::find_if(left_child->search_parents.begin(), left_child->search_parents.end(),
+                                 [node_del](const pair<TrieNode *, Itemset> &look) { return look.first == node_del; }));
+            right_child->search_parents.erase(
+                    std::find_if(right_child->search_parents.begin(), right_child->search_parents.end(),
+                                 [node_del](const pair<TrieNode *, Itemset> &look) { return look.first == node_del; }));
+        }*/
 
         // remove from its parents, the fact that the node to delete is their best solution
-        for (auto parent_node: node_del->search_parents) {
+        /*for (auto parent_node: node_del->search_parents) {
 //            cout << "parrra:";
 //            printItemset(parent_node.second, true, true);
 //            if(parent_node.second.size() == 3 and
@@ -498,7 +539,8 @@ void Cache_Trie::wipe() {
 //                cout << parent_node.first->data->test << " " << parent_node.first->data->left << " " << parent_node.first->data->right << endl;
 //            }
 
-            if (parent_node.first != nullptr and parent_node.first->data != nullptr and (parent_node.first->data->left == node_del or parent_node.first->data->right == node_del) ) {
+            if (parent_node.first != nullptr and parent_node.first->data != nullptr and
+                (parent_node.first->data->left == node_del or parent_node.first->data->right == node_del)) {
 
                 // remove the fact that the parent found the best solution
                 if (parent_node.first->data->error < FLT_MAX) {
@@ -510,7 +552,8 @@ void Cache_Trie::wipe() {
 //                        cout << "best child of parent: " << parent_node.first->data->test << endl;
 //                    }
                     if (parent_node.first->data->test >= 0)
-                        parent_node.first->data->test = (parent_node.first->data->test + 1) * -1; // keep the best attribute in order to explore it first during the re-computation
+                        parent_node.first->data->test = (parent_node.first->data->test + 1) *
+                                                        -1; // keep the best attribute in order to explore it first during the re-computation
                 }
 
                 // inform the corresponding left or right node (e.g. A will inform not A) that their parent won't recognize them anymore
@@ -537,7 +580,7 @@ void Cache_Trie::wipe() {
 //                retroPropagate(parent_node.first);
 
             }
-        }
+        }*/
 //        cout << "fin" << endl;
 
         // remove the edge bringing to the node
@@ -549,6 +592,10 @@ void Cache_Trie::wipe() {
         delete node_del;
         heap.pop_back();
         counter++;
+    }
+    for (auto &node : heap) {
+        if (node.first->is_used) node.first->is_used = false;
+        else break;
     }
 //     cout << "cachesize after wipe = " << getCacheSize() << endl;
 }

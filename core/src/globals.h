@@ -4,11 +4,11 @@
 #include <climits>
 #include <cfloat>
 #include <iostream>
-#include <map>
-#include <iterator>
-#include <thread>
-#include <functional>
-#include <algorithm>
+//#include <map>
+//#include <iterator>
+//#include <thread>
+//#include <functional>
+//#include <algorithm>
 #include <vector>
 #include <cmath>
 #include <chrono>
@@ -78,7 +78,7 @@ extern std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
 // loop in each index in an array
 #define forEach(index, array) for ( int index = 0; index < array.size; ++index )
 // redefine a class name to make it short
-#define FND Freq_NodeData*
+#define TFND TrieFreq_NodeData*
 // redefine a class name to make it short
 #define FNDM Freq_NodeDataManager*
 

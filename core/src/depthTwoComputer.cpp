@@ -16,14 +16,14 @@ struct ErrorvalsDeleter {
 
 //void addTreeToCache(Node* node, const Itemset &itemset, Cache* cache){
 
-void addTreeToCache(Node* node,  Itemset &itemset, Cache* cache){
+void addTreeToCache(DepthTwo_NodeData* node_data,  const Itemset &itemset, Cache* cache){
 //    printItemset(itemset, true);
-    auto* node_data = node->data;
+//    auto* node_data = node->data;
 //    if(itemset.size() == 5 and itemset.at(0) == 0 and itemset.at(1) == 2 and itemset.at(2) == 11 and itemset.at(3) == 12 and itemset.at(4) == 28) {
 //        cout << "coucouAAAAAAA " << node->data->error << " " << node->data->test << endl;// << " " << node->data->left->data->error << " " << node->data->right->data->error << endl;
 //        if (node->data->test == 8) exit(0);
 //    }
-    if (node_data->left and node_data->left->data) {
+    if (node_data->test >= 0) { // not a leaf
 
 //        if(itemset.size() == 3 and itemset.at(0) == 16 and itemset.at(1) == 38 and itemset.at(2) == 40) {
 //            cout << "changed " << node << endl;
@@ -33,12 +33,16 @@ void addTreeToCache(Node* node,  Itemset &itemset, Cache* cache){
         Itemset itemset_left = addItem(itemset, item(node_data->test, NEG_ITEM));
         pair<Node *, bool> res_left = cache->insert(itemset_left);
         Node *node_left = res_left.first;
-        if (res_left.second) node_left->data = new Freq_NodeData(*((Freq_NodeData*)node_data->left->data) );
-        else *(node_left->data) = *(node_data->left->data);
-        node_data->left = node_left;
+        if (res_left.second) { //new node. data is still null
+            node_left->data = new TrieNodeData(*(((DepthTwo_NodeData*)node_data)->left));
+//            node_left->data = new TrieNodeData();
+//            *((TrieNodeData*)node_left->data) = *(node_data->left);
+        }
+        else *((TrieNodeData*)node_left->data) = *(node_data->left);
+//        node_data->left = node_left;
 //        ((TrieNode*)node_left)->search_parents.push_back((TrieNode*)node);
 //        ((TrieNode*)node_left)->search_parents.insert(make_pair((TrieNode*)node, itemset));
-        addTreeToCache(node_left, itemset_left, cache);
+        addTreeToCache(node_data->left, itemset_left, cache);
 //        if(itemset.size() == 3 and itemset.at(0) == 16 and itemset.at(1) == 38 and itemset.at(2) == 40) {
 //            cout << "data after left " << node_data << endl;
 //        }
@@ -62,12 +66,16 @@ void addTreeToCache(Node* node,  Itemset &itemset, Cache* cache){
         Itemset itemset_right = addItem(itemset, item(node_data->test, POS_ITEM));
         pair<Node *, bool> res_right = cache->insert(itemset_right);
         Node *node_right = res_right.first;
-        if (res_right.second) node_right->data = new Freq_NodeData( *((Freq_NodeData*)node_data->right->data) );
-        else *(node_right->data) = *(node_data->right->data);
-        node_data->right = node_right;
+        if (res_right.second) {
+//            node_right->data = new TrieNodeData();
+//            *((TrieNodeData*)node_right->data) = *(node_data->right);
+            node_right->data = new TrieNodeData(*(((DepthTwo_NodeData*)node_data)->right));
+        }
+        else *((TrieNodeData*)node_right->data) = *(node_data->right);
+//        node_data->right = node_right;
 //        ((TrieNode*)node_right)->search_parents.push_back((TrieNode*)node);
 //        ((TrieNode*)node_right)->search_parents.insert(make_pair((TrieNode*)node, itemset));
-        addTreeToCache(node_right, itemset_right, cache);
+        addTreeToCache(node_data->right, itemset_right, cache);
 //        if(itemset.size() == 3 and itemset.at(0) == 16 and itemset.at(1) == 38 and itemset.at(2) == 40) {
 //            cout << "data after right " << node_data << endl;
 //        }
@@ -82,7 +90,7 @@ void addTreeToCache(Node* node,  Itemset &itemset, Cache* cache){
 
 //        if (node_data->test >= 0) node_data->test *= -1;
 //        cache->updateParents(node, node_left, node_right);
-        cache->updateParents(node, node_left, node_right, itemset);
+//        cache->updateParents(node, node_left, node_right, itemset);
 //        node_data->test *= -1;
     }
 }
@@ -90,23 +98,31 @@ void addTreeToCache(Node* node,  Itemset &itemset, Cache* cache){
 void addTreeToCache(Node* node, NodeDataManager* ndm, Cache* cache){
     auto* node_data = node->data;
 
-    if (node_data->left and node_data->left->data) {
+    if ( ((CoverNodeData*)node_data)->left != nullptr and ((CoverNodeData*)node_data)->left->data ) {
 
         ndm->cover->intersect(node_data->test, NEG_ITEM);
         pair<Node *, bool> res_left = cache->insert(ndm);
         Node *node_left = res_left.first;
-        if (res_left.second) node_left->data = new Freq_NodeData(*((Freq_NodeData*)node_data->left->data) );
-        else *(node_left->data) = *(node_data->left->data);
-        node_data->left = node_left;
+        if (res_left.second) {
+//            node_left->data = new CoverNodeData();
+//            *((CoverNodeData*)node_left->data) = *(((DepthTwo_NodeData*)node_data)->left);
+            node_left->data = new CoverNodeData(*(((DepthTwo_NodeData*)node_data)->left));
+        }
+        else *((CoverNodeData*)node_left->data) = *(((DepthTwo_NodeData*)node_data)->left);
+        ((CoverNodeData*)node_data)->left = (HashCoverNode*)node_left;
         addTreeToCache(node_left, ndm, cache);
         ndm->cover->backtrack();
 
         ndm->cover->intersect(node_data->test, POS_ITEM);
         pair<Node *, bool> res_right = cache->insert(ndm);
         Node *node_right = res_right.first;
-        if (res_right.second) node_right->data = new Freq_NodeData( *((Freq_NodeData*)node_data->right->data) );
-        else *(node_right->data) = *(node_data->right->data);
-        node_data->right = node_right;
+        if (res_right.second) {
+//            node_right->data = new CoverNodeData();
+//            *((CoverNodeData*)node_right->data) = *(((DepthTwo_NodeData*)node_data)->right);
+            node_right->data = new CoverNodeData(*(((DepthTwo_NodeData*)node_data)->right));
+        }
+        else *((CoverNodeData*)node_right->data) = *(((DepthTwo_NodeData*)node_data)->right);
+        ((CoverNodeData*)node_data)->right = (HashCoverNode*)node_right;
         addTreeToCache(node_right, ndm, cache);
         ndm->cover->backtrack();
 
@@ -132,7 +148,7 @@ void addTreeToCache(Node* node, NodeDataManager* ndm, Cache* cache){
     }
 }*/
 
-void setIteme(NodeData* node_data, const Itemset & itemset, Cache* cache){
+/*void setIteme(NodeData* node_data, const Itemset & itemset, Cache* cache){
     if (node_data->left){
         Itemset itemset_left(itemset.size() + 1);
         addItem(itemset, item(((FND)node_data->left->data)->test, 0), itemset_left);
@@ -150,7 +166,7 @@ void setIteme(NodeData* node_data, const Itemset & itemset, Cache* cache){
         setIteme(node_right->data, itemset_right, cache);
 //        itemset_right.free();
     }
-}
+}*/
 
 
 /**
@@ -170,7 +186,7 @@ Error computeDepthTwo(RCover* cover,
                       Error ub,
                       Attributes &attributes_to_visit,
                       Attribute last_added,
-                      Itemset &itemset,
+                      const Itemset &itemset,
                       Node *node,
                       NodeDataManager* nodeDataManager,
                       Error lb,
@@ -200,10 +216,10 @@ Error computeDepthTwo(RCover* cover,
 //    printItemset(attributes_to_visit);
     vector<Attribute> attr;
     attr.reserve(attributes_to_visit.size() - 1);
-    if (node->data->test < 0) attr.push_back((node->data->test * -1) - 1);
+//    if (cache != nullptr and node->data->test < 0) attr.push_back((node->data->test * -1) - 1);
     for(const auto attribute : attributes_to_visit) {
-//        if (last_added == attribute) continue;
-        if (attribute == last_added or (node->data->test < 0 and attribute == attr.at(0)) ) continue;
+        if (last_added == attribute) continue;
+//        if (attribute == last_added or (cache != nullptr and node->data->test < 0 and attribute == attr.at(0)) ) continue;
         attr.push_back(attribute);
     }
 //    vector<Attribute> attr;
@@ -312,28 +328,27 @@ Error computeDepthTwo(RCover* cover,
         //%%%%%%%%%%%%%%%%%%%%%%%%%%%//
 
         //find best feature to be left child of root
-        feat_best_tree->root_data->left = new Node();
-        feat_best_tree->root_data->left->data = new Freq_NodeData(); //here
+        feat_best_tree->root_data->left = new DepthTwo_NodeData();
 
         // the feature at root cannot be split at left. It is then a leaf node
         if (igs < 2 * searcher->minsup) {
             LeafInfo ev = nodeDataManager->computeLeafInfo(igsc.get());
-            feat_best_tree->root_data->left->data->error = ev.error;
-            feat_best_tree->root_data->left->data->test = ev.maxclass;
-            Logger::showMessageAndReturn("root gauche ne peut théoriquement spliter; donc feuille. erreur gauche = ", feat_best_tree->root_data->left->data->error, " on backtrack");
+            feat_best_tree->root_data->left->error = ev.error;
+            feat_best_tree->root_data->left->test = (cachecover) ? ev.maxclass : -(ev.maxclass + 1);
+            Logger::showMessageAndReturn("root gauche ne peut théoriquement spliter; donc feuille. erreur gauche = ", feat_best_tree->root_data->left->error, " on backtrack");
             if (ev.error >= best_tree->root_data->error) {
 //                delete feat_best_tree;
 //                deleteErrorVals(igsc);
                 continue; // test next root
             }
         }
-        // the root node can theoretically be split at left
+            // the root node can theoretically be split at left
         else {
             Logger::showMessageAndReturn("root gauche peut théoriquement spliter. Creusons plus...");
             Error feat_ub = best_tree->root_data->error; // the best tree found so far can be used as upper bound
             LeafInfo ev = nodeDataManager->computeLeafInfo(igsc.get());
-            feat_best_tree->root_data->left->data->leafError = ev.error;
-            feat_best_tree->root_data->left->data->test = ev.maxclass;
+            feat_best_tree->root_data->left->leafError = ev.error;
+            feat_best_tree->root_data->left->test = (cachecover) ? ev.maxclass : -(ev.maxclass + 1);
 
             // explore different features to find the best left child
             for (int j = 0; j < attr.size(); ++j) {
@@ -386,26 +401,24 @@ Error computeDepthTwo(RCover* cover,
 
                 // in case error found is equal to leaf error, we prefer a shallow tree
                 if ( floatEqual(ev1.error + ev2.error, ev.error) ) {
-                    feat_best_tree->root_data->left->data->error = ev.error;
+                    feat_best_tree->root_data->left->error = ev.error;
                 }
                 else {
                     Logger::showMessageAndReturn("ce left ci donne une erreur sympa. On regarde a droite du root: ", ev1.error + ev2.error);
 
-                    feat_best_tree->root_data->left->data->error = ev1.error + ev2.error;
+                    feat_best_tree->root_data->left->error = ev1.error + ev2.error;
 
-                    if (feat_best_tree->root_data->left->data->left == nullptr){
-                        feat_best_tree->root_data->left->data->left = new Node(); //here
-                        feat_best_tree->root_data->left->data->left->data = new Freq_NodeData(); //here
-                        feat_best_tree->root_data->left->data->right = new Node(); //here
-                        feat_best_tree->root_data->left->data->right->data = new Freq_NodeData(); //here
+                    if (feat_best_tree->root_data->left->left == nullptr){
+                        feat_best_tree->root_data->left->left = new DepthTwo_NodeData(); //here
+                        feat_best_tree->root_data->left->right = new DepthTwo_NodeData(); //here
                     }
 
-                    feat_best_tree->root_data->left->data->left->data->error = ev1.error;
-                    feat_best_tree->root_data->left->data->left->data->test = ev1.maxclass;
-                    feat_best_tree->root_data->left->data->right->data->error = ev2.error;
-                    feat_best_tree->root_data->left->data->right->data->test = ev2.maxclass;
-                    feat_best_tree->root_data->left->data->test = attr[j];
-                    feat_best_tree->root_data->left->data->size = 3;
+                    feat_best_tree->root_data->left->left->error = ev1.error;
+                    feat_best_tree->root_data->left->left->test = (cachecover) ? ev1.maxclass : -(ev1.maxclass + 1);
+                    feat_best_tree->root_data->left->right->error = ev2.error;
+                    feat_best_tree->root_data->left->right->test = (cachecover) ? ev2.maxclass : -(ev2.maxclass + 1);
+                    feat_best_tree->root_data->left->test = attr[j];
+                    feat_best_tree->root_data->left->size = 3;
                 }
 
                 feat_ub = ev1.error + ev2.error;
@@ -421,8 +434,8 @@ Error computeDepthTwo(RCover* cover,
             }
 
             // there is no left child coupled to the root to produce lower error than the best tree so far. No need to look at right
-            if (floatEqual(feat_best_tree->root_data->left->data->error, FLT_MAX)){
-                Logger::showMessageAndReturn("aucun left n'a su améliorer l'arbre existant: ", feat_best_tree->root_data->left->data->error, "on garde l'ancien arbre");
+            if (floatEqual(feat_best_tree->root_data->left->error, FLT_MAX)){
+                Logger::showMessageAndReturn("aucun left n'a su améliorer l'arbre existant: ", feat_best_tree->root_data->left->error, "on garde l'ancien arbre");
 //                deleteErrorVals(igsc);
 //                delete feat_best_tree;
                 continue; // test new root
@@ -435,16 +448,15 @@ Error computeDepthTwo(RCover* cover,
         //%%%%%%%%%%%%%%%%%%%%%%%%%%%//
 
         //find best feature to be right child of root
-        feat_best_tree->root_data->right = new Node(); //here
-        feat_best_tree->root_data->right->data = new Freq_NodeData(); //here
+        feat_best_tree->root_data->right = new DepthTwo_NodeData(); //here
 
         // the feature at root cannot be split at right. It is then a leaf node
         if (ids < 2 * searcher->minsup) {
             LeafInfo ev = nodeDataManager->computeLeafInfo(idsc);
-            feat_best_tree->root_data->right->data->error = ev.error;
-            feat_best_tree->root_data->right->data->test = ev.maxclass;
-            Logger::showMessageAndReturn("root droite ne peut théoriquement spliter; donc feuille. erreur droite = ", feat_best_tree->root_data->right->data->error, " on backtrack");
-            if (ev.error >= best_tree->root_data->error - feat_best_tree->root_data->left->data->error) {
+            feat_best_tree->root_data->right->error = ev.error;
+            feat_best_tree->root_data->right->test = (cachecover) ? ev.maxclass : -(ev.maxclass + 1);
+            Logger::showMessageAndReturn("root droite ne peut théoriquement spliter; donc feuille. erreur droite = ", feat_best_tree->root_data->right->error, " on backtrack");
+            if (ev.error >= best_tree->root_data->error - feat_best_tree->root_data->left->error) {
 //                delete feat_best_tree;
 //                deleteErrorVals(igsc);
                 continue; // test next root
@@ -452,16 +464,16 @@ Error computeDepthTwo(RCover* cover,
         }
         else { // the root node can theoretically be split at right
             Logger::showMessageAndReturn("root droite peut théoriquement spliter. Creusons plus...");
-            Error feat_ub = best_tree->root_data->error - feat_best_tree->root_data->left->data->error;
+            Error feat_ub = best_tree->root_data->error - feat_best_tree->root_data->left->error;
             LeafInfo ev = nodeDataManager->computeLeafInfo(idsc);
-            feat_best_tree->root_data->right->data->leafError = ev.error;
-            feat_best_tree->root_data->right->data->test = ev.maxclass;
+            feat_best_tree->root_data->right->leafError = ev.error;
+            feat_best_tree->root_data->right->test = (cachecover) ? ev.maxclass : -(ev.maxclass + 1);
 
             // in case we encounter the lower bound
-            if (floatEqual(feat_best_tree->root_data->left->data->error + ev.error, lb)) {
-                Logger::showMessageAndReturn("l'erreur du root droite est minimale. on garde le root droite comme leaf avec erreur: ", feat_best_tree->root_data->right->data->error);
-                feat_best_tree->root_data->right->data->error = ev.error;
-                feat_best_tree->root_data->error = feat_best_tree->root_data->left->data->error + feat_best_tree->root_data->right->data->error;
+            if (floatEqual(feat_best_tree->root_data->left->error + ev.error, lb)) {
+                Logger::showMessageAndReturn("l'erreur du root droite est minimale. on garde le root droite comme leaf avec erreur: ", feat_best_tree->root_data->right->error);
+                feat_best_tree->root_data->right->error = ev.error;
+                feat_best_tree->root_data->error = feat_best_tree->root_data->left->error + feat_best_tree->root_data->right->error;
 //                best_tree->replaceTree(feat_best_tree);
                 best_tree = move(feat_best_tree);
 //                deleteErrorVals(igsc);
@@ -511,31 +523,29 @@ Error computeDepthTwo(RCover* cover,
 
                 // in case error found is equal to leaf error, we prefer a shallow tree
                 if ( floatEqual(ev1.error + ev2.error, ev.error) ) {
-                    feat_best_tree->root_data->right->data->error = ev.error;
+                    feat_best_tree->root_data->right->error = ev.error;
                 }
                 else {
                     Logger::showMessageAndReturn("ce right ci donne une meilleure erreur que les précédents right: ", ev1.error + ev2.error);
 
-                    feat_best_tree->root_data->right->data->error = ev1.error + ev2.error;
+                    feat_best_tree->root_data->right->error = ev1.error + ev2.error;
 
-                    if (feat_best_tree->root_data->right->data->left == nullptr) {
-                        feat_best_tree->root_data->right->data->left = new Node();
-                        feat_best_tree->root_data->right->data->left->data = new Freq_NodeData(); //here
-                        feat_best_tree->root_data->right->data->right = new Node();
-                        feat_best_tree->root_data->right->data->right->data = new Freq_NodeData(); //here
+                    if (feat_best_tree->root_data->right->left == nullptr) {
+                        feat_best_tree->root_data->right->left = new DepthTwo_NodeData();
+                        feat_best_tree->root_data->right->right = new DepthTwo_NodeData();
                     }
 
-                    feat_best_tree->root_data->right->data->left->data->error = ev1.error;
-                    feat_best_tree->root_data->right->data->left->data->test = ev1.maxclass;
-                    feat_best_tree->root_data->right->data->right->data->error = ev2.error;
-                    feat_best_tree->root_data->right->data->right->data->test = ev2.maxclass;
-                    feat_best_tree->root_data->right->data->test = attr[j];
-                    feat_best_tree->root_data->right->data->size = 3;
+                    feat_best_tree->root_data->right->left->error = ev1.error;
+                    feat_best_tree->root_data->right->left->test = (cachecover) ? ev1.maxclass : -(ev1.maxclass + 1);
+                    feat_best_tree->root_data->right->right->error = ev2.error;
+                    feat_best_tree->root_data->right->right->test = (cachecover) ? ev2.maxclass : -(ev2.maxclass + 1);
+                    feat_best_tree->root_data->right->test = attr[j];
+                    feat_best_tree->root_data->right->size = 3;
                 }
 
                 feat_ub = ev1.error + ev2.error;
 
-                if (floatEqual(feat_best_tree->root_data->right->data->error + feat_best_tree->root_data->left->data->error, lb) or floatEqual(ev1.error + ev2.error, 0)) {
+                if (floatEqual(feat_best_tree->root_data->right->error + feat_best_tree->root_data->left->error, lb) or floatEqual(ev1.error + ev2.error, 0)) {
 //                    deleteErrorVals(idjgsc);
                     break;
                 }
@@ -544,7 +554,7 @@ Error computeDepthTwo(RCover* cover,
             }
 
             // there is no left child coupled to the root and left to produce lower error than the best tree so far.
-            if (floatEqual(feat_best_tree->root_data->right->data->error, FLT_MAX)){
+            if (floatEqual(feat_best_tree->root_data->right->error, FLT_MAX)){
 //                cout << "pas de right convainquant" << endl;
                 Logger::showMessageAndReturn("pas d'arbre mieux que le meilleur jusque là.");
 //                deleteErrorVals(igsc);
@@ -552,12 +562,12 @@ Error computeDepthTwo(RCover* cover,
                 continue; // test new root
             }
 
-            feat_best_tree->root_data->error = feat_best_tree->root_data->left->data->error + feat_best_tree->root_data->right->data->error;
-            feat_best_tree->root_data->size = feat_best_tree->root_data->left->data->size + feat_best_tree->root_data->right->data->size + 1;
+            feat_best_tree->root_data->error = feat_best_tree->root_data->left->error + feat_best_tree->root_data->right->error;
+            feat_best_tree->root_data->size = feat_best_tree->root_data->left->size + feat_best_tree->root_data->right->size + 1;
 //            best_tree->replaceTree(feat_best_tree);
             best_tree = move(feat_best_tree);
 //            deleteErrorVals(igsc);
-            Logger::showMessageAndReturn("ce triplet (root, left, right) ci donne une meilleure erreur que les précédents triplets: (", best_tree->root_data->test, ",", best_tree->root_data->left->data->left ? best_tree->root_data->left->data->test : -best_tree->root_data->left->data->test, ",", best_tree->root_data->right->data->left ? best_tree->root_data->right->data->test : -best_tree->root_data->right->data->test, ") err:", best_tree->root_data->error);
+            Logger::showMessageAndReturn("ce triplet (root, left, right) ci donne une meilleure erreur que les précédents triplets: (", best_tree->root_data->test, ",", best_tree->root_data->left->left ? best_tree->root_data->left->test : -best_tree->root_data->left->test, ",", best_tree->root_data->right->left ? best_tree->root_data->right->test : -best_tree->root_data->right->test, ") err:", best_tree->root_data->error);
             if (floatEqual(best_tree->root_data->error, lb)) {
                 Logger::showMessageAndReturn("The best tree is found");
                 break;
@@ -576,7 +586,7 @@ Error computeDepthTwo(RCover* cover,
     delete [] sups;
     deleteErrorVals(root_sup_clas);
 
-    if (best_tree->root_data and best_tree->root_data->left and best_tree->root_data->left->data and best_tree->root_data->right and best_tree->root_data->right->data) Logger::showMessageAndReturn("root: ", best_tree->root_data->test, " left: ", best_tree->root_data->left->data->test, " right: ", best_tree->root_data->right->data->test);
+    if (best_tree->root_data and best_tree->root_data->left and best_tree->root_data->right) Logger::showMessageAndReturn("root: ", best_tree->root_data->test, " left: ", best_tree->root_data->left->test, " right: ", best_tree->root_data->right->test);
 
     // without cache
     if (node == nullptr && cache == nullptr){
@@ -587,21 +597,28 @@ Error computeDepthTwo(RCover* cover,
 
     if (best_tree->root_data->test != INT32_MAX) {
 
-        Logger::showMessageAndReturn("best tree found (root, left, right): (", best_tree->root_data->test, ",", best_tree->root_data->left->data->left ? best_tree->root_data->left->data->test : -best_tree->root_data->left->data->test, ",", best_tree->root_data->right->data->left ? best_tree->root_data->right->data->test : -best_tree->root_data->right->data->test, ") err:", best_tree->root_data->error);
+        Logger::showMessageAndReturn("best tree found (root, left, right): (", best_tree->root_data->test, ",", best_tree->root_data->left->left ? best_tree->root_data->left->test : -best_tree->root_data->left->test, ",", best_tree->root_data->right->left ? best_tree->root_data->right->test : -best_tree->root_data->right->test, ") err:", best_tree->root_data->error);
 
-        if (best_tree->root_data->size == 3 and best_tree->root_data->left->data->test == best_tree->root_data->right->data->test and floatEqual(best_tree->root_data->leafError, best_tree->root_data->left->data->error + best_tree->root_data->right->data->error)) {
+        if (best_tree->root_data->size == 3 and best_tree->root_data->left->test == best_tree->root_data->right->test and floatEqual(best_tree->root_data->leafError, best_tree->root_data->left->error + best_tree->root_data->right->error)) {
 //            cout << "pra" << endl;
             best_tree->root_data->size = 1;
             best_tree->root_data->error = best_tree->root_data->leafError;
-            best_tree->root_data->test = best_tree->root_data->right->data->test;
+            best_tree->root_data->test = best_tree->root_data->right->test;
 //            delete best_tree->root_data->left;
 //            best_tree->root_data->left = nullptr;
 //            delete best_tree->root_data->right;
 //            best_tree->root_data->right = nullptr;
             Logger::showMessageAndReturn("best twotree error = ", to_string(best_tree->root_data->error));
-            *(node->data) = *(best_tree->root_data);
-            node->data->left = nullptr;
-            node->data->right = nullptr;
+//            *(node->data) = *(best_tree->root_data);
+            if (cachecover){
+                *((CoverNodeData*)node->data) = *(best_tree->root_data);
+                ((CoverNodeData*)node->data)->left = nullptr;
+                ((CoverNodeData*)node->data)->right = nullptr;
+            }
+            else {
+                *((TrieNodeData*)node->data) = *(best_tree->root_data);
+            }
+
 //            node->data = (NodeData *)best_tree->root_data;
 //            best_tree->root_data = nullptr;
 //            delete best_tree;
@@ -609,19 +626,20 @@ Error computeDepthTwo(RCover* cover,
         }
 
         if (cachecover) {
-            *(node->data) = *(best_tree->root_data);
+            *((CoverNodeData*)node->data) = *(best_tree->root_data);
+//            *(node->data) = *(best_tree->root_data);
 //            node->data = (NodeData *) best_tree->root_data;
 //            best_tree->root_data = nullptr;
 
-if (itemset.size() == 4 and itemset.at(0) == 4 and itemset.at(1) == 29 and itemset.at(2) == 35 and itemset.at(3) == 47) {
-    cout << "check what is happening" << endl;
-}
+            if (itemset.size() == 4 and itemset.at(0) == 4 and itemset.at(1) == 29 and itemset.at(2) == 35 and itemset.at(3) == 47) {
+                cout << "check what is happening" << endl;
+            }
 
             addTreeToCache(node, nodeDataManager, cache);
 
-if (itemset.size() == 4 and itemset.at(0) == 4 and itemset.at(1) == 29 and itemset.at(2) == 35 and itemset.at(3) == 47) {
-    cout << "check what is happening after add" << endl;
-}
+            if (itemset.size() == 4 and itemset.at(0) == 4 and itemset.at(1) == 29 and itemset.at(2) == 35 and itemset.at(3) == 47) {
+                cout << "check what is happening after add" << endl;
+            }
 
         }
         else {
@@ -631,13 +649,15 @@ if (itemset.size() == 4 and itemset.at(0) == 4 and itemset.at(1) == 29 and items
             }
 //            cout << "azer" << endl;
 //            cout << best_tree->root_data->test << " " << best_tree->root_data->left->data->test << " " << best_tree->root_data->right->data->test << endl;
-            *(node->data) = *(best_tree->root_data);
+            *((TrieNodeData*)node->data) = *(best_tree->root_data);
+//            *(node->data) = *(best_tree->root_data);
 //            node->data = (NodeData *) best_tree->root_data;
 //            best_tree->root_data = nullptr;
 //            cout << "\niteeeeemmmmeee ";
 //            printItemset(itemset, true);
 //            cout << "lowerrrr:" << lb << " error:" << best_tree->root_data->error << " root:" << best_tree->root_data->test << " left:" << best_tree->root_data->left->data->test << " l_error:" << best_tree->root_data->left->data->error << " right:" << best_tree->root_data->right->data->test << " r_error:" << best_tree->root_data->right->data->error << endl;
-            addTreeToCache(node, itemset, cache);
+//cout << "azerty"  << endl;
+addTreeToCache(best_tree->root_data, itemset, cache);
             Logger::showMessageAndReturn("tre: ", node->data->test);
 
 

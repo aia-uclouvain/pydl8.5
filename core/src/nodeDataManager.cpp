@@ -1,6 +1,6 @@
 #include "nodeDataManager.h"
-#include <climits>
-#include <cfloat>
+//#include <climits>
+//#include <cfloat>
 
 NodeDataManager::NodeDataManager(
         RCover* cover,
@@ -14,6 +14,47 @@ NodeDataManager::NodeDataManager(
 
 
 NodeDataManager::~NodeDataManager() {
+}
+
+
+LeafInfo NodeDataManager::computeLeafInfo(RCover *cov) {
+    if (cov == nullptr) cov = cover;
+    Class maxclass;
+    Error error;
+    ErrorVals itemsetSupport = cov->getErrorValPerClass();
+    ErrorVal maxclassval = itemsetSupport[0];
+    maxclass = 0;
+
+    for (int i = 1; i < nclasses; ++i) {
+        if (itemsetSupport[i] > maxclassval) {
+            maxclassval = itemsetSupport[i];
+            maxclass = i;
+        } else if (floatEqual(itemsetSupport[i], maxclassval)) {
+            if (cov->dm->getSupports()[i] > cov->dm->getSupports()[maxclass])
+                maxclass = i;
+        }
+    }
+    error = sumErrorVals(itemsetSupport) - maxclassval;
+    return {error, maxclass};
+}
+
+
+LeafInfo NodeDataManager::computeLeafInfo(ErrorVals itemsetSupport) {
+    Class maxclass = 0;
+    Error error;
+    ErrorVal maxclassval = itemsetSupport[0];
+
+    for (int i = 1; i < nclasses; ++i) {
+        if (itemsetSupport[i] > maxclassval) {
+            maxclassval = itemsetSupport[i];
+            maxclass = i;
+        } else if (floatEqual(itemsetSupport[i], maxclassval)) {
+            if (cover->dm->getSupports()[i] > cover->dm->getSupports()[maxclass])
+                maxclass = i;
+        }
+    }
+    error = sumErrorVals(itemsetSupport) - maxclassval;
+    return {error, maxclass};
 }
 
 

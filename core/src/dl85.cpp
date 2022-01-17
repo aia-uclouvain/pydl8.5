@@ -61,12 +61,12 @@ string launch(ErrorVals supports,
 
     Cache *cache;
     switch (cache_type) {
-        case CacheHash:
-            cache = new Cache_Hash(maxdepth, wipe_type, max_cache_size);
-            //cout << "caching with hashmap limited to " << max_cache_size << " elements" << endl;
-            break;
+//        case CacheHash:
+//            cache = new Cache_Hash(maxdepth, wipe_type, max_cache_size);
+//            //cout << "caching with hashmap limited to " << max_cache_size << " elements" << endl;
+//            break;
         case CacheHashCover:
-            cache = new Cache_Hash_Cover(maxdepth, wipe_type, max_cache_size);
+            cache = new Cache_Hash_Cover(maxdepth, wipe_type, max_cache_size, wipe_factor);
             break;
         default:
             cache = new Cache_Trie(maxdepth, wipe_type, max_cache_size, wipe_factor);
@@ -79,10 +79,6 @@ string launch(ErrorVals supports,
     if (in_weights) cover = new RCoverWeight(dataReader, &weights);
     else cover = new RCoverFreq(dataReader); // non-weighted cover
 
-    NodeDataManager *nodeDataManager = new NodeDataManagerFreq(cover, tids_error_class_callback_pointer,
-                                                               supports_error_class_callback_pointer,
-                                                               tids_error_callback_pointer);
-
     string out = "(nFeats, nTransactions) : ( " + to_string(dataReader->getNAttributes()) + ", " + to_string(dataReader->getNTransactions()) + " )\n";
     out += "Class Distribution: ";
     forEachClass(i) {
@@ -94,20 +90,28 @@ string launch(ErrorVals supports,
 
     Search_base *searcher;
     Solution *solution;
+    NodeDataManager *nodeDataManager;
     if (with_cache) {
-        if (cache_type == CacheHashCover)
-            searcher = new Search_hash_cover(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, cache, timeLimit, maxError <= 0 ? NO_ERR : maxError, useSpecial, maxError <= 0 ? false : stopAfterError, similarlb, dynamic_branching, similar_for_branching, from_cpp);
-        else
-            searcher = new Search_cache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, cache, timeLimit, maxError <= 0 ? NO_ERR : maxError, useSpecial, maxError <= 0 ? false : stopAfterError, similarlb, dynamic_branching, similar_for_branching, from_cpp);
+        if (cache_type == CacheHashCover) {
+            nodeDataManager = new NodeDataManager_Cover(cover, tids_error_class_callback_pointer, supports_error_class_callback_pointer, tids_error_callback_pointer);
+            searcher = new Search_cover_cache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, cache, maxError <= 0 ? NO_ERR : maxError, useSpecial, maxError <= 0 ? false : stopAfterError, similarlb, dynamic_branching, similar_for_branching, from_cpp);
+            solution = new Solution_Cover(searcher);
+        }
+        else {
+            nodeDataManager = new NodeDataManager_Trie(cover, tids_error_class_callback_pointer, supports_error_class_callback_pointer, tids_error_callback_pointer);
+            searcher = new Search_trie_cache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, cache, maxError <= 0 ? NO_ERR : maxError, useSpecial, maxError <= 0 ? false : stopAfterError, similarlb, dynamic_branching, similar_for_branching, from_cpp);
+            solution = new Solution_Trie(searcher);
+        }
         searcher->run(); // perform the search
-        solution = new SolutionFreq(searcher, nodeDataManager);
         Tree *tree_out = solution->getTree();
         tree_out->cacheSize = cache->getCacheSize();
         tree_out->runtime = duration<float>(high_resolution_clock::now() - startTime).count();
         out += tree_out->to_str();
+//        cout << out << endl;
     }
     else {
-        searcher = new Search_nocache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, maxError <= 0 ? NO_ERR : maxError, useSpecial,maxError > 0 && stopAfterError, use_ub);
+        nodeDataManager = new NodeDataManager_Trie(cover, tids_error_class_callback_pointer, supports_error_class_callback_pointer, tids_error_callback_pointer);
+        searcher = new Search_nocache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit,nullptr, maxError <= 0 ? NO_ERR : maxError, useSpecial,maxError > 0 && stopAfterError, use_ub);
         searcher->run(); // perform the search
         out += "runtime = " + to_string(duration<float>(high_resolution_clock::now() - startTime).count()) + "\n";
     }

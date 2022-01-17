@@ -19,6 +19,7 @@ public:
                    Support minsup,
                    Depth maxdepth,
                    int timeLimit,
+                   Cache *cache = nullptr,
                    float maxError = NO_ERR,
                    bool specialAlgo = true,
                    bool stopAfterError = false,
