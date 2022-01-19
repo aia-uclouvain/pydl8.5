@@ -8,7 +8,7 @@
 //#include <iterator>
 //#include <thread>
 //#include <functional>
-//#include <algorithm>
+#include <algorithm>
 #include <vector>
 #include <cmath>
 #include <chrono>

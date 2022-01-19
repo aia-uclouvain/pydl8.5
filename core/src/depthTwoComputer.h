@@ -16,7 +16,7 @@
 #include "depthTwoNodeData.h"
 //#include <chrono>
 //#include <utility>
-//#include <memory>
+#include <memory>
 
 //using namespace std::chrono;
 

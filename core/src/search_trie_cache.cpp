@@ -355,24 +355,7 @@ pair<Node*,HasInter> Search_trie_cache::recurse(const Itemset &itemset,
 
     // in case the solution cannot be derived without computation and remaining depth is 2, we use a specific algorithm
     if (specialAlgo and maxdepth - depth == 2 and nodeDataManager->cover->getSupport() >= 2 * minsup and no_python_error) {
-//    if (specialAlgo and maxdepth - depth == 2 and nodeDataManager->cover->getSupport() >= 2 * minsup and no_python_error and node->data->test >= 0) {
-//        Logger::setFalse();
-//if (itemset.size() != 6 || (itemset.at(0) != 8 || itemset.at(1) != 11 || itemset.at(2) != 24 || itemset.at(3) != 28 || itemset.at(4) != 112 || itemset.at(5) != 116 ))
-//verbose = false;
-//        if(itemset.size() == 4 and itemset.at(0) == 0 and itemset.at(1) == 2 and itemset.at(2) == 11 and itemset.at(3) == 12) {
-//            cout << "calll av" << endl;
-//            cout << "best(" << node->data->test << ") err(" << node->data->error << ") low(" << node->data->lowerBound << ") depth(" << depth << endl;
-//            if (node->data->test < 0)
-//            verbose = true;
-//        }
         computeDepthTwo(nodeDataManager->cover, ub, next_candidates, last_added_attr, itemset, node, nodeDataManager, node->data->lowerBound, cache, this);
-//        if(itemset.size() == 3 and itemset.at(0) == 2 and itemset.at(1) == 6 and itemset.at(2) == 17) {
-//            cout << "best(" << node->data->test << ") err(" << node->data->error << ") low(" << node->data->lowerBound << ") depth(" << depth << endl;
-//            verbose = false;
-//        }
-        //Logger::setTrue();
-//verbose = true;
-//cout << "2d error : " << node->data->error << endl;
         return {node, true};
     }
 
@@ -384,7 +367,11 @@ pair<Node*,HasInter> Search_trie_cache::recurse(const Itemset &itemset,
     if (timeLimitReached) { *nodeError = leafError; return {node, true}; }
 
     // if we can't get solution without computation, we compute the next candidates to perform the search
+//    cout << "succ bef: ";
+//    printItemset(next_candidates);
     Attributes next_attributes = getSuccessors(next_candidates, last_added_attr, itemset, node);
+//    cout << "succ aft: ";
+//    printItemset(next_attributes);
 
     // case in which there is no candidate
     if (next_attributes.empty()) {
@@ -402,22 +389,26 @@ pair<Node*,HasInter> Search_trie_cache::recurse(const Itemset &itemset,
 
     // we evaluate the split on each candidate attribute
 //    for(const auto attr : next_attributes) {
-bool found = false;
-    for (int i = 0; i < next_attributes.size(); ++i) {
-//        Attribute attr = next_attributes[i];
-        Attribute attr;
-        if (node->data->test < 0) {
-            if (i == 0) attr = -node->data->test - 1;
-            else if (next_attributes[i] == -node->data->test - 1) {
-                found = true;
-                continue;
-            }
-            else {
-                if (not found) attr = next_attributes[i-1];
-                else attr = next_attributes[i];
-            }
-        }
-        else attr = next_attributes[i];
+//bool found = false;
+//    for (int i = 0; i < next_attributes.size(); ++i) {
+////        Attribute attr = next_attributes[i];
+//        Attribute attr;
+//        if (node->data->test < 0) {
+//            if (i == 0) attr = -node->data->test - 1;
+//            else if (next_attributes[i] == -node->data->test - 1) {
+//                found = true;
+//                continue;
+//            }
+//            else {
+//                if (not found) attr = next_attributes[i-1];
+//                else attr = next_attributes[i];
+//            }
+//        }
+//        else attr = next_attributes[i];
+//        Logger::showMessageAndReturn("\n\nWe are evaluating the attribute : ", attr);
+
+    for(const auto attr : next_attributes) {
+
         Logger::showMessageAndReturn("\n\nWe are evaluating the attribute : ", attr);
 
         ((TrieNodeData*)(node->data))->curr_test = attr;
@@ -594,6 +585,7 @@ void Search_trie_cache::run() {
                 attributes_to_visit.push_back(attr);
         }
     }
+//    printItemset(attributes_to_visit);
 //    attributes_to_visit.erase(find(attributes_to_visit.begin(), attributes_to_visit.end(), 34));
 //    attributes_to_visit.insert(attributes_to_visit.begin(), 34);
 
@@ -601,9 +593,11 @@ void Search_trie_cache::run() {
     Itemset itemset;
     Node * rootnode = cache->insert(itemset).first;
     rootnode->data = nodeDataManager->initData();
+//    rootnode->data->lowerBound = 17;
     SimilarVals sdb1, sdb2;
     // call the recursive function to start the search
     cache->root = recurse(itemset, NO_ITEM, rootnode, true, attributes_to_visit, 0, maxError, sdb1, sdb2).first;
+//    cache->root = recurse(itemset, NO_ITEM, rootnode, true, attributes_to_visit, 0, 18, sdb1, sdb2).first;
 
 //    std::cout << endl;
 //    std::cout << "final error: " << cache->root->data->error << endl;
@@ -630,11 +624,13 @@ void Search_trie_cache::run() {
 void Search_trie_cache::retrieveWipedSubtrees(Node *node, const Itemset &itemset, Item last_added, Attributes &attributes, Depth depth, Error ub, Error lb) {
 //    printItemset(itemset, true);
 
+    Attributes next_succ = attributes;
+
     if (node->data == nullptr) {
         node->data = nodeDataManager->initData();
         node->data->lowerBound = lb;
         SimilarVals sdb1, sdb2;
-        node = recurse(itemset, last_added, node, true, attributes, depth, lb, sdb1, sdb2).first;
+        node = recurse(itemset, last_added, node, true, next_succ, depth, ub, sdb1, sdb2).first;
         return;
     }
 
@@ -645,35 +641,28 @@ void Search_trie_cache::retrieveWipedSubtrees(Node *node, const Itemset &itemset
     Itemset children_itemset[2] = {addItem(itemset, item(attr, NEG_ITEM)), addItem(itemset, item(attr, POS_ITEM))};
     Node* children_node[2] = {cache->get(children_itemset[0]), cache->get(children_itemset[1])};
 
-    Attributes next_attributes;
+
     if (children_node[0] == nullptr or children_node[1] == nullptr) {
+        auto it = std::find(next_succ.begin(), next_succ.end(), attr);
+        rotate(next_succ.begin(), it, it+1);
         SimilarVals sdb1, sdb2;
-        next_attributes.reserve(attributes.size());
-        next_attributes.push_back(attr);
-        for (int i = 0; i < attributes.size(); ++i) {
-            if (attributes[i] == attr) {
-                for (int j = i+1; j < attributes.size(); ++j) {
-                    next_attributes.push_back(attributes[j]);
-                }
-                break;
-            }
-            else next_attributes.push_back(attributes[i]);
-        }
-//        Attributes a = attributes;
-//        node = recurse(itemset, last_added, node, true, a, depth, FLT_MAX, sdb1, sdb2).first;
         node->data->lowerBound = lb;
         node->data->error = FLT_MAX;
-//        cout << "launch" << endl;
-//        printItemset(itemset, true);
-//        printItemset(next_attributes, true);
-//        verbose = true;
-        node = recurse(itemset, last_added, node, true, next_attributes, depth, ub, sdb1, sdb2).first;
+        node = recurse(itemset, last_added, node, true, next_succ, depth, ub, sdb1, sdb2).first;
 //        verbose = false;
 //        cout << "end launch" << endl;
     }
     else {
-        next_attributes = attributes;
-        next_attributes.erase(std::find(next_attributes.begin(), next_attributes.end(), attr));
+
+        Attributes next_attributes;
+        if (last_added == NO_ITEM) next_attributes = attributes;
+        else {
+            next_attributes.reserve(attributes.size() - 1);
+            for (auto attribute : attributes) {
+                if (attribute != item_attribute(last_added)) next_attributes.push_back(attribute);
+            }
+        }
+
 
         Error upperb, left_lb, right_lb;
 
