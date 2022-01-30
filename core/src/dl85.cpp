@@ -56,6 +56,14 @@ string launch(ErrorVals supports,
 
     auto *dataReader = new DataManager(supports, ntransactions, nattributes, nclasses, data, target);
 
+    string out = "(nFeats, nTransactions) : ( " + to_string(dataReader->getNAttributes()) + ", " + to_string(dataReader->getNTransactions()) + " )\n";
+    out += "Class Distribution: ";
+    forEachClass(i) {
+        if (i == nclasses - 1) out += to_string(i) + ":" + custom_to_str(dataReader->getSupports()[i]);
+        else out += to_string(i) + ":" + custom_to_str(dataReader->getSupports()[i]) + ", ";
+    }
+    out += "\nmaxdepth: " + to_string(maxdepth) + " --- minsup: " + to_string(minsup) + "\n";
+
     vector<float> weights;
     if (in_weights) weights = vector<float>(in_weights, in_weights + ntransactions);
 
@@ -79,29 +87,37 @@ string launch(ErrorVals supports,
     if (in_weights) cover = new RCoverWeight(dataReader, &weights);
     else cover = new RCoverFreq(dataReader); // non-weighted cover
 
-    string out = "(nFeats, nTransactions) : ( " + to_string(dataReader->getNAttributes()) + ", " + to_string(dataReader->getNTransactions()) + " )\n";
-    out += "Class Distribution: ";
-    forEachClass(i) {
-        if (i == nclasses - 1) out += to_string(i) + ":" + custom_to_str(dataReader->getSupports()[i]);
-        else out += to_string(i) + ":" + custom_to_str(dataReader->getSupports()[i]) + ", ";
-    }
-    out += "\nmaxdepth: " + to_string(maxdepth) + " --- minsup: " + to_string(minsup) + "\n";
-    if (from_cpp) { cout << out; out = ""; }
-
     Search_base *searcher;
     Solution *solution;
     NodeDataManager *nodeDataManager;
     if (with_cache) {
         if (cache_type == CacheHashCover) {
+            out += "Storage key: Cover\n";
+            if (max_cache_size > NO_CACHE_LIMIT) out += "Cache limitation is not yet supported for cover-based caching\n";
             nodeDataManager = new NodeDataManager_Cover(cover, tids_error_class_callback_pointer, supports_error_class_callback_pointer, tids_error_callback_pointer);
             searcher = new Search_cover_cache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, cache, maxError <= 0 ? NO_ERR : maxError, useSpecial, maxError <= 0 ? false : stopAfterError, similarlb, dynamic_branching, similar_for_branching, from_cpp);
             solution = new Solution_Cover(searcher);
         }
         else {
+            out += "Storage key: Itemset\n";
+            if (max_cache_size > NO_CACHE_LIMIT) {
+                out += "Cache limit: " + to_string(max_cache_size) + " --- wipe factor: " + custom_to_str(wipe_factor) + "\n";
+                switch (wipe_type) {
+                    case Subnodes:
+                        out += "Wipe criterion: Subnodes\n";
+                        break;
+                    case Recall:
+                        out += "Wipe criterion: Recall\n";
+                        break;
+                    default:
+                        out += "Wipe criterion: All nodes\n";
+                }
+            }
             nodeDataManager = new NodeDataManager_Trie(cover, tids_error_class_callback_pointer, supports_error_class_callback_pointer, tids_error_callback_pointer);
             searcher = new Search_trie_cache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, cache, maxError <= 0 ? NO_ERR : maxError, useSpecial, maxError <= 0 ? false : stopAfterError, similarlb, dynamic_branching, similar_for_branching, from_cpp);
             solution = new Solution_Trie(searcher);
         }
+        if (from_cpp) { cout << out; out = ""; }
         searcher->run(); // perform the search
         Tree *tree_out = solution->getTree();
         tree_out->cacheSize = cache->getCacheSize();
@@ -110,6 +126,8 @@ string launch(ErrorVals supports,
 //        cout << out << endl;
     }
     else {
+        out += "Storage key: No cache";
+        if (from_cpp) { cout << out; out = ""; }
         nodeDataManager = new NodeDataManager_Trie(cover, tids_error_class_callback_pointer, supports_error_class_callback_pointer, tids_error_callback_pointer);
         searcher = new Search_nocache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit,nullptr, maxError <= 0 ? NO_ERR : maxError, useSpecial,maxError > 0 && stopAfterError, use_ub);
         searcher->run(); // perform the search

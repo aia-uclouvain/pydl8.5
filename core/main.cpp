@@ -81,19 +81,56 @@ int main(int argc, char *argv[]) {
     Config configuration;
     int maxdepth, minsup;
     Size cache_size;
+    float wipe_factor;
+    WipeType wipe_type;
+    CacheType cache_type;
 
-    if (cli){
+    if (cli) {
 //        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/tic-tac-toe.txt";
-         datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/anneal.txt";
-//         datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/kr-vs-kp.txt";
+//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/kr-vs-kp.txt";
 //        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/yeast.txt";
 //        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/tests/paper.txt";
+        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/anneal.txt";
         maxdepth = (argc > 2) ? std::stoi(argv[2]) : 5;
         cache_size = (argc > 3) ? std::stoi(argv[3]) : NO_CACHE_LIMIT;
-        // cache_size = (argc > 3) ? std::stoi(argv[3]) : 1000000;
-        configuration = (argc > 4 and std::string(argv[4]).find('b') == 0) ? basic : optimized;
-//        configuration = (argc > 4 and std::string(argv[4]).find('b') == 0) ? basic : basic;
-        minsup = (argc > 5) ? std::stoi(argv[5]) : 1;
+        wipe_factor = (argc > 4) ? std::stof(argv[4]) : 0.4f;
+        if (argc > 5) {
+            string type = std::string(argv[5]);
+            char first = char(std::tolower(type.at(0)));
+            switch (first) {
+                case 'r':
+                    wipe_type = Recall;
+                    break;
+                case 's':
+                    wipe_type = Subnodes;
+                    break;
+                case 'a':
+                    wipe_type = All;
+                    break;
+                default:
+                    wipe_type = Subnodes;
+            }
+        }
+        else wipe_type = Subnodes;
+
+        if (argc > 6) {
+            string type = std::string(argv[6]);
+            char first = char(std::tolower(type.at(0)));
+            switch (first) {
+                case 'c':
+                    cache_type = CacheHashCover;
+                    break;
+                case 't':
+                    cache_type = CacheTrie;
+                    break;
+                default:
+                    cache_type = CacheTrie;
+            }
+        }
+        else cache_type = CacheTrie;
+
+        configuration = (argc > 7 and std::string(argv[7]).find('b') == 0) ? basic : optimized;
+        minsup = (argc > 8) ? std::stoi(argv[8]) : 1;
     }
     else {
         datasetPath = "../../datasets/anneal.txt";
@@ -101,40 +138,17 @@ int main(int argc, char *argv[]) {
         configuration = optimized;
         maxdepth = 5;
         minsup = 1;
+        wipe_factor = 0.4f;
     }
 
-    CacheType cache_type;
-    WipeType wipe_type;
-    float wipe_factor;
-    bool with_cache, use_special_algo, verb, use_ub, sim_lb, dyn_branch, similar_for_branching;
+    bool with_cache = true;
+    bool verb = false;
+    bool use_ub = true;
+//    bool with_cache = false;
+//    bool verb = true;
+//    bool use_ub = false;
 
-
-    cache_type = CacheTrie;
-//    cache_type = CacheHashCover;
-
-//    cache_size = NO_CACHE_LIMIT;
-//    cache_size = 50000;
-//    cache_size = 50;
-
-//cout << "ert" << endl;
-
-    wipe_type = Subnodes;
-//    wipe_type = Recall;
-    //wipe_type = All;
-
-    wipe_factor = .4f;
-
-    with_cache = true;
-//    with_cache = false;
-
-//    verb = true;
-    verb = false;
-
-    use_ub = true;
-//    use_ub = false;
-
-
-
+    bool use_special_algo, sim_lb, dyn_branch, similar_for_branching;
     switch (configuration) {
         case basic:
             use_special_algo = false;
@@ -155,6 +169,15 @@ int main(int argc, char *argv[]) {
             similar_for_branching = true;
     }
 
+//    cache_type = CacheHashCover;
+//    wipe_type = All;
+//    use_special_algo = false;
+//    sim_lb = false;
+//    dyn_branch = false;
+//    similar_for_branching = false;
+//    wipe_factor = .4f;
+//    cache_size = 50000;
+
     ifstream dataset(datasetPath);
 
     if (not dataset) {
@@ -162,7 +185,6 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
-//    ifstream dataset(datasetPath);
     map<Class, ErrorVal> supports_map; // for each class, compute the number of transactions (support)
     vector<Class> target; //data is a flatten 2D-array containing the values of features matrix while target is the array of target
 

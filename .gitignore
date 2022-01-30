@@ -14,6 +14,8 @@ doc/generated
 
 .ipynb_checkpoints/
 
+tests/
+
 datasets/boosting/eharmony/
 datasets/boosting/mnist/
 datasets/boosting/usps/

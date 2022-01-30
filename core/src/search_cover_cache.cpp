@@ -543,7 +543,7 @@ void Search_cover_cache::run() {
     ncall = 0; comptime = 0; spectime = 0;*/
 
 //    std::cout << endl;
-    std::cout << "final error: " << cache->root->data->error << endl;
+//    std::cout << "final error: " << cache->root->data->error << endl;
 //    cout << "pi " << ((CoverNodeData*)cache->root->data)->test << " " << ((CoverNodeData*)cache->root->data)->error << endl;
 //    cout << "pi " << ((CoverNodeData*)cache->root->data)->test << " " << ((CoverNodeData*)cache->root->data)->error << " " << ((CoverNodeData*)cache->root->data)->left->data->error << " " << ((CoverNodeData*)cache->root->data)->right->data->error << endl;
 

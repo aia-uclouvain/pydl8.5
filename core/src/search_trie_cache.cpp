@@ -605,15 +605,18 @@ void Search_trie_cache::run() {
     if (cache->maxcachesize > NO_CACHE_LIMIT) {
         cout << "Tree already found with error = " << cache->root->data->error << ". Trying to reconstitute the wiped subtrees" << endl;
         cout << "===============================================================================" << endl;
-//        rSubtrees(cache->root, itemset);
+//        Itemset unsorted = itemset;
+//        rSubtrees(cache->root, itemset, unsorted);
 //        cout << endl << endl;
+        auto rtime = chrono::high_resolution_clock::now();
         while(not isTreeComplete(cache->root, itemset)) {
 //            cout << "coucou" << endl;
-            retrieveWipedSubtrees(cache->root, itemset, NO_ITEM, attributes_to_visit, 0, 0, FLT_MAX);
+            retrieveWipedSubtrees(cache->root, itemset, NO_ITEM, attributes_to_visit, 0, FLT_MAX, 0);
         }
+        cout << "Reconstitution time : "  << duration<float>(high_resolution_clock::now() - rtime).count() << endl;
 //        cout << endl;
 //        cout << endl;
-//        rSubtrees(cache->root, itemset);
+//        rSubtrees(cache->root, itemset, unsorted);
 //        cout << endl;
 //        exit(0);
     }
@@ -648,7 +651,13 @@ void Search_trie_cache::retrieveWipedSubtrees(Node *node, const Itemset &itemset
         SimilarVals sdb1, sdb2;
         node->data->lowerBound = lb;
         node->data->error = FLT_MAX;
+//        cout << "launch dl85 : ";
+//        printItemset(itemset, true);
+//        cout << "lb : " << node->data->lowerBound << " ub : " << ub << endl;
         node = recurse(itemset, last_added, node, true, next_succ, depth, ub, sdb1, sdb2).first;
+//        cout << "result : " << node->data->test << endl;
+//        Node* tt = cache->get(addItem(itemset, item(attr, NEG_ITEM)));
+//        cout << tt << endl;
 //        verbose = false;
 //        cout << "end launch" << endl;
     }
@@ -662,7 +671,6 @@ void Search_trie_cache::retrieveWipedSubtrees(Node *node, const Itemset &itemset
                 if (attribute != item_attribute(last_added)) next_attributes.push_back(attribute);
             }
         }
-
 
         Error upperb, left_lb, right_lb;
 
@@ -679,22 +687,25 @@ void Search_trie_cache::retrieveWipedSubtrees(Node *node, const Itemset &itemset
             left_lb = 0;
         }
 
+//        cout << "left lb : " << left_lb << " ub : " << upperb << endl;
+
         nodeDataManager->cover->intersect(attr, NEG_ITEM);
         retrieveWipedSubtrees(children_node[NEG_ITEM], children_itemset[NEG_ITEM], item(attr, NEG_ITEM), next_attributes, depth + 1, upperb, left_lb);
         nodeDataManager->cover->backtrack();
 
         if (children_node[1]->data != nullptr) {
             right_lb = children_node[1]->data->error;
-            ub = right_lb + 1;
+            upperb = right_lb + 1;
         }
         else if (children_node[0]->data != nullptr) {
             right_lb = node->data->error - children_node[0]->data->error;
-            ub = right_lb + 1;
+            upperb = right_lb + 1;
         }
         else {
-            ub = node->data->error;
+            upperb = node->data->error;
             right_lb = 0;
         }
+//        cout << "right lb : " << right_lb << " ub : " << upperb << endl;
 
         nodeDataManager->cover->intersect(attr, POS_ITEM);
         retrieveWipedSubtrees(children_node[POS_ITEM], children_itemset[POS_ITEM], item(attr, POS_ITEM), next_attributes, depth + 1, upperb, right_lb);
@@ -703,8 +714,9 @@ void Search_trie_cache::retrieveWipedSubtrees(Node *node, const Itemset &itemset
 
 }
 
-void Search_trie_cache::rSubtrees(Node *node, const Itemset &itemset) {
-    printItemset(itemset, true);
+void Search_trie_cache::rSubtrees(Node *node, const Itemset &itemset, Itemset &unsorted) {
+//    printItemset(itemset, true);
+    printItemset(unsorted, true);
     // backtrack when leaf node is encountered
     if (node->data->test < 0) {
 //    if (node == nullptr) {
@@ -719,25 +731,31 @@ void Search_trie_cache::rSubtrees(Node *node, const Itemset &itemset) {
 //    printItemset(children_itemset[1], true);
     Node* children_node[2] = {cache->get(children_itemset[0]), cache->get(children_itemset[1])};
 
+    unsorted.push_back(item(attr, NEG_ITEM));
     if (children_node[0] == nullptr) {
 //        cout << "left wiped " ;
-        printItemset(children_itemset[0], true, false);
+//        printItemset(children_itemset[0], true, false);
+        printItemset(unsorted, true, false);
         cout << "left wiped " << endl ;
     }
     else {
 //        cout << "left: ";
-        rSubtrees(children_node[0], children_itemset[0]);
+        rSubtrees(children_node[0], children_itemset[0], unsorted);
     }
+    unsorted.pop_back();
 
+    unsorted.push_back(item(attr, POS_ITEM));
     if (children_node[1] == nullptr) {
 //        cout << "right wiped " ;
-        printItemset(children_itemset[1], true, false);
+//        printItemset(children_itemset[1], true, false);
+        printItemset(unsorted, true, false);
         cout << "right wiped " << endl ;
     }
     else {
 //        cout << "right: ";
-        rSubtrees(children_node[1], children_itemset[1]);
+        rSubtrees(children_node[1], children_itemset[1], unsorted);
     }
+    unsorted.pop_back();
 }
 
 bool Search_trie_cache::isTreeComplete(Node* node, const Itemset &itemset) {
@@ -750,7 +768,7 @@ bool Search_trie_cache::isTreeComplete(Node* node, const Itemset &itemset) {
     Node* children_node[2] = {cache->get(children_itemset[0]), cache->get(children_itemset[1])};
 
     for (auto item_val : {NEG_ITEM, POS_ITEM}) {
-        if (children_node[item_val] == nullptr) return false;
+        if (children_node[item_val] == nullptr or children_node[item_val]->data == nullptr) return false;
         else {
             if (not isTreeComplete(children_node[item_val], children_itemset[item_val])) return false;
         }

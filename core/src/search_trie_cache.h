@@ -7,6 +7,7 @@
 //#include "solution.h"
 #include "search_base.h"
 #include "nodeDataManager_Trie.h"
+#include <chrono>
 //#include "depthTwoComputer.h"
 //#include "cache_trie.h"
 
@@ -72,7 +73,7 @@ private:
     void updateSimilarLBInfo2(NodeData *node_data, SimilarVals &similar_db1, SimilarVals &similar_db2);
     void retrieveWipedSubtrees(Node *node, const Itemset &itemset, Item last_added, Attributes &attributes, Depth depth, Error ub, Error lb);
     bool isTreeComplete(Node* node, const Itemset &itemset);
-    void rSubtrees(Node *node, const Itemset &itemset);
+    void rSubtrees(Node *node, const Itemset &itemset, Itemset &unsorted);
 };
 
 #endif
