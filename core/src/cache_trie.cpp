@@ -55,6 +55,21 @@ bool sortDecOrder(pair<TrieNode *, Itemset> &pair1, pair<TrieNode *, Itemset> &p
     return node1->n_subnodes > node2->n_subnodes;
 }
 
+/* bool sortReuseDecOrder(pair<TrieNode *, Itemset> &pair1, pair<TrieNode *, Itemset> &pair2) {
+    const auto node1 = pair1.first, node2 = pair2.first;
+
+    if (node1->is_used && not node2->is_used) return true; // place node1 to left (high value) when it belongs to a potential optimal path
+    if (not node1->is_used && node2->is_used) return false; // same for the node2
+
+    if (node1->depth != node2->depth) return node1->depth < node2->depth;
+
+    // sort from highest reuse to lowest ones. It will be looped for end (lowest) to start (highest)
+    return node1->n_reuse > node2->n_reuse;
+    // in case reuse is equal for node1 and node2, compare depths
+    // loop in depths from bigger to lower, so sorted in increasing order
+    // return node1->depth < node2->depth;
+} */
+
 bool sortReuseDecOrder(pair<TrieNode *, Itemset> &pair1, pair<TrieNode *, Itemset> &pair2) {
     const auto node1 = pair1.first, node2 = pair2.first;
 
@@ -63,7 +78,8 @@ bool sortReuseDecOrder(pair<TrieNode *, Itemset> &pair1, pair<TrieNode *, Itemse
 
     // sort from highest reuse to lowest ones. It will be looped for end (lowest) to start (highest)
     if (node1->n_reuse != node2->n_reuse) return node1->n_reuse > node2->n_reuse;
-    // in case reuse is equal for node1 and node2, compare depths
+    
+    // in case reuse is equal for node1 and node2 (itemset with more than one non-exiting item), compare depths
     // loop in depths from bigger to lower, so sorted in increasing order
     return node1->depth < node2->depth;
 }
@@ -151,13 +167,19 @@ TrieNode *Cache_Trie::addNonExistingItemsetPart(Itemset &itemset, int pos, vecto
 //            heap.push_back(make_pair(child_node, parent_node));
             //heap.push_back(child_node);
 
-//            if(its.size() == 5 and its.at(0) == 9 and its.at(1) == 120 and its.at(2) == 124 and its.at(3) == 156) {
-//                cout << "created parrri " << child_node << endl;
-//                if(itemset.size() == 5 and itemset.at(0) == 9 and itemset.at(1) == 120 and itemset.at(2) == 124 and itemset.at(3) == 156) {
-//                    cout << "meme" << endl;
-//                }
-//                else cout << "chemin" << endl;
-//            }
+// if(itemset.size() == 4 and itemset.at(0) == 6 and itemset.at(1) == 11 and itemset.at(2) == 19 and itemset.at(3) == 22) {
+//            cout << "coucouAAAAAAA del del" << endl;
+//         }
+        //    if(its.size() == 4 and its.at(0) == 6 and its.at(1) == 11 and its.at(2) == 19 and its.at(3) == 22) {
+        //     //    cout << "created parrri " << child_node << endl;
+        //        if(itemset.size() == 4 and itemset.at(0) == 6 and itemset.at(1) == 11 and itemset.at(2) == 19 and itemset.at(3) == 22) {
+        //            cout << "meme" << endl;
+        //        }
+        //        else {
+        //            cout << "chemin" << endl;
+        //            printItemset(itemset, true);
+        //        }
+        //    }
 //
 //
 //            if(its.size() == 5 and its.at(0) == 9 and its.at(1) == 120 and its.at(2) == 124 and its.at(3) == 156 and its.at(4) == 173) {
@@ -219,6 +241,12 @@ pair<Node *, bool> Cache_Trie::insert(Itemset &itemset) {
             // create path representing the part of the itemset not yet present in the trie.
             TrieNode *last_inserted_node = addNonExistingItemsetPart(itemset, i, geqEdge_it, cur_node);
             Logger::showMessageAndReturn("");
+
+            // if(itemset.size() == 5 and itemset.at(0) == 6 and itemset.at(1) == 11 and itemset.at(2) == 19 and itemset.at(3) == 22 and itemset.at(4) == 55) {
+            //        Itemset ii1{6,11,19,22};
+            //        auto nono = get(ii1);
+            //        cout << "baba " << nono->data << endl;
+            //    }
 
             return {last_inserted_node, true};
         } else {
@@ -499,9 +527,9 @@ void Cache_Trie::wipe() {
         TrieNode *node_del = it->first;
         Itemset itemset = it->second;
 
-//        if(itemset.size() == 4 and itemset.at(0) == 5 and itemset.at(1) == 8 and itemset.at(2) == 27 and itemset.at(3) == 41) {
-//            cout << "coucouAAAAAAA del del" << endl;
-//        }
+    //    if(itemset.size() == 4 and itemset.at(0) == 6 and itemset.at(1) == 11 and itemset.at(2) == 19 and itemset.at(3) == 22) {
+    //        cout << "coucouAAAAAAA del del" << endl;
+    //     }
 
 //        if (it->first == a) cout << "found 9,120,124,156" << endl;
 //        if (it->first == b) cout << "found 9,120,124,156,173" << endl;

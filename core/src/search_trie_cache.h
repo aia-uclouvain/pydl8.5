@@ -68,10 +68,11 @@ private:
     float informationGain (ErrorVals notTaken, ErrorVals taken);
     Node *getSolutionIfExists(Node *node, Error ub, Depth depth, const Itemset &itemset);
     Node* inferSolutionFromLB(Node *node, Error ub);
-    Error computeSimilarityLB(SimilarVals &similar_db1, SimilarVals &similar_db2);
-    void updateSimilarLBInfo1(NodeData *node_data, SimilarVals &highest_error_db, SimilarVals &highest_coversize_db);
-    void updateSimilarLBInfo2(NodeData *node_data, SimilarVals &similar_db1, SimilarVals &similar_db2);
-    void retrieveWipedSubtrees(Node *node, const Itemset &itemset, Item last_added, Attributes &attributes, Depth depth, Error ub, Error lb);
+    Error computeSimilarityLB(SimilarVals &similar_db1, SimilarVals &similar_db2, bool quiet = true);
+    bool updateSimilarLBInfo1(NodeData *node_data, SimilarVals &highest_error_db, SimilarVals &highest_coversize_db);
+    bool updateSimilarLBInfo2(NodeData *node_data, SimilarVals &similar_db1, SimilarVals &similar_db2);
+    void retrieveWipedSubtrees(Node *node, const Itemset &itemset, Item last_added, Attributes &attributes, Depth depth);
+    // void retrieveWipedSubtrees(Node *node, const Itemset &itemset, Item last_added, Attributes &attributes, Depth depth, Error ub, Error lb);
     bool isTreeComplete(Node* node, const Itemset &itemset);
     void rSubtrees(Node *node, const Itemset &itemset, Itemset &unsorted);
 };

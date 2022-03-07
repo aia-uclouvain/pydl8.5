@@ -195,8 +195,8 @@ Error computeDepthTwo(RCover* cover,
                       bool cachecover) {
 
 
-//    if (ub <= lb){ // infeasible case. Avoid computing useless solution
-    if (ub <= lb and node->data->test >= 0){ // infeasible case. Avoid computing useless solution
+   if (ub <= lb){ // infeasible case. Avoid computing useless solution
+    // if (ub <= lb and node->data->test >= 0){ // infeasible case. Avoid computing useless solution
         node->data = nodeDataManager->initData(); // no need to update the error
         Logger::showMessageAndReturn("infeasible case. ub = ", ub, " lb = ", lb);
         return node->data->error;

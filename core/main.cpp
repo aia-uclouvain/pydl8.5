@@ -148,6 +148,8 @@ int main(int argc, char *argv[]) {
 //    bool verb = true;
 //    bool use_ub = false;
 
+// cout << "print bounds" << endl;
+
     bool use_special_algo, sim_lb, dyn_branch, similar_for_branching;
     switch (configuration) {
         case basic:
@@ -169,14 +171,15 @@ int main(int argc, char *argv[]) {
             similar_for_branching = true;
     }
 
-//    cache_type = CacheHashCover;
-//    wipe_type = All;
-//    use_special_algo = false;
-//    sim_lb = false;
-//    dyn_branch = false;
-//    similar_for_branching = false;
-//    wipe_factor = .4f;
-//    cache_size = 50000;
+    // datasetPath = "../../datasets/primary-tumor.txt";
+    // cache_type = CacheHashCover;
+    // wipe_type = All;
+    // use_special_algo = false;
+    // sim_lb = false;
+    // dyn_branch = false;
+    // similar_for_branching = false;
+    // wipe_factor = .3f;
+    // cache_size = 2000;
 
     ifstream dataset(datasetPath);
 

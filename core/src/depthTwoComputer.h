@@ -42,14 +42,14 @@ struct TreeTwo{
         if (root_data == nullptr) return;
 
         if (root_data->left != nullptr){
-            if (root_data->left != nullptr) delete root_data->left->left;
-            if (root_data->left != nullptr) delete root_data->left->right;
+            delete root_data->left->left;
+            delete root_data->left->right;
             delete root_data->left;
         }
 
         if (root_data->right != nullptr){
-            if (root_data->right != nullptr) delete root_data->right->left;
-            if (root_data->right != nullptr) delete root_data->right->right;
+            delete root_data->right->left;
+            delete root_data->right->right;
             delete root_data->right;
         }
 
