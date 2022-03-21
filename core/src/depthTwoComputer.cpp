@@ -95,39 +95,54 @@ void addTreeToCache(DepthTwo_NodeData* node_data,  const Itemset &itemset, Cache
     }
 }
 
-void addTreeToCache(Node* node, NodeDataManager* ndm, Cache* cache){
-    auto* node_data = node->data;
+void addTreeToCache(Node* node, NodeDataManager* ndm, Cache* cache, Depth depth) {
+    
+    auto* node_data = (CoverNodeData*)node->data;
+    // cout << "toc " << node_data << endl;
 
-    if ( ((CoverNodeData*)node_data)->left != nullptr and ((CoverNodeData*)node_data)->left->data ) {
+    // cout << "coucouoo " << ((CoverNodeData*)node_data)->left <<  endl;
+
+    if ( ((DepthTwo_NodeData*) (node_data->left)) != nullptr ) {
+        //  cout << "left exists. split feat is " << node_data->test << endl;
 
         ndm->cover->intersect(node_data->test, NEG_ITEM);
-        pair<Node *, bool> res_left = cache->insert(ndm);
+        pair<Node *, bool> res_left = cache->insert(ndm, depth);
         Node *node_left = res_left.first;
         if (res_left.second) {
-//            node_left->data = new CoverNodeData();
-//            *((CoverNodeData*)node_left->data) = *(((DepthTwo_NodeData*)node_data)->left);
-            node_left->data = new CoverNodeData(*(((DepthTwo_NodeData*)node_data)->left));
+           node_left->data = new CoverNodeData();
+           *((CoverNodeData*)node_left->data) = *((DepthTwo_NodeData*)(node_data->left));
+            // node_left->data = new CoverNodeData(*((DepthTwo_NodeData*)(node_data->left)));
         }
-        else *((CoverNodeData*)node_left->data) = *(((DepthTwo_NodeData*)node_data)->left);
-        ((CoverNodeData*)node_data)->left = (HashCoverNode*)node_left;
-        addTreeToCache(node_left, ndm, cache);
+        else *((CoverNodeData*)node_left->data) = *((DepthTwo_NodeData*)(node_data->left));
+        // cout << "left insert is " << node_left << " it's data is " << node_left->data << " -- " << node_left->data->test << ":" << node_left->data->error << endl;
+        node_data->left = (HashCoverNode*)node_left;
+        // cout << "left set is " << node_data->left << " it's data is " << node_data->left->data << " -- " << node_data->left->data->test << ":" << node_data->left->data->error << endl;
+        // cout << "bo " << ((CoverNodeData*)node_data)->left << endl;
+        // cout << "bo " << ((CoverNodeData*)node_data)->left->data->test << endl;
+        addTreeToCache(node_left, ndm, cache, depth + 1);
         ndm->cover->backtrack();
 
+        // cout << "right exists. split feat is " << node_data->test << endl;
         ndm->cover->intersect(node_data->test, POS_ITEM);
-        pair<Node *, bool> res_right = cache->insert(ndm);
+        pair<Node *, bool> res_right = cache->insert(ndm, depth);
         Node *node_right = res_right.first;
         if (res_right.second) {
 //            node_right->data = new CoverNodeData();
 //            *((CoverNodeData*)node_right->data) = *(((DepthTwo_NodeData*)node_data)->right);
-            node_right->data = new CoverNodeData(*(((DepthTwo_NodeData*)node_data)->right));
+            node_right->data = new CoverNodeData(*((DepthTwo_NodeData*)(node_data->right)));
         }
-        else *((CoverNodeData*)node_right->data) = *(((DepthTwo_NodeData*)node_data)->right);
+        else *((CoverNodeData*)node_right->data) = *((DepthTwo_NodeData*)(node_data->right));
+        //  cout << "right insert is " << node_right << " it's data is " << node_right->data << " -- " << node_right->data->test << ":" << node_right->data->error << endl;
         ((CoverNodeData*)node_data)->right = (HashCoverNode*)node_right;
-        addTreeToCache(node_right, ndm, cache);
+        // cout << "right set is " << node_data->right << " it's data is " << node_data->right->data << " -- " << node_data->right->data->test << ":" << node_data->right->data->error << endl;
+        addTreeToCache(node_right, ndm, cache, depth + 1);
         ndm->cover->backtrack();
 
         //cache->updateParents(node, node_left, node_right);
     }
+    // else {
+    //      cout << "no more child" << endl;
+    // }
 }
 
 
@@ -626,20 +641,33 @@ Error computeDepthTwo(RCover* cover,
         }
 
         if (cachecover) {
+            // cout << "dsffi " << best_tree->root_data->left << endl;
+            // cout << "node test " << ((CoverNodeData*)node->data)->test << " " << node << " " << (CoverNodeData*)node->data << endl;
             *((CoverNodeData*)node->data) = *(best_tree->root_data);
+            // cout << "node test " << ((CoverNodeData*)node->data)->test << " " << node << " " << (CoverNodeData*)node->data << endl;
+
+
+            // auto* node_data = node->data;
+
+    // cout << "qzdefcoucouoo " << ((CoverNodeData*)node_data)->left <<  endl;
+
 //            *(node->data) = *(best_tree->root_data);
 //            node->data = (NodeData *) best_tree->root_data;
 //            best_tree->root_data = nullptr;
 
-            if (itemset.size() == 4 and itemset.at(0) == 4 and itemset.at(1) == 29 and itemset.at(2) == 35 and itemset.at(3) == 47) {
-                cout << "check what is happening" << endl;
-            }
+            // if (itemset.size() == 4 and itemset.at(0) == 4 and itemset.at(1) == 29 and itemset.at(2) == 35 and itemset.at(3) == 47) {
+            //     cout << "check what is happening" << endl;
+            // }
 
-            addTreeToCache(node, nodeDataManager, cache);
+            addTreeToCache(node, nodeDataManager, cache, searcher->maxdepth - 2 + 1);
+            // cout << "rt " << node->data->test << endl;
+            // cout << "node test " << ((CoverNodeData*)node->data)->test << " " << node << " " << (CoverNodeData*)node->data << endl;
+            // cout << "rt " << ((CoverNodeData*)node->data)->left << endl;
+            // cout << "rt " << ((CoverNodeData*)node->data)->left->data->test << endl;
 
-            if (itemset.size() == 4 and itemset.at(0) == 4 and itemset.at(1) == 29 and itemset.at(2) == 35 and itemset.at(3) == 47) {
-                cout << "check what is happening after add" << endl;
-            }
+            // if (itemset.size() == 4 and itemset.at(0) == 4 and itemset.at(1) == 29 and itemset.at(2) == 35 and itemset.at(3) == 47) {
+            //     cout << "check what is happening after add" << endl;
+            // }
 
         }
         else {

@@ -44,7 +44,9 @@ NodeData *NodeDataManager_Trie::initData(RCover *cov, Depth currentMaxDepth, int
 //    float maxclass = -1;
     Error error;
 
-    auto *data = new NodeData();
+    // auto *data = new NodeData();
+    auto *data = new TrieNodeData();
+    // auto *data = new TrieNodeData();
 
     if (cov == nullptr) cov = cover;
 

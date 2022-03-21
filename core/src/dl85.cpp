@@ -76,6 +76,9 @@ string launch(ErrorVals supports,
         case CacheHashCover:
             cache = new Cache_Hash_Cover(maxdepth, wipe_type, max_cache_size, wipe_factor);
             break;
+        case CacheHashItemset:
+            cache = new Cache_Hash_Itemset(maxdepth, wipe_type, max_cache_size, wipe_factor);
+            break;
         default:
             cache = new Cache_Trie(maxdepth, wipe_type, max_cache_size, wipe_factor);
             //cout << "caching with trie limited to " << max_cache_size << " elements" << endl;
@@ -99,20 +102,27 @@ string launch(ErrorVals supports,
             solution = new Solution_Cover(searcher);
         }
         else {
-            out += "Storage key: Itemset\n";
-            if (max_cache_size > NO_CACHE_LIMIT) {
-                out += "Cache limit: " + to_string(max_cache_size) + " --- wipe factor: " + custom_to_str(wipe_factor) + "\n";
-                switch (wipe_type) {
-                    case Subnodes:
-                        out += "Wipe criterion: Subnodes\n";
-                        break;
-                    case Recall:
-                        out += "Wipe criterion: Recall\n";
-                        break;
-                    default:
-                        out += "Wipe criterion: All nodes\n";
+            if (cache_type == CacheHashItemset) {
+                out += "Storage key: Hash Itemset\n";
+                if (max_cache_size > NO_CACHE_LIMIT) out += "Cache limitation is not yet supported for hashtable-based caching\n";
+            }
+            else if (cache_type == CacheTrie) {
+                out += "Storage key: Itemset\n";
+                if (max_cache_size > NO_CACHE_LIMIT) {
+                    out += "Cache limit: " + to_string(max_cache_size) + " --- wipe factor: " + custom_to_str(wipe_factor) + "\n";
+                    switch (wipe_type) {
+                        case Subnodes:
+                            out += "Wipe criterion: Subnodes\n";
+                            break;
+                        case Recall:
+                            out += "Wipe criterion: Recall\n";
+                            break;
+                        default:
+                            out += "Wipe criterion: All nodes\n";
+                    }
                 }
             }
+            
             nodeDataManager = new NodeDataManager_Trie(cover, tids_error_class_callback_pointer, supports_error_class_callback_pointer, tids_error_callback_pointer);
             searcher = new Search_trie_cache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, cache, maxError <= 0 ? NO_ERR : maxError, useSpecial, maxError <= 0 ? false : stopAfterError, similarlb, dynamic_branching, similar_for_branching, from_cpp);
             solution = new Solution_Trie(searcher);

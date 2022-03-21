@@ -1,13 +1,12 @@
-#include "cache_hash_cover.h"
-#include "nodeDataManager_Cover.h"
+#include "cache_hash_itemset.h"
+// #include "nodeDataManager_Cover.h"
 
 using namespace std;
 
-Cache_Hash_Cover::Cache_Hash_Cover(Depth maxdepth, WipeType wipe_type, int maxcachesize, float wipe_factor) :
-        Cache(maxdepth, wipe_type, maxcachesize), wipe_factor( wipe_factor) {
-    root = new HashCoverNode();
-    store = new unordered_map<MyCover, HashCoverNode *>[maxdepth];
-    if (write_stats) myfile.open (dataname + "_d" + std::to_string(maxdepth) + "_h_cover.txt", ios::out);
+Cache_Hash_Itemset::Cache_Hash_Itemset(Depth maxdepth, WipeType wipe_type, int maxcachesize, float wipe_factor) : Cache(maxdepth, wipe_type, maxcachesize), wipe_factor( wipe_factor) {
+    root = new HashItemsetNode();
+    if (write_stats) myfile.open (dataname + "_d" + std::to_string(maxdepth) + "_h_itemset.txt", ios::out);
+    //store = unordered_map<Itemset, HashItemsetNode *>();
 
 //    if (this->maxcachesize > NO_CACHE_LIMIT) {
 ////        heap = new vector<pair<const unordered_map<MyCover, HashCoverNode*>::iterator*, Itemset>>[maxdepth];
@@ -20,7 +19,32 @@ Cache_Hash_Cover::Cache_Hash_Cover(Depth maxdepth, WipeType wipe_type, int maxca
 
 }
 
-pair<Node *, bool> Cache_Hash_Cover::insert(NodeDataManager *nodeDataManager, int depth, Itemset itemset) {
+pair<Node *, bool> Cache_Hash_Itemset::insert(Itemset &itemset) {
+    // cout << "hahaha" << endl;
+    if (itemset.empty()) {
+        cachesize++;
+        return {root, true};
+    }
+
+    auto *node = new HashItemsetNode();
+    // pair<const unordered_map<Itemset, HashItemsetNode*>::iterator, bool> info = store.insert({itemset, node});
+    auto info = store.insert({itemset, node});
+    if (not info.second) { delete node; } // if node already exists
+
+    if (write_stats) {
+        std::chrono::time_point<std::chrono::high_resolution_clock> c_time = std::chrono::high_resolution_clock::now();
+        if (std::chrono::duration<float>(c_time - last_time).count() >= write_gap) {
+            myfile << std::chrono::duration<float>(c_time - init_time).count() << "," << getCacheSize() << "\n";
+            last_time = c_time;
+        }
+    }
+    
+
+    return {info.first->second, info.second};
+
+}
+
+/* pair<Node *, bool> Cache_Hash_Itemset::insert(Itemset &itemset) {
 //    for (int i = 0; i < maxdepth; ++i) {
 //        for (auto &e : heap[i]) {
 //            const unordered_map<MyCover, HashCoverNode*>::iterator* a = e.first;
@@ -28,7 +52,7 @@ pair<Node *, bool> Cache_Hash_Cover::insert(NodeDataManager *nodeDataManager, in
 //            if (b->second == nullptr) cout << "papapaap" << endl;
 //        }
 //    }
-    if (depth == 0) {
+    if (itemset.empty()) {
         cachesize++;
         return {root, true};
     } else {
@@ -38,10 +62,9 @@ pair<Node *, bool> Cache_Hash_Cover::insert(NodeDataManager *nodeDataManager, in
             wipe();
         }
 //        cout << "a" << endl;
-        auto *node = new HashCoverNode();
+        auto *node = new HashItemsetNode();
 //        cout << "a" << endl;
-        // pair<const unordered_map<MyCover, HashCoverNode*>::iterator&, bool> info = store[depth-1].insert({MyCover(nodeDataManager->cover), node});
-        auto info = store[depth-1].insert({MyCover(nodeDataManager->cover), node});
+        pair<const unordered_map<Itemset, HashItemsetNode*>::iterator&, bool> info = store.insert({itemset, node});
 //        pair<unordered_map<MyCover, HashCoverNode *>::iterator, bool> info = store[depth-1].insert({MyCover(nodeDataManager->cover), node});
 //        cout << "a" << endl;
         if (not info.second) { // if node already exists
@@ -68,32 +91,19 @@ pair<Node *, bool> Cache_Hash_Cover::insert(NodeDataManager *nodeDataManager, in
 //            if (maxcachesize > NO_CACHE_LIMIT) heap[depth-1].push_back(make_pair(info.first->second, itemset));
 //            if (maxcachesize > NO_CACHE_LIMIT) heap[depth-1].push_back(info.first->second);
         }
-
-        if (write_stats) {
-            std::chrono::time_point<std::chrono::high_resolution_clock> c_time = std::chrono::high_resolution_clock::now();
-            if (std::chrono::duration<float>(c_time - last_time).count() >= write_gap) {
-                myfile << std::chrono::duration<float>(c_time - init_time).count() << "," << getCacheSize() << "\n";
-                last_time = c_time;
-            }
-        }
-
         return {info.first->second, info.second};
         //if (cachesize >= maxcachesize && maxcachesize > 0) wipe(root);
     }
-}
+} */
 
-Node *Cache_Hash_Cover::get(NodeDataManager *nodeDataManager, int depth) {
-    auto it = store[depth-1].find(MyCover(nodeDataManager->cover));
-    if (it != store[depth-1].end()) return it->second;
+Node *Cache_Hash_Itemset::get(const Itemset &itemset) {
+    auto it = store.find(itemset);
+    if (it != store.end()) return it->second;
     else return nullptr;
 }
 
-int Cache_Hash_Cover::getCacheSize() {
-    int val = 0;
-    for (int i = 0; i < maxdepth; ++i) {
-        val += store[i].size();
-    }
-    return val;
+int Cache_Hash_Itemset::getCacheSize() {
+    return store.size() + 1;
 }
 
 /*bool sortReuseDecOrder(HashCoverNode *&node1, HashCoverNode *&node2) {

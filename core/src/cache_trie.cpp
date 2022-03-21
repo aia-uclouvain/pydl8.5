@@ -114,6 +114,7 @@ bool minHeapOrder(pair<TrieNode *, Itemset> &pair1, pair<TrieNode *, Itemset> &p
 
 Cache_Trie::Cache_Trie(Depth maxdepth, WipeType wipe_type, int maxcachesize, float wipe_factor) : Cache(maxdepth, wipe_type, maxcachesize), wipe_factor( wipe_factor) {
     root = new TrieNode;
+    if (write_stats) myfile.open (dataname + "_d" + std::to_string(maxdepth) + "_trie_itemset.txt", ios::out);
     if (maxcachesize > NO_CACHE_LIMIT) heap.reserve(maxcachesize - 1);
 }
 
@@ -248,6 +249,14 @@ pair<Node *, bool> Cache_Trie::insert(Itemset &itemset) {
             //        cout << "baba " << nono->data << endl;
             //    }
 
+            if (write_stats) {
+                std::chrono::time_point<std::chrono::high_resolution_clock> c_time = std::chrono::high_resolution_clock::now();
+                if (std::chrono::duration<float>(c_time - last_time).count() >= write_gap) {
+                    myfile << std::chrono::duration<float>(c_time - init_time).count() << "," << getCacheSize() << "\n";
+                    last_time = c_time;
+                }
+            }
+
             return {last_inserted_node, true};
         } else {
             if (i == 0) cur_node->n_reuse++; // root node
@@ -257,6 +266,14 @@ pair<Node *, bool> Cache_Trie::insert(Itemset &itemset) {
         }
     }
     Logger::showMessageAndReturn("");
+
+    if (write_stats) {
+        std::chrono::time_point<std::chrono::high_resolution_clock> c_time = std::chrono::high_resolution_clock::now();
+        if (std::chrono::duration<float>(c_time - last_time).count() >= write_gap) {
+            myfile << std::chrono::duration<float>(c_time - init_time).count() << "," << getCacheSize() << "\n";
+            last_time = c_time;
+        }
+    }
 
     if (cur_node->data == nullptr) return {cur_node, true};
     else return {cur_node, false};

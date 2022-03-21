@@ -108,10 +108,10 @@ int main(int argc, char *argv[]) {
                     wipe_type = All;
                     break;
                 default:
-                    wipe_type = Subnodes;
+                    wipe_type = Recall;
             }
         }
-        else wipe_type = Subnodes;
+        else wipe_type = Recall;
 
         if (argc > 6) {
             string type = std::string(argv[6]);
@@ -119,6 +119,9 @@ int main(int argc, char *argv[]) {
             switch (first) {
                 case 'c':
                     cache_type = CacheHashCover;
+                    break;
+                case 'i':
+                    cache_type = CacheHashItemset;
                     break;
                 case 't':
                     cache_type = CacheTrie;
@@ -200,7 +203,8 @@ int main(int argc, char *argv[]) {
     vector<Bool> data_flattened = getFlattenedData(data_per_feat, nfeatures);
     ErrorVals support_per_class = getSupportPerClassArray(supports_map);
 
-    cout << "dataset: " << datasetPath.substr(datasetPath.find_last_of('/') + 1,datasetPath.find_last_of('.') - datasetPath.find_last_of('/') - 1) << endl;
+    dataname = datasetPath.substr(datasetPath.find_last_of('/') + 1,datasetPath.find_last_of('.') - datasetPath.find_last_of('/') - 1);
+    cout << "dataset: " << dataname << endl;
 
     string result = launch(
             support_per_class, //supports

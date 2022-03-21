@@ -574,8 +574,11 @@ pair<Node*,HasInter> Search_trie_cache::recurse(const Itemset &itemset,
 
         // perform search on the first item
         itemsets[first_item] = addItem(itemset, item(attr, first_item), false);
+        // cout << "atten "  << endl;
         pair<Node*, bool> node_state = cache->insert(itemsets[first_item]);
+        // cout << "salut "  << endl;
         child_nodes[first_item] = node_state.get_node;
+        // cout << "fff " << node_state.first << endl;
         if (node_state.is_new) { // if new node
             nodeDataManager->cover->intersect(attr, first_item);
             child_nodes[first_item]->data = nodeDataManager->initData();
@@ -832,7 +835,7 @@ void Search_trie_cache::run() {
     //    cout << endl;
     //    cout << endl;
     //    rSubtrees(cache->root, itemset, unsorted);
-       cout << endl;
+    //    cout << endl;
 //        exit(0);
     }
 

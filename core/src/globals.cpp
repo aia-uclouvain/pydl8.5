@@ -5,6 +5,7 @@ std::chrono::time_point<std::chrono::high_resolution_clock> startTime = std::chr
 Class nclasses;
 Attribute nattributes;
 bool verbose = false;
+std::string dataname;
 
 ErrorVals newErrorVals () {
   return new ErrorVal[nclasses];

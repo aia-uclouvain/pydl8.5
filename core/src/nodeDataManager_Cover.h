@@ -32,8 +32,8 @@ struct CoverNodeData : NodeData {
         error = other.error;
         lowerBound = other.lowerBound;
         size = other.size;
-        left = nullptr;
-        right = nullptr;
+        left = (HashCoverNode*) other.left;
+        right = (HashCoverNode*) other.right;
         curr_left = nullptr;
         curr_right = nullptr;
     }
@@ -53,6 +53,8 @@ struct CoverNodeData : NodeData {
         test = other.test;
         error = other.error;
         size = other.size;
+        left = (HashCoverNode*) other.left;
+        right = (HashCoverNode*) other.right;
         return *this;
     }
 

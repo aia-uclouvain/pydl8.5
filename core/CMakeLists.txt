@@ -21,6 +21,8 @@ add_executable(dl85
 #        src/cache_hash.cpp
         src/cache_hash_cover.h
         src/cache_hash_cover.cpp
+        src/cache_hash_itemset.h
+        src/cache_hash_itemset.cpp
         src/cache_trie.h
         src/cache_trie.cpp
         src/dataManager.h

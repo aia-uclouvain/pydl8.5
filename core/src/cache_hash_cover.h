@@ -4,6 +4,7 @@
 //#include <cmath>
 #include <unordered_map>
 #include <unordered_set>
+// #include "globals.h"
 
 using namespace std;
 
@@ -39,7 +40,7 @@ struct HashCoverNode : public Node {
     }
 };
 
-struct MyCover{
+/* struct MyCover{
     unsigned long* cover;
     int nwords;
 
@@ -71,6 +72,40 @@ template<>
 struct std::equal_to<MyCover> {
     bool operator()(const MyCover& lhs, const MyCover& rhs) const noexcept {
         if (lhs.nwords != rhs.nwords) return false;
+        for (int i = 0; i < lhs.nwords; ++i) {
+            if (lhs.cover[i] != rhs.cover[i]) return false;
+        }
+        return true;
+    }
+}; */
+
+struct MyCover{
+    unsigned long* cover;
+    int nwords;
+
+    explicit MyCover(RCover* c){
+        nwords = c->nWords;
+        cover = new unsigned long[c->nWords];
+        for (int i = 0; i < c->nWords; ++i) {
+            cover[i] = c->coverWords[i].top().to_ulong();
+        }
+    }
+};
+
+template<>
+struct std::hash<MyCover> {
+    std::size_t operator()(const MyCover& array) const noexcept {
+        std::size_t h = array.nwords;
+        for (int i = 0; i < array.nwords; ++i) {
+            h ^= array.cover[i] + 0x9e3779b9 + 64 * h + h / 4;
+        }
+        return h;
+    }
+};
+
+template<>
+struct std::equal_to<MyCover> {
+    bool operator()(const MyCover& lhs, const MyCover& rhs) const noexcept {
         for (int i = 0; i < lhs.nwords; ++i) {
             if (lhs.cover[i] != rhs.cover[i]) return false;
         }

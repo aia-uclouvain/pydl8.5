@@ -27,6 +27,7 @@
 #include "solution_Cover.h"
 //#include "cache_hash.h"
 #include "cache_hash_cover.h"
+#include "cache_hash_itemset.h"
 #include "cache_trie.h"
 //#include "cache_trie.h"
 //#include "cache_priority.h"

@@ -53,6 +53,7 @@ extern Class nclasses;
 extern Attribute nattributes;
 extern bool verbose;
 extern std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
+extern std::string dataname;
 
 
 #define NO_SUP INT_MAX // SHRT_MAX
