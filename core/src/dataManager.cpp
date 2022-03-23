@@ -4,7 +4,7 @@
 
 #include "dataManager.h"
 
-DataManager::DataManager(Supports supports, int ntransactions, int nattributes, int nclasses, int *data, int *target, double *float_target, int backup_error):supports(supports), ntransactions(ntransactions), nattributes(nattributes), nclasses(nclasses), y(float_target), backup_error(backup_error) {
+DataManager::DataManager(Supports supports, int ntransactions, int nattributes, int nclasses, int *data, int *target, double *float_target, int backup_error, float q):supports(supports), ntransactions(ntransactions), nattributes(nattributes), nclasses(nclasses), backup_error(backup_error), q(q) {
     nclasses = (nclasses == 1) ? 2 : nclasses;
     nWords = (int)ceil((float)ntransactions/M);
     b = new bitset<M> *[nattributes];
@@ -60,6 +60,21 @@ DataManager::DataManager(Supports supports, int ntransactions, int nattributes, 
             }
             c[i] = classCov;
         }
+    } else if (float_target) {
+        // y = float_target;
+        y = new double [ntransactions];
+        for (int i = 0; i < nWords; ++i) {
+            for (int j = 0; j < M; j++) {
+                if (i == nWords - 1) {
+                    if (i*M +j >= ntransactions)
+                        break;
+                    y[i*M + j] = float_target[j];
+                } else {
+                    y[i*M + j] = float_target[ntransactions - (i+1)*M +j];
+                }           
+            }
+        }
+    
     } else {
         c = nullptr;
     }

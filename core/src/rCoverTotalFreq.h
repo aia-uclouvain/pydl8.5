@@ -6,7 +6,7 @@
 #define RSBS_RCOVER_TOTAL_FREQ_H
 
 #include "rCover.h"
-#include "Logger.h"
+#include "logger.h"
 
 class RCoverTotalFreq : public RCover {
 

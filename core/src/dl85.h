@@ -49,6 +49,7 @@ using namespace std;
  * @param infoAsc - boolean variable to set whether the sort based on information gain will be done increasingly or not. Default is true
  * @param repeatSort - boolean variable to set whether the sort is done at each node or not. If not, it is performed only at the beginning of the search. Default value is false
  * @param backup_error - integer value representing the default error to use if no user coded error is provided. Default is misclassification error.
+ * @param q - float value representing the quantile when the quantile loss is optimized.
  * @param timeLimit - the maximum time allocated for the search, expressed in seconds. Default value 0 means that there is no time limit
  * @param continuousMap - a value planned to handle continuous datasets. It is not used currently. Must be set to null
  * @param save - a value planned to handle continuous datasets. It is not used currently. Must be set to false
@@ -84,6 +85,7 @@ string search(Supports supports,
               bool infoAsc = true,
               bool repeatSort = false,
               int backup_error = MISCLASSIFICATION_ERROR,
+              float q = 0.5,
               int timeLimit = 0,
               bool verbose_param = false);
 

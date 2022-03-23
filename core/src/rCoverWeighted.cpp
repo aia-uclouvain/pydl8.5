@@ -33,7 +33,7 @@ void RCoverWeighted::intersect(Attribute attribute, bool positive) {
             sup_class[n] += r.first;
         }
 
-        if (word.none()){
+        if (word.none() && dm->getBackupError() != MISCLASSIFICATION_ERROR){
             int tmp = validWords[climit-1];
             validWords[climit-1] = validWords[i];
             validWords[i] = tmp;

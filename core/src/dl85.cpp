@@ -26,6 +26,7 @@ string search(Supports supports,
               bool infoAsc,
               bool repeatSort,
               int backup_error,
+              float q,
               int timeLimit,
               bool verbose_param) {
 
@@ -42,7 +43,7 @@ string search(Supports supports,
     verbose = verbose_param;
     string out = "";
 
-    auto *dataReader = new DataManager(supports, ntransactions, nattributes, nclasses, data, target, float_target, backup_error);
+    auto *dataReader = new DataManager(supports, ntransactions, nattributes, nclasses, data, target, float_target, backup_error, q);
 
 
     vector<float> weights;

@@ -103,7 +103,8 @@ class DL85Predictor(BaseEstimator):
             leaf_value_function=None,
             quiet=True,
             print_output=False, 
-            backup_error="misclassification"):
+            backup_error="misclassification",
+            quantile_value=0.5):
         self.max_depth = max_depth
         self.min_sup = min_sup
         self.sample_weight = []
@@ -118,6 +119,7 @@ class DL85Predictor(BaseEstimator):
         self.repeat_sort = repeat_sort
         self.leaf_value_function = leaf_value_function
         self.backup_error = backup_error
+        self.quantile_value = quantile_value
         self.quiet = quiet
         self.print_output = print_output
 
@@ -199,7 +201,8 @@ class DL85Predictor(BaseEstimator):
                                        verb=self.verbose,
                                        desc=self.desc,
                                        asc=self.asc,
-                                       repeat_sort=self.repeat_sort)
+                                       repeat_sort=self.repeat_sort,
+                                       quantile_value=self.quantile_value)
         # if self.print_output:
         #     print(solution)
 

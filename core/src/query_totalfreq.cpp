@@ -72,7 +72,7 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
             error = infos[0];
             maxclass = int(infos[1]);
         }
-        //default error
+        // backup error
         else {
             if (dm->getBackupError() == MISCLASSIFICATION_ERROR) {
                 LeafInfo ev = computeLeafInfo(cover);
@@ -80,6 +80,8 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
                 maxclass = ev.maxclass;
             } else if (dm->getBackupError() == MSE_ERROR) {
                 error = sse_tids_error(cover);
+            } else if (dm->getBackupError() == QUANTILE_ERROR) {
+                error = quantile_tids_error(cover);
             }
             
         }

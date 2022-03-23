@@ -1,8 +1,12 @@
 #ifndef PREDEFINED_ERROR_FUNCTIONS_H
 #define PREDEFINED_ERROR_FUNCTIONS_H
 
-#include "RCover.h"
+#include <math.h>
+#include "rCover.h"
 
-float sse_tids_error(RCover* cover);
+
+double sse_tids_error(RCover* cover);
+
+double quantile_tids_error(RCover* cover);
 
 #endif

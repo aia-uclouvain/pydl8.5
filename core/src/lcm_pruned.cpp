@@ -170,7 +170,7 @@ Array<Attribute> LcmPruned::getExistingSuccessors(TrieNode *node) {
 // compute the similarity lower bound based on the best ever seen node or the node with the highest coversize
 Error LcmPruned::computeSimilarityLowerBound(bitset<M> *b1_cover, bitset<M> *b2_cover, Error b1_error, Error b2_error) {
 //    return 0;
-    if (is_python_error) return 0;
+    if (is_python_error || default_is_not_misclassification) return 0;
     Error bound = 0;
     bitset<M>*covers[] = {b1_cover, b2_cover};
     Error errors[] = {b1_error, b2_error};

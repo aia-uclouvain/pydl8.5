@@ -18,7 +18,7 @@ class DataManager {
 public:
     int nWords;
 
-    DataManager(Supports supports, int ntransactions, int nattributes, int nclasses, int *b, int *c, double *y, int backup_error);
+    DataManager(Supports supports, int ntransactions, int nattributes, int nclasses, int *b, int *c, double *y, int backup_error, float q);
 
     ~DataManager(){
         for (int i = 0; i < nattributes; ++i) {
@@ -37,7 +37,11 @@ public:
 
     bitset<M> * getClassCover(int clas);
 
-    double * getY() const {return y;}
+    float getQ() const {return q;}
+
+    double getY(int idx) const {
+        return y[idx];
+    }
 
     /// get number of transactions
     int getNTransactions () const { return ntransactions; }
@@ -61,7 +65,8 @@ private:
     Attribute nattributes; /// number of features
     Class nclasses; /// number of classes
     Supports supports; /// array of support for each class
-    int backup_error;
+    int backup_error; // code of the backup error to use
+    float q; // value of the quantile when using quantile error
 
 };
 

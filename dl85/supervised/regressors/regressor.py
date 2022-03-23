@@ -1,6 +1,7 @@
 from sklearn.base import RegressorMixin
 from ...predictors.predictor import DL85Predictor
 import numpy as np
+from math import floor, ceil
 
 
 class DL85Regressor(DL85Predictor, RegressorMixin):
@@ -28,7 +29,10 @@ class DL85Regressor(DL85Predictor, RegressorMixin):
     print_output : bool, default=False
         A parameter used to indicate if the search output will be printed or not
     backup_error : str, default = "mse"
-        Error to optimize if no user error function is provided.
+        Error to optimize if no user error function is provided. Can be one of {"mse", "quantile"}
+    quantile_value: float, default = 0.5 
+        Quantile value. Only used when backup_error is "quantile"
+
     Attributes
     ----------
     tree_ : str
@@ -65,7 +69,8 @@ class DL85Regressor(DL85Predictor, RegressorMixin):
         repeat_sort=False,
         leaf_value_function=None,
         print_output=False,
-        backup_error = "mse"
+        backup_error = "mse",
+        quantile_value = 0.5,
     ):
 
         if backup_error not in ["mse", "quantile"]:
@@ -87,12 +92,19 @@ class DL85Regressor(DL85Predictor, RegressorMixin):
             leaf_value_function=leaf_value_function,
             print_output=print_output,
             backup_error=backup_error,
+            quantile_value=quantile_value,
         )
+
+        self.to_redefine = self.leaf_value_function is None
 
     
     @staticmethod
-    def mse_leaf_value(tids, y):
+    def mean_leaf_value(tids, y):
         return np.mean(y[list(tids)], axis=0)
+
+    @staticmethod
+    def quantile_leaf_value(tids, y, q):
+        return np.quantile(y[list(tids)], q)
 
     def fit(self, X, y):
         """Implements the standard fitting function for a DL8.5 regressor.
@@ -110,20 +122,30 @@ class DL85Regressor(DL85Predictor, RegressorMixin):
             Returns self.
         """
 
-        if self.leaf_value_function is None:
+        if self.backup_error == "quantile":
+            idx = np.argsort(y)
+        else:
+            idx = np.arange(len(y))
+
+        X = X[idx]
+        y = y[idx]
+
+        if self.to_redefine:
             if self.backup_error == "mse":
-                self.leaf_value_function = lambda tids: self.mse_leaf_value(tids, y)
+                self.leaf_value_function = lambda tids: self.mean_leaf_value(tids, y)
             elif self.backup_error == "quantile":
-                pass
+                self.leaf_value_function = lambda tids: self.quantile_leaf_value(tids, y, self.quantile_value)
+
+        
 
         # call fit method of the predictor
         DL85Predictor.fit(self, X, y)
 
-        # Return the classifier
+        # Return the regressor
         return self
 
     def predict(self, X):
-        """Implements the standard predict function for a DL8.5 classifier.
+        """Implements the standard predict function for a DL8.5 regressor.
         Parameters
         ----------
         X : array-like, shape (n_samples, n_features)
@@ -131,8 +153,7 @@ class DL85Regressor(DL85Predictor, RegressorMixin):
         Returns
         -------
         y : ndarray, shape (n_samples,)
-            The label for each sample is the label of the closest sample
-            seen during fit.
+            The predicted value for each sample is the mean of the closest samples seen during fit.
         """
 
         return DL85Predictor.predict(self, X)
