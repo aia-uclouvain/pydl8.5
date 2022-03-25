@@ -16,6 +16,14 @@ doc/generated
 
 tests/
 
+.vscode/
+
+
+datasets_noise/
+datasets_noise_30/
+datasets_noise_40/
+datasets_noise_50/
+
 datasets/boosting/eharmony/
 datasets/boosting/mnist/
 datasets/boosting/usps/
@@ -72,3 +80,6 @@ memory/
 
 mem_script.sh
 memory_plot.r
+
+dl85_memory.zip
+get_mem_generic.sh

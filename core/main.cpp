@@ -224,7 +224,7 @@ int main(int argc, char *argv[]) {
             true, //tids_error_class_is_null
             true, //supports_error_class_is_null
             true, //tids_error_is_null
-            false, //infoGain
+            true, //infoGain
             false, //infoAsc
             false, //repeatSort
             0, //timeLimit

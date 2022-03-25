@@ -252,7 +252,8 @@ pair<Node *, bool> Cache_Trie::insert(Itemset &itemset) {
             if (write_stats) {
                 std::chrono::time_point<std::chrono::high_resolution_clock> c_time = std::chrono::high_resolution_clock::now();
                 if (std::chrono::duration<float>(c_time - last_time).count() >= write_gap) {
-                    myfile << std::chrono::duration<float>(c_time - init_time).count() << "," << getCacheSize() << "\n";
+                    myfile << std::chrono::duration<float>(c_time - startTime).count() << "," << getCacheSize() << "\n";
+                    myfile.flush();
                     last_time = c_time;
                 }
             }
@@ -270,7 +271,8 @@ pair<Node *, bool> Cache_Trie::insert(Itemset &itemset) {
     if (write_stats) {
         std::chrono::time_point<std::chrono::high_resolution_clock> c_time = std::chrono::high_resolution_clock::now();
         if (std::chrono::duration<float>(c_time - last_time).count() >= write_gap) {
-            myfile << std::chrono::duration<float>(c_time - init_time).count() << "," << getCacheSize() << "\n";
+            myfile << std::chrono::duration<float>(c_time - startTime).count() << "," << getCacheSize() << "\n";
+            myfile.flush();
             last_time = c_time;
         }
     }
