@@ -47,26 +47,20 @@ struct Tree {
     string expression;
     int size;
     Depth depth;
-    Error* trainingErrors;
+    Error trainingError;
     int latSize;
     float searchRt;
     float accuracy;
     bool timeout;
 
 
-    string to_str(int n_quantiles) const {
+    string to_str() const {
         string out = "";
         out += "Tree: " + expression + "\n";
         if (expression != "(No such tree)") {
             out += "Size: " + to_string(size) + "\n";
             out += "Depth: " + to_string(depth) + "\n";
-            out += "Errors: [";
-            for (int i = 0; i < n_quantiles; i++) {
-                out += to_string(trainingErrors[i]);
-                if (i != n_quantiles -1) 
-                    out += ", ";
-            }
-            out += "]\n";
+            out += "Error: " + to_string(trainingError) + "\n";
             out += "Accuracy: " + to_string(accuracy) + "\n";
         }
         out += "LatticeSize: " + to_string(latSize) + "\n";
@@ -106,9 +100,9 @@ public:
 
     virtual LeafInfo computeLeafInfo(Supports itemsetSupport) = 0;
 
-    virtual bool updateData(QueryData *best, Error upperBound, Attribute attribute, QueryData *left, QueryData *right) = 0;
+    virtual bool updateData(QueryData *best, Error* upperBound, Attribute attribute, QueryData *left, QueryData *right, Error* minlb) = 0;
 
-    virtual void printResult(Tree *tree) = 0;
+    virtual void printResult(Tree *tree, int quantile_idx = 0) = 0;
 
     void setStartTime() { startTime = high_resolution_clock::now(); }
 

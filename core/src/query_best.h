@@ -6,36 +6,54 @@
 #include <vector>
 
 struct QueryData_Best {
-    Attribute test;
-    QueryData_Best *left, *right;
+    Attribute* tests;
+    QueryData_Best** lefts;
+    QueryData_Best** rights;
     Error* leafErrors;
     Error* errors;
     Error* lowerBounds;
-    Size size;
+    Size* sizes;
+    int n_quantiles;
 
-    QueryData_Best(int n_quantiles) {
-        test = -1;
-        left = nullptr;
-        right = nullptr;
+    QueryData_Best(int n_quantiles): n_quantiles(n_quantiles) {
+        tests = new Attribute[n_quantiles];
+        lefts = new QueryData_Best*[n_quantiles];
+        rights = new QueryData_Best*[n_quantiles];
         // leafError = FLT_MAX;
         // error = FLT_MAX;
         // lowerBound = 0;
-        leafErrors = new float[n_quantiles];
-        errors = new float[n_quantiles];
-        lowerBounds = new float[n_quantiles];
+        leafErrors = new Error[n_quantiles];
+        errors = new Error[n_quantiles];
+        lowerBounds = new Error[n_quantiles];
+        sizes = new Size[n_quantiles];
 
         for (int i = 0; i < n_quantiles; i++) {
+            tests[i] = -1;
+            lefts[i] = nullptr;
+            rights[i] = nullptr;
             leafErrors[i] = FLT_MAX;
             errors[i] = FLT_MAX;
             lowerBounds[i] = 0;
+            sizes[i] = 1;
         }
-        size = 1;
     }
 
     virtual ~QueryData_Best(){
+        delete[] tests;
         delete[] leafErrors;
         delete[] errors;
         delete [] lowerBounds;
+
+        // for (int i = 0; i < n_quantiles; i++) {
+        //     if (lefts[i])
+        //         delete lefts[i];
+        //     if (rights[i])
+        //         delete rights[i];
+        // }
+
+        delete[] lefts; 
+        delete[] rights;
+        delete[] sizes;
     }
 
 
@@ -68,26 +86,26 @@ public:
     }
 
     bool canSkip(QueryData *actualBest, int n_quantiles) {
-        Error* errors = ((QueryData_Best *) actualBest)->error;
+        Error* errors = ((QueryData_Best *) actualBest)->errors;
         Error* lowerBounds = ((QueryData_Best *) actualBest)->lowerBounds;
         for (int i = 0; i < n_quantiles; i++) {
-            if (!floatEqual(errors[i], lowerBounds[i])
+            if (!floatEqual(errors[i], lowerBounds[i]))
                 return false;
         }
         return true;
     }
 
-    void printResult(Tree *tree);
+    void printResult(Tree *tree, int quantile_idx = 0);
 
 //    virtual void printTimeOut(Tree* tree );
-    void printResult(QueryData_Best *data, Tree *tree);
+    void printResult(QueryData_Best *data, Tree *tree, int quantile_idx = 0);
 
     inline QueryData_Best *rootBest() const { return (QueryData_Best *) realroot->data; }
 
     virtual Error getTrainingError(const string &tree_json) {}
 
 protected:
-    int printResult(QueryData_Best *node_data, int depth, Tree *tree);
+    int printResult(QueryData_Best *node_data, int depth, Tree *tree, int quantile_idx = 0);
 
 };
 

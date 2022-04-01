@@ -57,19 +57,32 @@ bool Query_TotalFreq::is_pure(pair<Supports, Support> supports) {
     return ((long int) minsup - (long int) (supports.second - majnum)) > (long int) secmajnum;
 }
 
-bool Query_TotalFreq::updateData(QueryData *best, Error upperBound, Attribute attribute, QueryData *left, QueryData *right) {
+bool Query_TotalFreq::updateData(QueryData *best, Error* upperBound, Attribute attribute, QueryData *left, QueryData *right, Error* minlb) {
     QueryData_Best *best2 = (QueryData_Best *) best, *left2 = (QueryData_Best *) left, *right2 = (QueryData_Best *) right;
-    Error error = left2->error + right2->error;
-    Size size = left2->size + right2->size + 1;
-    if (error < upperBound || (floatEqual(error, upperBound) && size < best2->size)) {
-        best2->error = error;
-        best2->left = left2;
-        best2->right = right2;
-        best2->size = size;
-        best2->test = attribute;
-        return true;
+    Error error;
+    Size size;
+
+    bool changed = false;
+
+    for (int i = 0; i < dm->getNQuantiles(); i++) {
+        error = left2->errors[i] + right2->errors[i];
+        size = left2->sizes[i] + right2->sizes[i];
+
+        if (error < upperBound[i] || (floatEqual(error, upperBound[i]) && size < best2->sizes[i])) {
+            best2->errors[i] = error;
+            best2->lefts[i] = left2;
+            best2->rights[i] = right2;
+            best2->sizes[i] = size;
+            best2->tests[i] = attribute;
+
+            upperBound[i] = error;
+            changed = true;
+        } else {
+            minlb[i] = fmin(minlb[i], error);
+        }
     }
-    return false;
+    
+    return changed;
 }
 
 QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
@@ -119,14 +132,16 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
             maxclass = int(infos[1]);
         }
     }
-    data->test = maxclass;
-    //data->leafError = error;
-    // data->error += error;
 
-    data->leafError = errors;
+    // TODO Valentin Quuuuid? 
+    // data->test = maxclass;
+
+
+
+    data->leafErrors = errors;
 
     for (int i = 0; i < dm->getNQuantiles(); i++) {
-        data->error[i] += errors[i]
+        data->errors[i] += errors[i];
     }
 
     return (QueryData *) data;

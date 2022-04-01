@@ -85,8 +85,8 @@ string search(Supports supports,
               bool infoAsc = true,
               bool repeatSort = false,
               int backup_error = MISCLASSIFICATION_ERROR,
-              vector<float> quantiles = {0.5},
-              int nquantiles,
+              float * quantiles = new float{0.5},
+              int nquantiles = 1,
               int timeLimit = 0,
               bool verbose_param = false);
 

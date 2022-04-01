@@ -205,14 +205,16 @@ Error LcmPruned::computeSimilarityLowerBound(bitset<M> *b1_cover, bitset<M> *b2_
             if (err - sumdif > bound) bound = err - sumdif;
         }
     }
-    return (bound > 0) ? bound : 0;
+    return ((bound > 0) ? bound : 0);
 }
 
 // store the node with lowest error as well as the one with the largest cover in order to find a similarity lower bound
 void LcmPruned::addInfoForLowerBound(QueryData *node_data, bitset<M> *&b1_cover, bitset<M> *&b2_cover,
                                     Error &b1_error, Error &b2_error, Support &highest_coversize) {
 //    if (((QDB) node_data)->error < FLT_MAX) {
-    Error err = (((QDB) node_data)->error < FLT_MAX) ? ((QDB) node_data)->error : ((QDB) node_data)->lowerBound;
+
+    // If we are here, we are optimizing miscalssification meaning there is only 1 error and one lower bound so we take element 0
+    Error err = (((QDB) node_data)->errors[0] < FLT_MAX) ? ((QDB) node_data)->errors[0] : ((QDB) node_data)->lowerBounds[0];
     Support sup = cover->getSupport();
 
     if (err < FLT_MAX && err > b1_error) {
@@ -342,10 +344,18 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
     Support highest_coversize = 0;
     // in case solution, is not found, this value is the minimum of the minimum error
     // for each attribute. It can be used as a lower bound
-    Error minlb = FLT_MAX;
+    Error minlb[cover->dm->getNQuantiles()];
 
     //bount for the first child (item)
-    Error *child_ub = ub;
+    Error* child_ub = new Error[cover->dm->getNQuantiles()];
+
+
+    for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
+        minlb[i] = FLT_MAX;
+        child_ub[i] = ub[i];
+    }
+
+    
 
     // we evaluate the split on each candidate attribute
     for(auto& next : next_attributes) {
@@ -353,7 +363,8 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
 
         Array<Item> itemsets[2];
         TrieNode *nodes[2];
-        Error first_lb = -1, second_lb = -1;
+        Error* first_lb;
+        Error* second_lb;
 
         /* the lower bound is computed for both items. they are used as heuristic to decide
          the first item to branch on. We branch on item with higher lower bound to have chance
@@ -362,91 +373,154 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
          want to use it, please comment the next block. 0/1 order is used in this case.*/
 
         //=========================== BEGIN BLOCK ==========================//
-        cover->intersect(next, false);
-        first_lb = computeSimilarityLowerBound(b1_cover, b2_cover, b1_error, b2_error);
-        cover->backtrack();
+        if (no_python_error && default_is_misclassificaton) {
+            Error x1 = -1;
+            Error x2 = -1;
 
-        cover->intersect(next);
-        second_lb = computeSimilarityLowerBound(b1_cover, b2_cover, b1_error, b2_error);
-        cover->backtrack();
+            first_lb = &x1;
+            second_lb = &x2;
+
+            cover->intersect(next, false);
+            *first_lb = computeSimilarityLowerBound(b1_cover, b2_cover, b1_error, b2_error);
+            cover->backtrack();
+
+            cover->intersect(next);
+            *second_lb = computeSimilarityLowerBound(b1_cover, b2_cover, b1_error, b2_error);
+            cover->backtrack();
+
+            first_item = *second_lb > *first_lb;
+            second_item = !first_item;
+        } else {
+            first_item = true;
+            second_item = false;
+        }
+        
         //=========================== END BLOCK ==========================//
 
-
-        first_item = second_lb > first_lb;
-        second_item = !first_item;
 
         // perform search on the first item
         cover->intersect(next, first_item);
         itemsets[first_item] = addItem(itemset, item(next, first_item));
         nodes[first_item] = query->trie->insert(itemsets[first_item]);
         // if lower bound was not computed
-        if (floatEqual(first_lb, -1)) first_lb = computeSimilarityLowerBound(b1_cover, b2_cover, b1_error, b2_error);
-        // the best lower bound between the computed and the saved is used
-        first_lb = (nodes[first_item]->data) ? max(((QDB) nodes[first_item]->data)->lowerBound, first_lb) : first_lb;
+
+        if (no_python_error && default_is_misclassificaton) {
+            if (floatEqual(*first_lb, -1)) *first_lb = computeSimilarityLowerBound(b1_cover, b2_cover, b1_error, b2_error);
+            // the best lower bound between the computed and the saved is used
+            *first_lb = (nodes[first_item]->data) ? max(((QDB) nodes[first_item]->data)->lowerBounds[0], *first_lb) : *first_lb;
+        } else {
+            first_lb = new Error[cover->dm->getNQuantiles()];
+            Error * first_node_lb = ((QDB) nodes[first_item]->data)->lowerBounds;
+            for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
+                first_lb[i] = first_node_lb[i];
+            }
+        }
+        
         // perform the search for the first item
         nodes[first_item] = recurse(itemsets[first_item], next, nodes[first_item], next_attributes,  depth + 1, child_ub, first_lb);
+
+        if (is_python_error || default_is_misclassificaton) {
+            delete[] first_lb;
+        }
 
         // check if the found information is relevant to compute the next similarity bounds
         addInfoForLowerBound(nodes[first_item]->data, b1_cover, b2_cover, b1_error, b2_error, highest_coversize);
         //cout << "after good bound 1" << " sc[0] = " << b1_sc[0] << " sc[1] = " << b1_sc[1] << " err = " << ((QDB)nodes[first_item]->data)->error << endl;
-        Error firstError = ((QDB) nodes[first_item]->data)->error;
+        Error* firstError = ((QDB) nodes[first_item]->data)->errors;
         itemsets[first_item].free();
         cover->backtrack();
 
-        if (query->canimprove(nodes[first_item]->data, child_ub)) {
+        if (query->canimprove(nodes[first_item]->data, child_ub, cover->dm->getNQuantiles())) {
             // perform search on the second item
             cover->intersect(next, second_item);
             itemsets[second_item] = addItem(itemset, item(next, second_item));
             nodes[second_item] = query->trie->insert(itemsets[second_item]);
-            if (floatEqual(second_lb, -1)) second_lb = computeSimilarityLowerBound(b1_cover, b2_cover, b1_error, b2_error);
-            // the best lower bound between the computed and the saved is used
-            second_lb = (nodes[second_item]->data) ? max(((QDB) nodes[second_item]->data)->lowerBound, second_lb) : second_lb;
+
+            if (no_python_error && default_is_misclassificaton) {
+                if (floatEqual(*second_lb, -1)) *second_lb = computeSimilarityLowerBound(b1_cover, b2_cover, b1_error, b2_error);
+                // the best lower bound between the computed and the saved is used
+                *second_lb = (nodes[second_item]->data) ? max(((QDB) nodes[second_item]->data)->lowerBounds[0], *second_lb) : *second_lb;
+
+            } else {
+                second_lb = new Error[cover->dm->getNQuantiles()];
+                Error * second_node_lb = ((QDB) nodes[second_item]->data)->lowerBounds;
+                for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
+                    second_lb[i] = second_node_lb[i];
+                }
+            }
+
             // bound for the second child (item)
-            Error remainUb = child_ub - firstError;
+
+            Error remainUb[cover->dm->getNQuantiles()];
+            for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
+                remainUb[i] = child_ub[i] - firstError[i];
+            }
+            
             // perform the search for the second item
             nodes[second_item] = recurse(itemsets[second_item], next, nodes[second_item], next_attributes, depth + 1, remainUb, second_lb);
 
+            if (is_python_error || default_is_misclassificaton) {
+                delete[] second_lb;
+            }
+
             // check if the found information is relevant to compute the next similarity bounds
             addInfoForLowerBound(nodes[second_item]->data, b1_cover, b2_cover, b1_error, b2_error, highest_coversize);
-            Error secondError = ((QDB) nodes[second_item]->data)->error;
+            Error* secondError = ((QDB) nodes[second_item]->data)->errors;
             itemsets[second_item].free();
             cover->backtrack();
 
-            Error feature_error = firstError + secondError;
-            bool hasUpdated = query->updateData(node->data, child_ub, next, nodes[0]->data, nodes[1]->data);
-            if (hasUpdated) {
-                child_ub = feature_error;
-                Logger::showMessageAndReturn("-\nafter this attribute, node error=", *nodeError, " and ub=", child_ub);
+            Error feature_error[cover->dm->getNQuantiles()];
+            for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
+                feature_error[i] = firstError[i] + secondError[i];
             }
-            // in case we get the real error, we update the minimum possible error
-            else minlb = min(minlb, feature_error);
 
-            if (query->canSkip(node->data)) {//lowerBound reached
+            bool hasUpdated = query->updateData(node->data, child_ub, next, nodes[0]->data, nodes[1]->data, minlb);
+            
+            if (query->canSkip(node->data, cover->dm->getNQuantiles())) {//lowerBound reached
                 Logger::showMessageAndReturn("We get the best solution. So, we break the remaining attributes");
                 break; //prune remaining attributes not browsed yet
             }
         } else { //we do not attempt the second child, so we use its lower bound
+            for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
+                // if the first error is unknown, we use its lower bound
+                if (floatEqual(firstError[i], FLT_MAX)) minlb[i] = min(minlb[i], first_lb[i] + second_lb[i]);
+                // otherwise, we use it
+                else minlb[i] = min(minlb[i], firstError[i] + second_lb[i]);
+            }
 
-            // if the first error is unknown, we use its lower bound
-            if (floatEqual(firstError, FLT_MAX)) minlb = min(minlb, first_lb + second_lb);
-            // otherwise, we use it
-            else minlb = min(minlb, firstError + second_lb);
+
+            
         }
 
-        if (query->stopAfterError) {
-            if (depth == 0 && ub < FLT_MAX) {
-                if (*nodeError < ub)
+        
+        bool canbreak = false;
+        for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
+            if (query->stopAfterError[i] && depth == 0) {
+                if (ub[i] < FLT_MAX && (*nodeError[i] < ub[i])) {
+                    canbreak = true;
                     break;
+                }
             }
         }
+
+        if (canbreak) break;
+        
     }
     delete[] b1_cover;
     delete[] b2_cover;
 
+
+
+    delete[] child_ub;
+
     // we do not get solution and new lower bound is better than the old
-    if (floatEqual(*nodeError, FLT_MAX) && max(ub, minlb) > *lb) {
-        *lb = max(ub, minlb);
+
+    for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
+        if (floatEqual(*nodeError[i], FLT_MAX) && max(ub[i], minlb[i]) > *lb[i]) {
+            *lb[i] = max(ub[i], minlb[i]);
+        }
     }
+    
 
     Logger::showMessageAndReturn("depth = ", depth, " and init ub = ", ub, " and error after search = ", *nodeError);
 

@@ -50,8 +50,8 @@ cdef extern from "../core/src/dl85.h":
                     double *float_target,
                     int maxdepth,
                     int minsup,
-                    float maxError,
-                    bool stopAfterError,
+                    float *maxError,
+                    bool* stopAfterError,
                     # bool iterative,
                     PyTidErrorClassWrapper tids_error_class_callback,
                     PySupportErrorClassWrapper supports_error_class_callback,
@@ -64,7 +64,7 @@ cdef extern from "../core/src/dl85.h":
                     bool infoAsc,
                     bool repeatSort,
                     int backup_error,
-                    float q,
+                    float* quantiles,
                     int timeLimit,
                     # map[int, pair[int, int]]* continuousMap,
                     # bool save,
@@ -79,8 +79,8 @@ def solve(data,
           max_depth=1,
           min_sup=1,
           example_weights=[],
-          max_error=0,
-          stop_after_better=False,
+          max_error=[0],
+          stop_after_better=[False],
           # iterative=False,
           time_limit=0,
           verb=False,
@@ -88,7 +88,7 @@ def solve(data,
           asc=False,
           repeat_sort=False,
           backup_error="misclassification",
-          quantile_value=0.5,
+          quantiles=[0.5],
           # continuousMap=None,
           # bin_save=False,
           # predictor=False
@@ -138,6 +138,34 @@ def solve(data,
 
     cdef double *float_target_array = NULL
 
+    cdef float [::1] max_errors_view
+    cdef float *max_errors_array = NULL 
+    
+    max_error = max_error.astype('float32')
+    if not max_error.flags['C_CONTIGUOUS']:
+        max_error = np.ascontiguousarray(max_error) # Makes a contiguous copy of the numpy array.
+    max_error_view = max_error
+    max_errors_array = &max_errors_array[0]
+
+    cdef bool [::1] stop_after_better_view
+    cdef bool *stop_after_better_array = NULL 
+    
+    stop_after_better = stop_after_better.astype('bool')
+    if not stop_after_better.flags['C_CONTIGUOUS']:
+        stop_after_better = np.ascontiguousarray(stop_after_better) # Makes a contiguous copy of the numpy array.
+    stop_after_better_view = stop_after_better
+    stop_after_better_array = &stop_after_better_array[0]
+
+    cdef float [::1] quantiles_view
+    cdef float *quantiles_array = NULL 
+    
+    quantiles = quantiles.astype('float32')
+    if not quantiles.flags['C_CONTIGUOUS']:
+        quantiles = np.ascontiguousarray(quantiles) # Makes a contiguous copy of the numpy array.
+    quantiles_view = quantiles
+    quantiles_array = &quantiles_array[0]
+
+
     if target is None:
         nclasses = 0 
     
@@ -177,8 +205,8 @@ def solve(data,
         ex_weights_pointer = &ex_weights_view[0]
 
     # max_err = max_error - 1  # because maxError but not be reached
-    if max_error < 0:  # raise error when incompatibility between max_error value and stop_after_better value
-        stop_after_better = False
+    # if max_error < 0:  # raise error when incompatibility between max_error value and stop_after_better value
+    #     stop_after_better = False
 
     # cont_map = NULL
     # if continuousMap is not None:
@@ -198,8 +226,8 @@ def solve(data,
                  float_target = float_target_array,
                  maxdepth = max_depth,
                  minsup = min_sup,
-                 maxError = max_error,
-                 stopAfterError = stop_after_better,
+                 maxError = max_errors_array,
+                 stopAfterError = stop_after_better_array,
                  # iterative = iterative,
                  tids_error_class_callback = tec_func,
                  supports_error_class_callback = sec_func,
@@ -212,7 +240,7 @@ def solve(data,
                  infoAsc = asc,
                  repeatSort = repeat_sort,
                  backup_error = backup_error_code,
-                 q = quantile_value,
+                 quantiles = quantiles_array,
                  timeLimit = time_limit,
                  # continuousMap = NULL,
                  # save = bin_save,

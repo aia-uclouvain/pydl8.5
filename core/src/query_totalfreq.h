@@ -24,7 +24,7 @@ public:
 
     bool is_pure(pair<Supports, Support> supports);
 
-    bool updateData(QueryData *best, Error upperBound, Attribute attribute, QueryData *left, QueryData *right);
+    bool updateData(QueryData *best, Error* upperBound, Attribute attribute, QueryData *left, QueryData *right, Error* minlb);
 
     QueryData *initData(RCover *tid, Depth currentMaxDepth = -1);
 

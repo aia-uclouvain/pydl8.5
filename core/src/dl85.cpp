@@ -82,18 +82,33 @@ string search(Supports supports,
     auto start_tree = high_resolution_clock::now();
     ((LcmPruned *) lcm)->run(); // perform the search
     auto stop_tree = high_resolution_clock::now();
-    Tree *tree_out = new Tree();
-    query->printResult(tree_out); // build the tree model
-    tree_out->latSize = ((LcmPruned *) lcm)->latticesize;
-    tree_out->searchRt = duration<double>(stop_tree - start_tree).count();
-    out += tree_out->to_str();
+    Tree **out_trees = new Tree*[cover->dm->getNQuantiles()];
+    for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
+        out_trees[i] = new Tree();
+        query->printResult(out_trees[i], i);
+        out_trees[i]->latSize = ((LcmPruned *) lcm)->latticesize;
+        out_trees[i]->searchRt = duration<double>(stop_tree - start_tree).count();
+    }
+
+    //query->printResult(tree_out); // build the tree model
+
+    out += "Trees: \n";
+    for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
+        out += out_trees[i]->to_str();
+        out += "\n";
+
+    }
 
     delete trie;
     delete query;
     delete dataReader;
     delete cover;
     delete lcm;
-    delete tree_out;
+
+    for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
+        delete out_trees[i];
+    }
+    delete[] out_trees;
 
 //    auto stop = high_resolution_clock::now();
 //    cout << "Durée totale de l'algo : " << duration<double>(stop - start).count() << endl;
