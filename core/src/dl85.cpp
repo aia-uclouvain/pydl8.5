@@ -13,8 +13,8 @@ string search(Supports supports,
               double *float_target,
               int maxdepth,
               int minsup,
-              float maxError,
-              bool stopAfterError,
+              float* maxError,
+              bool* stopAfterError,
               function<vector<float>(RCover *)> tids_error_class_callback,
               function<vector<float>(RCover *)> supports_error_class_callback,
               function<float(RCover *)> tids_error_callback,
@@ -26,7 +26,8 @@ string search(Supports supports,
               bool infoAsc,
               bool repeatSort,
               int backup_error,
-              float q,
+              float* quantiles,
+              int nquantiles,
               int timeLimit,
               bool verbose_param) {
 
@@ -43,8 +44,19 @@ string search(Supports supports,
     verbose = verbose_param;
     string out = "";
 
-    auto *dataReader = new DataManager(supports, ntransactions, nattributes, nclasses, data, target, float_target, backup_error, q);
+    if (stopAfterError == nullptr) {
+        stopAfterError = new bool[nquantiles];
+        for (int i = 0; i< nquantiles; i++) 
+            stopAfterError[i] = false;
+    }
 
+    if (maxError == nullptr) {
+        maxError = new float[nquantiles];
+        for (int i = 0; i< nquantiles; i++) 
+            maxError[i] = 0;
+    }
+
+    auto *dataReader = new DataManager(supports, ntransactions, nattributes, nclasses, data, target, float_target, backup_error, quantiles, nquantiles);
 
     vector<float> weights;
     if (in_weights) weights = vector<float>(in_weights, in_weights + ntransactions);

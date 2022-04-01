@@ -42,7 +42,7 @@ void setItem(QueryData_Best* node_data, Array<Item> itemset, Trie* trie){
  * @param lb - the lower bound of the search
  * @return the same node passed as parameter is returned but the tree of depth 2 is already added to it
  */
-TrieNode* computeDepthTwo(RCover* cover,
+TrieNode* computeDepthTwo( RCover* cover,
                            Error ub,
                            Array <Attribute> attributes_to_visit,
                            Attribute last_added,
@@ -116,7 +116,7 @@ TrieNode* computeDepthTwo(RCover* cover,
     auto stop_comp = high_resolution_clock::now();
     comptime += duration<double>(stop_comp - start_comp).count();
 
-    auto* best_tree = new TreeTwo();
+    auto* best_tree = new TreeTwo(cover->dm->getNQuantiles());
     //TreeTwo* feat_best_tree;
 
     // find the best tree for each feature
@@ -125,7 +125,7 @@ TrieNode* computeDepthTwo(RCover* cover,
         //cout << "beeest " << best_tree->root_data->error << endl;
 
         // best tree for the current feature
-        auto* feat_best_tree = new TreeTwo();
+        auto* feat_best_tree = new TreeTwo(cover->dm->getNQuantiles());
 //        cout << "beeest " << best_tree->root_data->error << endl;
         // set the root to the current feature
         feat_best_tree->root_data->test = attr[i];
@@ -149,8 +149,8 @@ TrieNode* computeDepthTwo(RCover* cover,
             continue;
         }
 
-        feat_best_tree->root_data->left = new QueryData_Best();
-        feat_best_tree->root_data->right = new QueryData_Best();
+        feat_best_tree->root_data->left = new QueryData_Best(cover->dm->getNQuantiles());
+        feat_best_tree->root_data->right = new QueryData_Best(cover->dm->getNQuantiles());
 
         // the feature at root cannot be splitted at left. It is then a leaf node
         if (igs < 2 * query->minsup) {
@@ -213,8 +213,8 @@ TrieNode* computeDepthTwo(RCover* cover,
                             if (local_verbose)
                                 cout << "ce left ci donne une meilleure erreur que les précédents left: " << feat_best_tree->root_data->left->error << endl;
                             if (!feat_best_tree->root_data->left->left){
-                                feat_best_tree->root_data->left->left = new QueryData_Best();
-                                feat_best_tree->root_data->left->right = new QueryData_Best();
+                                feat_best_tree->root_data->left->left = new QueryData_Best(cover->dm->getNQuantiles());
+                                feat_best_tree->root_data->left->right = new QueryData_Best(cover->dm->getNQuantiles());
                             }
                             //else feat_best_tree.cleanLeft();
                             feat_best_tree->root_data->left->left->error = ev1.error;
@@ -308,8 +308,8 @@ TrieNode* computeDepthTwo(RCover* cover,
                                 feat_best_tree->root_data->right->error = ev1.error + ev2.error;
                                 if (local_verbose) cout << "ce right ci donne une meilleure erreur que les précédents right: " << feat_best_tree->root_data->right->error << endl;
                                 if (!feat_best_tree->root_data->right->left){
-                                    feat_best_tree->root_data->right->left = new QueryData_Best();
-                                    feat_best_tree->root_data->right->right = new QueryData_Best();
+                                    feat_best_tree->root_data->right->left = new QueryData_Best(cover->dm->getNQuantiles());
+                                    feat_best_tree->root_data->right->right = new QueryData_Best(cover->dm->getNQuantiles());
                                 }
                                 //else feat_best_tree.removeRight();
                                 feat_best_tree->root_data->right->left->error = ev1.error;
@@ -402,7 +402,7 @@ TrieNode* computeDepthTwo(RCover* cover,
         //error not lower than ub
         LeafInfo ev = query->computeLeafInfo(cover);
         delete best_tree;
-        node->data = (QueryData *) new QueryData_Best();
+        node->data = (QueryData *) new QueryData_Best(cover->dm->getNQuantiles());
         ((QueryData_Best *) node->data)->error = ev.error;
         ((QueryData_Best *) node->data)->leafError = ev.error;
         ((QueryData_Best *) node->data)->test = ev.maxclass;

@@ -4,7 +4,7 @@
 
 #include "dataManager.h"
 
-DataManager::DataManager(Supports supports, int ntransactions, int nattributes, int nclasses, int *data, int *target, double *float_target, int backup_error, float q):supports(supports), ntransactions(ntransactions), nattributes(nattributes), nclasses(nclasses), backup_error(backup_error), q(q) {
+DataManager::DataManager(Supports supports, int ntransactions, int nattributes, int nclasses, int *data, int *target, double *float_target, int backup_error, float* quantiles, int nquantiles):supports(supports), ntransactions(ntransactions), nattributes(nattributes), nclasses(nclasses), backup_error(backup_error), quantiles(quantiles), nquantiles(nquantiles) {
     nclasses = (nclasses == 1) ? 2 : nclasses;
     nWords = (int)ceil((float)ntransactions/M);
     b = new bitset<M> *[nattributes];

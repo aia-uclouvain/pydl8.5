@@ -38,7 +38,7 @@ public:
 
 
 protected:
-    TrieNode* recurse ( Array<Item> itemset, Attribute last_added, TrieNode* node, Array<Attribute> attributes_to_visit, Depth depth, Error ub, Error lb = 0 );
+    TrieNode* recurse ( Array<Item> itemset, Attribute last_added, TrieNode* node, Array<Attribute> attributes_to_visit, Depth depth, Error* ub, Error* lb = nullptr );
 
     Array<Attribute> getSuccessors(Array<Attribute> last_freq_attributes, Attribute last_added);
 

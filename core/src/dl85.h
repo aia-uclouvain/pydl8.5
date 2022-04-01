@@ -65,8 +65,8 @@ string search(Supports supports,
               double *float_target,
               int maxdepth = 1,
               int minsup = 1,
-              float maxError = 0,
-              bool stopAfterError = false,
+              float* maxError = nullptr,
+              bool* stopAfterError = nullptr,
 //              bool iterative = false,
               //get a pointer on cover as param and return a vector of float. Due to iterator behaviour of RCover
               // object and the wrapping done in cython, this pointer in python is seen as a list of tids in the cover
@@ -85,7 +85,8 @@ string search(Supports supports,
               bool infoAsc = true,
               bool repeatSort = false,
               int backup_error = MISCLASSIFICATION_ERROR,
-              float q = 0.5,
+              vector<float> quantiles = {0.5},
+              int nquantiles,
               int timeLimit = 0,
               bool verbose_param = false);
 

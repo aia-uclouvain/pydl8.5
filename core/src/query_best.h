@@ -8,20 +8,37 @@
 struct QueryData_Best {
     Attribute test;
     QueryData_Best *left, *right;
-    Error leafError;
-    Error error;
-    Error lowerBound;
+    Error* leafErrors;
+    Error* errors;
+    Error* lowerBounds;
     Size size;
 
-    QueryData_Best() {
+    QueryData_Best(int n_quantiles) {
         test = -1;
         left = nullptr;
         right = nullptr;
-        leafError = FLT_MAX;
-        error = FLT_MAX;
-        lowerBound = 0;
+        // leafError = FLT_MAX;
+        // error = FLT_MAX;
+        // lowerBound = 0;
+        leafErrors = new float[n_quantiles];
+        errors = new float[n_quantiles];
+        lowerBounds = new float[n_quantiles];
+
+        for (int i = 0; i < n_quantiles; i++) {
+            leafErrors[i] = FLT_MAX;
+            errors[i] = FLT_MAX;
+            lowerBounds[i] = 0;
+        }
         size = 1;
     }
+
+    virtual ~QueryData_Best(){
+        delete[] leafErrors;
+        delete[] errors;
+        delete [] lowerBounds;
+    }
+
+
 };
 
 
@@ -35,17 +52,29 @@ public:
                function<vector<float>(RCover *)> *tids_error_class_callback = nullptr,
                function<vector<float>(RCover *)> *supports_error_class_callback = nullptr,
                function<float(RCover *)> *tids_error_callback = nullptr,
-               float maxError = NO_ERR,
-               bool stopAfterError = false);
+               float* maxError = nullptr,
+               bool* stopAfterError = nullptr);
 
     virtual ~Query_Best();
 
-    inline bool canimprove(QueryData *left, Error ub) {
-        return ((QueryData_Best *) left)->error < ub;
+    bool canimprove(QueryData *left, Error* ub, int n_quantiles) {
+        Error* errors = ((QueryData_Best *) left)->errors;
+        for (int i = 0; i < n_quantiles; i++) {
+            if (errors[i] < ub[i]) 
+                return true;
+        }
+        return false;
+        // return ((QueryData_Best *) left)->error < ub;
     }
 
-    inline bool canSkip(QueryData *actualBest) {
-        return floatEqual(((QueryData_Best *) actualBest)->error, ((QueryData_Best *) actualBest)->lowerBound);
+    bool canSkip(QueryData *actualBest, int n_quantiles) {
+        Error* errors = ((QueryData_Best *) actualBest)->error;
+        Error* lowerBounds = ((QueryData_Best *) actualBest)->lowerBounds;
+        for (int i = 0; i < n_quantiles; i++) {
+            if (!floatEqual(errors[i], lowerBounds[i])
+                return false;
+        }
+        return true;
     }
 
     void printResult(Tree *tree);

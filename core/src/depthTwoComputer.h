@@ -18,8 +18,8 @@ TrieNode* computeDepthTwo(RCover*, Error, Array<Attribute>, Attribute, Array<Ite
 struct TreeTwo{
     QueryData_Best* root_data;
 
-    TreeTwo(){
-        root_data = new QueryData_Best();
+    TreeTwo(int n_quantiles){
+        root_data = new QueryData_Best(n_quantiles);
     }
 
     void replaceTree(TreeTwo* cpy){

@@ -47,20 +47,26 @@ struct Tree {
     string expression;
     int size;
     Depth depth;
-    Error trainingError;
+    Error* trainingErrors;
     int latSize;
     float searchRt;
     float accuracy;
     bool timeout;
 
 
-    string to_str() const {
+    string to_str(int n_quantiles) const {
         string out = "";
         out += "Tree: " + expression + "\n";
         if (expression != "(No such tree)") {
             out += "Size: " + to_string(size) + "\n";
             out += "Depth: " + to_string(depth) + "\n";
-            out += "Error: " + to_string(trainingError) + "\n";
+            out += "Errors: [";
+            for (int i = 0; i < n_quantiles; i++) {
+                out += to_string(trainingErrors[i]);
+                if (i != n_quantiles -1) 
+                    out += ", ";
+            }
+            out += "]\n";
             out += "Accuracy: " + to_string(accuracy) + "\n";
         }
         out += "LatticeSize: " + to_string(latSize) + "\n";
@@ -81,8 +87,8 @@ public:
           function<vector<float>(RCover *)> *tids_error_class_callback = nullptr,
           function<vector<float>(RCover *)> *supports_error_class_callback = nullptr,
           function<float(RCover *)> *tids_error_callback = nullptr,
-          float maxError = NO_ERR,
-          bool stopAfterError = false);
+          float* maxError = nullptr,
+          bool* stopAfterError = nullptr);
 
     virtual ~Query();
 
@@ -90,9 +96,9 @@ public:
 
     virtual bool is_pure(pair<Supports, Support> supports) = 0;
 
-    virtual bool canimprove(QueryData *left, Error ub) = 0;
+    virtual bool canimprove(QueryData *left, Error* ub, int n_quantiles) = 0;
 
-    virtual bool canSkip(QueryData *actualBest) = 0;
+    virtual bool canSkip(QueryData *actualBest, int n_quantiles) = 0;
 
     virtual QueryData *initData(RCover *tid, Depth currentMaxDepth = -1) = 0;
 
@@ -114,8 +120,8 @@ public:
     time_point<high_resolution_clock> startTime;
     int timeLimit;
     bool timeLimitReached = false;
-    float maxError = NO_ERR;
-    bool stopAfterError = false;
+    float* maxError = nullptr;
+    bool* stopAfterError = nullptr;
     function<vector<float>(RCover *)> *tids_error_class_callback = nullptr;
     function<vector<float>(RCover *)> *supports_error_class_callback = nullptr;
     function<float(RCover *)> *tids_error_callback = nullptr;

@@ -11,8 +11,8 @@ Query_Best::Query_Best(Support minsup,
                        function<vector<float>(RCover *)> *tids_error_class_callback,
                        function<vector<float>(RCover *)> *supports_error_class_callback,
                        function<float(RCover *)> *tids_error_callback,
-                       float maxError,
-                       bool stopAfterError)
+                       float* maxError,
+                       bool* stopAfterError)
         : Query(minsup,
                 maxdepth,
                 trie,

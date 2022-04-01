@@ -5,8 +5,8 @@
 #include "rCover.h"
 
 
-double sse_tids_error(RCover* cover);
+float sse_tids_error(RCover* cover);
 
-double quantile_tids_error(RCover* cover);
+float* quantile_tids_errors(RCover* cover);
 
 #endif

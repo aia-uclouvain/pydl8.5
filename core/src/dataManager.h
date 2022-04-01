@@ -18,7 +18,7 @@ class DataManager {
 public:
     int nWords;
 
-    DataManager(Supports supports, int ntransactions, int nattributes, int nclasses, int *b, int *c, double *y, int backup_error, float q);
+    DataManager(Supports supports, int ntransactions, int nattributes, int nclasses, int *b, int *c, double *y, int backup_error, float* quantiles, int nquantiles);
 
     ~DataManager(){
         for (int i = 0; i < nattributes; ++i) {
@@ -31,13 +31,17 @@ public:
         delete[]c;
         // deleteSupports(supports);
         delete[] y;
+
+        delete[] quantiles;
     }
 
     bitset<M> * getAttributeCover(int attr);
 
     bitset<M> * getClassCover(int clas);
 
-    float getQ() const {return q;}
+    int getNQuantiles() const {return nquantiles;}
+
+    float getQuantile(int idx) const {return quantiles[idx];}
 
     double getY(int idx) const {
         return y[idx];
@@ -66,7 +70,8 @@ private:
     Class nclasses; /// number of classes
     Supports supports; /// array of support for each class
     int backup_error; // code of the backup error to use
-    float q; // value of the quantile when using quantile error
+    float* quantiles; // quantile values for which we train trees
+    int nquantiles; // number of quantiles (and hence decision trees to learn)
 
 };
 

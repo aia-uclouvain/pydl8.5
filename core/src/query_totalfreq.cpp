@@ -10,7 +10,8 @@ Query_TotalFreq::Query_TotalFreq(Support minsup,
                                  function<vector<float>(RCover *)> *tids_error_class_callback,
                                  function<vector<float>(RCover *)> *supports_error_class_callback,
                                  function<float(RCover *)> *tids_error_callback,
-                                 float maxError, bool stopAfterError) :
+                                 float* maxError, 
+                                 bool* stopAfterError) :
         Query_Best(minsup,
                    maxdepth,
                    trie,
@@ -19,8 +20,23 @@ Query_TotalFreq::Query_TotalFreq(Support minsup,
                    tids_error_class_callback,
                    supports_error_class_callback,
                    tids_error_callback,
-                   (maxError <= 0) ? NO_ERR : maxError,
-                   (maxError <= 0) ? false : stopAfterError) {}
+                   maxError,
+                   stopAfterError) {
+
+                       if (maxError == nullptr) {
+                           maxError = new float[data->getNQuantiles()];
+                           stopAfterError = new bool[data->getNQuantiles()];
+                           for (int i = 0; i < data->getNQuantiles(); i++) {
+                               maxError[i] == NO_ERR;
+                               stopAfterError[i] = false;
+                           }
+                       } else {
+                           for (int i = 0; i < data->getNQuantiles(); i++) {
+                               maxError[i] = maxError[i] <= 0 ? NO_ERR : maxError[i];
+                               stopAfterError[i] = maxError[i] <= 0 ? false : stopAfterError[i];
+                           }
+                       }
+                   }
 
 
 Query_TotalFreq::~Query_TotalFreq() {}
@@ -59,8 +75,9 @@ bool Query_TotalFreq::updateData(QueryData *best, Error upperBound, Attribute at
 QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
     Class maxclass = -1;
     Error error;
+    Error* errors;
 
-    auto *data = new QueryData_Best();
+    auto *data = new QueryData_Best(dm->getNQuantiles());
 
     //fast or default error. support will be used
     if (tids_error_class_callback == nullptr && tids_error_callback == nullptr) {
@@ -70,6 +87,7 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
             cover->getSupportPerClass(); // allocate the sup_array if it does not exist yet and compute the frequency counts
             vector<float> infos = callback(cover);
             error = infos[0];
+            errors = new float{error};
             maxclass = int(infos[1]);
         }
         // backup error
@@ -77,11 +95,13 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
             if (dm->getBackupError() == MISCLASSIFICATION_ERROR) {
                 LeafInfo ev = computeLeafInfo(cover);
                 error = ev.error;
+                errors = new float{error};
                 maxclass = ev.maxclass;
             } else if (dm->getBackupError() == MSE_ERROR) {
                 error = sse_tids_error(cover);
+                errors = new float{error};
             } else if (dm->getBackupError() == QUANTILE_ERROR) {
-                error = quantile_tids_error(cover);
+                errors = quantile_tids_errors(cover);
             }
             
         }
@@ -95,12 +115,19 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
             function<vector<float>(RCover *)> callback = *tids_error_class_callback;
             vector<float> infos = callback(cover);
             error = infos[0];
+            errors = new float{error};
             maxclass = int(infos[1]);
         }
     }
     data->test = maxclass;
-    data->leafError = error;
-    data->error += error;
+    //data->leafError = error;
+    // data->error += error;
+
+    data->leafError = errors;
+
+    for (int i = 0; i < dm->getNQuantiles(); i++) {
+        data->error[i] += errors[i]
+    }
 
     return (QueryData *) data;
 }
