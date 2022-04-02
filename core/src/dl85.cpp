@@ -78,6 +78,8 @@ string search(Supports supports,
     RCover *cover;
     if (in_weights) cover = new RCoverWeighted(dataReader, &weights); // weighted cover
     else cover = new RCoverTotalFreq(dataReader); // non-weighted cover
+
+    std::cout << "cover :" << cover << endl; 
     auto lcm = new LcmPruned(cover, query, infoGain, infoAsc, repeatSort);
     auto start_tree = high_resolution_clock::now();
     ((LcmPruned *) lcm)->run(); // perform the search

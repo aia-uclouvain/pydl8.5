@@ -65,6 +65,7 @@ cdef extern from "../core/src/dl85.h":
                     bool repeatSort,
                     int backup_error,
                     float* quantiles,
+                    int nquantiles,
                     int timeLimit,
                     # map[int, pair[int, int]]* continuousMap,
                     # bool save,
@@ -141,6 +142,7 @@ def solve(data,
     cdef float [::1] max_errors_view
     cdef float *max_errors_array = NULL 
     
+    max_error = np.array(max_error)
     max_error = max_error.astype('float32')
     if not max_error.flags['C_CONTIGUOUS']:
         max_error = np.ascontiguousarray(max_error) # Makes a contiguous copy of the numpy array.
@@ -149,7 +151,8 @@ def solve(data,
 
     cdef bool [::1] stop_after_better_view
     cdef bool *stop_after_better_array = NULL 
-    
+
+    stop_after_better = np.array(stop_after_better)
     stop_after_better = stop_after_better.astype('bool')
     if not stop_after_better.flags['C_CONTIGUOUS']:
         stop_after_better = np.ascontiguousarray(stop_after_better) # Makes a contiguous copy of the numpy array.
@@ -159,11 +162,14 @@ def solve(data,
     cdef float [::1] quantiles_view
     cdef float *quantiles_array = NULL 
     
+    quantiles = np.array(quantiles)
     quantiles = quantiles.astype('float32')
     if not quantiles.flags['C_CONTIGUOUS']:
         quantiles = np.ascontiguousarray(quantiles) # Makes a contiguous copy of the numpy array.
     quantiles_view = quantiles
     quantiles_array = &quantiles_array[0]
+
+    nquantiles = len(quantiles)
 
 
     if target is None:
@@ -241,9 +247,12 @@ def solve(data,
                  repeatSort = repeat_sort,
                  backup_error = backup_error_code,
                  quantiles = quantiles_array,
+                 nquantiles = nquantiles,
                  timeLimit = time_limit,
                  # continuousMap = NULL,
                  # save = bin_save,
                  verbose_param = verb)
+
+    print('done')
 
     return out.decode("utf-8")

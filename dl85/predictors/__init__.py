@@ -1,1 +1,2 @@
 from .predictor import DL85Predictor
+from .distribution_predictor import DL85DistributionPredictor

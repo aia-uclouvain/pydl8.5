@@ -62,6 +62,8 @@ DataManager::DataManager(Supports supports, int ntransactions, int nattributes, 
         }
     } else if (float_target) {
         // y = float_target;
+
+        std::cout << "float_target" << std::endl;
         y = new double [ntransactions];
         for (int i = 0; i < nWords; ++i) {
             for (int j = 0; j < M; j++) {

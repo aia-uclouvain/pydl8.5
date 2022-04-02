@@ -14,44 +14,43 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-    string datasetPath = "../../datasets/anneal.txt";
+    string datasetPath = "../datasets/dataset.txt";//"../../datasets/dataset.txt";
 
     ifstream dataset(datasetPath);
-    string line;
-    int nfeatures = -1, value;
-    map<int, SupportClass> supports; // for each class, compute the number of transactions (support)
-    vector<int> data, target; //data is a flatten 2D-array containing the values of features matrix while target is the array of target
 
-    // read the number of features
-    getline(dataset, line); // read the first line of the file
-    stringstream stream(line); // create a stream on the first line string
-    while (stream >> value) {
-        target.push_back(value); //use temporary the target array to store the values of the first line
-        if (nfeatures == -1) {
-            if (supports.find(value) == supports.end()) supports[value] = 1;
-            else ++supports[value];
-        }
-        ++nfeatures;
-    }
+    string line;
+    int nfeatures = 5;
+    // map<int, SupportClass> supports; // for each class, compute the number of transactions (support)
+    vector<int> data; //data is a flatten 2D-array containing the values of features matrix while target is the array of target
+    vector<double> target;
 
     // create an array of vectors, one for each attribute
     auto *data_tmp = new vector<int>[nfeatures];
-    for (int k = nfeatures - 1; k >= 0; --k) {
-        data_tmp[k].push_back(target[target.size() - 1]); // restore data saved in target array to its correct place
-        target.pop_back(); // each value copied is removed except for the last one which represents the target of the first line
-    }
 
     // read file from the second line and insert each value column by column in data_tmp
     // fill-in target array and supports map
     int counter = 0;
-    while (dataset >> value) {
-        if (counter % (nfeatures + 1) == 0) { // first value on a new line
-            target.push_back(value);
-            if (supports.find(value) == supports.end()) supports[value] = 1;
-            else ++supports[value];
-        } else data_tmp[(counter % (nfeatures + 1)) - 1].push_back(value);
-        ++counter;
+    while (getline(dataset, line)) {
+        stringstream ss(line);
+        string value;
+        int i = 0;
+        while (getline(ss, value, ',')) {
+            if (i == 0) {
+                
+            } else if (i == nfeatures + 1) {
+                target.push_back(stod(value));
+            } else {
+                data_tmp[i].push_back(stoi(value));
+            }
+            i++;
+        }
+
+        counter++;
     }
+
+    int ntransactions = counter;
+
+    std::cout << "ntransactions: " << ntransactions << std::endl;
 
     // flatten the read data
     data.reserve(data_tmp[0].size() * nfeatures);
@@ -60,12 +59,13 @@ int main(int argc, char *argv[]) {
     }
     delete[] data_tmp;
 
-    auto *sup = new SupportClass [supports.size()];
-    for (int j = 0; j < (int) supports.size(); ++j) sup[j] = supports[j];
-    int ntransactions = (int) (data.size()) / nfeatures, nclass = (int) supports.size();
     int maxdepth = 3, minsup = 1;
 
     cout << "dataset: " << datasetPath.substr(datasetPath.find_last_of('/') + 1, datasetPath.find_last_of('.') - datasetPath.find_last_of('/') - 1) << endl;
+
+    for (int i = 0; i <counter; i ++){
+        cout << target[i] << " ";
+    }
 
     constexpr double dropout = 0.9; // Chance of 0
     random_device rd;
@@ -75,19 +75,21 @@ int main(int argc, char *argv[]) {
     vector<float> weight_vec(ntransactions);
     std::generate(weight_vec.begin(), weight_vec.end(), [&]{ return dist(gen); });
 
+    cout << "got before search" << endl;
 
     string result;
         result = search(
-                sup, //supports
+                nullptr, //supports
                 ntransactions, //ntransactions
                 nfeatures, //nattributes
-                nclass, //nclasses
+                0, //nclasses
                 data.data(), //data
-                target.data(), //target
+                nullptr, // classes
+                target.data(), //float target
                 maxdepth, //maxdepth
                 minsup, //minsup
-                0, //maxError
-                false, //stopAfterError
+                nullptr, //maxError
+                nullptr, //stopAfterError
                 nullptr, //tids_error_class_callback
                 nullptr, //supports_error_class_callback
                 nullptr, //tids_error_callback
@@ -99,12 +101,13 @@ int main(int argc, char *argv[]) {
                 false, //infoGain
                 false, //infoAsc
                 false, //repeatSort
+                QUANTILE_ERROR, // backup error
+                new float[4]{0.2, 0.4, 0.6, 0.8}, //quantiles
+                4, //nquantiles
                 0, //timeLimit
-                false // verbose parameter
+                true // verbose parameter
         );
 
-
-    delete[] sup;
     cout << result;
 
 }

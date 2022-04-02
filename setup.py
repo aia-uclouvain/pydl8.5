@@ -99,6 +99,8 @@ setup(
     zip_safe=True,  # the package can run out of an .egg file
     ext_modules=cythonize(
         [dl85_extension],
-        compiler_directives={"language_level": "3"}
-    )
+        compiler_directives={"language_level": "3"},
+        gdb_debug=True,
+    ),
+    
 )

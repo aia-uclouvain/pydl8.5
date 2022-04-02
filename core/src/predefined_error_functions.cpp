@@ -63,10 +63,11 @@ float* quantile_tids_errors(RCover* cover) {
 
     double y_cur;
 
+    std::cout << "here?" << "\n";
+
     for (it = cover->begin(true); it.wordIndex < cover->limit.top(); ++it) {
         idx = it.value;
         y_cur = cover->dm->getY(idx);
-
 
         if (idx_for_low < n_quantiles) {
             under[idx_for_low] += y_cur;
