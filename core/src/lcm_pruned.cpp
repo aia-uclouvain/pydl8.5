@@ -10,16 +10,20 @@ LcmPruned::LcmPruned(RCover *cover, Query *query, bool infoGain, bool infoAsc, b
 LcmPruned::~LcmPruned(){}
 
 // the solution already exists for this node
-TrieNode *existingsolution(TrieNode *node, Error **nodeError) {
-    Logger::showMessageAndReturn("the solution exists and it is worth : ", *nodeError);
+TrieNode *existingsolution(TrieNode *node, Error *nodeError) {
+    Logger::showMessageAndReturn("the solution exists and it is worth : ", nodeError);
     return node;
 }
 
 // the node does not fullfil the constraints to be splitted (minsup, depth, etc.)
-TrieNode *cannotsplitmore(TrieNode *node, Error* ub, Error **nodeError, Error *leafError) {
+TrieNode *cannotsplitmore(TrieNode *node, Error* ub, Error *nodeError, Error *leafError) {
     Logger::showMessageAndReturn("max depth reached. ub = ", ub, " and leaf error = ", leafError);
     // we return the leaf error as node error without checking the upperbound constraint. The parent will do it
-    *nodeError = leafError;
+    for (int i = 0; i < ((QDB) node->data)->n_quantiles; i++) {
+        nodeError[i] = leafError[i];
+    }
+
+    //*nodeError = leafError;
     return node;
 }
 
@@ -31,18 +35,21 @@ TrieNode *reachlowest(TrieNode *node, Error *nodeError, Error leafError) {
 }
 
 // the upper bound of the node is lower than the lower bound
-TrieNode *infeasiblecase(TrieNode *node, Error **saved_lb, Error *ub) {
-    Logger::showMessageAndReturn("no solution bcoz ub < lb. lb =", *saved_lb, " and ub = ", ub);
+TrieNode *infeasiblecase(TrieNode *node, Error *saved_lb, Error *ub) {
+    for (int i = 0; i < ((QDB) node->data)->n_quantiles; i++) {
+        std::cout << saved_lb[i] << " " << ub[i] << std::endl;
+    }
+    Logger::showMessageAndReturn("no solution bcoz ub < lb. lb =", saved_lb, " and ub = ", ub);
     return node;
 }
 
 TrieNode *getSolutionIfExists(TrieNode *node, RCover* cover, Query* query, Error* ub, Depth depth){
-    Error **nodeError = &(((QDB) node->data)->errors);
+    Error *nodeError = ((QDB) node->data)->errors;
 
     // in case the solution exists because the error of a newly created node is set to FLT_MAX
     bool solution_exists = true;
     for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
-        if (*nodeError[i] >= FLT_MAX) { 
+        if (nodeError[i] >= FLT_MAX) { 
             solution_exists = false;
             break;
         }
@@ -52,16 +59,18 @@ TrieNode *getSolutionIfExists(TrieNode *node, RCover* cover, Query* query, Error
         return existingsolution(node, nodeError);
 
 
-    Error **saved_lb = &(((QDB) node->data)->lowerBounds);
+    Error *saved_lb = ((QDB) node->data)->lowerBounds;
     // in case the problem is infeasible
     bool infeasible = true;
     for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
-        if (ub[i] <= *saved_lb[i]) { 
+        if (ub[i] >= saved_lb[i]) { 
             infeasible = false;
             break;
         }
     }
+
     if (infeasible) {
+        std::cout << "infeasible case" << std::endl;
         return infeasiblecase(node, saved_lb, ub);
     }
 
@@ -69,23 +78,31 @@ TrieNode *getSolutionIfExists(TrieNode *node, RCover* cover, Query* query, Error
     // we reach the lowest value possible. implicitely, the upper bound constraint is not violated
     bool lowestreached = true;
     for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
-        if (floatEqual(leafErrors[i], *saved_lb[i])) { 
+        std::cout << leafErrors[i] << " " << saved_lb[i] << std::endl;
+        if (!floatEqual(leafErrors[i], saved_lb[i])) { 
             lowestreached = false;
             break;
         }
     }
     if (lowestreached) {
+        std::cout << "lowest reached" << std::endl;
         return infeasiblecase(node, saved_lb, ub);
     }
 
     // we cannot split tne node
     if (depth == query->maxdepth || cover->getSupport() < 2 * query->minsup) {
+        std::cout << "cannot split more" << std::endl;
+
         return cannotsplitmore(node, ub, nodeError, leafErrors);
     }
 
     // if time limit is reached we backtrack
     if (query->timeLimitReached) {
-        *nodeError = leafErrors;
+        for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
+            nodeError[i] = leafErrors[i];
+        }
+
+        //*nodeError = leafErrors;
         return node;
     }
 
@@ -170,6 +187,13 @@ Array<Attribute> LcmPruned::getSuccessors(Array<Attribute> last_candidates, Attr
     }
     // disable the heuristic variable if the sort must be performed once
     if (!repeatSort) infoGain = false;
+
+    std::cout << "next candidates: ";
+    for (int i = 0; i < next_candidates.size; i++) {
+        std::cout << next_candidates[i] << " ";
+    }
+    std::cout << std::endl;
+
 
     return next_candidates;
 }
@@ -322,15 +346,17 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
 
     // as the best tree cannot be deducted without computation, we compute the search
 
-    Error **lb = &(((QDB) node->data)->lowerBounds);
+    Error *lb = ((QDB) node->data)->lowerBounds;
     Error *leafError = ((QDB) node->data)->leafErrors;
-    Error **nodeError = &(((QDB) node->data)->errors);
+    Error *nodeError = ((QDB) node->data)->errors;
 
     // case in which there is no candidate
     if (next_attributes.size == 0) {
         Logger::showMessageAndReturn("No candidates. nodeError is set to leafError");
-        *nodeError = leafError;
-        Logger::showMessageAndReturn("depth = ", depth, " and init ub = ", ub, " and error after search = ", *nodeError);
+        for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
+            nodeError[i] = leafError[i];
+        }
+        Logger::showMessageAndReturn("depth = ", depth, " and init ub = ", ub, " and error after search = ", nodeError);
         Logger::showMessageAndReturn("we backtrack");
         next_attributes.free();
         return node;
@@ -410,9 +436,15 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
             *first_lb = (nodes[first_item]->data) ? max(((QDB) nodes[first_item]->data)->lowerBounds[0], *first_lb) : *first_lb;
         } else {
             first_lb = new Error[cover->dm->getNQuantiles()];
-            Error * first_node_lb = ((QDB) nodes[first_item]->data)->lowerBounds;
-            for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
-                first_lb[i] = first_node_lb[i];
+            if (nodes[first_item]->data) {
+                Error * first_node_lb = ((QDB) nodes[first_item]->data)->lowerBounds;
+                for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
+                    first_lb[i] = first_node_lb[i];
+                }
+            } else {
+                for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
+                    first_lb[i] = 0;
+                }
             }
         }
         
@@ -443,10 +475,18 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
 
             } else {
                 second_lb = new Error[cover->dm->getNQuantiles()];
-                Error * second_node_lb = ((QDB) nodes[second_item]->data)->lowerBounds;
-                for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
-                    second_lb[i] = second_node_lb[i];
+                if (nodes[second_item]->data) {
+                    Error * second_node_lb = ((QDB) nodes[second_item]->data)->lowerBounds;
+                    for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
+                        second_lb[i] = second_node_lb[i];
+                    }           
+                } else {
+                    for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
+                        second_lb[i] = 0;
+                    }
                 }
+
+                
             }
 
             // bound for the second child (item)
@@ -496,7 +536,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
         bool canbreak = false;
         for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
             if (query->stopAfterError[i] && depth == 0) {
-                if (ub[i] < FLT_MAX && (*nodeError[i] < ub[i])) {
+                if (ub[i] < FLT_MAX && (nodeError[i] < ub[i])) {
                     canbreak = true;
                     break;
                 }
@@ -516,8 +556,8 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
     // we do not get solution and new lower bound is better than the old
 
     for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
-        if (floatEqual(*nodeError[i], FLT_MAX) && max(ub[i], minlb[i]) > *lb[i]) {
-            *lb[i] = max(ub[i], minlb[i]);
+        if (floatEqual(nodeError[i], FLT_MAX) && max(ub[i], minlb[i]) > lb[i]) {
+            lb[i] = max(ub[i], minlb[i]);
         }
     }
     
@@ -565,7 +605,13 @@ void LcmPruned::run() {
     TrieNode *node = query->trie->insert(itemset);
 
     // call the recursive function to start the search
-    query->realroot = recurse(itemset, NO_ATTRIBUTE, node, attributes_to_visit, 0, maxError);
+    Error* lbs = new Error[cover->dm->getNQuantiles()];
+    for (int i = 0; i < cover->dm->getNQuantiles(); i++) 
+        lbs[i] = 0;
+
+    query->realroot = recurse(itemset, NO_ATTRIBUTE, node, attributes_to_visit, 0, maxError, lbs);
+
+    delete[] lbs;
 
     // never forget to return back what is not yours. Think to others who need it ;-)
     itemset.free();

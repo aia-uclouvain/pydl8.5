@@ -139,11 +139,14 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
 
 
 
-    data->leafErrors = errors;
+    
 
     for (int i = 0; i < dm->getNQuantiles(); i++) {
         data->errors[i] += errors[i];
+        data->leafErrors[i] = errors[i];
     }
+
+    delete[] errors;
 
     return (QueryData *) data;
 }

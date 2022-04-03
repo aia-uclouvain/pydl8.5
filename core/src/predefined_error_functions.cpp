@@ -30,6 +30,8 @@ float* quantile_tids_errors(RCover* cover) {
     RCover::iterator it;
 
     int N = cover->getSupport();
+
+    std::cout << "N: " << N << std::endl;
     int n_quantiles = cover->dm->getNQuantiles();
 
     float * h = new float[n_quantiles];
@@ -51,42 +53,59 @@ float* quantile_tids_errors(RCover* cover) {
         h_up[i] = ceil(h_tmp);
         h_low[i] = floor(h_tmp);
         
-        under[i] = -1.;
+        y_low[i] = -1;
+        y_pred[i] = -1;
+        under[i] = 0.;
         above[i] = 0.;
     }
 
     int sub_idx = 0;
     int idx;
 
-    int idx_for_low = 0;
-    int idx_for_up = -1;
+    int idx_for_low_val = 0;
+    int idx_for_up_val = 0;
+
+    int idx_for_low_sums = 0;
+    int idx_for_up_sums = -1;
 
     double y_cur;
 
-    std::cout << "here?" << "\n";
 
     for (it = cover->begin(true); it.wordIndex < cover->limit.top(); ++it) {
         idx = it.value;
         y_cur = cover->dm->getY(idx);
+        
+        std::cout << y_cur << " ";
 
-        if (idx_for_low < n_quantiles) {
-            under[idx_for_low] += y_cur;
+        if (idx_for_low_sums < n_quantiles) {
+            under[idx_for_low_sums] += y_cur;
 
-            if (sub_idx == h_low[idx_for_low]) {
-                y_low[idx_for_low] = y_cur;
-
-                idx_for_low += 1;
-                idx_for_up += 1;
+            if (sub_idx == h_low[idx_for_low_sums]) {
+                idx_for_low_sums += 1;
+                idx_for_up_sums += 1;
             }
         }
 
-        if (idx_for_up >= 0) {
-            if (sub_idx == h_up[idx_for_up]) {                
-                y_pred[idx_for_up] = y_low[idx_for_up] + (h[idx_for_up] - h_low[idx_for_up]) * (y_cur - y_low[idx_for_up]);
+        if (idx_for_up_sums >= 0) {
+            if (!((h_up[idx_for_up_sums] != h_low[idx_for_up_sums]) && (sub_idx == h_up[idx_for_up_sums]))) {
+                above[idx_for_up_sums] += y_cur;
             }
+        }
 
-            above[idx_for_up] += y_cur;
-            
+        if (idx_for_low_val < n_quantiles) {
+            if (sub_idx == h_low[idx_for_low_val]) {
+                y_low[idx_for_low_val] = y_cur;
+
+                idx_for_low_val += 1;
+            }
+        }
+
+        if (idx_for_up_val < n_quantiles) {
+            if (sub_idx == h_up[idx_for_up_val]) {
+                y_pred[idx_for_up_val] = y_low[idx_for_up_val] + (h[idx_for_up_val] - h_low[idx_for_up_val]) * (y_cur - y_low[idx_for_up_val]);
+
+                idx_for_up_val += 1;
+            }
         }
 
         sub_idx += 1;
@@ -97,12 +116,26 @@ float* quantile_tids_errors(RCover* cover) {
         above[i] += sum;
         sum = above[i];
 
+        std::cout << "under, above: " <<under[i] << " "<< above[i] << endl;
+
         under[i] = (h_low[i] + 1) * y_pred[i] - under[i];
-        above[i] = (N - h_up[i]) * y_pred[i] - above[i];
+        above[i] = (N - (h_low[i] + 1)) * y_pred[i] - above[i];
         
         float q_i = cover->dm->getQuantile(i); 
         errors[i] = under[i] * q_i + above[i] * (q_i - 1.);
     }
+
+    std::cout << "errors in predef" << "\n";
+    for (int i = 0; i < n_quantiles; i++) {
+        std::cout << "h_low " << h_low[i] << "\n";
+        std::cout << "h_up "<< h_up[i] << "\n";
+        std::cout << "y_low "<< y_low[i] << "\n";
+        std::cout << "under "<< under[i] << "\n";
+        std::cout << "above "<< above[i] << "\n";
+        std::cout << "y_pred "<< y_pred[i] << "\n";
+        std::cout << "error "<< errors[i] << "\n\n";
+    }
+    std::cout << std::endl;
 
     return errors;
 }

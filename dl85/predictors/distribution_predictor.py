@@ -95,6 +95,7 @@ class DL85DistributionPredictor(DL85Predictor):
                                        repeat_sort=self.repeat_sort,
                                        quantiles=self.quantiles)
                         
+        print(solution)
         solution = solution.rstrip("\n").splitlines()
         self.sol_size = len(solution)
 

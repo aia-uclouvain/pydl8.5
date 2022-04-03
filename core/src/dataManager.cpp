@@ -10,6 +10,8 @@ DataManager::DataManager(Supports supports, int ntransactions, int nattributes, 
     b = new bitset<M> *[nattributes];
     c = new bitset<M> *[nclasses];
 
+    std::cout << "nquantiles: " << nquantiles << std::endl;
+
     for (int i = 0; i < nattributes; i++){
         bitset<M> * attrCov = new bitset<M>[nWords];
         for (int j = 0; j < nWords; ++j) {

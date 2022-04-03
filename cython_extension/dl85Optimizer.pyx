@@ -146,8 +146,8 @@ def solve(data,
     max_error = max_error.astype('float32')
     if not max_error.flags['C_CONTIGUOUS']:
         max_error = np.ascontiguousarray(max_error) # Makes a contiguous copy of the numpy array.
-    max_error_view = max_error
-    max_errors_array = &max_errors_array[0]
+    max_errors_view = max_error
+    #max_errors_array = &max_errors_array[0]
 
     cdef bool [::1] stop_after_better_view
     cdef bool *stop_after_better_array = NULL 
@@ -157,7 +157,7 @@ def solve(data,
     if not stop_after_better.flags['C_CONTIGUOUS']:
         stop_after_better = np.ascontiguousarray(stop_after_better) # Makes a contiguous copy of the numpy array.
     stop_after_better_view = stop_after_better
-    stop_after_better_array = &stop_after_better_array[0]
+    #stop_after_better_array = &stop_after_better_array[0]
 
     cdef float [::1] quantiles_view
     cdef float *quantiles_array = NULL 
@@ -167,7 +167,7 @@ def solve(data,
     if not quantiles.flags['C_CONTIGUOUS']:
         quantiles = np.ascontiguousarray(quantiles) # Makes a contiguous copy of the numpy array.
     quantiles_view = quantiles
-    quantiles_array = &quantiles_array[0]
+    #quantiles_array = &quantiles_array[0]
 
     nquantiles = len(quantiles)
 
@@ -180,7 +180,7 @@ def solve(data,
         if not target.flags['C_CONTIGUOUS']:
             target = np.ascontiguousarray(target) # Makes a contiguous copy of the numpy array.
         target_view = target
-        target_array = &target_view[0]
+        #target_array = &target_view[0]
 
     elif backup_error in ["mse", "quantile"]:
         nclasses = 0 
@@ -232,8 +232,8 @@ def solve(data,
                  float_target = float_target_array,
                  maxdepth = max_depth,
                  minsup = min_sup,
-                 maxError = max_errors_array,
-                 stopAfterError = stop_after_better_array,
+                 maxError = &max_errors_view[0],
+                 stopAfterError = &stop_after_better_view[0],
                  # iterative = iterative,
                  tids_error_class_callback = tec_func,
                  supports_error_class_callback = sec_func,
@@ -246,13 +246,13 @@ def solve(data,
                  infoAsc = asc,
                  repeatSort = repeat_sort,
                  backup_error = backup_error_code,
-                 quantiles = quantiles_array,
+                 quantiles = &quantiles_view[0],
                  nquantiles = nquantiles,
                  timeLimit = time_limit,
                  # continuousMap = NULL,
                  # save = bin_save,
                  verbose_param = verb)
 
-    print('done')
+    print(out)
 
     return out.decode("utf-8")

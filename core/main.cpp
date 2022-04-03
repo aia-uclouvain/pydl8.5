@@ -20,6 +20,8 @@ int main(int argc, char *argv[]) {
 
     string line;
     int nfeatures = 5;
+
+    std::cout << "Reading dataset..." << std::endl;
     // map<int, SupportClass> supports; // for each class, compute the number of transactions (support)
     vector<int> data; //data is a flatten 2D-array containing the values of features matrix while target is the array of target
     vector<double> target;
@@ -37,7 +39,7 @@ int main(int argc, char *argv[]) {
         while (getline(ss, value, ',')) {
             if (i == 0) {
                 
-            } else if (i == nfeatures + 1) {
+            } else if (i == nfeatures) {
                 target.push_back(stod(value));
             } else {
                 data_tmp[i].push_back(stoi(value));
@@ -59,7 +61,7 @@ int main(int argc, char *argv[]) {
     }
     delete[] data_tmp;
 
-    int maxdepth = 3, minsup = 1;
+    int maxdepth = 1, minsup = 1;
 
     cout << "dataset: " << datasetPath.substr(datasetPath.find_last_of('/') + 1, datasetPath.find_last_of('.') - datasetPath.find_last_of('/') - 1) << endl;
 
