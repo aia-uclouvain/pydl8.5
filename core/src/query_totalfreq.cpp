@@ -68,7 +68,7 @@ bool Query_TotalFreq::updateData(QueryData *best, Error* upperBound, Attribute a
         error = left2->errors[i] + right2->errors[i];
         size = left2->sizes[i] + right2->sizes[i];
 
-        if (error < upperBound[i] || (floatEqual(error, upperBound[i]) && size < best2->sizes[i])) {
+        if (error < upperBound[i]) {// || (floatEqual(error, upperBound[i]) && size < best2->sizes[i])) {
             best2->errors[i] = error;
             best2->lefts[i] = left2;
             best2->rights[i] = right2;

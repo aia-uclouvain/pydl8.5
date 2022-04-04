@@ -28,8 +28,11 @@ TrieNode *cannotsplitmore(TrieNode *node, Error* ub, Error *nodeError, Error *le
 }
 
 // the node error is equal to the lower bound
-TrieNode *reachlowest(TrieNode *node, Error *nodeError, Error leafError) {
-    *nodeError = leafError;
+TrieNode *reachlowest(TrieNode *node, Error *nodeError, Error* leafError) {
+    for (int i = 0; i < ((QDB) node->data)->n_quantiles; i++) {
+        nodeError[i] = leafError[i];
+    }
+
     Logger::showMessageAndReturn("lowest error. node error = leaf error = ", *nodeError);
     return node;
 }
@@ -76,11 +79,12 @@ TrieNode *getSolutionIfExists(TrieNode *node, RCover* cover, Query* query, Error
     for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
         if (!floatEqual(leafErrors[i], saved_lb[i])) { 
             lowestreached = false;
-            break;
+        } else {
+            nodeError[i] = leafErrors[i];
         }
     }
     if (lowestreached) {
-        return infeasiblecase(node, saved_lb, ub);
+        return reachlowest(node, saved_lb, ub);
     }
 
     // we cannot split tne node
@@ -317,11 +321,12 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
     //case 2 : the node data exists without solution but ub > last ub which is now lb
     else {
         Error *leafError = ((QDB) node->data)->leafErrors;
-        Error **nodeError = &(((QDB) node->data)->errors);
+        Error *nodeError = ((QDB) node->data)->errors;
         Logger::showMessageAndReturn("existing node without solution and higher bound. leaf error = ", leafError, " new ub = ", ub);
 
         if (query->timeLimitReached) {
-            *nodeError = leafError;
+            for (int i = 0; i < cover->dm->getNQuantiles(); i++)
+                nodeError[i] = leafError[i];
             return node;
         }
 
@@ -520,11 +525,11 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
         }
 
         
-        bool canbreak = false;
+        bool canbreak = true;
         for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
             if (query->stopAfterError[i] && depth == 0) {
-                if (ub[i] < FLT_MAX && (nodeError[i] < ub[i])) {
-                    canbreak = true;
+                if (ub[i] >= FLT_MAX || (nodeError[i] >= ub[i])) {
+                    canbreak = false;
                     break;
                 }
             }

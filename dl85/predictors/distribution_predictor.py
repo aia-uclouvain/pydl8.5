@@ -42,7 +42,6 @@ class DL85DistributionPredictor(DL85Predictor):
         self.classes_ = []
         
         self.quantiles = sorted(quantiles)
-        self.quantile_indices = {q: i for i, q in enumerate(self.quantiles)}
 
         if self.max_errors is None:
             self.max_errors = [0] * len(self.quantiles)

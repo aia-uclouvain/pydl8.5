@@ -234,9 +234,6 @@ def solve(data,
 
     # pred = not predictor
 
-    print("{0:x}".format(<unsigned long> max_errors_array))
-
-
     out = search(supports = &supports_view[0],
                  ntransactions = ntransactions,
                  nattributes = nattributes,

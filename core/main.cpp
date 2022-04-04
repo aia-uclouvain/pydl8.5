@@ -103,8 +103,8 @@ int main(int argc, char *argv[]) {
                 false, //infoAsc
                 false, //repeatSort
                 QUANTILE_ERROR, // backup error
-                new float[1]{1.}, //quantiles
-                1, //nquantiles
+                new float[3]{0.2, 0.5, 0.8}, //quantiles
+                3, //nquantiles
                 0, //timeLimit
                 true // verbose parameter
         );
