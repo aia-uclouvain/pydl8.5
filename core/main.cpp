@@ -77,7 +77,6 @@ int main(int argc, char *argv[]) {
     vector<float> weight_vec(ntransactions);
     std::generate(weight_vec.begin(), weight_vec.end(), [&]{ return dist(gen); });
 
-    cout << "got before search" << endl;
 
     string result;
         result = search(
@@ -104,8 +103,8 @@ int main(int argc, char *argv[]) {
                 false, //infoAsc
                 false, //repeatSort
                 QUANTILE_ERROR, // backup error
-                new float[4]{0.2, 0.4, 0.6, 0.8}, //quantiles
-                4, //nquantiles
+                new float[1]{1.}, //quantiles
+                1, //nquantiles
                 0, //timeLimit
                 true // verbose parameter
         );

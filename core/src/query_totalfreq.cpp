@@ -114,7 +114,6 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
                 error = sse_tids_error(cover);
                 errors = new float{error};
             } else if (dm->getBackupError() == QUANTILE_ERROR) {
-                std::cout << "Quantile error launch" << endl;
                 errors = quantile_tids_errors(cover);
             }
             

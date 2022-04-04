@@ -36,9 +36,6 @@ TrieNode *reachlowest(TrieNode *node, Error *nodeError, Error leafError) {
 
 // the upper bound of the node is lower than the lower bound
 TrieNode *infeasiblecase(TrieNode *node, Error *saved_lb, Error *ub) {
-    for (int i = 0; i < ((QDB) node->data)->n_quantiles; i++) {
-        std::cout << saved_lb[i] << " " << ub[i] << std::endl;
-    }
     Logger::showMessageAndReturn("no solution bcoz ub < lb. lb =", saved_lb, " and ub = ", ub);
     return node;
 }
@@ -70,7 +67,6 @@ TrieNode *getSolutionIfExists(TrieNode *node, RCover* cover, Query* query, Error
     }
 
     if (infeasible) {
-        std::cout << "infeasible case" << std::endl;
         return infeasiblecase(node, saved_lb, ub);
     }
 
@@ -78,20 +74,17 @@ TrieNode *getSolutionIfExists(TrieNode *node, RCover* cover, Query* query, Error
     // we reach the lowest value possible. implicitely, the upper bound constraint is not violated
     bool lowestreached = true;
     for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
-        std::cout << leafErrors[i] << " " << saved_lb[i] << std::endl;
         if (!floatEqual(leafErrors[i], saved_lb[i])) { 
             lowestreached = false;
             break;
         }
     }
     if (lowestreached) {
-        std::cout << "lowest reached" << std::endl;
         return infeasiblecase(node, saved_lb, ub);
     }
 
     // we cannot split tne node
     if (depth == query->maxdepth || cover->getSupport() < 2 * query->minsup) {
-        std::cout << "cannot split more" << std::endl;
 
         return cannotsplitmore(node, ub, nodeError, leafErrors);
     }
@@ -187,12 +180,6 @@ Array<Attribute> LcmPruned::getSuccessors(Array<Attribute> last_candidates, Attr
     }
     // disable the heuristic variable if the sort must be performed once
     if (!repeatSort) infoGain = false;
-
-    std::cout << "next candidates: ";
-    for (int i = 0; i < next_candidates.size; i++) {
-        std::cout << next_candidates[i] << " ";
-    }
-    std::cout << std::endl;
 
 
     return next_candidates;

@@ -31,7 +31,6 @@ float* quantile_tids_errors(RCover* cover) {
 
     int N = cover->getSupport();
 
-    std::cout << "N: " << N << std::endl;
     int n_quantiles = cover->dm->getNQuantiles();
 
     float * h = new float[n_quantiles];
@@ -51,6 +50,8 @@ float* quantile_tids_errors(RCover* cover) {
         h_tmp = (N-1) * cover->dm->getQuantile(i);
         h[i] = h_tmp;
         h_up[i] = ceil(h_tmp);
+        h_up[i] = (h_up[i] >= N) ? N-1 : h_up[i];
+
         h_low[i] = floor(h_tmp);
         
         y_low[i] = -1;
@@ -75,8 +76,6 @@ float* quantile_tids_errors(RCover* cover) {
         idx = it.value;
         y_cur = cover->dm->getY(idx);
         
-        std::cout << y_cur << " ";
-
         if (idx_for_low_sums < n_quantiles) {
             under[idx_for_low_sums] += y_cur;
 
@@ -116,8 +115,6 @@ float* quantile_tids_errors(RCover* cover) {
         above[i] += sum;
         sum = above[i];
 
-        std::cout << "under, above: " <<under[i] << " "<< above[i] << endl;
-
         under[i] = (h_low[i] + 1) * y_pred[i] - under[i];
         above[i] = (N - (h_low[i] + 1)) * y_pred[i] - above[i];
         
@@ -125,17 +122,17 @@ float* quantile_tids_errors(RCover* cover) {
         errors[i] = under[i] * q_i + above[i] * (q_i - 1.);
     }
 
-    std::cout << "errors in predef" << "\n";
-    for (int i = 0; i < n_quantiles; i++) {
-        std::cout << "h_low " << h_low[i] << "\n";
-        std::cout << "h_up "<< h_up[i] << "\n";
-        std::cout << "y_low "<< y_low[i] << "\n";
-        std::cout << "under "<< under[i] << "\n";
-        std::cout << "above "<< above[i] << "\n";
-        std::cout << "y_pred "<< y_pred[i] << "\n";
-        std::cout << "error "<< errors[i] << "\n\n";
-    }
-    std::cout << std::endl;
+    // std::cout << "errors in predef" << "\n";
+    // for (int i = 0; i < n_quantiles; i++) {
+    //     std::cout << "h_low " << h_low[i] << "\n";
+    //     std::cout << "h_up "<< h_up[i] << "\n";
+    //     std::cout << "y_low "<< y_low[i] << "\n";
+    //     std::cout << "under "<< under[i] << "\n";
+    //     std::cout << "above "<< above[i] << "\n";
+    //     std::cout << "y_pred "<< y_pred[i] << "\n";
+    //     std::cout << "error "<< errors[i] << "\n\n";
+    // }
+    // std::cout << std::endl;
 
     return errors;
 }

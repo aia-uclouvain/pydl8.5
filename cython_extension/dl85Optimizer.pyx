@@ -80,8 +80,8 @@ def solve(data,
           max_depth=1,
           min_sup=1,
           example_weights=[],
-          max_error=[0],
-          stop_after_better=[False],
+          max_error=np.array([0]),
+          stop_after_better=np.array([False]),
           # iterative=False,
           time_limit=0,
           verb=False,
@@ -89,7 +89,7 @@ def solve(data,
           asc=False,
           repeat_sort=False,
           backup_error="misclassification",
-          quantiles=[0.5],
+          quantiles=np.array([0.5]),
           # continuousMap=None,
           # bin_save=False,
           # predictor=False
@@ -146,8 +146,12 @@ def solve(data,
     max_error = max_error.astype('float32')
     if not max_error.flags['C_CONTIGUOUS']:
         max_error = np.ascontiguousarray(max_error) # Makes a contiguous copy of the numpy array.
-    max_errors_view = max_error
-    #max_errors_array = &max_errors_array[0]
+    max_errors_array = <float *> malloc(len(max_error)*sizeof(float))
+    for i, v in enumerate(max_error):
+        max_errors_array[i] = v
+    #max_errors_view = max_error
+    #max_errors_array = &max_errors_view[0]
+    
 
     cdef bool [::1] stop_after_better_view
     cdef bool *stop_after_better_array = NULL 
@@ -156,8 +160,11 @@ def solve(data,
     stop_after_better = stop_after_better.astype('bool')
     if not stop_after_better.flags['C_CONTIGUOUS']:
         stop_after_better = np.ascontiguousarray(stop_after_better) # Makes a contiguous copy of the numpy array.
-    stop_after_better_view = stop_after_better
-    #stop_after_better_array = &stop_after_better_array[0]
+    stop_after_better_array = <bool *> malloc(len(stop_after_better)*sizeof(bool))
+    for i, v in enumerate(stop_after_better):
+        stop_after_better_array[i] = v
+    #stop_after_better_view = stop_after_better
+    #stop_after_better_array = &stop_after_better_view[0]
 
     cdef float [::1] quantiles_view
     cdef float *quantiles_array = NULL 
@@ -166,8 +173,12 @@ def solve(data,
     quantiles = quantiles.astype('float32')
     if not quantiles.flags['C_CONTIGUOUS']:
         quantiles = np.ascontiguousarray(quantiles) # Makes a contiguous copy of the numpy array.
-    quantiles_view = quantiles
-    #quantiles_array = &quantiles_array[0]
+    quantiles_array = <float *> malloc(len(quantiles)*sizeof(float))
+    for i, v in enumerate(quantiles):
+        quantiles_array[i] = v
+
+    #quantiles_view = quantiles
+    #quantiles_array = &quantiles_view[0]
 
     nquantiles = len(quantiles)
 
@@ -223,6 +234,9 @@ def solve(data,
 
     # pred = not predictor
 
+    print("{0:x}".format(<unsigned long> max_errors_array))
+
+
     out = search(supports = &supports_view[0],
                  ntransactions = ntransactions,
                  nattributes = nattributes,
@@ -232,8 +246,8 @@ def solve(data,
                  float_target = float_target_array,
                  maxdepth = max_depth,
                  minsup = min_sup,
-                 maxError = &max_errors_view[0],
-                 stopAfterError = &stop_after_better_view[0],
+                 maxError = max_errors_array,
+                 stopAfterError = stop_after_better_array,
                  # iterative = iterative,
                  tids_error_class_callback = tec_func,
                  supports_error_class_callback = sec_func,
@@ -246,13 +260,11 @@ def solve(data,
                  infoAsc = asc,
                  repeatSort = repeat_sort,
                  backup_error = backup_error_code,
-                 quantiles = &quantiles_view[0],
+                 quantiles = quantiles_array,
                  nquantiles = nquantiles,
                  timeLimit = time_limit,
                  # continuousMap = NULL,
                  # save = bin_save,
                  verbose_param = verb)
-
-    print(out)
 
     return out.decode("utf-8")

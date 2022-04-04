@@ -38,6 +38,8 @@ class DL85DistributionPredictor(DL85Predictor):
         self.leaf_value_function = leaf_value_function
         self.quiet = quiet
         self.print_output = print_output
+
+        self.classes_ = []
         
         self.quantiles = sorted(quantiles)
         self.quantile_indices = {q: i for i, q in enumerate(self.quantiles)}
@@ -70,8 +72,18 @@ class DL85DistributionPredictor(DL85Predictor):
 
         self.is_fitted_ = False
 
+    @staticmethod
+    def quantile_leaf_value(tids, y, q):
+        return np.quantile(y[list(tids)], q)
+
     def fit(self, X, y, sample_weight=None):
         X, y = check_X_y(X, y, dtype='int32')
+
+        idx = np.argsort(y)
+        X = X[idx]
+        y = y[idx]
+
+        self.leaf_value_function = lambda tids, q: self.quantile_leaf_value(tids, y, q)
 
 
         # sys.path.insert(0, "../../")
@@ -94,26 +106,26 @@ class DL85DistributionPredictor(DL85Predictor):
                                        asc=self.asc,
                                        repeat_sort=self.repeat_sort,
                                        quantiles=self.quantiles)
-                        
-        print(solution)
-        solution = solution.rstrip("\n").splitlines()
+
+
+        solution = solution.splitlines()
         self.sol_size = len(solution)
 
         n_trees = len(self.quantiles)
 
-        if self.sol_size == 2 + n_trees*7:  # solution found
+        if self.sol_size == 2 + n_trees*9:  # solution found
             for i in range(n_trees):
-                self.trees_[i]['tree'] = json.loads(solution[i*7+1].split('Tree: ')[1])
-                self.trees_[i]['size'] = int(solution[i*7+2])
-                self.trees_[i]['depth'] = int(solution[i*7+3].split(" ")[1])
-                self.trees_[i]['error'] = float(solution[i*7+4].split(" ")[1])
-                # self.trees_[i]['accuracy'] = float(solution[i*7+5].split(" ")[1])
-                self.trees_[i]['lattice_size'] = int(solution[i*7+6].split(" ")[1])
-                self.trees_[i]['runtime'] = float(solution[i*7+7].split(" ")[1])
-                self.trees_[i]['timeout'] = bool(strtobool(solution[8].split(" ")[1]))
+                self.trees_[i]['tree'] = json.loads(solution[2+i*9].lstrip('Tree: '))
+                self.trees_[i]['size'] = int(solution[2+i*9+1].split(" ")[1])
+                self.trees_[i]['depth'] = int(solution[2+i*9+2].split(" ")[1])
+                self.trees_[i]['error'] = float(solution[2+i*9+3].split(" ")[1])
+                # self.trees_[i]['accuracy'] = float(solution[i*9+5].split(" ")[1])
+                self.trees_[i]['lattice_size'] = int(solution[2+i*9+5].split(" ")[1])
+                self.trees_[i]['runtime'] = float(solution[2+i*9+6].split(" ")[1])
+                self.trees_[i]['timeout'] = bool(strtobool(solution[2+i*9+7].split(" ")[1]))
 
                 if self.trees_[i]['size'] >= 3 or self.max_error[i] <= 0:
-                    self.trees_[i]['accuracy'] = float(solution[i*7+5].split(" ")[1])
+                    self.trees_[i]['accuracy'] = float(solution[2+i*9+4].split(" ")[1])
 
             
                 if self.trees_[i]['size'] < 3 and self.max_error[i] > 0:  # return just a leaf as fake solution
@@ -144,7 +156,7 @@ class DL85DistributionPredictor(DL85Predictor):
             for i in range(n_trees):
                 if self.trees_[i]['tree'] is not None:
                     # add transactions to nodes of the tree
-                    self.add_transactions_and_proba(X, y, tree=self.trees_[i])
+                    self.add_transactions_and_proba(X, y, tree=self.trees_[i]['tree'])
 
                     if self.leaf_value_function is not None:
                         def search(node):
@@ -152,11 +164,11 @@ class DL85DistributionPredictor(DL85Predictor):
                                 search(node['left'])
                                 search(node['right'])
                             else:
-                                node['value'] = self.leaf_value_function(node['transactions'])
-                        node = self.trees_[i]
+                                node['value'] = self.leaf_value_function(node['transactions'], self.quantiles[i])
+                        node = self.trees_[i]['tree']
                         search(node)
 
-                    self.remove_transactions()
+                    self.remove_transactions(self.trees_[i]['tree'])
 
         if self.print_output:
             print(solution[0])

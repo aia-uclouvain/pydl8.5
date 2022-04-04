@@ -1,3 +1,4 @@
+from statistics import quantiles
 from sklearn.base import BaseEstimator
 from sklearn.utils.validation import assert_all_finite, check_X_y, check_array, check_is_fitted
 from sklearn.utils.multiclass import unique_labels
@@ -103,15 +104,16 @@ class DL85Predictor(BaseEstimator):
             leaf_value_function=None,
             quiet=True,
             print_output=False, 
-            backup_error="misclassification"):
+            backup_error="misclassification",
+            quantile_value=0.5,):
 
         self.max_depth = max_depth
         self.min_sup = min_sup
         self.sample_weight = []
         self.error_function = error_function
         self.fast_error_function = fast_error_function
-        self.max_error = [max_error]
-        self.stop_after_better = [stop_after_better]
+        self.max_errors = np.array([max_error])
+        self.stop_after_better = np.array([stop_after_better])
         self.time_limit = time_limit
         self.verbose = verbose
         self.desc = desc
@@ -121,6 +123,7 @@ class DL85Predictor(BaseEstimator):
         self.backup_error = backup_error
         self.quiet = quiet
         self.print_output = print_output
+        self.quantile_value = quantile_value
 
         self.tree_ = None
         self.size_ = -1
@@ -194,13 +197,14 @@ class DL85Predictor(BaseEstimator):
                                        max_depth=self.max_depth,
                                        min_sup=self.min_sup,
                                        example_weights=self.sample_weight,
-                                       max_error=self.max_error,
+                                       max_error=self.max_errors,
                                        stop_after_better=self.stop_after_better,
                                        time_limit=self.time_limit,
                                        verb=self.verbose,
                                        desc=self.desc,
                                        asc=self.asc,
-                                       repeat_sort=self.repeat_sort)
+                                       repeat_sort=self.repeat_sort,
+                                       quantiles=np.array([self.quantile_value]))
         # if self.print_output:
         #     print(solution)
 
@@ -208,15 +212,15 @@ class DL85Predictor(BaseEstimator):
         self.sol_size = len(solution)
 
         if self.sol_size == 10:  # solution found
-            self.tree_ = json.loads(solution[1].split('Tree: ')[1])
-            self.size_ = int(solution[2].split(" ")[1])
-            self.depth_ = int(solution[3].split(" ")[1])
-            self.error_ = float(solution[4].split(" ")[1])
-            self.lattice_size_ = int(solution[6].split(" ")[1])
-            self.runtime_ = float(solution[7].split(" ")[1])
-            self.timeout_ = bool(strtobool(solution[8].split(" ")[1]))
+            self.tree_ = json.loads(solution[2].split('Tree: ')[1])
+            self.size_ = int(solution[3].split(" ")[1])
+            self.depth_ = int(solution[4].split(" ")[1])
+            self.error_ = float(solution[5].split(" ")[1])
+            self.lattice_size_ = int(solution[7].split(" ")[1])
+            self.runtime_ = float(solution[8].split(" ")[1])
+            self.timeout_ = bool(strtobool(solution[9].split(" ")[1]))
             if self.size_ >= 3 or self.max_error[0] <= 0:
-                self.accuracy_ = float(solution[5].split(" ")[1])
+                self.accuracy_ = float(solution[6].split(" ")[1])
 
             # if sol_size == 8:  # without timeout
             if self.size_ < 3 and self.max_error[0] > 0:  # return just a leaf as fake solution
@@ -480,7 +484,9 @@ class DL85Predictor(BaseEstimator):
                 if 'left' in node.keys():
                     recurse(node['left'])
                     recurse(node['right'])
+
         tree = self.tree_ if tree_ is None else tree_
+    
         recurse(tree)
 
     def export_graphviz(self, tree_=None):
