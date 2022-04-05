@@ -1,3 +1,0 @@
-/Users/valentin/Git Repositories/pydl8.5/core/CMakeFiles/dl85.dir
-/Users/valentin/Git Repositories/pydl8.5/core/CMakeFiles/edit_cache.dir
-/Users/valentin/Git Repositories/pydl8.5/core/CMakeFiles/rebuild_cache.dir
