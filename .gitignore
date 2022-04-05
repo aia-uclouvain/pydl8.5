@@ -4,6 +4,8 @@ dist/
 
 pydl8.5.egg-info/
 
+wheelhouse/
+
 doc/_build
 doc/auto_examples
 doc/generated
