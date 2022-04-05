@@ -5,6 +5,7 @@
 #include "globals.h"
 #include "rCover.h"
 #include "dataManager.h"
+#include "predefined_error_functions.h"
 #include <iostream>
 #include <cfloat>
 #include <functional>
@@ -119,6 +120,7 @@ public:
     function<vector<float>(RCover *)> *tids_error_class_callback = nullptr;
     function<vector<float>(RCover *)> *supports_error_class_callback = nullptr;
     function<float(RCover *)> *tids_error_callback = nullptr;
+    QuantileLossComputer* quantileLossComputer = nullptr;
 
 };
 

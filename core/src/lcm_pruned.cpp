@@ -45,44 +45,39 @@ TrieNode *infeasiblecase(TrieNode *node, Error *saved_lb, Error *ub) {
 
 TrieNode *getSolutionIfExists(TrieNode *node, RCover* cover, Query* query, Error* ub, Depth depth){
     Error *nodeError = ((QDB) node->data)->errors;
+    Error *saved_lb = ((QDB) node->data)->lowerBounds;
+    Error* leafErrors = ((QDB) node->data)->leafErrors;
 
     // in case the solution exists because the error of a newly created node is set to FLT_MAX
     bool solution_exists = true;
+    bool infeasible = true;
+    bool lowestreached = true;
+
     for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
         if (nodeError[i] >= FLT_MAX) { 
             solution_exists = false;
-            break;
         }
-    }
 
-    if (solution_exists)
-        return existingsolution(node, nodeError);
-
-
-    Error *saved_lb = ((QDB) node->data)->lowerBounds;
-    // in case the problem is infeasible
-    bool infeasible = true;
-    for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
-        if (ub[i] >= saved_lb[i]) { 
+        if (ub[i] > saved_lb[i]) { 
             infeasible = false;
-            break;
         }
-    }
-
-    if (infeasible) {
-        return infeasiblecase(node, saved_lb, ub);
-    }
-
-    Error* leafErrors = ((QDB) node->data)->leafErrors;
-    // we reach the lowest value possible. implicitely, the upper bound constraint is not violated
-    bool lowestreached = true;
-    for (int i = 0; i < cover->dm->getNQuantiles(); i++) {
+        
         if (!floatEqual(leafErrors[i], saved_lb[i])) { 
             lowestreached = false;
         } else {
             nodeError[i] = leafErrors[i];
         }
+
     }
+
+    if (solution_exists)
+        return existingsolution(node, nodeError);
+
+    if (infeasible) {
+        return infeasiblecase(node, saved_lb, ub);
+    }
+
+    // we reach the lowest value possible. implicitely, the upper bound constraint is not violated
     if (lowestreached) {
         return reachlowest(node, saved_lb, ub);
     }
@@ -287,11 +282,10 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
 
     // in case the solution cannot be derived without computation and remaining depth is 2, we use a specific algorithm
     
-    // TODO Valentin: extend to still use depth 2 computer.
     
-    // if (query->maxdepth - depth == 2 && cover->getSupport() >= 2 * query->minsup && no_python_error && default_is_misclassificaton) {
-    //     return computeDepthTwo(cover, ub, next_candidates, last_added, itemset, node, query, computed_lb, query->trie);
-    // }
+    if (query->maxdepth - depth == 2 && cover->getSupport() >= 2 * query->minsup && no_python_error && default_is_misclassificaton) {
+        return computeDepthTwo(cover, ub[0], next_candidates, last_added, itemset, node, query, computed_lb[0], query->trie);
+    }
 
     /* there are two cases in which the execution attempt here
      1- when the node data did not exist

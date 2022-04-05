@@ -36,6 +36,8 @@ Query_TotalFreq::Query_TotalFreq(Support minsup,
                                stopAfterError[i] = maxError[i] <= 0 ? false : stopAfterError[i];
                            }
                        }
+
+                       quantileLossComputer = new QuantileLossComputer(data->getNQuantiles());
                    }
 
 
@@ -114,7 +116,7 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
                 error = sse_tids_error(cover);
                 errors = new float{error};
             } else if (dm->getBackupError() == QUANTILE_ERROR) {
-                errors = quantile_tids_errors(cover);
+                errors = quantileLossComputer->quantile_tids_errors(cover);
             }
             
         }

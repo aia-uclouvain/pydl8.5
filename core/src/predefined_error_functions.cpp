@@ -26,23 +26,27 @@ float sse_tids_error(RCover* cover) {
     return sse;
 }
 
-float* quantile_tids_errors(RCover* cover) {
+QuantileLossComputer::QuantileLossComputer(int n_quantiles) : n_quantiles(n_quantiles) {
+    h = new double[n_quantiles];
+    h_low = new int[n_quantiles];
+    h_up = new int[n_quantiles];
+    y_low = new double[n_quantiles];
+    y_pred = new double[n_quantiles];
+    under = new double[n_quantiles];
+    above = new double[n_quantiles];
+}
+
+
+
+
+float* QuantileLossComputer::quantile_tids_errors(RCover* cover) {
     RCover::iterator it;
 
     int N = cover->getSupport();
 
     int n_quantiles = cover->dm->getNQuantiles();
 
-    float * h = new float[n_quantiles];
-    int * h_up = new int[n_quantiles];
-    int * h_low = new int[n_quantiles];
-
-    double * y_low = new double[n_quantiles];
-    double * y_pred = new double[n_quantiles];
     float * errors = new float[n_quantiles];
-    
-    double * under = new double[n_quantiles];
-    double * above = new double[n_quantiles];
 
     float h_tmp;
     int i;
@@ -122,64 +126,6 @@ float* quantile_tids_errors(RCover* cover) {
         errors[i] = under[i] * q_i + above[i] * (q_i - 1.);
     }
 
-    // std::cout << "errors in predef" << "\n";
-    // for (int i = 0; i < n_quantiles; i++) {
-    //     std::cout << "h_low " << h_low[i] << "\n";
-    //     std::cout << "h_up "<< h_up[i] << "\n";
-    //     std::cout << "y_low "<< y_low[i] << "\n";
-    //     std::cout << "under "<< under[i] << "\n";
-    //     std::cout << "above "<< above[i] << "\n";
-    //     std::cout << "y_pred "<< y_pred[i] << "\n";
-    //     std::cout << "error "<< errors[i] << "\n\n";
-    // }
-    // std::cout << std::endl;
-
     return errors;
 }
 
-// float quantile_tids_error_slow(RCover* cover) {
-//     RCover::iterator it;
-
-//     // Computing the quantile for this cover
-//     int N = cover->getSupport();
-//     double q = (double) cover->dm->getQ();
-
-//     double h = (N-1)*q;
-
-//     int h_up = ceil(h);
-//     int h_low = floor(h);
-
-//     int sub_idx = 0;
-//     double y_sorted[N];
-
-//     for (it = cover->begin(true); it.wordIndex < cover->limit.top(); ++it) {
-//         int idx = it.value;
-//         double y_val = cover->dm->getY(idx);
-
-//         y_sorted[sub_idx] = y_val;
-
-//         sub_idx += 1;
-//     }    
-
-//     std::sort(y_sorted, y_sorted+N);
-
-//     // for (int i = 0; i< N; i++) {
-//     //     std::cout << y_sorted[i] << ", ";
-//     // }
-//     // std::cout << endl;
-    
-
-
-//     double y_pred = y_sorted[h_low] + (h - h_low) * (y_sorted[h_up] - y_sorted[h_low]);
-
-//     double loss = 0.;
-//     for (it = cover->begin(true); it.wordIndex < cover->limit.top(); ++it) {
-//         int idx = it.value;
-//         double y_val = cover->dm->getY(idx);
-
-//         double delta = y_pred - y_val;
-//         loss += std::fmax(q*delta, (q-1.)*delta);
-//     }    
-    
-//     return loss;
-// }

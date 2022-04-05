@@ -25,6 +25,8 @@ Query::Query(Support minsup,
 
 
 Query::~Query() {
+    if (quantileLossComputer)
+        delete quantileLossComputer;
 }
 
 
