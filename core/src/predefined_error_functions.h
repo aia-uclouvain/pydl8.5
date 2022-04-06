@@ -4,13 +4,26 @@
 #include <math.h>
 #include "rCover.h"
 
+struct QuantileResult {
+    double * predictions = nullptr;
+    float * errors = nullptr;
+
+    QuantileResult(double * predictions, float * errors) : predictions(predictions), errors(errors) {}
+
+    ~QuantileResult() {
+        if (predictions)
+            delete[] predictions;
+        if (errors)
+            delete[] errors;
+    }
+};
+
 class QuantileLossComputer {
     int n_quantiles;
     double *h;
     int *h_low;
     int *h_up;
     double *y_low;
-    double *y_pred;
     double *under;
     double *above;
 
@@ -24,12 +37,11 @@ class QuantileLossComputer {
             delete[] h_low;
             delete[] h_up;
             delete[] y_low;
-            delete[] y_pred;
             delete[] under;
             delete[] above;
         }
 
-        float* quantile_tids_errors(RCover* cover);
+        QuantileResult * quantile_tids_errors(RCover* cover);
 };
 
 

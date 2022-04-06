@@ -90,9 +90,9 @@ bool Query_TotalFreq::updateData(QueryData *best, Error* upperBound, Attribute a
 QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
     Class maxclass = -1;
     Error error;
-    Error* errors;
+    QuantileResult * quantileResult = nullptr;
 
-    auto *data = new QueryData_Best(dm->getNQuantiles());
+    auto *data = new QueryData_Best(dm->getNQuantiles(), dm->getBackupError() == QUANTILE_ERROR);
 
     //fast or default error. support will be used
     if (tids_error_class_callback == nullptr && tids_error_callback == nullptr) {
@@ -102,7 +102,6 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
             cover->getSupportPerClass(); // allocate the sup_array if it does not exist yet and compute the frequency counts
             vector<float> infos = callback(cover);
             error = infos[0];
-            errors = new float{error};
             maxclass = int(infos[1]);
         }
         // backup error
@@ -110,15 +109,12 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
             if (dm->getBackupError() == MISCLASSIFICATION_ERROR) {
                 LeafInfo ev = computeLeafInfo(cover);
                 error = ev.error;
-                errors = new float{error};
                 maxclass = ev.maxclass;
             } else if (dm->getBackupError() == MSE_ERROR) {
                 error = sse_tids_error(cover);
-                errors = new float{error};
             } else if (dm->getBackupError() == QUANTILE_ERROR) {
-                errors = quantileLossComputer->quantile_tids_errors(cover);
+                quantileResult = quantileLossComputer->quantile_tids_errors(cover);
             }
-            
         }
     }
     //slow error or predictor error function. Not need to compute support
@@ -130,24 +126,27 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
             function<vector<float>(RCover *)> callback = *tids_error_class_callback;
             vector<float> infos = callback(cover);
             error = infos[0];
-            errors = new float{error};
             maxclass = int(infos[1]);
         }
     }
 
-    // TODO Valentin Quuuuid? 
-    // data->test = maxclass;
+    if (quantileResult) {
+        for (int i = 0; i < dm->getNQuantiles(); i++) {
+            std::cout << quantileResult->predictions[i] << " " << quantileResult->errors[i] << std::endl;
+        }
 
+        for (int i = 0; i < dm->getNQuantiles(); i++) {
+            data->errors[i] += quantileResult->errors[i];
+            data->leafErrors[i] = quantileResult->errors[i];
+            data->predictions[i] = quantileResult->predictions[i];
+        }
 
-
-    
-
-    for (int i = 0; i < dm->getNQuantiles(); i++) {
-        data->errors[i] += errors[i];
-        data->leafErrors[i] = errors[i];
+        delete quantileResult;
+    } else {
+        data->errors[0] += error;
+        data->leafErrors[0] = error;
+        data->tests[0] = maxclass;
     }
-
-    delete[] errors;
 
     return (QueryData *) data;
 }

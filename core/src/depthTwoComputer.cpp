@@ -118,7 +118,7 @@ TrieNode* computeDepthTwo( RCover* cover,
     auto stop_comp = high_resolution_clock::now();
     comptime += duration<double>(stop_comp - start_comp).count();
 
-    auto* best_tree = new TreeTwo(cover->dm->getNQuantiles());
+    auto* best_tree = new TreeTwo(cover->dm->getNQuantiles(), cover->dm->getBackupError() == QUANTILE_ERROR);
     //TreeTwo* feat_best_tree;
 
     // find the best tree for each feature
@@ -127,7 +127,7 @@ TrieNode* computeDepthTwo( RCover* cover,
         //cout << "beeest " << best_tree->root_data->errors[0] << endl;
 
         // best tree for the current feature
-        auto* feat_best_tree = new TreeTwo(cover->dm->getNQuantiles());
+        auto* feat_best_tree = new TreeTwo(cover->dm->getNQuantiles(), cover->dm->getBackupError() == QUANTILE_ERROR);
 //        cout << "beeest " << best_tree->root_data->errors[0] << endl;
         // set the root to the current feature
         feat_best_tree->root_data->tests[0] = attr[i];
@@ -151,8 +151,8 @@ TrieNode* computeDepthTwo( RCover* cover,
             continue;
         }
 
-        feat_best_tree->root_data->lefts[0] = new QueryData_Best(cover->dm->getNQuantiles());
-        feat_best_tree->root_data->rights[0] = new QueryData_Best(cover->dm->getNQuantiles());
+        feat_best_tree->root_data->lefts[0] = new QueryData_Best(cover->dm->getNQuantiles(), cover->dm->getBackupError() == QUANTILE_ERROR);
+        feat_best_tree->root_data->rights[0] = new QueryData_Best(cover->dm->getNQuantiles(), cover->dm->getBackupError() == QUANTILE_ERROR);
 
         // the feature at root cannot be splitted at left. It is then a leaf node
         if (igs < 2 * query->minsup) {
@@ -215,8 +215,8 @@ TrieNode* computeDepthTwo( RCover* cover,
                             if (local_verbose)
                                 cout << "ce left ci donne une meilleure erreur que les précédents left: " << feat_best_tree->root_data->lefts[0]->errors[0] << endl;
                             if (!feat_best_tree->root_data->lefts[0]->lefts[0]){
-                                feat_best_tree->root_data->lefts[0]->lefts[0] = new QueryData_Best(cover->dm->getNQuantiles());
-                                feat_best_tree->root_data->lefts[0]->rights[0] = new QueryData_Best(cover->dm->getNQuantiles());
+                                feat_best_tree->root_data->lefts[0]->lefts[0] = new QueryData_Best(cover->dm->getNQuantiles(), cover->dm->getBackupError() == QUANTILE_ERROR);
+                                feat_best_tree->root_data->lefts[0]->rights[0] = new QueryData_Best(cover->dm->getNQuantiles(), cover->dm->getBackupError() == QUANTILE_ERROR);
                             }
                             //else feat_best_tree.cleanLeft();
                             feat_best_tree->root_data->lefts[0]->lefts[0]->errors[0] = ev1.error;
@@ -310,8 +310,8 @@ TrieNode* computeDepthTwo( RCover* cover,
                                 feat_best_tree->root_data->rights[0]->errors[0] = ev1.error + ev2.error;
                                 if (local_verbose) cout << "ce right ci donne une meilleure erreur que les précédents right: " << feat_best_tree->root_data->rights[0]->errors[0] << endl;
                                 if (!feat_best_tree->root_data->rights[0]->lefts[0]){
-                                    feat_best_tree->root_data->rights[0]->lefts[0] = new QueryData_Best(cover->dm->getNQuantiles());
-                                    feat_best_tree->root_data->rights[0]->rights[0] = new QueryData_Best(cover->dm->getNQuantiles());
+                                    feat_best_tree->root_data->rights[0]->lefts[0] = new QueryData_Best(cover->dm->getNQuantiles(), cover->dm->getBackupError() == QUANTILE_ERROR);
+                                    feat_best_tree->root_data->rights[0]->rights[0] = new QueryData_Best(cover->dm->getNQuantiles(), cover->dm->getBackupError() == QUANTILE_ERROR);
                                 }
                                 //else feat_best_tree.removeRight();
                                 feat_best_tree->root_data->rights[0]->lefts[0]->errors[0] = ev1.error;
@@ -404,7 +404,7 @@ TrieNode* computeDepthTwo( RCover* cover,
         //error not lower than ub
         LeafInfo ev = query->computeLeafInfo(cover);
         delete best_tree;
-        node->data = (QueryData *) new QueryData_Best(cover->dm->getNQuantiles());
+        node->data = (QueryData *) new QueryData_Best(cover->dm->getNQuantiles(), cover->dm->getBackupError() == QUANTILE_ERROR);
         ((QueryData_Best *) node->data)->errors[0] = ev.error;
         ((QueryData_Best *) node->data)->leafErrors[0] = ev.error;
         ((QueryData_Best *) node->data)->tests[0] = ev.maxclass;
