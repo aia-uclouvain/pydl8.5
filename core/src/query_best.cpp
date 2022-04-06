@@ -67,9 +67,9 @@ int Query_Best::printResult(QueryData_Best *data, int depth, Tree *tree, int qua
         tree->expression += "{\"feat\": " + std::to_string(data->tests[quantile_idx]) + ", \"left\": ";
 
         // perhaps strange, but we have stored the positive outcome in right, generally, people think otherwise... :-)
-        int left_depth = printResult(data->rights[quantile_idx], depth + 1, tree);
+        int left_depth = printResult(data->rights[quantile_idx], depth + 1, tree, quantile_idx);
         tree->expression += "}, \"right\": ";
-        int right_depth = printResult(data->lefts[quantile_idx], depth + 1, tree);
+        int right_depth = printResult(data->lefts[quantile_idx], depth + 1, tree, quantile_idx);
         tree->expression += "}";
         return max(left_depth, right_depth);
     }
