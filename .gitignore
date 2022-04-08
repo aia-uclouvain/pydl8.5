@@ -13,7 +13,7 @@ doc/generated
 
 .pytest_cache/
 
-.vscode/*
+.vscode/
 .DS_Store
 
 .idea/
