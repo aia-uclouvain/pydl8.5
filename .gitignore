@@ -40,11 +40,18 @@ dl85/supervised/classifiers/utils/__pycache__/
 dl85/supervised/__pycache__/
 dl85/unsupervised/__pycache__/
 dl85/supervised/classifiers/tests/__pycache__/
+dl85/supervised/regressors/__pycache__/*
+
 dl85/errors/__pycache__/
 dl85/predictors/__pycache__/
 dl85/supervised/classifiers/old_classifier.py
 dl85/unsupervised/old_clustering.py
 dl85/predictors/old_predictor.py
+
+dl85/__init__.pyc 
+dl85/supervised/classifiers/__init__.pyc
+dl85/supervised/classifiers/classifier.pyc 
+dl85/supervised/regressors/__init__.pyc
 
 cython_extension/dl85Optimizer.cpp
 cython_extension/error_function.cpp

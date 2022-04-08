@@ -26,13 +26,19 @@ DataManager::DataManager(Supports supports, int ntransactions, int nattributes, 
             while (itr != end && start < end) {
                 dist = distance(start, itr);
                 currentindex += 1 + dist;
+
+                // std::cout << currentindex << " ";
+
                 attrCov[nWords-(j+1)].set(currentindex);
+                // attrCov[j].set(currentindex);
                 start += (dist + 1);
                 itr = find(start, end, 1);
             }
+
+            // std::cout << std::endl;
         }
         b[i] = attrCov;
-        //cout << "attr : " << i << " word = " << attrCov->to_string() << endl;
+        // cout << "attr : " << i << " word = " << attrCov->to_string() << endl;
     }
 
 
@@ -54,6 +60,7 @@ DataManager::DataManager(Supports supports, int ntransactions, int nattributes, 
                     dist = distance(start, itr);
                     currentindex += 1 + dist;
                     classCov[nWords-(j+1)].set(currentindex);
+                    // classCov[j].set(currentindex);
                     start += (dist + 1);
                     itr = find(start, end, i);
                 }
@@ -61,20 +68,20 @@ DataManager::DataManager(Supports supports, int ntransactions, int nattributes, 
             c[i] = classCov;
         }
     } else if (float_target) {
-        // y = float_target;
+        y = float_target;
 
-        y = new double [ntransactions];
-        for (int i = 0; i < nWords; ++i) {
-            for (int j = 0; j < M; j++) {
-                if (i == nWords - 1) {
-                    if (i*M +j >= ntransactions)
-                        break;
-                    y[i*M + j] = float_target[j];
-                } else {
-                    y[i*M + j] = float_target[ntransactions - (i+1)*M +j];
-                }           
-            }
-        }
+        // y = new double [ntransactions];
+        // for (int i = 0; i < nWords; ++i) {
+        //     for (int j = 0; j < M; j++) {
+        //         if (i == nWords - 1) {
+        //             if (i*M +j >= ntransactions)
+        //                 break;
+        //             y[i*M + j] = float_target[j];
+        //         } else {
+        //             y[i*M + j] = float_target[ntransactions - (i+1)*M +j];
+        //         }           
+        //     }
+        // }
     
     } else {
         c = nullptr;

@@ -219,11 +219,11 @@ class DL85Predictor(BaseEstimator):
             self.lattice_size_ = int(solution[7].split(" ")[1])
             self.runtime_ = float(solution[8].split(" ")[1])
             self.timeout_ = bool(strtobool(solution[9].split(" ")[1]))
-            if self.size_ >= 3 or self.max_error[0] <= 0:
+            if self.size_ >= 3 or self.max_errors[0] <= 0:
                 self.accuracy_ = float(solution[6].split(" ")[1])
 
             # if sol_size == 8:  # without timeout
-            if self.size_ < 3 and self.max_error[0] > 0:  # return just a leaf as fake solution
+            if self.size_ < 3 and self.max_errors[0] > 0:  # return just a leaf as fake solution
                 if not self.timeout_:
                     print("DL8.5 fitting: Solution not found. However, a solution exists with error equal to the "
                       "max error you specify as unreachable. Please increase your bound if you want to reach it.")

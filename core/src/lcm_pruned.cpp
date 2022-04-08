@@ -64,7 +64,7 @@ TrieNode *getSolutionIfExists(TrieNode *node, RCover* cover, Query* query, Error
         
         if (!floatEqual(leafErrors[i], saved_lb[i])) { 
             lowestreached = false;
-        } else {
+        }  else {
             nodeError[i] = leafErrors[i];
         }
 
@@ -548,7 +548,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
     }
     
 
-    Logger::showMessageAndReturn("depth = ", depth, " and init ub = ", ub, " and error after search = ", *nodeError);
+    Logger::showMessageAndReturn("depth = ", depth, " and init ub = ", ub, " and error after search = ", nodeError);
 
     next_attributes.free();
 //        itemset.free();

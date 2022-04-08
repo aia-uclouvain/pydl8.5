@@ -67,6 +67,8 @@ string search(Supports supports,
               int minsup = 1,
               float* maxError = nullptr,
               bool* stopAfterError = nullptr,
+              bool max_error_is_null = true,
+              bool stop_after_error_is_null = true,
 //              bool iterative = false,
               //get a pointer on cover as param and return a vector of float. Due to iterator behaviour of RCover
               // object and the wrapping done in cython, this pointer in python is seen as a list of tids in the cover

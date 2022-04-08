@@ -52,6 +52,8 @@ cdef extern from "../core/src/dl85.h":
                     int minsup,
                     float *maxError,
                     bool* stopAfterError,
+                    bool max_error_is_null,
+                    bool stop_after_error_is_null,
                     # bool iterative,
                     PyTidErrorClassWrapper tids_error_class_callback,
                     PySupportErrorClassWrapper supports_error_class_callback,
@@ -80,8 +82,8 @@ def solve(data,
           max_depth=1,
           min_sup=1,
           example_weights=[],
-          max_error=np.array([0]),
-          stop_after_better=np.array([False]),
+          max_error=None,
+          stop_after_better=None,
           # iterative=False,
           time_limit=0,
           verb=False,
@@ -142,27 +144,27 @@ def solve(data,
     cdef float [::1] max_errors_view
     cdef float *max_errors_array = NULL 
     
-    max_error = np.array(max_error)
-    max_error = max_error.astype('float32')
-    if not max_error.flags['C_CONTIGUOUS']:
-        max_error = np.ascontiguousarray(max_error) # Makes a contiguous copy of the numpy array.
-    max_errors_array = <float *> malloc(len(max_error)*sizeof(float))
-    for i, v in enumerate(max_error):
-        max_errors_array[i] = v
-    #max_errors_view = max_error
-    #max_errors_array = &max_errors_view[0]
+    if max_error is not None:
+        max_error = np.array(max_error)
+        max_error = max_error.astype('float32')
+        if not max_error.flags['C_CONTIGUOUS']:
+            max_error = np.ascontiguousarray(max_error) # Makes a contiguous copy of the numpy array.
+        max_errors_array = <float *> malloc(len(max_error)*sizeof(float))
+        for i, v in enumerate(max_error):
+            max_errors_array[i] = v
     
 
     cdef bool [::1] stop_after_better_view
     cdef bool *stop_after_better_array = NULL 
 
-    stop_after_better = np.array(stop_after_better)
-    stop_after_better = stop_after_better.astype('bool')
-    if not stop_after_better.flags['C_CONTIGUOUS']:
-        stop_after_better = np.ascontiguousarray(stop_after_better) # Makes a contiguous copy of the numpy array.
-    stop_after_better_array = <bool *> malloc(len(stop_after_better)*sizeof(bool))
-    for i, v in enumerate(stop_after_better):
-        stop_after_better_array[i] = v
+    if stop_after_better is not None:
+        stop_after_better = np.array(stop_after_better)
+        stop_after_better = stop_after_better.astype('bool')
+        if not stop_after_better.flags['C_CONTIGUOUS']:
+            stop_after_better = np.ascontiguousarray(stop_after_better) # Makes a contiguous copy of the numpy array.
+        stop_after_better_array = <bool *> malloc(len(stop_after_better)*sizeof(bool))
+        for i, v in enumerate(stop_after_better):
+            stop_after_better_array[i] = v
     #stop_after_better_view = stop_after_better
     #stop_after_better_array = &stop_after_better_view[0]
 
@@ -245,6 +247,8 @@ def solve(data,
                  minsup = min_sup,
                  maxError = max_errors_array,
                  stopAfterError = stop_after_better_array,
+                 max_error_is_null = max_error is None,
+                 stop_after_error_is_null = stop_after_better is None,
                  # iterative = iterative,
                  tids_error_class_callback = tec_func,
                  supports_error_class_callback = sec_func,

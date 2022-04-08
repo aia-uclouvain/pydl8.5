@@ -30,7 +30,7 @@ public:
         }
         delete[]c;
         // deleteSupports(supports);
-        delete[] y;
+        // delete[] y;
 
         delete[] quantiles;
     }

@@ -43,17 +43,17 @@ class DL85DistributionPredictor(DL85Predictor):
         
         self.quantiles = sorted(quantiles)
 
-        if self.max_errors is None:
-            self.max_errors = [0] * len(self.quantiles)
+        # if self.max_errors is None:
+        #     self.max_errors = [0] * len(self.quantiles)
         
-        if self.stop_after_better is None:
-            self.stop_after_better = [False] * len(self.quantiles)
+        # if self.stop_after_better is None:
+        #     self.stop_after_better = [False] * len(self.quantiles)
 
-        if len(self.max_errors) != len(self.quantiles):
+        if self.max_errors is not None and len(self.max_errors) != len(self.quantiles):
             print('max_errors must be of same length as quantiles')
             return 
 
-        if len(self.stop_after_better) != len(self.stop_after_better):
+        if self.stop_after_better is not None and len(self.stop_after_better) != len(self.stop_after_better):
             print('stop_after_better must be of same length as quantiles')
             return
 
@@ -71,9 +71,18 @@ class DL85DistributionPredictor(DL85Predictor):
 
         self.is_fitted_ = False
 
-    @staticmethod
-    def quantile_leaf_value(tids, y, q):
-        return np.quantile(y[list(tids)], q)
+    @classmethod
+    def quantile_leaf_value(cls, y, q):
+        y_p = np.quantile(y, q)
+        return y_p
+
+    @classmethod 
+    def quantile_error(cls, y, q):
+        y_p = np.quantile(y, q)
+        delta = y_p - y 
+        delta[delta > 0] *= q 
+        delta[delta < 0] *= (q - 1)
+        return np.sum(delta)
 
     def fit(self, X, y, sample_weight=None):
         X, y = check_X_y(X, y, dtype='int32')
@@ -82,8 +91,8 @@ class DL85DistributionPredictor(DL85Predictor):
         X = X[idx]
         y = y[idx]
 
-        self.leaf_value_function = lambda tids, q: self.quantile_leaf_value(tids, y, q)
-
+        if self.leaf_value_function is None:
+            self.leaf_value_function = lambda tids, q: self.quantile_leaf_value(y[list(tids)], q)
 
         # sys.path.insert(0, "../../")
         import dl85Optimizer
@@ -106,7 +115,6 @@ class DL85DistributionPredictor(DL85Predictor):
                                        repeat_sort=self.repeat_sort,
                                        quantiles=self.quantiles)
 
-
         solution = solution.splitlines()
         self.sol_size = len(solution)
 
@@ -123,11 +131,11 @@ class DL85DistributionPredictor(DL85Predictor):
                 self.trees_[i]['runtime'] = float(solution[2+i*9+6].split(" ")[1])
                 self.trees_[i]['timeout'] = bool(strtobool(solution[2+i*9+7].split(" ")[1]))
 
-                if self.trees_[i]['size'] >= 3 or self.max_error[i] <= 0:
+                if self.trees_[i]['size'] >= 3 or self.max_errors[i] <= 0:
                     self.trees_[i]['accuracy'] = float(solution[2+i*9+4].split(" ")[1])
 
             
-                if self.trees_[i]['size'] < 3 and self.max_error[i] > 0:  # return just a leaf as fake solution
+                if self.trees_[i]['size'] < 3 and self.max_errors[i] > 0:  # return just a leaf as fake solution
                     if not self.timeout_:
                         print("DL8.5 fitting: Solution not found. However, a solution exists with error equal to the "
                         "max error you specify as unreachable. Please increase your bound if you want to reach it.")
@@ -155,17 +163,20 @@ class DL85DistributionPredictor(DL85Predictor):
             for i in range(n_trees):
                 if self.trees_[i]['tree'] is not None:
                     # add transactions to nodes of the tree
-                    self.add_transactions_and_proba(X, y, tree=self.trees_[i]['tree'])
 
-                    if self.leaf_value_function is not None:
-                        def search(node):
-                            if self.is_leaf_node(node) is not True:
-                                search(node['left'])
-                                search(node['right'])
-                            else:
-                                node['value'] = self.leaf_value_function(node['transactions'], self.quantiles[i])
-                        node = self.trees_[i]['tree']
-                        search(node)
+                    leaf_fun = lambda tids: self.leaf_value_function(tids, self.quantiles[i])
+
+                    self.add_transactions_and_proba(X, y, tree=self.trees_[i]['tree'])
+                    
+                    def search(node):
+                        if self.is_leaf_node(node) is not True:
+                            search(node['left'])
+                            search(node['right'])
+                        else:
+                            node['value'] = self.leaf_value_function(node['transactions'], self.quantiles[i])
+                            node['error'] = self.quantile_error(y[list(node['transactions'])], self.quantiles[i])
+                    node = self.trees_[i]['tree']
+                    search(node)
 
                     self.remove_transactions(self.trees_[i]['tree'])
 

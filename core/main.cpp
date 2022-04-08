@@ -14,7 +14,7 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-    string datasetPath = "../datasets/dataset.txt";//"../../datasets/dataset.txt";
+    string datasetPath = "../datasets/dataset.txt";//"../../datasets/gaussian-mixture.txt";
 
     ifstream dataset(datasetPath);
 
@@ -37,9 +37,7 @@ int main(int argc, char *argv[]) {
         string value;
         int i = 0;
         while (getline(ss, value, ',')) {
-            if (i == 0) {
-                
-            } else if (i == nfeatures) {
+            if (i == nfeatures) {
                 target.push_back(stod(value));
             } else {
                 data_tmp[i].push_back(stoi(value));
@@ -61,7 +59,7 @@ int main(int argc, char *argv[]) {
     }
     delete[] data_tmp;
 
-    int maxdepth = 1, minsup = 1;
+    int maxdepth = 3, minsup = 1;
 
     cout << "dataset: " << datasetPath.substr(datasetPath.find_last_of('/') + 1, datasetPath.find_last_of('.') - datasetPath.find_last_of('/') - 1) << endl;
 
@@ -87,10 +85,12 @@ int main(int argc, char *argv[]) {
                 data.data(), //data
                 nullptr, // classes
                 target.data(), //float target
-                maxdepth, //maxdepth
-                minsup, //minsup
+                3, //maxdepth
+                1, //minsup
                 nullptr, //maxError
                 nullptr, //stopAfterError
+                true, // max_error_is_null
+                true, // stop_after_error_is_null
                 nullptr, //tids_error_class_callback
                 nullptr, //supports_error_class_callback
                 nullptr, //tids_error_callback
