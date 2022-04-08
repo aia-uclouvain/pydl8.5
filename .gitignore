@@ -40,7 +40,7 @@ dl85/supervised/classifiers/utils/__pycache__/
 dl85/supervised/__pycache__/
 dl85/unsupervised/__pycache__/
 dl85/supervised/classifiers/tests/__pycache__/
-dl85/supervised/regressors/__pycache__/*
+dl85/supervised/regressors/__pycache__/
 
 dl85/errors/__pycache__/
 dl85/predictors/__pycache__/
