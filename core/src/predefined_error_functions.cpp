@@ -38,7 +38,6 @@ QuantileLossComputer::QuantileLossComputer(int n_quantiles) : n_quantiles(n_quan
 
 
 
-
 Error * QuantileLossComputer::quantile_tids_errors(RCover* cover) {
     RCover::iterator it;
 
@@ -56,14 +55,18 @@ Error * QuantileLossComputer::quantile_tids_errors(RCover* cover) {
         h_up[i] = ceil(h_tmp);
         h_up[i] = (h_up[i] >= N) ? N-1 : h_up[i];
         h_low[i] = floor(h_tmp);
-        
+
         y_low[i] = -1;
         y_pred[i] = -1;
+        
         under[i] = 0.;
         above[i] = 0.;
     }
 
+    // Indices going from 0 to N-1 (pseudo indices of the cover)
     int sub_idx = 0;
+
+    // True indices of the full y array
     int idx;
 
     int idx_for_low_val = 0;
@@ -77,8 +80,6 @@ Error * QuantileLossComputer::quantile_tids_errors(RCover* cover) {
     for (it = cover->end(true); it.wordIndex >= 0; ++it) {
         idx = it.value;
         y_cur = cover->dm->getY(idx);
-
-        // std::cout << "(" << idx << ", " << y_cur << ")" << ", ";
 
         // Add the current element to the sum of the elements above the current quantile
         if (idx_for_up_sums >= 0) {
@@ -150,12 +151,6 @@ Error * QuantileLossComputer::quantile_tids_errors(RCover* cover) {
         float q_i = cover->dm->getQuantile(i); 
         errors[i] = under[i] * q_i + above[i] * (q_i - 1.);
     }
-
-    // for (int i = 0; i < n_quantiles; i++) {
-    //     float q_i = cover->dm->getQuantile(i);
-    //     std::cout << "\n" << y_pred[i] << " " << errors[i] << std::endl;
-    //     std::cout << under[i] * q_i << " " << above[i] * (q_i - 1.) << std::endl;
-    // }
 
     return errors;
 }

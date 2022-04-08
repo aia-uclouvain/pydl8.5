@@ -89,8 +89,6 @@ int main(int argc, char *argv[]) {
                 1, //minsup
                 nullptr, //maxError
                 nullptr, //stopAfterError
-                true, // max_error_is_null
-                true, // stop_after_error_is_null
                 nullptr, //tids_error_class_callback
                 nullptr, //supports_error_class_callback
                 nullptr, //tids_error_callback

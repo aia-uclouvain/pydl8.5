@@ -15,8 +15,6 @@ string search(Supports supports,
               int minsup,
               float* maxError,
               bool* stopAfterError,
-              bool max_error_is_null,
-              bool stop_after_error_is_null,
               function<vector<float>(RCover *)> tids_error_class_callback,
               function<vector<float>(RCover *)> supports_error_class_callback,
               function<float(RCover *)> tids_error_callback,
@@ -46,13 +44,13 @@ string search(Supports supports,
     verbose = verbose_param;
     string out = "";
 
-    if (stop_after_error_is_null || stopAfterError == nullptr) {
+    if (stopAfterError == nullptr) {
         stopAfterError = new bool[nquantiles];
         for (int i = 0; i< nquantiles; i++) 
             stopAfterError[i] = false;
     }
 
-    if (max_error_is_null || maxError == nullptr) {
+    if (maxError == nullptr) {
         maxError = new float[nquantiles];
         for (int i = 0; i< nquantiles; i++) 
             maxError[i] = 0;

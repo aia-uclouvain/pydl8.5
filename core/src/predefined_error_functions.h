@@ -10,9 +10,9 @@ class QuantileLossComputer {
     int *h_low;
     int *h_up;
     double *y_low;
+    double *y_pred;
     double *under;
     double *above;
-    double *y_pred;
 
 
 
@@ -24,9 +24,9 @@ class QuantileLossComputer {
             delete[] h_low;
             delete[] h_up;
             delete[] y_low;
+            delete[] y_pred;
             delete[] under;
             delete[] above;
-            delete[] y_pred;
         }
 
         Error * quantile_tids_errors(RCover* cover);

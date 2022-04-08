@@ -57,6 +57,8 @@ cython_extension/dl85Optimizer.cpp
 cython_extension/error_function.cpp
 cython_extension/error_function.h
 
+cython_debug/
+
 examples/gurobi.log
 examples/plots/
 examples/*.csv

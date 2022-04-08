@@ -86,12 +86,10 @@ public:
                     ordered = false;
                 } 
 
-                // std::cout << "wordIndex: " << wordIndex << std::endl;
                 pos = 0;
                 transInd = 0;
                 first = true;
                 word = container->coverWords[container->validWords[wordIndex]].top();
-                // std::cout << "word: " << word.to_string() << std::endl;
                 setNextTransID();
 
             } else{
@@ -132,12 +130,10 @@ public:
                         --wordIndex;
                     else 
                         ++wordIndex;
-                    // std::cout << "wordIndex: " << wordIndex << std::endl;
                     transInd = 0;
                     first = true;
                     if ((wordIndex >= 0 && ordered) || (wordIndex < container->limit.top() && !ordered)){
                         word = container->coverWords[container->validWords[wordIndex]].top();
-                        // std::cout << "word: " << word.to_string() << std::endl;
                         setNextTransID();
                     }
                 }
