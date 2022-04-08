@@ -13,10 +13,9 @@ struct QueryData_Best {
     Error* errors;
     Error* lowerBounds;
     Size* sizes;
-    double * predictions = nullptr;
     int n_quantiles;
 
-    QueryData_Best(int n_quantiles, bool optimising_quantiles): n_quantiles(n_quantiles) {
+    QueryData_Best(int n_quantiles): n_quantiles(n_quantiles) {
         tests = new Attribute[n_quantiles];
         lefts = new QueryData_Best*[n_quantiles];
         rights = new QueryData_Best*[n_quantiles];
@@ -28,9 +27,6 @@ struct QueryData_Best {
         lowerBounds = new Error[n_quantiles];
         sizes = new Size[n_quantiles];
 
-        if (optimising_quantiles)
-            predictions = new double[n_quantiles];
-
         for (int i = 0; i < n_quantiles; i++) {
             tests[i] = -1;
             lefts[i] = nullptr;
@@ -39,9 +35,6 @@ struct QueryData_Best {
             errors[i] = FLT_MAX;
             lowerBounds[i] = 0;
             sizes[i] = 1;
-
-            if (optimising_quantiles)
-                predictions[i] = 0;
         }
     }
 
@@ -53,9 +46,6 @@ struct QueryData_Best {
         delete[] lefts; 
         delete[] rights;
         delete[] sizes;
-
-        if (predictions)
-            delete[] predictions;
     }
 
 

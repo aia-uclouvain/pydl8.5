@@ -55,8 +55,6 @@ int Query_Best::printResult(QueryData_Best *data, int depth, Tree *tree, int qua
     if (!data->lefts[quantile_idx]) { // leaf
         if (tids_error_callback) {
             tree->expression += R"({"value": "undefined", "error": )" + std::to_string(data->errors[quantile_idx]);
-        } else if (data->predictions) {
-            tree->expression += "{\"value\": " + std::to_string(data->predictions[quantile_idx]) + ", \"error\": " + std::to_string(data->errors[quantile_idx]);
         } else {
             tree->expression += "{\"value\": " + std::to_string(data->tests[quantile_idx]) + ", \"error\": " + std::to_string(data->errors[quantile_idx]);
         }

@@ -91,9 +91,9 @@ bool Query_TotalFreq::updateData(QueryData *best, Error* upperBound, Attribute a
 QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
     Class maxclass = -1;
     Error error;
-    QuantileResult * quantileResult = nullptr;
+    Error * errors = nullptr;
 
-    auto *data = new QueryData_Best(dm->getNQuantiles(), dm->getBackupError() == QUANTILE_ERROR);
+    auto *data = new QueryData_Best(dm->getNQuantiles());
 
     //fast or default error. support will be used
     if (tids_error_class_callback == nullptr && tids_error_callback == nullptr) {
@@ -114,7 +114,7 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
             } else if (dm->getBackupError() == MSE_ERROR) {
                 error = sse_tids_error(cover);
             } else if (dm->getBackupError() == QUANTILE_ERROR) {
-                quantileResult = quantileLossComputer->quantile_tids_errors(cover);
+                errors = quantileLossComputer->quantile_tids_errors(cover);
             }
         }
     }
@@ -131,14 +131,13 @@ QueryData *Query_TotalFreq::initData(RCover *cover, Depth currentMaxDepth) {
         }
     }
 
-    if (quantileResult) {
+    if (errors) {
         for (int i = 0; i < dm->getNQuantiles(); i++) {
-            data->errors[i] += quantileResult->errors[i];
-            data->leafErrors[i] = quantileResult->errors[i];
-            data->predictions[i] = quantileResult->predictions[i];
+            data->errors[i] += errors[i];
+            data->leafErrors[i] = errors[i];
         }
 
-        delete quantileResult;
+        delete[] errors;
     } else {
         data->errors[0] += error;
         data->leafErrors[0] = error;

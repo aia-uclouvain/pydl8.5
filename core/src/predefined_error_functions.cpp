@@ -33,12 +33,13 @@ QuantileLossComputer::QuantileLossComputer(int n_quantiles) : n_quantiles(n_quan
     y_low = new double[n_quantiles];
     under = new double[n_quantiles];
     above = new double[n_quantiles];
+    y_pred = new double[n_quantiles];
 }
 
 
 
 
-QuantileResult * QuantileLossComputer::quantile_tids_errors(RCover* cover) {
+Error * QuantileLossComputer::quantile_tids_errors(RCover* cover) {
     RCover::iterator it;
 
     int N = cover->getSupport();
@@ -46,7 +47,6 @@ QuantileResult * QuantileLossComputer::quantile_tids_errors(RCover* cover) {
     int n_quantiles = cover->dm->getNQuantiles();
 
     float * errors = new float[n_quantiles];
-    double * y_pred = new double[n_quantiles];
 
     float h_tmp;
     int i;
@@ -157,6 +157,6 @@ QuantileResult * QuantileLossComputer::quantile_tids_errors(RCover* cover) {
     //     std::cout << under[i] * q_i << " " << above[i] * (q_i - 1.) << std::endl;
     // }
 
-    return new QuantileResult(y_pred, errors);
+    return errors;
 }
 
