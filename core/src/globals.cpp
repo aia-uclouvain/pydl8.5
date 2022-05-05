@@ -133,3 +133,25 @@ bool floatEqual(float f1, float f2)
     return abs(f1 - f2) <= epsilon * std::max(abs(f1), abs(f2));
 }*/
 
+int find_not_zero(std::string& str) {
+    for (int i = 0; i < str.size(); ++i) {
+        if (str.at(i) != '0') {
+            if (str.at(i) == '.') return -1;
+            else return i;
+        }
+    }
+    return -1;
+}
+
+std::string custom_to_str(float val) {
+    std::string valstr = std::to_string(val);
+    if (valstr.at(valstr.size()-1) != '0') return valstr;
+    std::reverse(valstr.begin(), valstr.end());
+    auto index = find_not_zero(valstr);
+    std::reverse(valstr.begin(), valstr.end());
+    if (index == -1) return valstr.substr(0, valstr.find('.'));
+    else {
+        auto ind = valstr.size() - index - 1;
+        return valstr.substr(0, ind + 1);
+    }
+}

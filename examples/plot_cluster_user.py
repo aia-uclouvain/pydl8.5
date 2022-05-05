@@ -14,7 +14,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import DistanceMetric
 import time
-from dl85 import DL85Predictor
+from pydl85 import DL85Predictor
 
 dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')
 X = dataset[:, 1:]

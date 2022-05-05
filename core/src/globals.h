@@ -175,6 +175,8 @@ Array<Item> addItem ( Array<Item> src1, Item item );
 
 void printItemset(Array<Item> itemset);
 
+std::string custom_to_str(float val);
+
 
 
 #endif

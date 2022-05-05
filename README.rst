@@ -17,15 +17,17 @@
 
 Relevant paper : `[DL852020] <https://dial.uclouvain.be/pr/boreal/fr/object/boreal%3A223390/datastream/PDF_01/view>`_ `[PYDL852020] <https://www.ijcai.org/Proceedings/2020/0750.pdf>`_
 
-**The PYDL8.5 library is an enhancement of DL8.5. The name has changed because the library no longer contains
-only the implementation of the DL8.5 algorithm, although the additional features are still built around DL8.5.
-Therefore the name of the library has changed and you need to install the correct version from PyPI to benefit
-from the new features. Please read the relevant articles referenced below to learn about the additional features.
-The documentation will help you get started with PyDL8.5.**
+**The PyDL8.5 library providing an implementation of DL8.5 algorithm. Please read the relevant articles referenced below to learn about the additional features.
+Please cite these papers if you used the current library. The documentation will help you get started with PyDL8.5.**
+
 
 This project implements an algorithm for inferring optimal binary decision trees.
 It is scikit-learn compatible and can be used in combination with scikit-learn.
 As a scikit-learn classifier, it implements the methods "fit" and "predict".
+
+
+
+The current version of PyDL8.5 is an optimized one using some ideas from  `MurTree <https://www.jmlr.org/papers/volume23/20-520/20-520.pdf>`_ paper listed in CHANGES.txt. The version of the code used in the AAAI paper [DL852020] is v0.0.15.
 
 This tool can be installed in two ways:
 

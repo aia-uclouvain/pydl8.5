@@ -327,7 +327,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
 
         Array<Item> itemsets[2];
         TrieNode *nodes[2];
-        Error first_lb = -1, second_lb = -1;
+        Error first_lb = 0, second_lb = 0;
 
         /* the lower bound is computed for both items. they are used as heuristic to decide
          the first item to branch on. We branch on item with higher lower bound to have chance
@@ -358,7 +358,7 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
         // the best lower bound between the computed and the saved is used
         first_lb = (nodes[first_item]->data) ? max(((QDB) nodes[first_item]->data)->lowerBound, first_lb) : first_lb;
         // perform the search for the first item
-        nodes[first_item] = recurse(itemsets[first_item], next, nodes[first_item], next_attributes,  depth + 1, child_ub, first_lb);
+        nodes[first_item] = recurse(itemsets[first_item], next, nodes[first_item], next_attributes,  depth + 1, child_ub - second_lb, first_lb);
 
         // check if the found information is relevant to compute the next similarity bounds
         addInfoForLowerBound(nodes[first_item]->data, b1_cover, b2_cover, b1_error, b2_error, highest_coversize);

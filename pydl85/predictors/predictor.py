@@ -201,19 +201,20 @@ class DL85Predictor(BaseEstimator):
         solution = solution.rstrip("\n").splitlines()
         self.sol_size = len(solution)
 
-        if self.sol_size == 9:  # solution found
-            self.tree_ = json.loads(solution[1].split('Tree: ')[1])
-            self.size_ = int(solution[2].split(" ")[1])
-            self.depth_ = int(solution[3].split(" ")[1])
-            self.error_ = float(solution[4].split(" ")[1])
-            self.lattice_size_ = int(solution[6].split(" ")[1])
-            self.runtime_ = float(solution[7].split(" ")[1])
-            self.timeout_ = bool(strtobool(solution[8].split(" ")[1]))
-            if self.size_ >= 3 or self.max_error <= 0:
-                self.accuracy_ = float(solution[5].split(" ")[1])
+        if self.sol_size == 10:  # solution found
+            self.base_tree_ = json.loads(solution[2].split('Tree: ')[1])
+            self.tree_ = json.loads(solution[2].split('Tree: ')[1])
+            self.size_ = int(solution[3].split(" ")[1])
+            self.depth_ = int(solution[4].split(" ")[1])
+            self.error_ = float(solution[5].split(" ")[1])
+            self.lattice_size_ = int(solution[7].split(" ")[1])
+            self.runtime_ = float(solution[8].split(" ")[1])
+            self.timeout_ = bool(strtobool(solution[9].split(" ")[1]))
+            if self.size_ >= 4 or self.max_error <= 0:
+                self.accuracy_ = float(solution[6].split(" ")[1])
 
             # if sol_size == 8:  # without timeout
-            if self.size_ < 3 and self.max_error > 0:  # return just a leaf as fake solution
+            if self.size_ < 4 and self.max_error > 0:  # return just a leaf as fake solution
                 if not self.timeout_:
                     print("DL8.5 fitting: Solution not found. However, a solution exists with error equal to the "
                       "max error you specify as unreachable. Please increase your bound if you want to reach it.")
@@ -232,10 +233,10 @@ class DL85Predictor(BaseEstimator):
                 # Store the classes seen during fit
                 self.classes_ = unique_labels(y)
 
-        elif self.sol_size == 5:  # solution not found
-            self.lattice_size_ = int(solution[2].split(" ")[1])
-            self.runtime_ = float(solution[3].split(" ")[1])
-            self.timeout_ = bool(strtobool(solution[4].split(" ")[1]))
+        elif self.sol_size == 6:  # solution not found
+            self.lattice_size_ = int(solution[3].split(" ")[1])
+            self.runtime_ = float(solution[4].split(" ")[1])
+            self.timeout_ = bool(strtobool(solution[5].split(" ")[1]))
             if not self.timeout_:
                 print("DL8.5 fitting: Solution not found")
             else:  # timeout reached
@@ -259,6 +260,7 @@ class DL85Predictor(BaseEstimator):
 
         if self.print_output:
             print(solution[0])
+            print(solution[1])
             print("Tree:", self.tree_)
             print("Size:", str(self.size_))
             print("Depth:", str(self.depth_))
@@ -310,7 +312,7 @@ class DL85Predictor(BaseEstimator):
         for i in range(X.shape[0]):
             pred.append(self.pred_value_on_dict(X[i, :]))
 
-        return pred
+        return np.array(pred)
 
     def pred_value_on_dict(self, instance, tree=None):
         node = tree if tree is not None else self.tree_
@@ -401,7 +403,7 @@ class DL85Predictor(BaseEstimator):
                     node['proba'] = []
                     for c in self.classes_:
                         if c in count_dict:
-                            node['proba'].append(count_dict[c] / sum(counts))
+                            node['proba'].append(round(count_dict[c] / sum(counts), 2))
                         else:
                             node['proba'].append(0)
                 else:
@@ -423,7 +425,7 @@ class DL85Predictor(BaseEstimator):
                         node['proba'] = []
                         for c in self.classes_:
                             if c in count_dict:
-                                node['proba'].append(count_dict[c] / sum(counts))
+                                node['proba'].append(round(count_dict[c] / sum(counts), 2))
                             else:
                                 node['proba'].append(0)
                     else:
@@ -442,7 +444,7 @@ class DL85Predictor(BaseEstimator):
                         node['proba'] = []
                         for c in self.classes_:
                             if c in count_dict:
-                                node['proba'].append(count_dict[c] / sum(counts))
+                                node['proba'].append(round(count_dict[c] / sum(counts), 2))
                             else:
                                 node['proba'].append(0)
                     else:

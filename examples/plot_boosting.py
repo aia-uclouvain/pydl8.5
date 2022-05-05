@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
-from dl85 import DL85Booster, MODEL_QP_MDBOOST, MODEL_LP_DEMIRIZ
+from pydl85 import DL85Booster, MODEL_QP_MDBOOST, MODEL_LP_DEMIRIZ
 import time
 import numpy as np
 from sklearn.metrics import confusion_matrix

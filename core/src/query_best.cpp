@@ -53,8 +53,8 @@ void Query_Best::printResult(QueryData_Best *data, Tree *tree) {
 
 int Query_Best::printResult(QueryData_Best *data, int depth, Tree *tree) {
     if (!data->left) { // leaf
-        if (tids_error_callback) tree->expression += R"({"value": "undefined", "error": )" + std::to_string(data->error);
-        else tree->expression += "{\"value\": " + std::to_string(data->test) + ", \"error\": " + std::to_string(data->error);
+        if (tids_error_callback) tree->expression += R"({"value": "undefined", "error": )" + custom_to_str(data->error);
+        else tree->expression += "{\"value\": " + std::to_string(data->test) + ", \"error\": " + custom_to_str(data->error);
         return depth;
     }
     else {

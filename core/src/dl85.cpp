@@ -53,10 +53,15 @@ string search(Supports supports,
                                        tids_error_class_callback_pointer, supports_error_class_callback_pointer,
                                        tids_error_callback_pointer, maxError, stopAfterError);
 
-    out = "TrainingDistribution: ";
-    forEachClass(i) out += std::to_string(dataReader->getSupports()[i]) + " ";
+
+    out = "(nFeats, nTransactions) : ( " + to_string(dataReader->getNAttributes()) + ", " + to_string(dataReader->getNTransactions()) + " )\n";
+    out += "nInstances per class: ";
+    forEachClass(i) {
+        if (i == nclasses - 1) out += to_string(i) + ":" + custom_to_str(dataReader->getSupports()[i]);
+        else out += to_string(i) + ":" + custom_to_str(dataReader->getSupports()[i]) + ", ";
+    }
+    // forEachClass(i) out += custom_to_str(dataReader->getSupports()[i]) + " ";
     out += "\n";
-    out = "(nItems, nTransactions) : ( " + to_string(dataReader->getNAttributes() * 2) + ", " + to_string(dataReader->getNTransactions()) + " )\n";
 
     // init variables
     // use the correct cover depending on whether a weight array is provided or not

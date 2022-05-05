@@ -1,47 +1,56 @@
-Release v0.0.1
-This is the first release of DL8.5 so all in the tools are news.
-Wait the next release for changes ;-)
+Release v0.1.2
+- fix some bugs:
+    * empty list of transactions in leafs for used-specific error functions
+    * lower bound inconsistency in specialized depth-2 algo
+- add a variable in python library (clf.base_tree_) containing the tree json string without probabilities
 
-Release v0.0.2
-- ...
+Release v0.1.1
+- add some ideas from murtree paper: specialized depth-2 algo, similarity lb, dynamic branching
 
-Release v0.0.3
-- ...
+Release v0.0.15
+- task without target : support simple syntax for user error function with int predicted value
 
-Release v0.0.4
-- ...
+Release v0.0.14
+- task with target : add support of user error function with non-int predicted value
 
-Release v0.0.5
+Release v0.0.13
+- fix empty itemset allocation
+
+Release v0.0.12
+- fix memory leaks
+
+Release v0.0.11
+- change structure of the package
+
+Release v0.0.10
+- readme modif
+
+Release v0.0.9
+- fix bug on upper bound
+
+Release v0.0.8
+- fix bug in the classifier
+- add tests to automatically check results
+
+Release v0.0.7
 - fix bug of invalid tree on some datasets
 
 Release v0.0.6
 - fix bug of datasets with ntransactions multiple of 64
 - fix tree print bug
 
-Release v0.0.7
+Release v0.0.5
 - fix bug of invalid tree on some datasets
 
-Release v0.0.8
-- fix bug in the classifier
-- add tests to automatically check results
+Release v0.0.4
+- ...
 
-Release v0.0.9
-- fix bug on upper bound
+Release v0.0.3
+- ...
 
-Release v0.0.10
-- readme modif
+Release v0.0.2
+- ...
 
-Release v0.0.11
-- change structure of the package
-
-Release v0.0.12
-- fix memory leaks
-
-Release v0.0.13
-- fix empty itemset allocation
-
-Release v0.0.14
-- task with target : add support of user error function with non-int predicted value
-
-Release v0.0.15
-- task without target : support simple syntax for user error function with int predicted value
+Release v0.0.1
+This is the first release of DL8.5 so all in the tools are news.
+Wait the next release for changes ;-)

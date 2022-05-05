@@ -2,7 +2,7 @@ from setuptools import Extension, find_packages, setup
 from Cython.Build import cythonize
 import platform
 import codecs
-from dl85 import __version__
+from pydl85 import __version__
 
 DISTNAME = 'pydl8.5'
 DESCRIPTION = 'A package to build an optimal binary decision tree classifier.'
