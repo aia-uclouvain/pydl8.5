@@ -18,7 +18,7 @@ def test_fit():
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
     clf1 = DL85Classifier(max_depth=randrange(1, 4), min_sup=randrange(1, X_train.shape[0] // 4))
     clf1.fit(X_train, y_train)
-    assert clf1.sol_size in [5, 9]
+    assert clf1.sol_size in [6, 10]
 
 
 def test_predict():
@@ -28,7 +28,7 @@ def test_predict():
     clf1 = DL85Classifier(max_depth=randrange(1, 4), min_sup=randrange(1, X_train.shape[0] // 4))
     clf1.fit(X_train, y_train)
 
-    if clf1.sol_size == 9:
+    if clf1.sol_size == 10:
         y_pred1 = clf1.predict(X_test)
 
         def is_class(y_pred):
@@ -37,9 +37,9 @@ def test_predict():
                     return False
             return True
 
-        assert len(y_pred1) == X_test.shape[0] and is_class(y_pred1) is True  # list(set(y_pred1)) == list(set(list(clf1.classes_)))
+        assert y_pred1.shape[0] == X_test.shape[0] and is_class(y_pred1) is True  # list(set(y_pred1)) == list(set(list(clf1.classes_)))
     else:
-        assert clf1.sol_size == 5
+        assert clf1.sol_size == 6
 
 
 def test_depth_2():

@@ -5,6 +5,12 @@
 #include "depthTwoComputer.h"
 #include "rCoverTotalFreq.h"
 
+struct SupportsDeleter {
+    void operator()(const Supports p) {
+        delete[] p;
+    }
+};
+
 void setItem(QueryData_Best* node_data, Array<Item> itemset, Trie* trie){
     if (node_data->left){
         Array<Item> itemset_left = addItem(itemset, item(node_data->left->test, 0));
@@ -58,12 +64,8 @@ TrieNode* computeDepthTwo(RCover* cover,
     // function for the same node with an higher upper bound. Since this function is not exponential, we can afford that.
     ub = FLT_MAX;
 
-    //initialize the timer to count the time spent in this function
-    auto start = high_resolution_clock::now();
-
     //local variable to make the function verbose or not. Can be improved :-)
     bool local_verbose = verbose;
-//    if (last_added == 64) local_verbose = true;
 
     // get the support and the support per class of the root node
     Supports root_sup_clas = copySupports(cover->getSupportPerClass());
@@ -96,18 +98,43 @@ TrieNode* computeDepthTwo(RCover* cover,
 
         // compute value for second level
         for (int i = l + 1; i < attr.size(); ++i) {
+
             pair<Supports, Support> p = cover->temporaryIntersect(attr[i]);
             sups_sc[l][i] = p.first;
             sups[l][i] = p.second;
+
+            // in case of timeout: no more time
+            if (query->timeLimit > 0 and duration<float>(high_resolution_clock::now() - query->startTime).count() >= (float)query->timeLimit) {
+                for (int k = 0; k <= l; ++k) {
+                    for (int j = k; j <= i; ++j) {
+                        deleteSupports(sups_sc[k][j]);
+                    }
+                    delete [] sups_sc[k];
+                    delete [] sups[k];
+                }
+                delete [] sups_sc;
+                delete [] sups;
+                deleteSupports(root_sup_clas);
+                cover->backtrack();
+                node->data = query->initData(cover); // no need to update the error
+                return node;
+            }
+
+            
         }
         // backtrack to recover the cover state
         cover->backtrack();
     }
 
+
     auto* best_tree = new TreeTwo();
 
     // find the best tree for each feature
     for (int i = 0; i < attr.size(); ++i) {
+
+        // in case of timeout: no more time
+        if (query->timeLimit > 0 and duration<float>(high_resolution_clock::now() - query->startTime).count() >= (float)query->timeLimit) break;
+
         if (local_verbose) cout << "root test: " << attr[i] << endl;
         //cout << "beeest " << best_tree->root_data->error << endl;
 
@@ -122,8 +149,9 @@ TrieNode* computeDepthTwo(RCover* cover,
 
         Supports idsc = sups_sc[i][i];
         Support ids = sups[i][i]; // Support ids = sumSupports(idsc);
-        Supports igsc = newSupports();
-        subSupports(root_sup_clas, idsc, igsc);
+        unique_ptr<SupportClass, SupportsDeleter> igsc(newSupports());
+        // Supports igsc = newSupports();
+        subSupports(root_sup_clas, idsc, igsc.get());
         Support igs = root_sup - ids;
 
         
@@ -136,16 +164,15 @@ TrieNode* computeDepthTwo(RCover* cover,
         if (igs < query->minsup || ids < query->minsup) {
             if (local_verbose) cout << "root impossible de splitter...on backtrack" << endl;
             delete feat_best_tree;
-            deleteSupports(igsc);
+            // deleteSupports(igsc);
             continue;
         }
 
         feat_best_tree->root_data->left = new QueryData_Best();
-        feat_best_tree->root_data->right = new QueryData_Best();
 
         // the feature at root cannot be splitted at left. It is then a leaf node
         if (igs < 2 * query->minsup) {
-            LeafInfo ev = query->computeLeafInfo(igsc);
+            LeafInfo ev = query->computeLeafInfo(igsc.get());
             feat_best_tree->root_data->left->error = ev.error;
             feat_best_tree->root_data->left->test = ev.maxclass;
             if (local_verbose)
@@ -156,8 +183,7 @@ TrieNode* computeDepthTwo(RCover* cover,
             if (local_verbose) cout << "root gauche peut théoriquement spliter. Creusons plus..." << endl;
             // at worst it can't in practice and error will be considered as leaf node
             // so the error is initialized at this case
-            LeafInfo ev = query->computeLeafInfo(igsc);
-            // feat_best_tree->root_data->left->error = ev.error;
+            LeafInfo ev = query->computeLeafInfo(igsc.get());
             Error feat_ub = best_tree->root_data->error;
             feat_best_tree->root_data->left->leafError = ev.error;
             feat_best_tree->root_data->left->test = ev.maxclass;
@@ -169,13 +195,24 @@ TrieNode* computeDepthTwo(RCover* cover,
             }
             else {
                 for (int j = 0; j < attr.size(); ++j) {
+
+                    // in case of timeout: no more time
+                    if (query->timeLimit > 0 and duration<float>(high_resolution_clock::now() - query->startTime).count() >= (float)query->timeLimit) {
+                        if (feat_best_tree->root_data->left->error > ev.error) {
+                            feat_best_tree->root_data->left->error = ev.error;
+                            feat_best_tree->root_data->left->test = ev.maxclass;
+                        }
+                        break;
+                    }
+
                     if (local_verbose) cout << "left test: " << attr[j] << endl;
                     if (attr[i] == attr[j]) {
                         if (local_verbose) cout << "left pareil que le parent ou non sup...on essaie un autre left" << endl;
                         continue;
                     }
-                    Supports jdsc = sups_sc[j][j], idjdsc = sups_sc[min(i, j)][max(i, j)], igjdsc = newSupports();
-                    subSupports(jdsc, idjdsc, igjdsc);
+                    Supports jdsc = sups_sc[j][j], idjdsc = sups_sc[min(i, j)][max(i, j)];//, igjdsc = newSupports();
+                    unique_ptr<SupportClass, SupportsDeleter> igjdsc(newSupports());
+                    subSupports(jdsc, idjdsc, igjdsc.get());
                     Support jds = sups[j][j]; // Support jds = sumSupports(jdsc);
                     Support idjds = sups[min(i, j)][max(i, j)]; // Support idjds = sumSupports(idjdsc);
                     Support igjds = jds - idjds; // Support igjds =  sumSupports(igjdsc);
@@ -184,31 +221,32 @@ TrieNode* computeDepthTwo(RCover* cover,
                     // the left node cannot in practice be split into two children
                     if (igjgs < query->minsup || igjds < query->minsup) {
                         if (local_verbose) cout << "le left testé ne peut splitter en pratique...un autre left!!!" << endl;
-                        deleteSupports(igjdsc);
+                        // deleteSupports(igjdsc);
                         continue;
                     }
 
                     if (local_verbose) cout << "le left testé peut splitter. on le regarde" << endl;
 
-                    LeafInfo ev2 = query->computeLeafInfo(igjdsc);
+                    LeafInfo ev2 = query->computeLeafInfo(igjdsc.get());
                     if (local_verbose) cout << "le left a droite produit une erreur de " << ev2.error << endl;
 
                     if (ev2.error >= feat_ub) {
                         if (local_verbose) cout << "l'erreur gauche du left montre rien de bon. best root: " << best_tree->root_data->error << " best left: " << feat_best_tree->root_data->left->error << " Un autre left..." << endl;
-                        deleteSupports(igjdsc);
+                        // deleteSupports(igjdsc);
                         continue;
                     }
 
-                    Supports igjgsc = newSupports();
-                    subSupports(igsc, igjdsc, igjgsc);
-                    LeafInfo ev1 = query->computeLeafInfo(igjgsc);
+                    // Supports igjgsc = newSupports();
+                    unique_ptr<SupportClass, SupportsDeleter> igjgsc(newSupports());
+                    subSupports(igsc.get(), igjdsc.get(), igjgsc.get());
+                    LeafInfo ev1 = query->computeLeafInfo(igjgsc.get());
                     if (local_verbose) cout << "le left a gauche produit une erreur de " << ev1.error << endl;
 
                     // error worse than existing tree error
                     if (ev1.error + ev2.error >= feat_ub) {
                         if (local_verbose) cout << "l'erreur du left = " << ev1.error + ev2.error << " n'ameliore pas l'existant. Un autre left..." << endl;
-                        deleteSupports(igjgsc);
-                        deleteSupports(igjdsc);
+                        // deleteSupports(igjgsc);
+                        // deleteSupports(igjdsc);
                         continue;
                     }
 
@@ -234,19 +272,23 @@ TrieNode* computeDepthTwo(RCover* cover,
 
                     }
                     feat_ub = ev1.error + ev2.error;
-                    deleteSupports(igjgsc);
-                    deleteSupports(igjdsc);
+                    // deleteSupports(igjgsc);
+                    // deleteSupports(igjdsc);
                     if (floatEqual(ev1.error + ev2.error, 0)) break;
                 }
 
                 // there is no left child coupled to the root to produce lower error than the best tree so far. No need to look at right
-                if (floatEqual(feat_best_tree->root_data->left->error, FLT_MAX)){
+                // the second case can happen when timeout is reached
+                if (floatEqual(feat_best_tree->root_data->left->error, FLT_MAX) 
+                        || feat_best_tree->root_data->left->error >= best_tree->root_data->error // in case of timeout, this can happen
+                    ){
                     if (local_verbose) cout << "aucun left n'a su améliorer l'arbre existant: " << feat_best_tree->root_data->left->error << " on garde l'ancien arbre" << endl;
                     delete feat_best_tree;
-                    deleteSupports(igsc);
+                    // deleteSupports(igsc);
                     continue; // test new root
                 }
             }
+            // deleteSupports(igsc);
         }
 
 
@@ -256,6 +298,8 @@ TrieNode* computeDepthTwo(RCover* cover,
         //%%%%%%%%%%%%%%%%%%%%%%%%%%%//
 
         if (local_verbose) cout << "vu l'erreur du root gauche et du left. on peut tenter quelque chose à droite" << endl;
+
+        feat_best_tree->root_data->right = new QueryData_Best();
 
         // the feature at root cannot be split at right. It is then a leaf node
         if (ids < 2 * query->minsup) {
@@ -270,7 +314,6 @@ TrieNode* computeDepthTwo(RCover* cover,
             // so the error is initialized at this case
             LeafInfo ev = query->computeLeafInfo(idsc);
             Error feat_ub = best_tree->root_data->error - feat_best_tree->root_data->left->error;
-            // feat_best_tree->root_data->right->error = min(ev.error, remainingError);
             feat_best_tree->root_data->right->leafError = ev.error;
             feat_best_tree->root_data->right->test = ev.maxclass;
 
@@ -284,6 +327,16 @@ TrieNode* computeDepthTwo(RCover* cover,
             }
             
             for (int j = 0; j < attr.size(); ++j) {
+
+                // in case of timeout: no more time
+                if (query->timeLimit > 0 and duration<float>(high_resolution_clock::now() - query->startTime).count() >= (float)query->timeLimit) {
+                    if (feat_best_tree->root_data->right->error > ev.error) {
+                        feat_best_tree->root_data->right->error = ev.error;
+                        feat_best_tree->root_data->right->test = ev.maxclass;
+                    }
+                    break;
+                }
+
                 if (local_verbose) cout << "right test: " << attr[j] << endl;
                 if (attr[i] == attr[j]) {
                     if (local_verbose)
@@ -291,8 +344,9 @@ TrieNode* computeDepthTwo(RCover* cover,
                     continue;
                 }
 
-                Supports idjdsc = sups_sc[min(i, j)][max(i, j)], idjgsc = newSupports();
-                subSupports(idsc, idjdsc, idjgsc);
+                Supports idjdsc = sups_sc[min(i, j)][max(i, j)];//, idjgsc = newSupports();
+                unique_ptr<SupportClass, SupportsDeleter> idjgsc(newSupports());
+                subSupports(idsc, idjdsc, idjgsc.get());
                 Support idjds = sups[min(i, j)][max(i, j)]; // Support idjds = sumSupports(idjdsc);
                 Support idjgs = ids - idjds; // Support idjgs = sumSupports(idjgsc);
 
@@ -302,12 +356,12 @@ TrieNode* computeDepthTwo(RCover* cover,
                     continue; // test next right
                 }
                 
-                LeafInfo ev1 = query->computeLeafInfo(idjgsc);
+                LeafInfo ev1 = query->computeLeafInfo(idjgsc.get());
                 if (local_verbose) cout << "le right a gauche produit une erreur de " << ev1.error << endl;
 
                 if (ev1.error >= feat_ub) {
                     if (local_verbose) cout << "l'erreur gauche du right montre rien de bon. Un autre right..." << endl;
-                    deleteSupports(idjgsc);
+                    // deleteSupports(idjgsc);
                     continue;
                 }
 
@@ -316,7 +370,7 @@ TrieNode* computeDepthTwo(RCover* cover,
                 
                 if (ev1.error + ev2.error >= feat_ub) {
                     if (local_verbose) cout << "l'erreur du right = " << ev1.error + ev2.error << " n'ameliore pas l'existant. Un autre right..." << endl;
-                    deleteSupports(idjgsc);
+                    // deleteSupports(idjgsc);
                     continue; // test next right
                 }
 
@@ -341,15 +395,16 @@ TrieNode* computeDepthTwo(RCover* cover,
                     feat_best_tree->root_data->right->size = 3;
                 }
                 feat_ub = ev1.error + ev2.error;
-                deleteSupports(idjgsc);
+                // deleteSupports(idjgsc);
                 if (floatEqual(feat_best_tree->root_data->right->error + feat_best_tree->root_data->left->error, lb) or floatEqual(ev1.error + ev2.error, 0)) break;
             }
 
             // there is no right child coupled to the root and left to produce lower error than the best tree so far.
-            if (floatEqual(feat_best_tree->root_data->right->error, FLT_MAX)){
+            if (floatEqual(feat_best_tree->root_data->right->error, FLT_MAX)  
+                    || feat_best_tree->root_data->left->error >= best_tree->root_data->error - feat_best_tree->root_data->left->error // in case there is timeout, this can happen
+                ){
                 if (local_verbose) cout << "pas d'arbre mieux que le meilleur jusque là." << endl;
                 delete feat_best_tree;
-                deleteSupports(igsc);
                 continue; // test new root
             }
 
@@ -398,15 +453,21 @@ TrieNode* computeDepthTwo(RCover* cover,
         if (verbose) cout << "best twotree error = " << to_string(best_tree->root_data->error) << endl;
         return node;
     } else {
-        //no tree with error lower than ub
-        LeafInfo ev = query->computeLeafInfo(cover);
+        // cout << "this case " << endl;
+        //no tree with error lower than considering the node as a leaf
         delete best_tree;
-        node->data = (QueryData *) new QueryData_Best();
-        ((QueryData_Best *) node->data)->error = ev.error;
-        ((QueryData_Best *) node->data)->leafError = ev.error;
-        ((QueryData_Best *) node->data)->test = ev.maxclass;
-        if (verbose) cout << "best twotree error = " << to_string(best_tree->root_data->error) << endl;
+        node->data = query->initData(cover);
+        ((QueryData_Best *) node->data)->error = ((QueryData_Best *) node->data)->leafError;
+        if (verbose) cout << "best twotree error = " << to_string(((QueryData_Best *) node->data)->error) << endl;
         return node;
+        // LeafInfo ev = query->computeLeafInfo(cover);
+        // delete best_tree;
+        // node->data = (QueryData *) new QueryData_Best();
+        // ((QueryData_Best *) node->data)->error = ev.error;
+        // ((QueryData_Best *) node->data)->leafError = ev.error;
+        // ((QueryData_Best *) node->data)->test = ev.maxclass;
+        // if (verbose) cout << "best twotree error = " << to_string(best_tree->root_data->error) << endl;
+        // return node;
     }
 
 }

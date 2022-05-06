@@ -395,8 +395,8 @@ TrieNode *LcmPruned::recurse(Array<Item> itemset,
             // in case we get the real error, we update the minimum possible error
             else minlb = min(minlb, feature_error);
 
-            if (query->canSkip(node->data)) {//lowerBound reached
-                Logger::showMessageAndReturn("We get the best solution. So, we break the remaining attributes");
+            if (query->canSkip(node->data) || query->timeLimitReached) {//lowerBound reached
+                Logger::showMessageAndReturn("We get the best solution or no more time. So, we break the remaining attributes");
                 break; //prune remaining attributes not browsed yet
             }
         } else { //we do not attempt the second child, so we use its lower bound

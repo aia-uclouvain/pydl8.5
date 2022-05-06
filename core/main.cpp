@@ -67,15 +67,6 @@ int main(int argc, char *argv[]) {
 
     cout << "dataset: " << datasetPath.substr(datasetPath.find_last_of('/') + 1, datasetPath.find_last_of('.') - datasetPath.find_last_of('/') - 1) << endl;
 
-    constexpr double dropout = 0.9; // Chance of 0
-    random_device rd;
-    mt19937 gen(rd());
-    bernoulli_distribution dist(1 - dropout); // bernoulli_distribution takes chance of true n constructor
-
-    vector<float> weight_vec(ntransactions);
-    std::generate(weight_vec.begin(), weight_vec.end(), [&]{ return dist(gen); });
-
-
     string result;
         result = search(
                 sup, //supports
@@ -92,7 +83,6 @@ int main(int argc, char *argv[]) {
                 nullptr, //supports_error_class_callback
                 nullptr, //tids_error_callback
                 nullptr, //in_weights
-//                weight_vec.data(),
                 true, //tids_error_class_is_null
                 true, //supports_error_class_is_null
                 true, //tids_error_is_null

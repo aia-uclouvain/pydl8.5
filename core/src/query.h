@@ -60,11 +60,11 @@ struct Tree {
         if (expression != "(No such tree)") {
             out += "Size: " + to_string(size) + "\n";
             out += "Depth: " + to_string(depth) + "\n";
-            out += "Error: " + to_string(trainingError) + "\n";
-            out += "Accuracy: " + to_string(accuracy) + "\n";
+            out += "Error: " + custom_to_str(trainingError) + "\n";
+            out += "Accuracy: " + custom_to_str(accuracy) + "\n";
         }
         out += "LatticeSize: " + to_string(latSize) + "\n";
-        out += "RunTime: " + to_string(searchRt) + "\n";
+        out += "RunTime: " + custom_to_str(searchRt) + "\n";
         if (timeout) out += "Timeout: True\n";
         else out += "Timeout: False\n";
         return out;

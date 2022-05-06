@@ -10,6 +10,7 @@
 #include "query_best.h"
 #include <chrono>
 #include <utility>
+#include <memory>
 
 using namespace std::chrono;
 
@@ -28,16 +29,17 @@ struct TreeTwo{
     }
 
     void free(){
-        if (root_data->left || root_data->right){
-            if (root_data->left->left || root_data->left->right){
-                delete root_data->left->left;
-                delete root_data->left->right;
-            }
-            if (root_data->right->left || root_data->right->right){
-                delete root_data->right->left;
-                delete root_data->right->right;
-            }
+        if (root_data == nullptr) return;
+
+        if (root_data->left != nullptr){
+            delete root_data->left->left;
+            delete root_data->left->right;
             delete root_data->left;
+        }
+
+        if (root_data->right != nullptr){
+            delete root_data->right->left;
+            delete root_data->right->right;
             delete root_data->right;
         }
         delete root_data;
