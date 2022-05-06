@@ -1,4 +1,4 @@
-|Travis|_ |CircleCI|_ |ReadTheDocs|_ |Codecov|_
+|Travis|_ |CircleCI|_ |GithubCI|_ |ReadTheDocs|_ |Codecov|_
 
 .. |Travis| image:: https://app.travis-ci.com/aglingael/PyDL8.5.svg?branch=master
 .. _Travis: https://app.travis-ci.com/github/aglingael/PyDL8.5
@@ -6,8 +6,11 @@
 .. |CircleCI| image:: https://circleci.com/gh/aglingael/PyDL8.5/tree/master.svg?style=shield
 .. _CircleCI: https://app.circleci.com/pipelines/github/aglingael/PyDL8.5
 
-.. |ReadTheDocs| image:: https://readthedocs.org/projects/dl85/badge/?version=latest
-.. _ReadTheDocs: https://dl85.readthedocs.io/en/latest/
+.. |GithubCI| image:: https://github.com/aia-uclouvain/pydl8.5/actions/workflows/test-and-upload-to-testpypi.yml/badge.svg
+.. _GithubCI: https://github.com/aia-uclouvain/pydl8.5
+
+.. |ReadTheDocs| image:: https://readthedocs.org/projects/pydl85/badge/?version=latest
+.. _ReadTheDocs: https://pydl85.readthedocs.io/en/latest/
 
 .. |Codecov| image:: https://codecov.io/gh/aglingael/PyDL8.5/branch/master/graph/badge.svg?token=UAP32DK54M
 .. _Codecov: https://codecov.io/gh/aglingael/PyDL8.5
