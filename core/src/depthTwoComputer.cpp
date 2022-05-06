@@ -401,7 +401,7 @@ TrieNode* computeDepthTwo(RCover* cover,
 
             // there is no right child coupled to the root and left to produce lower error than the best tree so far.
             if (floatEqual(feat_best_tree->root_data->right->error, FLT_MAX)  
-                    || feat_best_tree->root_data->left->error >= best_tree->root_data->error - feat_best_tree->root_data->left->error // in case there is timeout, this can happen
+                    || feat_best_tree->root_data->right->error >= best_tree->root_data->error - feat_best_tree->root_data->left->error // in case there is timeout, this can happen
                 ){
                 if (local_verbose) cout << "pas d'arbre mieux que le meilleur jusque là." << endl;
                 delete feat_best_tree;

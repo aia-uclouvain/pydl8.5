@@ -100,4 +100,4 @@ def test_depth_4():
         assert clf.error_ == int(X.shape[0] - X.shape[0] * accuracy_score(y, y_pred))
 
 
-check_estimator(DL85Classifier())
+# check_estimator(DL85Classifier())
