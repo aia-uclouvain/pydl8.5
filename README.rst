@@ -6,7 +6,7 @@
 .. |CircleCI| image:: https://circleci.com/gh/aglingael/PyDL8.5/tree/master.svg?style=shield
 .. _CircleCI: https://app.circleci.com/pipelines/github/aglingael/PyDL8.5
 
-.. |GithubCI| image:: https://github.com/aia-uclouvain/pydl8.5/actions/workflows/test-and-upload-to-testpypi.yml/badge.svg
+.. |GithubCI| image:: https://github.com/aia-uclouvain/pydl8.5/actions/workflows/test-and-upload-to-pypi.yml/badge.svg
 .. _GithubCI: https://github.com/aia-uclouvain/pydl8.5
 
 .. |ReadTheDocs| image:: https://readthedocs.org/projects/pydl85/badge/?version=latest
