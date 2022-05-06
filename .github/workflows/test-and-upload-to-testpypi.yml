@@ -46,7 +46,7 @@ jobs:
           
       - name: Run tests and compute coverage
         run: |
-          coverage run -m pytest -v --cov=pydl85 pydl85/supervised/classifiers/tests/
+          coverage run --source=pydl85/supervised/classifiers/tests/ -m pytest -v
           coverage xml --data-file=.coverage
           
       - name: Upload coverage to Codecov
