@@ -39,21 +39,15 @@ jobs:
           architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
           
       # Installs and upgrades pip, installs other dependencies and installs the package from setup.py
-      - name: "Installs and upgrades pip, installs other dependencies and installs the package from setup.py"
+      - name: installs dependencies and installs the package from setup.py
         run: |
-          # Upgrade pip
-          python3 -m pip install --upgrade pip
-          # Install build deps
-          # python3 -m pip install setuptools wheel twine
-          python3 -m pip install wheel twine
-          # If requirements.txt exists, install from it
           if [ -f requirements.txt ]; then python3 -m pip install -r requirements.txt; fi
-          # Install codecov
-          pip install codecov
-          # Install the package from setup.py
           python3 setup.py install
-          pytest -v --cov=pydl85 pydl85/supervised/classifiers/tests/
-          codecov
+          
+      - name: Run tests and compute coverage
+        run: |
+          coverage run -m pytest -v --cov=pydl85 pydl85/supervised/classifiers/tests/
+          coverage xml
           
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
