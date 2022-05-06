@@ -77,14 +77,17 @@ jobs:
           # build
           # --user
           
+#       - name: Build a binary wheel and a source tarball
+#         run: >-
+#           python3 -m
+#           build
+#           --sdist
+#           --wheel
+#           --outdir dist/
+#           .
+        
       - name: Build a binary wheel and a source tarball
-        run: >-
-          python3 -m
-          build
-          --sdist
-          --wheel
-          --outdir dist/
-          .
+        run: python3 setup.py sdist bdist_wheel
       
       - name: Publish distribution 📦 to Test PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
