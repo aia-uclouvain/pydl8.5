@@ -69,16 +69,50 @@ jobs:
           # cd tests
           # python3 -m unittest discover
           # cd ..
+      
+      # - name: Install pypa/build
+        # run: >-
+          # python -m
+          # pip install
+          # build
+          # --user
+          
+      - name: Build a binary wheel and a source tarball
+        run: >-
+          python3 -m
+          build
+          --sdist
+          --wheel
+          --outdir dist/
+          .
+      
+      - name: Publish distribution 📦 to Test PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          repository_url: https://test.pypi.org/legacy/
+          verbose: true
+      
+      - name: Publish distribution 📦 to PyPI
+        if: startsWith(github.ref, 'refs/tags')
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          skip_existing: true
+          verbose: true
+          
 
       # Upload to TestPyPI
-      - name: Build and Upload to TestPyPI
-        run: |
-          python3 setup.py sdist bdist_wheel
-          python3 -m twine upload dist/*
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TWINE_TEST_TOKEN }}
-          TWINE_REPOSITORY: testpypi
+      # - name: Build and Upload to TestPyPI
+        # run: |
+          # python3 setup.py sdist bdist_wheel
+          # python3 -m twine upload --verbose dist/*
+        # env:
+          # TWINE_USERNAME: __token__
+          # TWINE_PASSWORD: ${{ secrets.TWINE_TEST_TOKEN }}
+          # TWINE_REPOSITORY: testpypi
 
       # Runs a set of commands using the runners shell
       # - name: Run a multi-line script
