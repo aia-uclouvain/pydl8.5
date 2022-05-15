@@ -15,7 +15,6 @@ LICENSE = 'LICENSE.txt'
 DOWNLOAD_URL = 'https://github.com/aia-uclouvain/pydl8.5'
 VERSION = __version__
 INSTALL_REQUIRES = ['setuptools', 'cython', 'numpy', 'scikit-learn', 'gurobipy', 'cvxpy']
-SETUP_REQUIRES = ['setuptools', 'cython', 'numpy', 'scikit-learn', 'gurobipy', 'cvxpy']
 KEYWORDS = ['decision trees', 'discrete optimization', 'classification']
 CLASSIFIERS = ['Programming Language :: Python :: 3',
                'License :: OSI Approved :: MIT License',
@@ -90,7 +89,6 @@ setup(
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
     classifiers=CLASSIFIERS,
-    setup_requires=SETUP_REQUIRES,
     install_requires=INSTALL_REQUIRES,
     # extras_require=EXTRAS_REQUIRE,
     zip_safe=True,  # the package can run out of an .egg file
