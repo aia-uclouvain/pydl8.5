@@ -67,3 +67,5 @@ memory/
 
 mem_script.sh
 memory_plot.r
+/tests/
+/dl85/

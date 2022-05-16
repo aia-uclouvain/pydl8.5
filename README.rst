@@ -20,8 +20,8 @@
 
 Relevant paper : `[DL852020] <https://dial.uclouvain.be/pr/boreal/fr/object/boreal%3A223390/datastream/PDF_01/view>`_ `[PYDL852020] <https://www.ijcai.org/Proceedings/2020/0750.pdf>`_
 
-**The PyDL8.5 library providing an implementation of DL8.5 algorithm. Please read the relevant articles referenced below to learn about the additional features.
-Please cite these papers if you used the current library. The documentation will help you get started with PyDL8.5.**
+**The PyDL8.5 library provides an implementation of DL8.5 algorithm. Please read the relevant articles referenced below to learn about the additional features.
+Please cite these papers if you use the current library. The documentation will help you get started with PyDL8.5.**
 
 
 This project implements an algorithm for inferring optimal binary decision trees.
