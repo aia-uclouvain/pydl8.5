@@ -92,6 +92,10 @@ NodeData *NodeDataManager_Trie::initData(RCover *cov, Depth currentMaxDepth, int
 //            cout << error << " " << maxclass << endl;
         }
     }
+
+    // the variable `test` is used to save the feature to split on branch nodes and classes at leaf nodes
+    // to make them distinguishable, the feature value is positive and classes are transformed by f(x) = -(x+1)
+    // attention to recover the right value when printing the tree
     data->test = -(maxclass + 1);
     data->leafError = error;
 //    data->error += experror->addError(cover->getSupport(), data->error, dm->getNTransactions());

@@ -831,7 +831,7 @@ void Search_trie_cache::run() {
             // retrieveWipedSubtrees(cache->root, itemset, NO_ITEM, attributes_to_visit, 0, FLT_MAX, 0);
             retrieveWipedSubtrees(cache->root, itemset, NO_ITEM, attributes_to_visit, 0);
         }
-        cout << "Reconstitution time : "  << duration<float>(high_resolution_clock::now() - rtime).count() << endl;
+        cout << "Reconstitution time : "  << duration<float>(high_resolution_clock::now() - rtime).count() << " seconds" << endl;
     //    cout << endl;
     //    cout << endl;
     //    rSubtrees(cache->root, itemset, unsorted);

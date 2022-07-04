@@ -95,19 +95,22 @@ string launch(ErrorVals supports,
     NodeDataManager *nodeDataManager;
     if (with_cache) {
         if (cache_type == CacheHashCover) {
-            out += "Storage key: Cover\n";
-            if (max_cache_size > NO_CACHE_LIMIT) out += "Cache limitation is not yet supported for cover-based caching\n";
+            out += "Cache type: Hashtable\n";
+            out += "Cache key: Covers\n";
+            if (max_cache_size > NO_CACHE_LIMIT) out += "Cache boundary is not yet supported for cache based on hashtable and/or using cover-based keys\n";
             nodeDataManager = new NodeDataManager_Cover(cover, tids_error_class_callback_pointer, supports_error_class_callback_pointer, tids_error_callback_pointer);
             searcher = new Search_cover_cache(nodeDataManager, infoGain, infoAsc, repeatSort, minsup, maxdepth, timeLimit, cache, maxError <= 0 ? NO_ERR : maxError, useSpecial, maxError <= 0 ? false : stopAfterError, similarlb, dynamic_branching, similar_for_branching, from_cpp);
             solution = new Solution_Cover(searcher);
         }
         else {
             if (cache_type == CacheHashItemset) {
-                out += "Storage key: Hash Itemset\n";
-                if (max_cache_size > NO_CACHE_LIMIT) out += "Cache limitation is not yet supported for hashtable-based caching\n";
+                 out += "Cache type: Hashtable\n";
+                out += "Cache key: Frequent Itemsets\n";
+                if (max_cache_size > NO_CACHE_LIMIT) out += "Cache boundary is not yet supported for cache based on hashtable and/or using cover-based keys\n";
             }
             else if (cache_type == CacheTrie) {
-                out += "Storage key: Itemset\n";
+                 out += "Cache type: Trie\n";
+                out += "Cache key: Frequent Itemsets\n";
                 if (max_cache_size > NO_CACHE_LIMIT) {
                     out += "Cache limit: " + to_string(max_cache_size) + " --- wipe factor: " + custom_to_str(wipe_factor) + "\n";
                     switch (wipe_type) {

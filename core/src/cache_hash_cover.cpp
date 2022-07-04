@@ -7,7 +7,9 @@ Cache_Hash_Cover::Cache_Hash_Cover(Depth maxdepth, WipeType wipe_type, int maxca
         Cache(maxdepth, wipe_type, maxcachesize), wipe_factor( wipe_factor) {
     root = new HashCoverNode();
     store = new unordered_map<MyCover, HashCoverNode *>[maxdepth];
-    if (write_stats) myfile.open (dataname + "_d" + std::to_string(maxdepth) + "_h_cover.txt", ios::out);
+    
+    // to write in a file the number of nodes explored every `gap` seconds
+    // if (write_stats) myfile.open (dataname + "_d" + std::to_string(maxdepth) + "_h_cover.txt", ios::out);
 
 //    if (this->maxcachesize > NO_CACHE_LIMIT) {
 ////        heap = new vector<pair<const unordered_map<MyCover, HashCoverNode*>::iterator*, Itemset>>[maxdepth];
@@ -69,14 +71,15 @@ pair<Node *, bool> Cache_Hash_Cover::insert(NodeDataManager *nodeDataManager, in
 //            if (maxcachesize > NO_CACHE_LIMIT) heap[depth-1].push_back(info.first->second);
         }
 
-        if (write_stats) {
+        // to write in a file the number of nodes explored every `gap` seconds
+        /* if (write_stats) {
             std::chrono::time_point<std::chrono::high_resolution_clock> c_time = std::chrono::high_resolution_clock::now();
             if (std::chrono::duration<float>(c_time - last_time).count() >= write_gap) {
                 myfile << std::chrono::duration<float>(c_time - startTime).count() << "," << getCacheSize() << "\n";
                 myfile.flush();
                 last_time = c_time;
             }
-        }
+        } */
 
         return {info.first->second, info.second};
         //if (cachesize >= maxcachesize && maxcachesize > 0) wipe(root);

@@ -103,7 +103,7 @@ public:
 
         explicit iterator() : wordIndex(-1), container(nullptr) {}
 
-        int getFirstSetBitPos(long n)
+        u_int getFirstSetBitPos(u_long n)
         {
             return log2(n & -n) + 1;
         }

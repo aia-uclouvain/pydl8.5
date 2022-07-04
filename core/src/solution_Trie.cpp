@@ -53,6 +53,9 @@ Tree* Solution_Trie::getTree() {
 
 int Solution_Trie::printResult(Node* node, int depth, const Itemset& itemset) {
 
+    // the variable `test` is used to save the feature to split on branch nodes and classes at leaf nodes
+    // to make them distinguishable, the feature value is positive and classes are transformed by f(x) = -(x+1)
+    // attention to recover the right value when printing the tree
     if (node->data->test < 0) { // leaf
         if (searcher->nodeDataManager->tids_error_callback) tree->expression += R"({"value": "undefined", "error": )" + std::to_string(node->data->error);
         else tree->expression += "{\"value\": " + std::to_string(-node->data->test - 1) + ", \"error\": " + custom_to_str(node->data->error);

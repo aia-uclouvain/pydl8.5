@@ -5,7 +5,9 @@ using namespace std;
 
 Cache_Hash_Itemset::Cache_Hash_Itemset(Depth maxdepth, WipeType wipe_type, int maxcachesize, float wipe_factor) : Cache(maxdepth, wipe_type, maxcachesize), wipe_factor( wipe_factor) {
     root = new HashItemsetNode();
-    if (write_stats) myfile.open (dataname + "_d" + std::to_string(maxdepth) + "_h_itemset.txt", ios::out);
+    // to write in a file the number of nodes explored every `gap` seconds
+    // if (write_stats) myfile.open (dataname + "_d" + std::to_string(maxdepth) + "_h_itemset.txt", ios::out);
+    
     //store = unordered_map<Itemset, HashItemsetNode *>();
 
 //    if (this->maxcachesize > NO_CACHE_LIMIT) {
@@ -31,14 +33,15 @@ pair<Node *, bool> Cache_Hash_Itemset::insert(Itemset &itemset) {
     auto info = store.insert({itemset, node});
     if (not info.second) { delete node; } // if node already exists
 
-    if (write_stats) {
+    // to write in a file the number of nodes explored every `gap` seconds
+    /* if (write_stats) {
         std::chrono::time_point<std::chrono::high_resolution_clock> c_time = std::chrono::high_resolution_clock::now();
         if (std::chrono::duration<float>(c_time - last_time).count() >= write_gap) {
             myfile << std::chrono::duration<float>(c_time - startTime).count() << "," << getCacheSize() << "\n";
             myfile.flush();
             last_time = c_time;
         }
-    }
+    } */
     
 
     return {info.first->second, info.second};

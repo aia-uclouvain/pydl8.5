@@ -114,7 +114,8 @@ bool minHeapOrder(pair<TrieNode *, Itemset> &pair1, pair<TrieNode *, Itemset> &p
 
 Cache_Trie::Cache_Trie(Depth maxdepth, WipeType wipe_type, int maxcachesize, float wipe_factor) : Cache(maxdepth, wipe_type, maxcachesize), wipe_factor( wipe_factor) {
     root = new TrieNode;
-    if (write_stats) myfile.open (dataname + "_d" + std::to_string(maxdepth) + "_trie_itemset.txt", ios::out);
+    // to write in a file the number of nodes explored every `gap` seconds
+    // if (write_stats) myfile.open (dataname + "_d" + std::to_string(maxdepth) + "_trie_itemset.txt", ios::out);
     if (maxcachesize > NO_CACHE_LIMIT) heap.reserve(maxcachesize - 1);
 }
 
@@ -207,6 +208,17 @@ TrieNode *Cache_Trie::addNonExistingItemsetPart(Itemset &itemset, int pos, vecto
         TrieEdge newedge{itemset[i], child_node};
         if (i == pos) parent_node->edges.insert(geqEdge_it, newedge);
         else parent_node->edges.push_back(newedge); // new node added so add the edge without checking its place
+
+        // to prevent the vector containing edges to children to reserve useless space
+        /* if (parent_node->edges.size() == parent_node->edges.capacity()) parent_node->edges.reserve(parent_node->edges.size() + 1);
+        if (i == pos) {
+            geqEdge_it = lower_bound(parent_node->edges.begin(), parent_node->edges.end(), itemset[i], lessTrieEdge);
+            parent_node->edges.insert(geqEdge_it, newedge);
+        }
+        else {
+            parent_node->edges.push_back(newedge); // new node added so add the edge without checking its place
+        } */
+
         cachesize++;
         child_node->depth = i + 1;
         parent_node = child_node;
@@ -249,14 +261,15 @@ pair<Node *, bool> Cache_Trie::insert(Itemset &itemset) {
             //        cout << "baba " << nono->data << endl;
             //    }
 
-            if (write_stats) {
+            // to write in a file the number of nodes explored every `gap` seconds
+            /* if (write_stats) {
                 std::chrono::time_point<std::chrono::high_resolution_clock> c_time = std::chrono::high_resolution_clock::now();
                 if (std::chrono::duration<float>(c_time - last_time).count() >= write_gap) {
                     myfile << std::chrono::duration<float>(c_time - startTime).count() << "," << getCacheSize() << "\n";
                     myfile.flush();
                     last_time = c_time;
                 }
-            }
+            } */
 
             return {last_inserted_node, true};
         } else {
@@ -268,14 +281,15 @@ pair<Node *, bool> Cache_Trie::insert(Itemset &itemset) {
     }
     Logger::showMessageAndReturn("");
 
-    if (write_stats) {
+    // to write in a file the number of nodes explored every `gap` seconds
+    /* if (write_stats) {
         std::chrono::time_point<std::chrono::high_resolution_clock> c_time = std::chrono::high_resolution_clock::now();
         if (std::chrono::duration<float>(c_time - last_time).count() >= write_gap) {
             myfile << std::chrono::duration<float>(c_time - startTime).count() << "," << getCacheSize() << "\n";
             myfile.flush();
             last_time = c_time;
         }
-    }
+    } */
 
     if (cur_node->data == nullptr) return {cur_node, true};
     else return {cur_node, false};
