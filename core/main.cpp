@@ -86,12 +86,8 @@ int main(int argc, char *argv[]) {
     CacheType cache_type;
 
     if (cli) {
-//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/tic-tac-toe.txt";
-//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/kr-vs-kp.txt";
-//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/yeast.txt";
-//        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/tests/paper.txt";
         datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/anneal.txt";
-        maxdepth = (argc > 2) ? std::stoi(argv[2]) : 5;
+        maxdepth = (argc > 2) ? std::stoi(argv[2]) : 4;
         cache_size = (argc > 3) ? std::stoi(argv[3]) : NO_CACHE_LIMIT;
         wipe_factor = (argc > 4) ? std::stof(argv[4]) : 0.4f;
         if (argc > 5) {

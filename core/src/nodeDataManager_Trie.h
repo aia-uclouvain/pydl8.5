@@ -9,21 +9,13 @@
 //struct DepthTwo_NodeData;
 
 struct TrieNodeData : NodeData {
-
     Attribute curr_test;
-//    Node *left, *right;
-
-
     TrieNodeData(): NodeData() {
         curr_test = -1;
-//        left = nullptr;
-//        right = nullptr;
     }
 
     TrieNodeData(const TrieNodeData& other): NodeData(other) {
         curr_test = other.curr_test;
-//        left = other.left;
-//        right = other.right;
     }
 
     TrieNodeData(const DepthTwo_NodeData& other) {
@@ -35,17 +27,13 @@ struct TrieNodeData : NodeData {
         curr_test = -1;
     }
 
-    TrieNodeData& operator=(const TrieNodeData& other)
-    {
+    TrieNodeData& operator=(const TrieNodeData& other) {
         NodeData::operator=(other);
         curr_test = other.curr_test;
-//        left = other.left;
-//        right = other.right;
         return *this;
     }
 
-    TrieNodeData& operator=(const DepthTwo_NodeData& other)
-    {
+    TrieNodeData& operator=(const DepthTwo_NodeData& other) {
         test = other.test;
         error = other.error;
         size = other.size;
@@ -64,22 +52,9 @@ public:
 
     ~NodeDataManager_Trie() override;
 
-//    bool is_freq(pair<Supports, Support> supports);
-//
-//    bool is_pure(pair<Supports, Support> supports);
-
     bool updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Itemset) override;
-//    bool updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache);
 
     NodeData *initData(RCover *cov = nullptr, Depth currentMaxDepth = -1, int hashcode = -1) override;
-
-//    LeafInfo computeLeafInfo(RCover *cov = nullptr);
-
-//    LeafInfo computeLeafInfo(ErrorVals itemsetSupport);
-
-//    inline bool canimprove(NodeData *left, Error ub) {return left->error < ub;}
-
-//    inline bool canSkip(NodeData *actualBest) { return floatEqual(actualBest->error, actualBest->lowerBound); }
 
 protected:
 };

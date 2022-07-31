@@ -1,6 +1,4 @@
 #include "nodeDataManager.h"
-//#include <climits>
-//#include <cfloat>
 
 NodeDataManager::NodeDataManager(
         RCover* cover,

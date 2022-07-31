@@ -69,10 +69,6 @@ string launch(ErrorVals supports,
 
     Cache *cache;
     switch (cache_type) {
-//        case CacheHash:
-//            cache = new Cache_Hash(maxdepth, wipe_type, max_cache_size);
-//            //cout << "caching with hashmap limited to " << max_cache_size << " elements" << endl;
-//            break;
         case CacheHashCover:
             cache = new Cache_Hash_Cover(maxdepth, wipe_type, max_cache_size, wipe_factor);
             break;
@@ -81,7 +77,6 @@ string launch(ErrorVals supports,
             break;
         default:
             cache = new Cache_Trie(maxdepth, wipe_type, max_cache_size, wipe_factor);
-            //cout << "caching with trie limited to " << max_cache_size << " elements" << endl;
             break;
     }
 
@@ -112,7 +107,7 @@ string launch(ErrorVals supports,
                  out += "Cache type: Trie\n";
                 out += "Cache key: Frequent Itemsets\n";
                 if (max_cache_size > NO_CACHE_LIMIT) {
-                    out += "Cache limit: " + to_string(max_cache_size) + " --- wipe factor: " + custom_to_str(wipe_factor) + "\n";
+                    out += "Cache size limit: " + to_string(max_cache_size) + " --- wipe factor: " + custom_to_str(wipe_factor) + "\n";
                     switch (wipe_type) {
                         case Subnodes:
                             out += "Wipe criterion: Subnodes\n";
@@ -136,7 +131,6 @@ string launch(ErrorVals supports,
         tree_out->cacheSize = cache->getCacheSize();
         tree_out->runtime = duration<float>(high_resolution_clock::now() - startTime).count();
         out += tree_out->to_str();
-//        cout << out << endl;
     }
     else {
         out += "Storage key: No cache";

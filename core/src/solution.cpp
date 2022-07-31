@@ -3,8 +3,6 @@
 Solution::Solution(Search_base* searcher1): searcher(searcher1) {}
 
 
-Solution::~Solution() {
-//    delete tree;
-}
+Solution::~Solution() {}
 
 

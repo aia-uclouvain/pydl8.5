@@ -2,7 +2,6 @@
 
 using namespace std::chrono;
 
-
 Search_trie_cache::Search_trie_cache(NodeDataManager *nodeDataManager, bool infoGain, bool infoAsc, bool repeatSort,
                                      Support minsup,
                                      Depth maxdepth,
@@ -47,8 +46,6 @@ Node *infeasiblecase(Node *node, Error *saved_lb, Error ub) {
 }
 
 Node * Search_trie_cache::getSolutionIfExists(Node *node, Error ub, Depth depth, const Itemset &itemset){
-
-//    if (node->data->test < 0) return nullptr;
 
     Error *nodeError = &(node->data->error);
     if (*nodeError < FLT_MAX) return existingsolution(node, nodeError); // solution exists (new node error is FLT_MAX)
@@ -135,7 +132,6 @@ Attributes Search_trie_cache::getSuccessors(Attributes &last_candidates, Attribu
 
         // this attribute is already in the current itemset
         if (last_added == candidate) continue;
-//        if ( last_added == candidate or (node->data->test < 0 and candidate == next_candidates.at(0)) ) continue;
 
         // compute the support of each candidate
         int sup_left = nodeDataManager->cover->temporaryIntersectSup(candidate, false);
@@ -176,35 +172,12 @@ Error Search_trie_cache::computeSimilarityLB(SimilarVals &similar_db1, SimilarVa
     int nvalidWords[] = {similar_db1.s_n_validWords, similar_db2.s_n_validWords};
     Error errors[] = {similar_db1.s_error, similar_db2.s_error};
     for (int i : {0, 1}) {
-        /* if (not quiet) {
-            cout << "current cov: " << nodeDataManager->cover->outprint() << endl;
-            cout << "simdb_" << i+1 << endl;
-            cout << "error: " << errors[i] << endl;
-            cout << "cover: ";
-            if (covers[i] != nullptr) {
-                for (size_t j = 0; j < nodeDataManager->cover->nWords; j++)
-                {
-                    cout << covers[i][j] << " ";
-                }
-                cout << endl;
-                cout << "nvalids: " << nvalidWords[i] << endl;
-                for (size_t k = 0; k < nvalidWords[i]; k++)
-                {
-                    cout << validWords[i][k] << ",";
-                }
-                cout << endl;
-            }
-            else cout << "nullpttr" << endl;
-            
-        } */
-        
         bitset<M>* cov = covers[i];
         Error err = errors[i];
         int* valid = validWords[i];
         int nvalid = nvalidWords[i];
         if (cov != nullptr) {
             ErrorVal diff_err_val = nodeDataManager->cover->getDiffErrorVal(cov, valid, nvalid);
-            // if (not quiet) cout << "diff len: " << diff_err_val << endl;
             bound = max(bound, err - diff_err_val);
         }
     }
@@ -336,56 +309,15 @@ pair<Node*,HasInter> Search_trie_cache::recurse(const Itemset &itemset,
                                                 Error ub,
                                                 SimilarVals &sim_db1,
                                                 SimilarVals &sim_db2) {
-    
-    // 64,40,93
-    // if (itemset.size() == 3 and itemset.at(0) == 40 and itemset.at(1) == 68 and itemset.at(2) == 93) {
-    //     cout << "check lower: " << node->data->lowerBound << " -- upper: " << ub << endl;
-    // }
 
     // check if we ran out of time
     if (timeLimit > 0 and duration<float>(high_resolution_clock::now() - startTime).count() >= (float)timeLimit) timeLimitReached = true;
 
     Node* result = getSolutionIfExists(node, ub, depth, itemset);
     if (result) { // the solution can be inferred without computation
-//    if (result and result->data->test >= 0) { // the solution can be inferred without computation
-
-        //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
-        /*if ( node->data->left and node->data->right and cache->maxcachesize > NO_CACHE_LIMIT ){ // we should then update subtree load
-            Logger::showMessageAndReturn("Solution already exists. Subtree load is updating");
-            Item leftItem_down = item(node->data->test, NEG_ITEM), rightItem_down = item(node->data->test, POS_ITEM);
-            Itemset copy_itemset = itemset;
-            cache->updateSubTreeLoad( copy_itemset, leftItem_down, rightItem_down, true); // the function deletes the copy_itemset
-        }*/
-        //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
-
-        // if (itemset.size() == 3 and itemset.at(0) == 40 and itemset.at(1) == 68 and itemset.at(2) == 93) {
-        //     cout << "result existing. test " << result->data->test << " error: " << result->data->error << endl;
-        //     Itemset left = addItem(itemset, item(node->data->test, NEG_ITEM));
-        //     Itemset right = addItem(itemset, item(node->data->test, POS_ITEM));
-        //     auto left_node = cache->get(left);
-        //     auto right_node = cache->get(right);
-        //     if (left_node != nullptr)
-        //         cout << "left test " << left_node->data->test << " error: " << left_node->data->error << endl;
-        //     else cout << "no left" << endl;
-        //     if (right_node != nullptr)
-        //         cout << "right test " << right_node->data->test << " error: " << right_node->data->error << endl << endl;
-        //     else cout << "no right" << endl << endl;
-        // }
-
         return {result, false}; // the second value is to state whether an intersection has been performed or not
     }
     Logger::showMessageAndReturn("Node solution cannot be found without calculation");
-
-//    if ( node->data->test < 0  and node->data->error < FLT_MAX ) {
-////        cout << "here: ";
-////        printItemset(itemset, true, true);
-//        if(itemset.size() == 3 and itemset.at(0) == 2 and itemset.at(1) == 6 and itemset.at(2) == 17) {
-//            cout << "here: ";
-//            printItemset(itemset, true, true);
-//            cout << node->data->test << " " << node->data->lowerBound << " " << depth << endl;
-//        }
-//    }
-//    if ( node->data->test < 0 ) cout << "here" << endl;
 
     // in case of root (empty item), there is no last added attribute
     Attribute last_added_attr = (last_added_item == NO_ITEM) ? NO_ATTRIBUTE : item_attribute(last_added_item);
@@ -394,48 +326,16 @@ pair<Node*,HasInter> Search_trie_cache::recurse(const Itemset &itemset,
     if (not node_is_new) nodeDataManager->cover->intersect(last_added_attr, item_value(last_added_item));
 
    if (similarlb and not similar_for_branching) {
-    // if (similarlb and not similar_for_branching and node->data->test >= 0){
         node->data->lowerBound = max(node->data->lowerBound, computeSimilarityLB(sim_db1, sim_db2));
         Node* res = inferSolutionFromLB(node, ub);
         if (res != nullptr) {
-            // if (itemset.size() == 3 and itemset.at(0) == 40 and itemset.at(1) == 68 and itemset.at(2) == 93) {
-            //     cout << "result found after similarity. test " << res->data->test << " error: " << res->data->error << endl;
-            //     Itemset left = addItem(itemset, item(node->data->test, NEG_ITEM));
-            //     Itemset right = addItem(itemset, item(node->data->test, POS_ITEM));
-            //     auto left_node = cache->get(left);
-            //     auto right_node = cache->get(right);
-            //     if (left_node != nullptr)
-            //         cout << "left test " << left_node->data->test << " error: " << left_node->data->error << endl;
-            //     else cout << "no left" << endl;
-            //     if (right_node != nullptr)
-            //         cout << "right test " << right_node->data->test << " error: " << right_node->data->error << endl << endl;
-            //     else cout << "no right" << endl << endl;
-            // }
             return {res, true};
         }
     }
 
-
     // in case the solution cannot be derived without computation and remaining depth is 2, we use a specific algorithm
     if (specialAlgo and maxdepth - depth == 2 and nodeDataManager->cover->getSupport() >= 2 * minsup and no_python_error) {
-        // printItemset(itemset, true);
-        // if (itemset.size() == 3 and itemset.at(0) == 6 and itemset.at(1) == 11 and itemset.at(2) == 22) {
-        //     cout << "lower: " << node->data->lowerBound << " -- upper: " << ub << endl;
-        // }
         computeDepthTwo(nodeDataManager->cover, ub, next_candidates, last_added_attr, itemset, node, nodeDataManager, node->data->lowerBound, cache, this);
-        // if (itemset.size() == 3 and itemset.at(0) == 40 and itemset.at(1) == 68 and itemset.at(2) == 93) {
-        //     cout << "result found depthtwo. test " << node->data->test << " error: " << node->data->error << endl;
-        //     Itemset left = addItem(itemset, item(node->data->test, NEG_ITEM));
-        //     Itemset right = addItem(itemset, item(node->data->test, POS_ITEM));
-        //     auto left_node = cache->get(left);
-        //     auto right_node = cache->get(right);
-        //     if (left_node != nullptr)
-        //         cout << "left test " << left_node->data->test << " error: " << left_node->data->error << endl;
-        //     else cout << "no left" << endl;
-        //     if (right_node != nullptr)
-        //         cout << "right test " << right_node->data->test << " error: " << right_node->data->error << endl << endl;
-        //     else cout << "no right" << endl << endl;
-        // }
         return {node, true};
     }
 
@@ -447,30 +347,12 @@ pair<Node*,HasInter> Search_trie_cache::recurse(const Itemset &itemset,
     if (timeLimitReached) { *nodeError = leafError; return {node, true}; }
 
     // if we can't get solution without computation, we compute the next candidates to perform the search
-//    cout << "succ bef: ";
-//    printItemset(next_candidates);
     Attributes next_attributes = getSuccessors(next_candidates, last_added_attr, itemset, node);
-//    cout << "succ aft: ";
-//    printItemset(next_attributes);
 
     // case in which there is no candidate
     if (next_attributes.empty()) {
         *nodeError = leafError;
-        //Attributes().swap(next_attributes); // fre the vector memory
         Logger::showMessageAndReturn("No candidates. nodeError is set to leafError\n", "depth = ", depth, " and init ub = ", ub, " and error after search = ", *nodeError, "\nwe backtrack");
-        // if (itemset.size() == 3 and itemset.at(0) == 40 and itemset.at(1) == 68 and itemset.at(2) == 93) {
-        //     cout << "result no successors. test " << node->data->test << " error: " << node->data->error << endl;
-        //     Itemset left = addItem(itemset, item(node->data->test, NEG_ITEM));
-        //     Itemset right = addItem(itemset, item(node->data->test, POS_ITEM));
-        //     auto left_node = cache->get(left);
-        //     auto right_node = cache->get(right);
-        //     if (left_node != nullptr)
-        //         cout << "left test " << left_node->data->test << " error: " << left_node->data->error << endl;
-        //     else cout << "no left" << endl;
-        //     if (right_node != nullptr)
-        //         cout << "right test " << right_node->data->test << " error: " << right_node->data->error << endl << endl;
-        //     else cout << "no right" << endl << endl;
-        // }
         return {node, true};
     }
 
@@ -478,41 +360,10 @@ pair<Node*,HasInter> Search_trie_cache::recurse(const Itemset &itemset,
     Error minlb = FLT_MAX; // in case solution is not found, the minimum of lb of each attribute(sum per item) can be used as a lb for the current node
     Error child_ub = ub; // upper bound for the first child (item)
     bool first_item, second_item; // variable to store the order to explore items of features
-    //Attribute best_attr;
-
-    // we evaluate the split on each candidate attribute
-//    for(const auto attr : next_attributes) {
-//bool found = false;
-//    for (int i = 0; i < next_attributes.size(); ++i) {
-////        Attribute attr = next_attributes[i];
-//        Attribute attr;
-//        if (node->data->test < 0) {
-//            if (i == 0) attr = -node->data->test - 1;
-//            else if (next_attributes[i] == -node->data->test - 1) {
-//                found = true;
-//                continue;
-//            }
-//            else {
-//                if (not found) attr = next_attributes[i-1];
-//                else attr = next_attributes[i];
-//            }
-//        }
-//        else attr = next_attributes[i];
-//        Logger::showMessageAndReturn("\n\nWe are evaluating the attribute : ", attr);
-    // if (itemset.size() == 4 and itemset.at(0) == 6 and itemset.at(1) == 22 and itemset.at(2) == 11 and itemset.at(3) == 19)
-    //     cout << "lower: " << node->data->lowerBound << " -- upper: " << ub << endl;
-
-    // cout << "fafa" << endl;
 
     for(const auto attr : next_attributes) {
-
         Logger::showMessageAndReturn("\n\nWe are evaluating the attribute : ", attr);
-        // if (itemset.size() == 2 and itemset.at(0) == 40 and itemset.at(1) == 93) {
-        //         cout << "We are evaluating the attribute: " << attr << endl;
-        //     }
-
         ((TrieNodeData*)(node->data))->curr_test = attr;
-
         Itemset itemsets[2];
         Node *child_nodes[2];
         Error neg_lb = 0, pos_lb = 0;
@@ -530,16 +381,10 @@ pair<Node*,HasInter> Search_trie_cache::recurse(const Itemset &itemset,
                 neg_lb = tmp_node->data->error < FLT_MAX ? tmp_node->data->error : tmp_node->data->lowerBound;
             }
             tmp_itemset = addItem(itemset, item(attr, POS_ITEM));
-            // addItem(itemset, item(attr, POS_ITEM), tmp_itemset);
             tmp_node = cache->get(tmp_itemset);
             if (tmp_node != nullptr and tmp_node->data != nullptr) {
                 pos_lb = tmp_node->data->error < FLT_MAX ? tmp_node->data->error : tmp_node->data->lowerBound;
             }
-
-            // if (itemset.size() == 2 and itemset.at(0) == 40 and itemset.at(1) == 93) {
-            //     cout << "40,93: ub: " << ub << " current best attr(" << node->data->test << ") error: " << node->data->error << endl;
-            //     cout << "attr: " << attr << " neg found lb: " << neg_lb << " pos found lb: " << pos_lb << endl;
-            // }
 
             if (similarlb and similar_for_branching) {
                 nodeDataManager->cover->intersect(attr, false);
@@ -559,10 +404,6 @@ pair<Node*,HasInter> Search_trie_cache::recurse(const Itemset &itemset,
                     pos_sim_lb = computeSimilarityLB(similar_db1, similar_db2);
                 pos_lb = max(pos_lb, pos_sim_lb);
                 nodeDataManager->cover->backtrack();
-
-                // if (itemset.size() == 2 and itemset.at(0) == 40 and itemset.at(1) == 93) {
-                //     cout << "attr: " << attr << " neg sim lb: " << neg_sim_lb << " pos sim lb: " << pos_sim_lb << endl;
-                // }
             }
         }
 
@@ -574,70 +415,29 @@ pair<Node*,HasInter> Search_trie_cache::recurse(const Itemset &itemset,
 
         // perform search on the first item
         itemsets[first_item] = addItem(itemset, item(attr, first_item), false);
-        // cout << "atten "  << endl;
         pair<Node*, bool> node_state = cache->insert(itemsets[first_item]);
-        // cout << "salut "  << endl;
         child_nodes[first_item] = node_state.get_node;
-        // cout << "fff " << node_state.first << endl;
         if (node_state.is_new) { // if new node
             nodeDataManager->cover->intersect(attr, first_item);
             child_nodes[first_item]->data = nodeDataManager->initData();
             Logger::showMessageAndReturn("Newly created node node. leaf error = ", child_nodes[first_item]->data->leafError);
-        //    if (not from_cpp) Logger::showMessageAndReturn("Searching ==> cache size: ", cache->getCacheSize());
-        //    else cerr << "Searching... cache size: " << cache->getCacheSize() << "\r" << flush;
         } else Logger::showMessageAndReturn("The node already exists");
         child_nodes[first_item]->data->lowerBound = first_lb; // the best lb between the computed and the saved one is selected
         
-        // if (itemsets[first_item].size() == 3 and itemsets[first_item].at(0) == 40 and itemsets[first_item].at(1) == 68 and itemsets[first_item].at(2) == 93) {
-        //     cout << "first parent itemset: ";
-        //     printItemset(itemset, true);
-        //     cout << "parent test: " << node->data->test << " error: " << node->data->error << " ub: "  << child_ub << " other lb: " << second_lb << endl;
-        // }
-        // if (itemsets[first_item].size() == 3 and itemsets[first_item].at(0) == 10 and itemsets[first_item].at(1) == 124 and itemsets[first_item].at(2) == 164) {
-        //     cout << endl << "parent itemset: ";
-        //     printItemset(itemset, true, false);
-        //     cout  << " parent attr: " << attr << " first item: " << first_item << " lb: " << first_lb << " ub: " << (child_ub - second_lb) << " par_ub: " << child_ub << " saved_lb: " << second_lb << endl;
-        // }
-        // if (itemsets[first_item].size() == 3 and itemsets[first_item].at(0) == 40 and itemsets[first_item].at(1) == 68 and itemsets[first_item].at(2) == 93) {
-        //     cout << "first parent itemset: ";
-        //     printItemset(itemset, true);
-        //     cout  << " parent curr attr: " << attr << " first item: " << first_item << " lb: " << first_lb << " ub: " << (child_ub - second_lb) << " par_ub: " << child_ub << " saved_lb: " << second_lb << endl;
-        // }
         pair<Node*, HasInter> node_inter = recurse(itemsets[first_item], item(attr, first_item), child_nodes[first_item], node_state.is_new, next_attributes,  depth + 1, child_ub - second_lb, similar_db1, similar_db2); // perform the search for the first item
-        // if (itemset.size() == 2 and itemset.at(0) == 40 and itemset.at(1) == 68 and attr == 46 and first_item == 1) {
-        //     cout << " result ==> test: " << child_nodes[first_item]->data->test << " error: " << child_nodes[first_item]->data->error << endl;
-        // }
-        // if (itemset.size() == 3 and itemset.at(0) == 40 and itemset.at(1) == 68 and itemset.at(2) == 93)
-        //     cout << " result: " << child_nodes[first_item]->data->error << endl;
-
         child_nodes[first_item] = node_inter.get_node;
         if (node_state.is_new or node_inter.has_intersected) {
             if (similarlb) {
                 bool res = updateSimilarLBInfo2(child_nodes[first_item]->data, similar_db1, similar_db2);
-                // if (itemset.size() == 2 and itemset.at(0) == 40 and itemset.at(1) == 93) {
-                //     cout << "update sim after error found = " << child_nodes[first_item]->data->error << endl;
-                //     cout << "40,93: attr(" << attr << ") first_item(" << first_item << ") ==> ";
-                //     if (res) cout << "sdb1.err: " << similar_db1.s_error << " sdb2.err: " << similar_db2.s_error << endl;
-                //     else cout << "not changed" << endl;
-                // }
             }
             nodeDataManager->cover->backtrack(); // cases of intersection
         }
         else if (similarlb) {
             nodeDataManager->cover->intersect(attr, first_item);
             bool res = updateSimilarLBInfo2(child_nodes[first_item]->data, similar_db1, similar_db2);
-            // if (itemset.size() == 2 and itemset.at(0) == 40 and itemset.at(1) == 93) {
-            //     cout << "update sim after error found = " << child_nodes[first_item]->data->error << endl;
-            //     cout << "40,93: attr(" << attr << ") first_item(" << first_item << ") ==> ";
-            //     if (res) cout << "sdb1.err: " << similar_db1.s_error << " sdb2.err: " << similar_db2.s_error << endl;
-            //     else cout << "not changed" << endl;
-            // }
             nodeDataManager->cover->backtrack();
         }
-        // parent of 40,68,93
-        // if (itemset.size() == 2 and ( (itemset.at(0) == 40 and itemset.at(1) == 68) or (itemset.at(0) == 40 and itemset.at(1) == 93) or (itemset.at(0) == 68 and itemset.at(1) == 93) )) {
-        //     cout << "item: " << item(attr, first_item) << " error: " << child_nodes[first_item]->data->error << " lb: " << child_nodes[first_item]->data->lowerBound << " sdb1.error: " << similar_db1.s_error << " sdb1.sup: " << similar_db1.s_coversize << "sdb2.error: " << similar_db2.s_error << " sdb2.sup: " << similar_db2.s_coversize << endl;
-        // }
+
         Error firstError = child_nodes[first_item]->data->error;
         Itemset().swap(itemsets[first_item]); // free the vector memory representing the first itemset
 
@@ -649,102 +449,37 @@ pair<Node*,HasInter> Search_trie_cache::recurse(const Itemset &itemset,
                 nodeDataManager->cover->intersect(attr, second_item);
                 child_nodes[second_item]->data = nodeDataManager->initData();
                 Logger::showMessageAndReturn("Newly created node node. leaf error = ", child_nodes[second_item]->data->leafError);
-            //    if (not from_cpp) Logger::showMessageAndReturn("Searching ==> cache size: ", cache->getCacheSize());
-            //    else cerr << "Searching... cache size: " << cache->getCacheSize() << "\r" << flush;
             } else Logger::showMessageAndReturn("The node already exists");
             child_nodes[second_item]->data->lowerBound = second_lb; // the best lb between the computed and the saved ones is selected
             Error remainUb = child_ub - firstError; // bound for the second child (item)
 
-            // if (itemsets[second_item].size() == 3 and itemsets[second_item].at(0) == 40 and itemsets[second_item].at(1) == 68 and itemsets[second_item].at(2) == 93) {
-            //     cout << "second parent itemset: ";
-            //     printItemset(itemset, true);
-            //     cout << "parent test: " << node->data->test << " error: " << node->data->error << " ub: "  << child_ub << " other error: " << firstError << endl;
-            // }
-            // if (itemsets[second_item].size() == 3 and itemsets[second_item].at(0) == 10 and itemsets[second_item].at(1) == 124 and itemsets[second_item].at(2) == 164) {
-            //     cout << "parent itemset: ";
-            //     printItemset(itemset, true, false);
-            //     cout << "parent attr: " << attr << " second item: " << second_item << " lb: " << second_lb << " ub: " << remainUb << endl;
-            // }
-            // if (itemsets[second_item].size() == 3 and itemsets[second_item].at(0) == 40 and itemsets[second_item].at(1) == 68 and itemsets[second_item].at(2) == 93) {
-            //     cout << "parent itemset: ";
-            //     printItemset(itemset, true, false);
-            //     cout << " parent curr attr: " << attr << " second item: " << second_item << " lb: " << second_lb << " ub: " << remainUb << endl;
-            // }
             node_inter = recurse(itemsets[second_item], item(attr, second_item), child_nodes[second_item], node_state.is_new, next_attributes,  depth + 1, remainUb, similar_db1, similar_db2); // perform the search for the second item
-            // if (itemsets[second_item].size() == 3 and itemsets[second_item].at(0) == 40 and itemsets[second_item].at(1) == 68 and itemsets[second_item].at(2) == 93) {
-            //     cout << " result ==> test: " << child_nodes[second_item]->data->test << " error: " << child_nodes[second_item]->data->error << endl;
-            //     // cout << "feat error: " << child_nodes[first_item]->data->error + child_nodes[second_item]->data->error << endl;
-            // }
-            // if (itemset.size() == 3 and itemset.at(0) == 40 and itemset.at(1) == 68 and itemset.at(2) == 93) {
-            //     cout << " result: " << child_nodes[second_item]->data->error << endl;
-            //     cout << "feat error: " << child_nodes[first_item]->data->error + child_nodes[second_item]->data->error << endl;
-            // }
 
             child_nodes[second_item] = node_inter.get_node;
             if (node_state.is_new or node_inter.has_intersected) {
                 if (similarlb) {
                     bool res = updateSimilarLBInfo2(child_nodes[second_item]->data, similar_db1, similar_db2);
-                    // if (itemset.size() == 2 and itemset.at(0) == 40 and itemset.at(1) == 93) {
-                    //     cout << "update sim after error found = " << child_nodes[second_item]->data->error << endl;
-                    //     cout << "40,93: attr(" << attr << ") second_item(" << second_item << ") ==> ";
-                    //     if (res) cout << "sdb1.err: " << similar_db1.s_error << " sdb2.err: " << similar_db2.s_error << endl;
-                    //     else cout << "not changed" << endl;
-                    // }
                 }
                 nodeDataManager->cover->backtrack();
             }
             else if (similarlb) {
                 nodeDataManager->cover->intersect(attr, second_item);
                 bool res = updateSimilarLBInfo2(child_nodes[second_item]->data, similar_db1, similar_db2);
-                // if (itemset.size() == 2 and itemset.at(0) == 40 and itemset.at(1) == 93) {
-                //     cout << "update sim after error found = " << child_nodes[second_item]->data->error << endl;
-                //     cout << "40,93: attr(" << attr << ") second_item(" << second_item << ") ==> ";
-                //     if (res) cout << "sdb1.err: " << similar_db1.s_error << " sdb2.err: " << similar_db2.s_error << endl;
-                //     else cout << "not changed" << endl;
-                // }
                 nodeDataManager->cover->backtrack();
             }
-            // parent of 40,68,93
-            // if (itemset.size() == 2 and ( (itemset.at(0) == 40 and itemset.at(1) == 68) or (itemset.at(0) == 40 and itemset.at(1) == 93) or (itemset.at(0) == 68 and itemset.at(1) == 93) )) {
-            //     cout << "item: " << item(attr, second_item) << " error: " << child_nodes[second_item]->data->error << " lb: " << child_nodes[second_item]->data->lowerBound << " sdb1.error: " << similar_db1.s_error << " sdb1.sup: " << similar_db1.s_coversize << "sdb2.error: " << similar_db2.s_error << " sdb2.sup: " << similar_db2.s_coversize << endl;
-            // }
+
             Error secondError = child_nodes[second_item]->data->error;
             Itemset().swap(itemsets[second_item]); // fre the vector memory representing the second itemset
 
             Error feature_error = firstError + secondError;
 
-            //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
-            //Attribute lastBestAttr = node->data->left == nullptr ? -1 : best_attr;
-            //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
-
             bool hasUpdated = nodeDataManager->updateData(node, child_ub, attr, child_nodes[NEG_ITEM], child_nodes[POS_ITEM], itemset);
-//            bool hasUpdated = nodeDataManager->updateData(node, child_ub, attr, child_nodes[NEG_ITEM], child_nodes[POS_ITEM], cache);
             if (hasUpdated) {
-
                 child_ub = feature_error;
-                //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
-                /*best_attr = attr;
-                if (lastBestAttr != -1 and cache->maxcachesize > NO_CACHE_LIMIT) {
-                    Logger::showMessageAndReturn("Current attribute better than previous.  Previous subtree load is updating");
-
-                    Itemset copy_itemset = itemset;
-                        cache->updateSubTreeLoad(copy_itemset, item(lastBestAttr, first_item), item(lastBestAttr, second_item),false);
-
-                }*/
-                //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
                 Logger::showMessageAndReturn("after this attribute ", attr, ", node error=", *nodeError, " and ub=", child_ub);
             }
             else { // the current attribute error is not better than the existing
-
                 minlb = min(minlb, feature_error); // we get the error of the current attribute, we then update the minimum possible lb
-                //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
-                /*if(cache->maxcachesize > NO_CACHE_LIMIT) {
-                    Logger::showMessageAndReturn("Current attribute worse than previous.  Current subtree load is updating");
-
-                    Itemset copy_itemset = itemset;
-                    cache->updateSubTreeLoad(copy_itemset, item(attr, first_item), item(attr, second_item),false);
-                }*/
-                //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
             }
 
             if (nodeDataManager->canSkip(node->data) or timeLimitReached) { //lowerBound or time limit reached
@@ -756,21 +491,11 @@ pair<Node*,HasInter> Search_trie_cache::recurse(const Itemset &itemset,
             // if the first error is foud, we use it. otherwise, we use its lower bound.
             if (floatEqual(firstError, FLT_MAX)) minlb = min(minlb, child_nodes[first_item]->data->lowerBound + second_lb);
             else minlb = min(minlb, firstError + second_lb);
-
-            //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
-            /*if (cache->maxcachesize > NO_CACHE_LIMIT) {
-                Logger::showMessageAndReturn("Current first item is not satisfying. Current subtree load is updating");
-                Itemset copy_itemset = itemset;
-                cache->updateSubTreeLoad(copy_itemset, item(attr, first_item), -1, false);
-            }*/
-            //%%%%%%%%%%% CACHE LIMITATION BLOCK %%%%%%%%%%%//
         }
 
         if (stopAfterError and depth == 0 and ub < FLT_MAX and *nodeError < ub) break;
     }
     ((TrieNodeData*)(node->data))->curr_test = -1;
-    // if (itemset.size() == 3 and itemset.at(0) == 40 and itemset.at(1) == 68 and itemset.at(2) == 93)
-    //     cout << "after search test: " << node->data->test << " error: " << node->data->error << endl << endl << endl;
 
     if (similarlb){
         similar_db1.free();
@@ -802,61 +527,29 @@ void Search_trie_cache::run() {
                 attributes_to_visit.push_back(attr);
         }
     }
-//    printItemset(attributes_to_visit);
-//    attributes_to_visit.erase(find(attributes_to_visit.begin(), attributes_to_visit.end(), 34));
-//    attributes_to_visit.insert(attributes_to_visit.begin(), 34);
 
     //create an empty array of items representing an emptyset and insert it
     Itemset itemset;
     Node * rootnode = cache->insert(itemset).first;
     rootnode->data = nodeDataManager->initData();
-//    rootnode->data->lowerBound = 245;
     SimilarVals sdb1, sdb2;
     // call the recursive function to start the search
     cache->root = recurse(itemset, NO_ITEM, rootnode, true, attributes_to_visit, 0, maxError, sdb1, sdb2).first;
-//    cache->root = recurse(itemset, NO_ITEM, rootnode, true, attributes_to_visit, 0, 246, sdb1, sdb2).first;
-
-//    std::cout << endl;
-//    std::cout << "final error: " << cache->root->data->error << endl;
 
     if (cache->maxcachesize > NO_CACHE_LIMIT) {
         cout << "Tree already found with error = " << cache->root->data->error << ". Trying to reconstitute the wiped subtrees" << endl;
         cout << "===============================================================================" << endl;
-    //    Itemset unsorted = itemset;
-    //    rSubtrees(cache->root, itemset, unsorted);
-    //    cout << endl << endl;
         auto rtime = chrono::high_resolution_clock::now();
         while(not isTreeComplete(cache->root, itemset)) {
-        //    cout << endl << "coucou: not complete" << endl;
-            // retrieveWipedSubtrees(cache->root, itemset, NO_ITEM, attributes_to_visit, 0, FLT_MAX, 0);
             retrieveWipedSubtrees(cache->root, itemset, NO_ITEM, attributes_to_visit, 0);
         }
         cout << "Reconstitution time : "  << duration<float>(high_resolution_clock::now() - rtime).count() << " seconds" << endl;
-    //    cout << endl;
-    //    cout << endl;
-    //    rSubtrees(cache->root, itemset, unsorted);
-    //    cout << endl;
-//        exit(0);
     }
 
 }
 
-// new version
 // loop in each node of the final tree and re-launch the search for nodes whose descendants are wiped
 void Search_trie_cache::retrieveWipedSubtrees(Node *node, const Itemset &itemset, Item last_added, Attributes &attributes, Depth depth) {
-//    printItemset(itemset, true);
-
-    // if (node->data == nullptr or floatEqual(node->data->error, FLT_MAX)) {
-    //     node->data = nodeDataManager->initData();
-    //     node->data->lowerBound = lb;
-    //     SimilarVals sdb1, sdb2;
-    //     // cout << "launch dl85 : ";
-    //     // printItemset(itemset, true);
-    //     // cout << "lb : " << node->data->lowerBound << " ub : " << ub << endl;
-    //     node = recurse(itemset, last_added, node, true, attributes, depth, ub, sdb1, sdb2).first;
-    //     // cout << "result : " << node->data->test << " error: " << node->data->error << endl << endl;
-    //     return;
-    // }
 
     // backtrack when leaf node is encountered
     if (node->data->test < 0) return;
@@ -879,16 +572,13 @@ void Search_trie_cache::retrieveWipedSubtrees(Node *node, const Itemset &itemset
             // search on neg item only
             c_lb = node->data->error - children_node[POS_ITEM]->data->error;
             c_ub = c_lb + 1;
+
             nodeDataManager->cover->intersect(attr, NEG_ITEM);
             auto c_node = cache->insert(children_itemset[NEG_ITEM]);
             c_node.first->data = nodeDataManager->initData();
             c_node.first->data->lowerBound = c_lb;
             SimilarVals sdb1, sdb2;
-            // cout << "launch dl85 : ";
-            // printItemset(children_itemset[NEG_ITEM], true);
-            // cout << "lb : " << c_node.first->data->lowerBound << " ub : " << c_ub << endl;
             c_node.first = recurse(children_itemset[NEG_ITEM], item(attr, NEG_ITEM), c_node.first, true, next_succ, depth + 1, c_ub, sdb1, sdb2).first;
-            // cout << "result : " << c_node.first->data->test << " error: " << c_node.first->data->error << endl << endl;
             nodeDataManager->cover->backtrack();
 
             nodeDataManager->cover->intersect(attr, POS_ITEM);
@@ -899,16 +589,13 @@ void Search_trie_cache::retrieveWipedSubtrees(Node *node, const Itemset &itemset
             // search on pos item only
             c_lb = node->data->error - children_node[NEG_ITEM]->data->error;
             c_ub = c_lb + 1;
+
             nodeDataManager->cover->intersect(attr, POS_ITEM);
             auto c_node = cache->insert(children_itemset[POS_ITEM]);
             c_node.first->data = nodeDataManager->initData();
             c_node.first->data->lowerBound = c_lb;
             SimilarVals sdb1, sdb2;
-            // cout << "launch dl85 : ";
-            // printItemset(children_itemset[POS_ITEM], true);
-            // cout << "lb : " << c_node.first->data->lowerBound << " ub : " << c_ub << endl;
             c_node.first = recurse(children_itemset[POS_ITEM], item(attr, POS_ITEM), c_node.first, true, next_succ, depth + 1, c_ub, sdb1, sdb2).first;
-            // cout << "result : " << c_node.first->data->test << " error: " << c_node.first->data->error << endl << endl;
             nodeDataManager->cover->backtrack();
 
             nodeDataManager->cover->intersect(attr, NEG_ITEM);
@@ -924,11 +611,7 @@ void Search_trie_cache::retrieveWipedSubtrees(Node *node, const Itemset &itemset
             c_node.first->data = nodeDataManager->initData();
             c_node.first->data->lowerBound = c_lb;
             SimilarVals sdb1, sdb2;
-            // cout << "launch dl85 : ";
-            // printItemset(children_itemset[NEG_ITEM], true);
-            // cout << "lb : " << c_node.first->data->lowerBound << " ub : " << c_ub << endl;
             c_node.first = recurse(children_itemset[NEG_ITEM], item(attr, NEG_ITEM), c_node.first, true, next_succ, depth + 1, c_ub, sdb1, sdb2).first;
-            // cout << "result : " << c_node.first->data->test << " error: " << c_node.first->data->error << endl << endl;
             nodeDataManager->cover->backtrack();
 
             c_lb = node->data->error - c_node.first->data->error;
@@ -938,18 +621,12 @@ void Search_trie_cache::retrieveWipedSubtrees(Node *node, const Itemset &itemset
             c_node.first->data = nodeDataManager->initData();
             c_node.first->data->lowerBound = c_lb;
             SimilarVals sdb3, sdb4;
-            // cout << "launch dl85 : ";
-            // printItemset(children_itemset[POS_ITEM], true);
-            // cout << "lb : " << c_node.first->data->lowerBound << " ub : " << c_ub << endl;
             c_node.first = recurse(children_itemset[POS_ITEM], item(attr, POS_ITEM), c_node.first, true, next_succ, depth + 1, c_ub, sdb3, sdb4).first;
-            // cout << "result : " << c_node.first->data->test << " error: " << c_node.first->data->error << endl << endl;
             nodeDataManager->cover->backtrack();
-
         }
     }
     else {
         // no search. just continue dfs on left and right
-
         nodeDataManager->cover->intersect(attr, NEG_ITEM);
         retrieveWipedSubtrees(children_node[NEG_ITEM], children_itemset[NEG_ITEM], item(attr, NEG_ITEM), next_succ, depth + 1);
         nodeDataManager->cover->backtrack();
@@ -960,54 +637,6 @@ void Search_trie_cache::retrieveWipedSubtrees(Node *node, const Itemset &itemset
     }
 
 }
-
-
-void Search_trie_cache::rSubtrees(Node *node, const Itemset &itemset, Itemset &unsorted) {
-//    printItemset(itemset, true);
-    printItemset(unsorted, true);
-    // backtrack when leaf node is encountered
-    if (node->data->test < 0) {
-//    if (node == nullptr) {
-//        cout << "leaf; ";
-        return;
-    }
-
-    Attribute attr = node->data->test;
-//    cout << "test:" << attr << " ";
-    Itemset children_itemset[2] = {addItem(itemset, item(attr, NEG_ITEM)), addItem(itemset, item(attr, POS_ITEM))};
-//    printItemset(children_itemset[0], true);
-//    printItemset(children_itemset[1], true);
-    Node* children_node[2] = {cache->get(children_itemset[0]), cache->get(children_itemset[1])};
-
-    unsorted.push_back(item(attr, NEG_ITEM));
-    if (children_node[0] == nullptr or children_node[0]->data == nullptr or floatEqual(children_node[0]->data->error, FLT_MAX)) {
-//        cout << "left wiped " ;
-//        printItemset(children_itemset[0], true, false);
-        printItemset(unsorted, true, false);
-        cout << "left wiped. Parent error: " << node->data->error << ". Parent test: " << node->data->test << endl ;
-        if (children_node[1] != nullptr and children_node[1]->data != nullptr and not floatEqual(children_node[1]->data->error, FLT_MAX)) cout << "right error: " << children_node[1]->data->error << endl;
-    }
-    else {
-//        cout << "left: ";
-        rSubtrees(children_node[0], children_itemset[0], unsorted);
-    }
-    unsorted.pop_back();
-
-    unsorted.push_back(item(attr, POS_ITEM));
-    if (children_node[1] == nullptr or children_node[1]->data == nullptr or floatEqual(children_node[1]->data->error, FLT_MAX)) {
-//        cout << "right wiped " ;
-//        printItemset(children_itemset[1], true, false);
-        printItemset(unsorted, true, false);
-        cout << "right wiped. Parent error: " << node->data->error << ". Parent test: " << node->data->test << endl ;
-        if (children_node[0] != nullptr and children_node[0]->data != nullptr and not floatEqual(children_node[0]->data->error, FLT_MAX)) cout << "left error: " << children_node[0]->data->error << endl;
-    }
-    else {
-//        cout << "right: ";
-        rSubtrees(children_node[1], children_itemset[1], unsorted);
-    }
-    unsorted.pop_back();
-}
-
 
 bool Search_trie_cache::isTreeComplete(Node* node, const Itemset &itemset) {
 
@@ -1026,238 +655,3 @@ bool Search_trie_cache::isTreeComplete(Node* node, const Itemset &itemset) {
     }
     return true;
 }
-
-
-
-// old version modified
-// loop in each node of the final tree and re-launch the search for nodes whose descendants are wiped
-/* void Search_trie_cache::retrieveWipedSubtrees(Node *node, const Itemset &itemset, Item last_added, Attributes &attributes, Depth depth, Error ub, Error lb) {
-//    printItemset(itemset, true);
-
-    Attributes next_succ = attributes;
-
-    if (node->data == nullptr) {
-        node->data = nodeDataManager->initData();
-        node->data->lowerBound = lb;
-        SimilarVals sdb1, sdb2;
-        node = recurse(itemset, last_added, node, true, next_succ, depth, ub, sdb1, sdb2).first;
-        return;
-    }
-
-    // backtrack when leaf node is encountered
-    if (node->data->test < 0) return;
-
-    Attribute attr = node->data->test;
-    Itemset children_itemset[2] = {addItem(itemset, item(attr, NEG_ITEM)), addItem(itemset, item(attr, POS_ITEM))};
-    Node* children_node[2] = {cache->get(children_itemset[0]), cache->get(children_itemset[1])};
-
-
-    if (children_node[0] == nullptr or children_node[1] == nullptr) {
-        auto it = std::find(next_succ.begin(), next_succ.end(), attr);
-        rotate(next_succ.begin(), it, it+1);
-        SimilarVals sdb1, sdb2;
-        node->data->lowerBound = lb;
-        node->data->error = FLT_MAX;
-       cout << "launch dl85 : ";
-       printItemset(itemset, true);
-       cout << "lb : " << node->data->lowerBound << " ub : " << ub << endl;
-        node = recurse(itemset, last_added, node, true, next_succ, depth, ub, sdb1, sdb2).first;
-       cout << "result : " << node->data->test << " error: " << node->data->error << endl;
-//        Node* tt = cache->get(addItem(itemset, item(attr, NEG_ITEM)));
-//        cout << tt << endl;
-//        verbose = false;
-//        cout << "end launch" << endl;
-    }
-    else {
-
-        Attributes next_attributes;
-        if (last_added == NO_ITEM) next_attributes = attributes;
-        else {
-            next_attributes.reserve(attributes.size() - 1);
-            for (auto attribute : attributes) {
-                if (attribute != item_attribute(last_added)) next_attributes.push_back(attribute);
-            }
-        }
-
-        Error upperb, left_lb, right_lb;
-
-        if (children_node[0]->data != nullptr) {
-            left_lb = children_node[0]->data->error;
-            upperb = left_lb + 1;
-        }
-        else if (children_node[1]->data != nullptr) {
-            left_lb = node->data->error - children_node[1]->data->error;
-            upperb = left_lb + 1;
-        }
-        else {
-            upperb = node->data->error + 1;
-            left_lb = 0;
-        }
-
-//        cout << "left lb : " << left_lb << " ub : " << upperb << endl;
-
-        nodeDataManager->cover->intersect(attr, NEG_ITEM);
-        retrieveWipedSubtrees(children_node[NEG_ITEM], children_itemset[NEG_ITEM], item(attr, NEG_ITEM), next_attributes, depth + 1, upperb, left_lb);
-        nodeDataManager->cover->backtrack();
-
-        if (children_node[1]->data != nullptr) {
-            right_lb = children_node[1]->data->error;
-            upperb = right_lb + 1;
-        }
-        else if (children_node[0]->data != nullptr) {
-            right_lb = node->data->error - children_node[0]->data->error;
-            upperb = right_lb + 1;
-        }
-        else {
-            upperb = node->data->error + 1;
-            right_lb = 0;
-        }
-//        cout << "right lb : " << right_lb << " ub : " << upperb << endl;
-
-        nodeDataManager->cover->intersect(attr, POS_ITEM);
-        retrieveWipedSubtrees(children_node[POS_ITEM], children_itemset[POS_ITEM], item(attr, POS_ITEM), next_attributes, depth + 1, upperb, right_lb);
-        nodeDataManager->cover->backtrack();
-    }
-
-} */
-
-
-// copy from clion and modified
-/* void Search_trie_cache::retrieveWipedSubtrees(Node *node, const Itemset &itemset, Item last_added, Attributes &attributes, Depth depth, Error ub, Error lb) {
-//    printItemset(itemset, true);
-
-    Attributes next_succ = attributes;
-
-    if (node->data == nullptr) {
-        node->data = nodeDataManager->initData();
-        node->data->lowerBound = lb;
-        SimilarVals sdb1, sdb2;
-        cout << "launch dl85 : ";
-        printItemset(itemset, true);
-        cout << "lb : " << node->data->lowerBound << " ub : " << ub << endl;
-        node = recurse(itemset, last_added, node, true, next_succ, depth, ub, sdb1, sdb2).first;
-        cout << "result : " << node->data->test << " error: " << node->data->error << endl;
-        return;
-    }
-
-    // backtrack when leaf node is encountered
-    if (node->data->test < 0) return;
-
-    Attribute attr = node->data->test;
-    Itemset children_itemset[2] = {addItem(itemset, item(attr, NEG_ITEM)), addItem(itemset, item(attr, POS_ITEM))};
-    Node* children_node[2] = {cache->get(children_itemset[0]), cache->get(children_itemset[1])};
-
-
-    if (children_node[0] == nullptr or children_node[1] == nullptr) {
-        auto it = std::find(next_succ.begin(), next_succ.end(), attr);
-        rotate(next_succ.begin(), it, it+1);
-        SimilarVals sdb1, sdb2;
-        node->data->lowerBound = lb;
-        node->data->error = FLT_MAX;
-        cout << "launch dl85 : ";
-        printItemset(itemset, true);
-        cout << "lb : " << node->data->lowerBound << " ub : " << ub << endl;
-        node = recurse(itemset, last_added, node, true, next_succ, depth, ub, sdb1, sdb2).first;
-        cout << "result : " << node->data->test << " error: " << node->data->error << endl;
-//        Node* tt = cache->get(addItem(itemset, item(attr, NEG_ITEM)));
-//        cout << tt << endl;
-//        verbose = false;
-//        cout << "end launch" << endl;
-    }
-    else {
-
-        Attributes next_attributes;
-        if (last_added == NO_ITEM) next_attributes = attributes;
-        else {
-            next_attributes.reserve(attributes.size() - 1);
-            for (auto attribute : attributes) {
-                if (attribute != item_attribute(last_added)) next_attributes.push_back(attribute);
-            }
-        }
-
-        Error upperb, left_lb, right_lb;
-
-        if (children_node[0]->data != nullptr) {
-            left_lb = children_node[0]->data->error;
-            upperb = left_lb + 1;
-        }
-        else if (children_node[1]->data != nullptr) {
-            left_lb = node->data->error - children_node[1]->data->error;
-            upperb = left_lb + 1;
-        }
-        else {
-            upperb = node->data->error + 1;
-            left_lb = 0;
-        }
-
-//        cout << "left lb : " << left_lb << " ub : " << upperb << endl;
-
-        nodeDataManager->cover->intersect(attr, NEG_ITEM);
-        retrieveWipedSubtrees(children_node[NEG_ITEM], children_itemset[NEG_ITEM], item(attr, NEG_ITEM), next_attributes, depth + 1, upperb, left_lb);
-        nodeDataManager->cover->backtrack();
-
-        if (children_node[1]->data != nullptr) {
-            right_lb = children_node[1]->data->error;
-            upperb = right_lb + 1;
-        }
-        else if (children_node[0]->data != nullptr) {
-            right_lb = node->data->error - children_node[0]->data->error;
-            upperb = right_lb + 1;
-        }
-        else {
-            upperb = node->data->error + 1;
-            right_lb = 0;
-        }
-//        cout << "right lb : " << right_lb << " ub : " << upperb << endl;
-
-        nodeDataManager->cover->intersect(attr, POS_ITEM);
-        retrieveWipedSubtrees(children_node[POS_ITEM], children_itemset[POS_ITEM], item(attr, POS_ITEM), next_attributes, depth + 1, upperb, right_lb);
-        nodeDataManager->cover->backtrack();
-    }
-
-} */
-
-
-/* void Search_trie_cache::rSubtrees(Node *node, const Itemset &itemset, Itemset &unsorted) {
-//    printItemset(itemset, true);
-    printItemset(unsorted, true);
-    // backtrack when leaf node is encountered
-    if (node->data->test < 0) {
-//    if (node == nullptr) {
-//        cout << "leaf; ";
-        return;
-    }
-
-    Attribute attr = node->data->test;
-//    cout << "test:" << attr << " ";
-    Itemset children_itemset[2] = {addItem(itemset, item(attr, NEG_ITEM)), addItem(itemset, item(attr, POS_ITEM))};
-//    printItemset(children_itemset[0], true);
-//    printItemset(children_itemset[1], true);
-    Node* children_node[2] = {cache->get(children_itemset[0]), cache->get(children_itemset[1])};
-
-    unsorted.push_back(item(attr, NEG_ITEM));
-    if (children_node[0] == nullptr) {
-//        cout << "left wiped " ;
-//        printItemset(children_itemset[0], true, false);
-        printItemset(unsorted, true, false);
-        cout << "left wiped " << endl ;
-    }
-    else {
-//        cout << "left: ";
-        rSubtrees(children_node[0], children_itemset[0], unsorted);
-    }
-    unsorted.pop_back();
-
-    unsorted.push_back(item(attr, POS_ITEM));
-    if (children_node[1] == nullptr) {
-//        cout << "right wiped " ;
-//        printItemset(children_itemset[1], true, false);
-        printItemset(unsorted, true, false);
-        cout << "right wiped " << endl ;
-    }
-    else {
-//        cout << "right: ";
-        rSubtrees(children_node[1], children_itemset[1], unsorted);
-    }
-    unsorted.pop_back();
-} */

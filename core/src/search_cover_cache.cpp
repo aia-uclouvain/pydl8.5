@@ -62,11 +62,9 @@ Node * Search_cover_cache::getSolutionIfExists(Node *node, Error ub, Depth depth
     if (floatEqual(leafError, *saved_lb)) {
         return reachlowest_(node, nodeError, leafError);
     }
-//    nodeDataManager->cover->getSupport();
 
     // we cannot split the node
     if (depth == maxdepth || nodeDataManager->cover->getSupport() < 2 * minsup) {
-//        node->solution_effort = 1;
         return cannotsplitmore_(node, ub, nodeError, leafError);
     }
 
@@ -317,27 +315,12 @@ pair<Node*,HasInter> Search_cover_cache::recurse(Itemset &itemset,
 
     Node* result = getSolutionIfExists(node, ub, depth);
     if (result) { // the solution can be inferred without computation
-//        if ( ((CoverNodeData*)node->data)->left and ((CoverNodeData*)node->data)->right and cache->maxcachesize > NO_CACHE_LIMIT ){ // we should then update subtree load
-//            Item leftItem_down = item(((CoverNodeData*)node->data)->test, NEG_ITEM), rightItem_down = item(((CoverNodeData*)node->data)->test, POS_ITEM);
-//            Array<Item> copy_itemset = itemset.duplicate();
-//            cache->updateSubTreeLoad( copy_itemset, leftItem_down, rightItem_down, true); // the function deletes the copy_itemset
-//        }
         return {result, false}; // the second value is to state whether an intersection has been performed or not
     }
     Logger::showMessageAndReturn("Node solution cannot be found without calculation");
 
     // in case of root (empty item), there is no last added attribute
     Attribute last_added_attr = (last_added_item == NO_ITEM) ? NO_ATTRIBUTE : item_attribute(last_added_item);
-
-    // in case, the node exist, but solution cannot be inferred without a new computation, we set to cover to the current itemset
-    /*if (not node_is_new) nodeDataManager->cover->intersect(last_added_attr, item_value(last_added_item));
-
-    if (similarlb and not similar_for_branching){
-        ((CoverNodeData*) node->data)->lowerBound = max(((CoverNodeData*) node->data)->lowerBound, computeSimilarityLB(sim_db1, sim_db2));
-        Node* res = inferSolutionFromLB(node, ub);
-        if (res != nullptr) return {res, true};
-    }*/
-
 
     // in case the solution cannot be derived without computation and remaining depth is 2, we use a specific algorithm
     if (specialAlgo and maxdepth - depth == 2 and nodeDataManager->cover->getSupport() >= 2 * minsup and no_python_error) {
@@ -360,7 +343,6 @@ pair<Node*,HasInter> Search_cover_cache::recurse(Itemset &itemset,
 
     // if we can't get solution without computation, we compute the next candidates to perform the search
     Attributes next_attributes = getSuccessors(next_candidates, last_added_attr);
-    // next_attributes = getSuccessors(next_candidates, cover, last_added);
 
     // case in which there is no candidate
     if (next_attributes.empty()) {
@@ -375,7 +357,6 @@ pair<Node*,HasInter> Search_cover_cache::recurse(Itemset &itemset,
      * error of each attribute(sum per item). It can be used as a lower bound for the current node*/
     Error minlb = FLT_MAX, child_ub = ub; // upper bound for the first child (item)
     bool first_item, second_item; // the best feature for the current node
-//    Attribute best_attr;
 
     // we evaluate the split on each candidate attribute
     for(const auto &attr : next_attributes) {
@@ -425,8 +406,6 @@ pair<Node*,HasInter> Search_cover_cache::recurse(Itemset &itemset,
         if (node_state.is_new){
             child_nodes[first_item]->data = nodeDataManager->initData();
             Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((CoverNodeData*) child_nodes[first_item]->data)->leafError);
-//            if (not from_cpp) Logger::showMessageAndReturn("Searching ==> cache size: ", cache->getCacheSize());
-//            else cerr << "Searching... cache size: " << cache->getCacheSize() << "\r" << flush;
         } else Logger::showMessageAndReturn("The node already exists");
         child_nodes[first_item]->data->lowerBound = first_lb; // the best lb between the computed and the saved ones is selected
         pair<Node*, HasInter> node_inter = recurse(itemsets[first_item], item(attr, first_item), child_nodes[first_item], node_state.is_new, next_attributes,  depth + 1, child_ub - second_lb, similar_db1, similar_db2); // perform the search for the first item
@@ -446,8 +425,6 @@ pair<Node*,HasInter> Search_cover_cache::recurse(Itemset &itemset,
             if (node_state.is_new){
                 child_nodes[second_item]->data = nodeDataManager->initData();
                 Logger::showMessageAndReturn("Newly created node node. leaf error = ", ((CoverNodeData*) child_nodes[second_item]->data)->leafError);
-//                if (not from_cpp) Logger::showMessageAndReturn("Searching ==> cache size: ", cache->getCacheSize());
-//                else cerr << "Searching... cache size: " << cache->getCacheSize() << "\r" << flush;
             } else Logger::showMessageAndReturn("The node already exists");
             child_nodes[second_item]->data->lowerBound = second_lb; // the best lb between the computed and the saved ones is selected
             Error remainUb = child_ub - firstError; // bound for the second child (item)
@@ -459,19 +436,13 @@ pair<Node*,HasInter> Search_cover_cache::recurse(Itemset &itemset,
             Itemset().swap(itemsets[second_item]); // fre the vector memory representing the second itemset
 
             Error feature_error = firstError + secondError;
-//            Attribute lastBestAttr = ((CoverNodeData*) node->data)->left == nullptr ? -1 : best_attr;
             bool hasUpdated = nodeDataManager->updateData(node, child_ub, attr, child_nodes[NEG_ITEM], child_nodes[POS_ITEM]);
             if (hasUpdated) {
                 child_ub = feature_error;
-//                best_attr = attr;
-//                if (lastBestAttr != -1 and cache->maxcachesize > NO_CACHE_LIMIT) cache->updateSubTreeLoad(copy_itemset, item(lastBestAttr, NEG_ITEM), item(lastBestAttr, POS_ITEM),false);
-//                else copy_itemset.free();
                 Logger::showMessageAndReturn("-after this attribute ", attr, ", node error=", *nodeError, " and ub=", child_ub);
             }
             else { // in case we get the real error, we update the minimum possible error
                 minlb = min(minlb, feature_error);
-//                if(cache->maxcachesize > NO_CACHE_LIMIT) cache->updateSubTreeLoad(copy_itemset, item(attr, NEG_ITEM), item(attr, POS_ITEM),false);
-//                else copy_itemset.free();
             }
 
             if (nodeDataManager->canSkip(node->data) or timeLimitReached) { //lowerBound or time limit reached
@@ -483,9 +454,6 @@ pair<Node*,HasInter> Search_cover_cache::recurse(Itemset &itemset,
             // if the first error is unknown, we use its lower bound. otherwise, we use it
             if (floatEqual(firstError, FLT_MAX)) minlb = min(minlb, child_nodes[first_item]->data->lowerBound + second_lb);
             else minlb = min(minlb, firstError + second_lb);
-
-//            if (cache->maxcachesize > NO_CACHE_LIMIT) cache->updateSubTreeLoad(copy_itemset, item(attr, first_item), -1, false);
-//            else copy_itemset.free();
         }
 
         if (stopAfterError and depth == 0 and ub < FLT_MAX and *nodeError < ub) break;
@@ -530,25 +498,4 @@ void Search_cover_cache::run() {
     SimilarValss sdb1, sdb2;
     // call the recursive function to start the search
     cache->root = recurse(itemset, NO_ATTRIBUTE, rootnode, true, attributes_to_visit, 0, maxError, sdb1, sdb2).first;
-
-   /* for (auto const &pair: ((Cache_Hash_Cover*)cache)->store) {
-        auto data = (CoverNodeData*)pair.second->data;
-        std::cout << "{\n\tcover:\t" << pair.first << "\n\ttest:\t" << data->test << "\n\tleaf:\t" << data->leafError << "\n\terr:\t" << data->error << "\n\tsize:\t" << data->size<< "\n\tleft:\t" << data->left << "\n}\n\n";
-    }*/
-
-    /*cout << "ncall: " << ncall << endl;
-    cout << "comptime: " << comptime << endl;
-    cout << "searchtime: " << spectime << endl;
-    cout << "totaltime: " << comptime + spectime << endl;
-    ncall = 0; comptime = 0; spectime = 0;*/
-
-//    std::cout << endl;
-//    std::cout << "final error: " << cache->root->data->error << endl;
-//    cout << "pi " << ((CoverNodeData*)cache->root->data)->test << " " << ((CoverNodeData*)cache->root->data)->error << endl;
-//    cout << "pi " << ((CoverNodeData*)cache->root->data)->test << " " << ((CoverNodeData*)cache->root->data)->error << " " << ((CoverNodeData*)cache->root->data)->left->data->error << " " << ((CoverNodeData*)cache->root->data)->right->data->error << endl;
-
-//    cout << ((CoverNodeData*)rootnode->data)->left->data->test << endl;
-//    cout << ((CoverNodeData*)cache->root->data)->left->data->test << endl;
-//    cout << ((CoverNodeData*)cache->root->data)->right->data->test << endl;
-
 }

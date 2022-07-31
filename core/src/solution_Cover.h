@@ -6,7 +6,6 @@
 #define SOLUTION_COVER_FREQ_H
 
 #include "solution.h"
-//#include "nodeDataManager_CoverFreq.h"
 #include "search_cover_cache.h"
 
 /**
@@ -33,12 +32,6 @@ struct Cover_Tree : Tree {
         if (timeout) out += "Timeout: True\n";
         else out += "Timeout: False\n";
         return out;
-        /*if (expression != "(No such tree)") {
-            out += "Size: " + to_string(size) + "\n";
-            out += "Depth: " + to_string(depth) + "\n";
-            out += "Error: " + to_string(trainingError) + "\n";
-            out += "Accuracy: " + to_string(accuracy) + "\n";
-        }*/
     }
 
     ~Cover_Tree() override {}
@@ -53,17 +46,8 @@ public:
 
     Tree * getTree();
 
-//    virtual void printTimeOut(Tree* tree );
-
-//    virtual Error getTrainingError(const string &tree_json) {}
-
-//    CoverFreq_Tree* tree;
-
 protected:
-//    void printResult(NodeData *data);
     int printResult(NodeData *node_data, int depth);
 };
-
-
 
 #endif //SOLUTION_COVER_FREQ_H

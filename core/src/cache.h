@@ -2,9 +2,6 @@
 #define CACHE_H
 #include "globals.h"
 #include "nodeDataManager.h"
-//#include "node.h"
-//#include "nodeDataManager_CoverFreq.h"
-//#include "cache_wipe.h"
 #include <iostream>
 #include <fstream>
 
@@ -35,10 +32,7 @@ struct Node {
 class Cache {
 public:
     Cache(Depth maxdepth, WipeType wipe_type, Size maxcachesize);
-    virtual ~Cache() {
-        // to write in a file the number of nodes explored every `gap` seconds
-        // if (myfile.is_open()) myfile.close();
-    }
+    virtual ~Cache() {}
 
     Node *root; // the root node of the tree
     Size cachesize; // the size (number of nodes) of the cache
@@ -46,14 +40,6 @@ public:
     Depth maxdepth;
     WipeType wipe_type;
 
-    // to write in a file the number of nodes explored every `gap` seconds
-    /* std::chrono::time_point<std::chrono::high_resolution_clock> init_time = std::chrono::high_resolution_clock::now();
-    std::chrono::time_point<std::chrono::high_resolution_clock> last_time = std::chrono::high_resolution_clock::now();
-    std::ofstream myfile;
-    bool write_stats = false;
-    int write_gap = 5; */
-
-//    virtual pair<Node*, bool> insert ( Array<Item> itemset ) = 0; // add a node to the tree
     virtual pair<Node*, bool> insert ( Itemset &itemset ) { return {nullptr, false}; } // add a node to the tree
     virtual pair<Node*, bool> insert ( NodeDataManager*, int depth = 0, Itemset itemset = Itemset()) { return {nullptr, false}; }
 
@@ -63,9 +49,6 @@ public:
     virtual int getCacheSize(){ return cachesize; }
 
     virtual void wipe(){}
-
-//    virtual void updateParents(Node* best, Node* left, Node* right, Itemset = Itemset()){}
-//    virtual void updateParents(Node* best, Node* left, Node* right){}
 };
 
 #endif

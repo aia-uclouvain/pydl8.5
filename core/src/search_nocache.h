@@ -7,7 +7,6 @@
 
 #include "search_base.h"
 
-
 class Search_nocache : public Search_base{
 public:
     bool use_ub;

@@ -6,19 +6,13 @@
 #define DL85_DEPTHTWOCOMPUTER_H
 
 #include "rCover.h"
-//#include "cache.h"
 #include "cache_hash_cover.h"
 #include "cache_trie.h"
-//#include "solution.h"
 #include "nodeDataManager_Cover.h"
 #include "nodeDataManager_Trie.h"
 #include "rCoverFreq.h"
 #include "depthTwoNodeData.h"
-//#include <chrono>
-//#include <utility>
 #include <memory>
-
-//using namespace std::chrono;
 
 class Search_base;
 
@@ -34,7 +28,6 @@ struct TreeTwo{
     }
 
     void replaceTree(unique_ptr<TreeTwo> cpy){
-//        free();
         root_data = cpy->root_data;
     }
 

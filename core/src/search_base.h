@@ -5,15 +5,7 @@
 #ifndef SEARCH_BASE_H
 #define SEARCH_BASE_H
 
-//#include <utility>
 #include <map>
-//#include <unordered_set>
-//#include <unordered_map>
-//#include <iostream>
-//#include <climits>
-//#include <cassert>
-//#include <cmath>
-//#include <chrono>
 #include "globals.h"
 #include "logger.h"
 #include "nodeDataManager.h"

@@ -6,8 +6,6 @@
 #define SOLUTION_TRIE_FREQ_H
 
 #include "solution.h"
-//#include "nodeDataManager_TrieFreq.h"
-//#include "search_trie_cache.h"
 
 /**
  * This structure a decision tree model learnt from input data
@@ -33,12 +31,6 @@ struct Trie_Tree : Tree {
         if (timeout) out += "Timeout: True\n";
         else out += "Timeout: False\n";
         return out;
-        /*if (expression != "(No such tree)") {
-            out += "Size: " + to_string(size) + "\n";
-            out += "Depth: " + to_string(depth) + "\n";
-            out += "Error: " + to_string(trainingError) + "\n";
-            out += "Accuracy: " + to_string(accuracy) + "\n";
-        }*/
     }
 
     ~Trie_Tree() override {}
@@ -53,17 +45,8 @@ public:
 
     Tree * getTree();
 
-//    virtual void printTimeOut(Tree* tree );
-
-//    virtual Error getTrainingError(const string &tree_json) {}
-
-//    TrieFreq_Tree* tree;
-
 protected:
-//    void printResult(Node* node, const Itemset& itemset);
     int printResult(Node* node, int depth, const Itemset& itemset);
 };
-
-
 
 #endif //SOLUTION_TRIE_FREQ_H

@@ -17,8 +17,6 @@ add_executable(dl85
         main.cpp
         src/cache.h
         src/cache.cpp
-#        src/cache_hash.h
-#        src/cache_hash.cpp
         src/cache_hash_cover.h
         src/cache_hash_cover.cpp
         src/cache_hash_itemset.h
@@ -27,10 +25,9 @@ add_executable(dl85
         src/cache_trie.cpp
         src/dataManager.h
         src/dataManager.cpp
-#        src/depthTwoComputer_TrieFreq.h
-#        src/depthTwoComputer_TrieFreq.cpp
-#        src/depthTwoComputer_CoverFreq.h
-#        src/depthTwoComputer_CoverFreq.cpp
+        src/depthTwoComputer.h
+        src/depthTwoComputer.cpp
+        src/depthTwoNodeData.h
         src/dl85.h
         src/dl85.cpp
         src/globals.h
@@ -61,29 +58,4 @@ add_executable(dl85
         src/solution_Cover.h
         src/solution_Cover.cpp
         src/solution_Trie.h
-        src/solution_Trie.cpp
-#        src/node.h
-#        src/node_trie.h
-        src/depthTwoComputer.h
-        src/depthTwoComputer.cpp
-        src/depthTwoNodeData.h)
-
-
-
-#        src/cache_priority.h
-#        src/cache_priority.cpp
-#        src/cache_trie.h
-#        src/cache_trie.cpp
-#        src/dataHandler.h
-#        src/dataHandler.cpp
-#        src/lcm_iterative.h
-#        src/lcm_iterative.cpp
-#        src/longRCover.h
-#        src/longRCover.cpp
-#        src/longRCoverFreq.h
-#        src/longRCoverFreq.cpp
-#        src/nodedataHandler.h
-#        src/nodedataHandler.cpp
-#        src/nodedataHandlerFreq.h
-#        src/nodedataHandlerFreq.cpp
-#        src/cache_wipe.h
+        src/solution_Trie.cpp)

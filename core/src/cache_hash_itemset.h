@@ -1,45 +1,17 @@
 #ifndef CACHE_HASH_ITEMSET_H
 #define CACHE_HASH_ITEMSET_H
 #include "cache.h"
-//#include <cmath>
-// #include <iostream>
-// #include <fstream>
 #include <unordered_map>
-// #include <unordered_set>
-// #include "globals.h"
 
 using namespace std;
 
 struct HashItemsetNode;
 
-/*template<>
-struct std::hash<pair<HashCoverNode*,Itemset>> {
-    std::size_t operator()(const pair<HashCoverNode*,Itemset>& array) const noexcept {
-        return std::hash<HashCoverNode*>{}(array.first);
-    }
-};
-
-template<>
-struct std::equal_to<pair<HashCoverNode*,Itemset>> {
-    bool operator()(const pair<HashCoverNode*,Itemset>& lhs, const pair<HashCoverNode*,Itemset>& rhs) const noexcept {
-        return lhs.first == rhs.first;
-    }
-};*/
-
 struct HashItemsetNode : public Node {
 
-//    NodeData *data; // data is the information kept by a node during the tree search
-//    unordered_set<HashCoverNode*> search_parents;
-//    unordered_set<pair<HashCoverNode*,Itemset>> search_parents;
-//    int n_reuse = 0;
+    HashItemsetNode() : Node() {}
 
-    HashItemsetNode() : Node() {
-//        data = nullptr;
-    }
-
-    ~HashItemsetNode() {
-//        delete data;
-    }
+    ~HashItemsetNode() {}
 };
 
 template<>
@@ -61,6 +33,7 @@ struct std::equal_to<Itemset> {
     }
 };
 
+// the implementation of the memory wiping for the current cache is similar to the one described in cache_hash_cover
 class Cache_Hash_Itemset : public Cache {
 public:
     Cache_Hash_Itemset(Depth maxdepth, WipeType wipe_type, int maxcachesize=0, float wipe_factor=.5f);
@@ -70,24 +43,11 @@ public:
     }
 
     unordered_map<Itemset, HashItemsetNode*> store;
-    float wipe_factor;
-//    vector<pair<const unordered_map<MyCover, HashCoverNode*>::iterator*, Itemset>>* heap;
-//    vector<const unordered_map<MyCover, HashCoverNode*>::iterator*>* heap;
-//    vector<pair<HashCoverNode*, Itemset>>* heap;
-//    vector<HashCoverNode*>* heap;
 
     pair<Node*, bool> insert (Itemset &itemset);
     Node *get ( const Itemset &itemset);
     int getCacheSize();
-//    void wipe() override;
     void wipe() override {}
-//    void updateParents(Node* best, Node* left, Node* right, Itemset = Itemset()) override;
-//    void wipe(Node* node);
-
-private:
-//    void setOptimalNodes(HashCoverNode* node, int& n_used);
-//    void setUsingNodes(HashCoverNode* node, int& n_used);
-
 
 };
 

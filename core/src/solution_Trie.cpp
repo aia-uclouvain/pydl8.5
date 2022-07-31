@@ -3,7 +3,6 @@
 //
 
 #include "solution_Trie.h"
-//#include "search_trie_cache.h"
 
 Solution_Trie::Solution_Trie(Search_base *searcher) : Solution(searcher) {
     tree = new Trie_Tree;
@@ -14,7 +13,6 @@ Solution_Trie::~Solution_Trie() {
 }
 
 Tree* Solution_Trie::getTree() {
-//    printResult( searcher->cache->root, Itemset());
     int depth;
     if (searcher->cache->root->data->size == 0 || (searcher->cache->root->data->size == 1 && floatEqual(searcher->cache->root->data->error, FLT_MAX))) {
         tree->expression = "(No such tree)";
@@ -32,24 +30,6 @@ Tree* Solution_Trie::getTree() {
     }
     return (Tree*) tree;
 }
-
-/*void Solution_TrieFreq::printResult(Node* node, const Itemset& itemset) {
-    int depth;
-    if (node->data->size == 0 || (node->data->size == 1 && floatEqual(node->data->error, FLT_MAX))) {
-        tree->expression = "(No such tree)";
-        tree->timeout = searcher->timeLimitReached;
-    }
-    else {
-        tree->expression = "";
-        depth = printResult(node, 1, itemset);
-        tree->expression += "}";
-        tree->size = node->data->size;
-        tree->depth = depth - 1;
-        tree->trainingError = node->data->error;
-        tree->accuracy = 1 - tree->trainingError / float(searcher->nodeDataManager->cover->dm->getNTransactions());
-        tree->timeout = searcher->timeLimitReached;
-    }
-}*/
 
 int Solution_Trie::printResult(Node* node, int depth, const Itemset& itemset) {
 

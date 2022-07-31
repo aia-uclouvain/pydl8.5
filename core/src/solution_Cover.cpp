@@ -13,7 +13,6 @@ Solution_Cover::~Solution_Cover() {
 }
 
 Tree* Solution_Cover::getTree() {
-//    printResult(searcher->cache->root->data);
     int depth;
     if (searcher->cache->root->data->size == 0 || (searcher->cache->root->data->size == 1 && floatEqual(searcher->cache->root->data->error, FLT_MAX))) {
         tree->expression = "(No such tree)";
@@ -31,24 +30,6 @@ Tree* Solution_Cover::getTree() {
     }
     return (Tree*) tree;
 }
-
-/*void Solution_CoverFreq::printResult(NodeData *data) {
-    int depth;
-    if (data->size == 0 || (data->size == 1 && floatEqual(data->error, FLT_MAX))) {
-        tree->expression = "(No such tree)";
-        tree->timeout = searcher->timeLimitReached;
-    }
-    else {
-        tree->expression = "";
-        depth = printResult(data, 1);
-        tree->expression += "}";
-        tree->size = data->size;
-        tree->depth = depth - 1;
-        tree->trainingError = data->error;
-        tree->accuracy = 1 - tree->trainingError / float(searcher->nodeDataManager->cover->dm->getNTransactions());
-        tree->timeout = searcher->timeLimitReached;
-    }
-}*/
 
 int Solution_Cover::printResult(NodeData *data, int depth) {
     if ( ((CoverNodeData*)data)->left == nullptr) { // leaf

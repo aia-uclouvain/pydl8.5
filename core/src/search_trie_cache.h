@@ -1,15 +1,9 @@
 #ifndef SEARCH_TRIE_CACHE_H
 #define SEARCH_TRIE_CACHE_H
 
-//#include "globals.h"
-//#include "cache.h"
-//#include "cache_trie.h"
-//#include "solution.h"
 #include "search_base.h"
 #include "nodeDataManager_Trie.h"
 #include <chrono>
-//#include "depthTwoComputer.h"
-//#include "cache_trie.h"
 
 typedef bool HasInter;
 
@@ -56,7 +50,6 @@ public:
 
     void run ();
 
-//    Cache_Trie *cache;
     bool similarlb;
     bool dynamic_branching;
     bool similar_for_branching;
@@ -72,9 +65,7 @@ private:
     bool updateSimilarLBInfo1(NodeData *node_data, SimilarVals &highest_error_db, SimilarVals &highest_coversize_db);
     bool updateSimilarLBInfo2(NodeData *node_data, SimilarVals &similar_db1, SimilarVals &similar_db2);
     void retrieveWipedSubtrees(Node *node, const Itemset &itemset, Item last_added, Attributes &attributes, Depth depth);
-    // void retrieveWipedSubtrees(Node *node, const Itemset &itemset, Item last_added, Attributes &attributes, Depth depth, Error ub, Error lb);
     bool isTreeComplete(Node* node, const Itemset &itemset);
-    void rSubtrees(Node *node, const Itemset &itemset, Itemset &unsorted);
 };
 
 #endif

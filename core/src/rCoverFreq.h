@@ -29,24 +29,4 @@ public:
 
 };
 
-/*class RCoverFreq : public RCover {
-
-public:
-
-    RCoverFreq(DataManager* dmm);
-
-    ~RCoverFreq(){}
-
-    void intersect(Attribute attribute, bool positive = true);
-
-    pair<Supports, Support> temporaryIntersect(Attribute attribute, bool positive = true);
-
-    Supports getSupportPerClass();
-
-    Supports getSupportPerClass(ulong * cover, int nValidWords, int* validIndexes);
-
-    SupportClass countSupportClass(ulong coverWord, int wordIndex);
-
-};*/
-
 #endif //RCOVER_FREQ_H

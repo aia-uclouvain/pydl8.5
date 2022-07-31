@@ -1,9 +1,6 @@
 #ifndef SEARCH_COVER_CACHE_H
 #define SEARCH_COVER_CACHE_H
 
-//#include "globals.h"
-//#include "cache_hash_cover.h"
-//#include "solution.h"
 #include "search_base.h"
 #include "nodeDataManager_Cover.h"
 
@@ -52,7 +49,6 @@ public:
 
     void run ();
 
-//    Cache *cache;
     bool similarlb;
     bool dynamic_branching;
     bool similar_for_branching;

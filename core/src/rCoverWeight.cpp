@@ -4,7 +4,6 @@
 
 #include "rCoverWeight.h"
 
-
 RCoverWeight::RCoverWeight(DataManager *dmm, vector<float>* weights): RCover(dmm), weights(weights) {}
 
 RCoverWeight::RCoverWeight(RCoverWeight &&cover, vector<float>* weights): RCover(move(cover)), weights(weights) {}
@@ -71,17 +70,14 @@ pair<ErrorVals, Support> RCoverWeight::temporaryIntersect(Attribute attribute, b
             pair<ErrorVal, Support>&& r = getSups(intersectedWord, real_word_index);
             sup += r.second;
             sc[n] += r.first;
-//            if ( sc[n] < 0) cout << "sup neg" << endl;
         }
     }
-//    cout << sc[0] << " " << sc[1] << endl;
     return make_pair(sc, sup);
 }
 
 
 ErrorVals RCoverWeight::getErrorValPerClass(){
     if (sup_class) {
-//        cout << sup_class[0] << " " << sup_class[1] << endl;
         return sup_class;
     }
     sup_class = zeroErrorVals();
@@ -97,10 +93,8 @@ ErrorVals RCoverWeight::getErrorValPerClass(){
             }*/
             pair<ErrorVal, Support>&& r = getSups(intersectedWord, real_word_index);
             sup_class[j] += r.first;
-//            if ( sup_class[j] < 0) cout << "sup neg" << endl;
         }
     }
-//    cout << sup_class[0] << " " << sup_class[1] << endl;
     return sup_class;
 }
 
@@ -173,7 +167,6 @@ vector<int> RCoverWeight::getTransactionsID() {
  * @return the list of transactions
  */
 vector<int> RCoverWeight::getTransactionsID(bitset<M>& word, int real_word_index) {
-
     vector<int> tid;
     int pos = getFirstSetBitPos(word.to_ulong());
     int transInd = pos - 1;

@@ -3,7 +3,6 @@
 
 #include "nodeDataManager.h"
 #include "depthTwoNodeData.h"
-//#include <vector>
 
 struct HashCoverNode;
 
@@ -70,22 +69,9 @@ public:
 
     ~NodeDataManager_Cover() override;
 
-//    bool is_freq(pair<Supports, Support> supports);
-//
-//    bool is_pure(pair<Supports, Support> supports);
-
     bool updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Itemset) override;
-//    bool updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache);
 
     NodeData *initData(RCover *cov = nullptr, Depth currentMaxDepth = -1, int hashcode = -1) override;
-
-//    LeafInfo computeLeafInfo(RCover *cov = nullptr);
-
-//    LeafInfo computeLeafInfo(ErrorVals itemsetSupport);
-
-//    inline bool canimprove(NodeData *left, Error ub) { return left->error < ub; }
-
-//    inline bool canSkip(NodeData *actualBest) { return floatEqual(actualBest->error, actualBest->lowerBound); }
 
 protected:
 };

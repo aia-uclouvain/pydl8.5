@@ -4,10 +4,6 @@
 #include <climits>
 #include <cfloat>
 #include <iostream>
-//#include <map>
-//#include <iterator>
-//#include <thread>
-//#include <functional>
 #include <algorithm>
 #include <vector>
 #include <cmath>

@@ -7,14 +7,6 @@
 
 #include "globals.h"
 #include <iostream>
-//#include <cstdlib>
-//#include <cmath>
-//#include <string>
-//#include <sstream>
-//#include <map>
-//#include <vector>
-//#include <utility>
-//#include <functional>
 #include "dataManager.h"
 #include "rCoverFreq.h"
 #include "rCoverWeight.h"
@@ -25,12 +17,9 @@
 #include "nodeDataManager_Trie.h"
 #include "solution_Trie.h"
 #include "solution_Cover.h"
-//#include "cache_hash.h"
 #include "cache_hash_cover.h"
 #include "cache_hash_itemset.h"
 #include "cache_trie.h"
-//#include "cache_trie.h"
-//#include "cache_priority.h"
 
 using namespace std;
 

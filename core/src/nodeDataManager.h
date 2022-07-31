@@ -25,9 +25,6 @@ struct NodeData {
     // to make them distinguishable, the feature value is positive and classes are transformed by f(x) = -(x+1)
     // attention to recover the right value when printing the tree
     Attribute test;
-//    Attribute curr_test;
-//    Node *left, *right;
-//    Node *curr_left, *curr_right;
     Error leafError;
     Error error;
     Error lowerBound;
@@ -35,11 +32,6 @@ struct NodeData {
 
     NodeData() {
         test = INT32_MAX;
-//        curr_test = -1;
-//        left = nullptr;
-//        right = nullptr;
-//        curr_left = nullptr;
-//        curr_right = nullptr;
         leafError = FLT_MAX;
         error = FLT_MAX;
         lowerBound = 0;
@@ -48,11 +40,6 @@ struct NodeData {
 
     NodeData(const NodeData& other) {
         test = other.test;
-//        curr_test = other.curr_test;
-//        left = other.left;
-//        right = other.right;
-//        curr_left = other.curr_left;
-//        curr_right = other.curr_right;
         leafError = other.leafError;
         error = other.error;
         lowerBound = other.lowerBound;
@@ -62,8 +49,6 @@ struct NodeData {
     NodeData& operator=(const NodeData& other)
     {
         test = other.test;
-//        left = other.left;
-//        right = other.right;
         error = other.error;
         size = other.size;
         return *this;
@@ -94,10 +79,6 @@ public:
 
     virtual ~NodeDataManager();
 
-//    virtual bool is_freq(pair<Supports, Support> supports) = 0;
-//
-//    virtual bool is_pure(pair<Supports, Support> supports) = 0;
-
     virtual inline bool canimprove(NodeData *left, Error ub) { return left->error < ub; }
 
     virtual inline bool canSkip(NodeData *actualBest) { return floatEqual(actualBest->error, actualBest->lowerBound); }
@@ -108,12 +89,7 @@ public:
 
     virtual LeafInfo computeLeafInfo(ErrorVals itemsetSupport);
 
-//    virtual bool updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Cache* cache = nullptr) = 0;
     virtual bool updateData(Node *best, Error upperBound, Attribute attribute, Node *left, Node *right, Itemset = Itemset()) = 0;
-
-//    virtual void printResult(Tree *tree) = 0;
-
-//    void setStartTime() { startTime = high_resolution_clock::now(); }
 
 
     RCover* cover;
