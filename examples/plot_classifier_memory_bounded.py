@@ -21,7 +21,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 
 print("######################################################################\n"
-      "#                      DL8.5 default classifier                      #\n"
+      "#                   DL8.5 memory bounded classifier                  #\n"
       "######################################################################")
 clf = DL85Classifier(max_depth=4, cache_type=Cache_Type.Cache_TrieItemset, maxcachesize=5000, wipe_factor=0.4, wipe_type=Wipe_Type.Reuses)
 start = time.perf_counter()

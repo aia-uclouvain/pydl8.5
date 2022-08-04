@@ -272,13 +272,14 @@ class DL85Predictor(BaseEstimator):
         self.runtime_ = float(solution[-2].split(" ")[1])
         self.timeout_ = bool(strtobool(solution[-1].split(" ")[1]))
 
+        if target_is_need:  # problem with target
+            self.classes_ = unique_labels(y)  # Store the classes seen during fit
+
         if self.tree_ is None:  # No solution
             if not self.timeout_:
                 print("DL8.5 fitting: Solution not found. However, a solution exists with error greater than or equal to the max error (exlusive upper bound) you specify. Please increase your bound if you want to find it.")
             else:
                 print("DL8.5 fitting: Timeout reached without solution. Please increase the time limit and/or the max error (exlusive upper bound)")
-            if target_is_need:  # problem with target
-                self.classes_ = unique_labels(y)  # Store the classes seen during fit
         else:
             if not self.quiet:
                 if not self.timeout_:

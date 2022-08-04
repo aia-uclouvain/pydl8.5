@@ -44,17 +44,17 @@
 /core/tests_run/
 /core/main_reg.cpp
 
-/dl85/__pycache__/
-/dl85/supervised/classifiers/__pycache__/
-/dl85/supervised/classifiers/utils/__pycache__/
-/dl85/supervised/__pycache__/
-/dl85/unsupervised/__pycache__/
-/dl85/supervised/classifiers/tests/__pycache__/
-/dl85/errors/__pycache__/
-/dl85/predictors/__pycache__/
-/dl85/supervised/classifiers/old_classifier.py
-/dl85/unsupervised/old_clustering.py
-/dl85/predictors/old_predictor.py
+/pydl85/__pycache__/
+/pydl85/supervised/classifiers/__pycache__/
+/pydl85/supervised/classifiers/utils/__pycache__/
+/pydl85/supervised/__pycache__/
+/pydl85/unsupervised/__pycache__/
+/pydl85/supervised/classifiers/tests/__pycache__/
+/pydl85/errors/__pycache__/
+/pydl85/predictors/__pycache__/
+/pydl85/supervised/classifiers/old_classifier.py
+/pydl85/unsupervised/old_clustering.py
+/pydl85/predictors/old_predictor.py
 
 /cython_extension/dl85Optimizer.cpp
 /cython_extension/error_function.cpp
