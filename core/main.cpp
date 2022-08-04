@@ -9,6 +9,7 @@
 #include <functional>
 #include "dl85.h"
 #include "globals.h"
+#include "argparse.cpp"
 
 using namespace std;
 
@@ -75,113 +76,72 @@ ErrorVals getSupportPerClassArray(map<Class, ErrorVal> &supports_map) {
 
 int main(int argc, char *argv[]) {
 
-    bool cli = true;
-    //bool cli = false;
-    string datasetPath;
-    Config configuration;
-    int maxdepth, minsup;
-    Size cache_size;
-    float wipe_factor;
-    WipeType wipe_type;
+    argparse::ArgumentParser program("dl85");
+
+//    program.add_argument("-h", "--datasetPath").help("The path of the dataset").default_value(string{"../../datasets/anneal.txt"});
+//    program.add_argument("-p", "--maxdepth").help("Maximum of the tree to learn").default_value(5).scan<'d', int>();
+    program.add_argument("datasetPath").help("The path of the dataset");
+    program.add_argument("maxdepth").help("Maximum depth of the tree to learn").scan<'d', int>();
+    program.add_argument("-m", "--minsup").help("Minimum number of examples per leaf").default_value(1).scan<'d', int>();
+    program.add_argument("-x", "--maxerror").help("Initial upper bound. O to disable it.").default_value(0.f).scan<'f', float>();
+    program.add_argument("-o", "--stopafterbetter").help("Stop search after finding better tree than maxerror").default_value(false).implicit_value(true);
+    program.add_argument("-i", "--infogain").help("Use information to sort attributes order").default_value(false).implicit_value(true);
+    program.add_argument("-g", "--infogainasc").help("Use ascendant order of information gain").default_value(false).implicit_value(true);
+    program.add_argument("-r", "--repeatinfogainsort").help("Sort the attributes at each node").default_value(false).implicit_value(true);
+    program.add_argument("-t", "--timelimit").help("Max runtime in seconds. O to disable it.").default_value(0).scan<'d', int>();
+    program.add_argument("-c", "--cachetype").help("1- Trie + itemsets   2- Hashtable + itemsets   3- Hashtable + instances").default_value(1).scan<'d', int>();
+    program.add_argument("-z", "--cachesize").help("The maximum size of the cache. O for unltd").default_value(0).scan<'d', int>();
+    program.add_argument("-w", "--wipefactor").help("Cache percentage to free when it is full (between 0-1)").default_value(0.5f).scan<'f', float>();
+    program.add_argument("-s", "--wipestrategy").help("1- Node reuses   2- Number of subnodes   3- All non-useful nodes").default_value(1).scan<'d', int>();
+    program.add_argument("-n", "--nocache").help("Flag used to disable caching").default_value(false).implicit_value(true);
+    program.add_argument("-v", "--verbose").help("Flag used to enable verbose").default_value(false).implicit_value(true);
+    program.add_argument("-u", "--noub").help("Flag used to disable upper bound").default_value(false).implicit_value(true);
+    program.add_argument("-a", "--nospecial").help("Flag used to disable specialized depth 2 algo").default_value(false).implicit_value(true);
+    program.add_argument("-l", "--nosimilarity").help("Flag used to disable similarity lower bound").default_value(false).implicit_value(true);
+    program.add_argument("-y", "--nodynamic").help("Flag used to disable dynamic branching").default_value(false).implicit_value(true);
+    program.add_argument("-b", "--nosimbranching").help("Flag used to disable similarity lb for dynamic branching").default_value(false).implicit_value(true);
+
+    try {
+        program.parse_args(argc, argv);
+    }
+    catch (const std::runtime_error& err) {
+        std::cerr << err.what() << std::endl;
+        std::cerr << program;
+        std::exit(1);
+    }
+
+    auto datasetPath = program.get<string>("datasetPath");
     CacheType cache_type;
-
-    if (cli) {
-        datasetPath = (argc > 1) ? std::string(argv[1]) : "../../datasets/anneal.txt";
-        maxdepth = (argc > 2) ? std::stoi(argv[2]) : 4;
-        cache_size = (argc > 3) ? std::stoi(argv[3]) : NO_CACHE_LIMIT;
-        wipe_factor = (argc > 4) ? std::stof(argv[4]) : 0.4f;
-        if (argc > 5) {
-            string type = std::string(argv[5]);
-            char first = char(std::tolower(type.at(0)));
-            switch (first) {
-                case 'r':
-                    wipe_type = Recall;
-                    break;
-                case 's':
-                    wipe_type = Subnodes;
-                    break;
-                case 'a':
-                    wipe_type = All;
-                    break;
-                default:
-                    wipe_type = Recall;
-            }
-        }
-        else wipe_type = Recall;
-
-        if (argc > 6) {
-            string type = std::string(argv[6]);
-            char first = char(std::tolower(type.at(0)));
-            switch (first) {
-                case 'c':
-                    cache_type = CacheHashCover;
-                    break;
-                case 'i':
-                    cache_type = CacheHashItemset;
-                    break;
-                case 't':
-                    cache_type = CacheTrie;
-                    break;
-                default:
-                    cache_type = CacheTrie;
-            }
-        }
-        else cache_type = CacheTrie;
-
-        configuration = (argc > 7 and std::string(argv[7]).find('b') == 0) ? basic : optimized;
-        minsup = (argc > 8) ? std::stoi(argv[8]) : 1;
-    }
-    else {
-        datasetPath = "../../datasets/anneal.txt";
-        //configuration = basic;
-        configuration = optimized;
-        maxdepth = 5;
-        minsup = 1;
-        wipe_factor = 0.4f;
-    }
-
-    bool with_cache = true;
-    bool verb = false;
-    bool use_ub = true;
-//    bool with_cache = false;
-//    bool verb = true;
-//    bool use_ub = false;
-
-// cout << "print bounds" << endl;
-
-    bool use_special_algo, sim_lb, dyn_branch, similar_for_branching;
-    switch (configuration) {
-        case basic:
-            use_special_algo = false;
-            sim_lb = false;
-            dyn_branch = false;
-            similar_for_branching = false;
+    switch (program.get<int>("cachetype")) {
+        case 3:
+            cache_type = CacheHashCover;
             break;
-        case optimized:
-            use_special_algo = true;
-            sim_lb = true;
-            dyn_branch = true;
-            similar_for_branching = true;
+        case 2:
+            cache_type = CacheHashItemset;
+            break;
+        case 1:
+            cache_type = CacheTrieItemset;
             break;
         default:
-            use_special_algo = true;
-            sim_lb = true;
-            dyn_branch = true;
-            similar_for_branching = true;
+            cache_type = CacheTrieItemset;
     }
 
-    // datasetPath = "../../datasets/primary-tumor.txt";
-    // cache_type = CacheHashCover;
-    // wipe_type = All;
-    // use_special_algo = false;
-    // sim_lb = false;
-    // dyn_branch = false;
-    // similar_for_branching = false;
-    // wipe_factor = .3f;
-    // cache_size = 2000;
+    WipeType wipe_type;
+    switch (program.get<int>("wipestrategy")) {
+        case 1:
+            wipe_type = Reuses;
+            break;
+        case 2:
+            wipe_type = Subnodes;
+            break;
+        case 3:
+            wipe_type = All;
+            break;
+        default:
+            wipe_type = Reuses;
+    }
 
     ifstream dataset(datasetPath);
-
     if (not dataset) {
         cout << "The path you specified is not correct" << endl;
         exit(0);
@@ -209,10 +169,10 @@ int main(int argc, char *argv[]) {
             nclass, //nclasses
             data_flattened.data(), //data
             target.data(), //target
-            maxdepth, //maxdepth
-            minsup, //minsup
-            0, //maxError
-            false, //stopAfterError
+            program.get<int>("maxdepth"), //maxdepth
+            program.get<int>("minsup"), //minsup
+            program.get<float>("maxerror"), //maxError
+            program.get<bool>("stopafterbetter"), //stopAfterError
             nullptr, //tids_error_class_callback
             nullptr, //supports_error_class_callback
             nullptr, //tids_error_callback
@@ -220,29 +180,26 @@ int main(int argc, char *argv[]) {
             true, //tids_error_class_is_null
             true, //supports_error_class_is_null
             true, //tids_error_is_null
-            true, //infoGain
-            false, //infoAsc
-            false, //repeatSort
-            0, //timeLimit
-            verb, // verbose parameter
+            program.get<bool>("infogain"), //infoGain
+            program.get<bool>("infogainasc"), //infoAsc
+            program.get<bool>("repeatinfogainsort"), //repeatSort
+            program.get<int>("timelimit"), //timeLimit
+            program.get<bool>("verbose"), // verbose parameter
             cache_type, //cache type
-            cache_size, //cache size
+            program.get<int>("cachesize"), //cache size
             wipe_type, // the type of wiping
-            wipe_factor,
-            with_cache,
-            use_special_algo,
-            use_ub,
-            sim_lb,
-            dyn_branch,
-            similar_for_branching,
+            program.get<float>("wipefactor"),
+            !program.get<bool>("nocache"),
+            !program.get<bool>("nospecial"),
+            !program.get<bool>("noub"),
+            !program.get<bool>("nosimilarity"),
+            !program.get<bool>("nodynamic"),
+            !program.get<bool>("nosimbranching"),
             true
     );
 
     deleteErrorVals(support_per_class);
 
     cout << result;
-//    struct rusage usage{};
-//    getrusage(RUSAGE_SELF, &usage);
-//    cout << "used memory: " << usage.ru_maxrss / 1024.f / 1024.f << "Mb" << endl;
 
 }

@@ -69,6 +69,7 @@ examples/test/
 *.so
 
 .coverage
+.coverage.xml
 
 todo.txt
 

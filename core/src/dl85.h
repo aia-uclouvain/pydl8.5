@@ -80,7 +80,7 @@ string launch(
         bool repeatSort = false,
         int timeLimit = 0,
         bool verbose_param = false,
-        CacheType cache_type = CacheTrie,
+        CacheType cache_type = CacheTrieItemset,
         int cache_size = 1000,
         WipeType wipe_type = All,
         float wipe_factor = .5f,

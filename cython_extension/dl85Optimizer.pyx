@@ -9,14 +9,14 @@ import numpy as np
 
 cdef extern from "../core/src/cache.h":
     cpdef enum CacheType:
-        CacheTrie,
-        CacheHash,
+        CacheTrieItemset,
+        CacheHashItemset,
         CacheHashCover
 
     cpdef enum WipeType:
         All,
         Subnodes,
-        Recall
+        Reuses
 
 cdef extern from "py_tid_error_class_function_wrapper.h":
     cdef cppclass PyTidErrorClassWrapper:
@@ -89,9 +89,9 @@ def solve(data,
           asc=False,
           repeat_sort=False,
           predictor=False,
-          cachetype=CacheTrie,
+          cachetype=CacheTrieItemset,
           cachesize=0,
-          wipetype=Subnodes,
+          wipetype=Reuses,
           wipefactor=0.5,
           withcache=True,
           usespecial=True,

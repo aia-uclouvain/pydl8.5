@@ -13,7 +13,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import time
-from dl85 import DL85Classifier
+from pydl85 import DL85Classifier
 
 dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')
 X = dataset[:, 1:]

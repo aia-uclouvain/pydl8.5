@@ -6,6 +6,7 @@ Class nclasses;
 Attribute nattributes;
 bool verbose = false;
 std::string dataname;
+std::string out;
 
 ErrorVals newErrorVals () {
   return new ErrorVal[nclasses];

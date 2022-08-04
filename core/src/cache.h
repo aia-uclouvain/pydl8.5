@@ -8,11 +8,11 @@
 using namespace std;
 
 enum CacheType {
-    CacheTrie, CacheHashItemset, CacheHashCover
+    CacheTrieItemset, CacheHashItemset, CacheHashCover
 };
 
 enum WipeType {
-    All, Subnodes, Recall
+    All, Subnodes, Reuses
 };
 
 /*This struct is used to represent a node in the tree search algorithm*/
@@ -41,7 +41,8 @@ public:
     WipeType wipe_type;
 
     virtual pair<Node*, bool> insert ( Itemset &itemset ) { return {nullptr, false}; } // add a node to the tree
-    virtual pair<Node*, bool> insert ( NodeDataManager*, int depth = 0, Itemset itemset = Itemset()) { return {nullptr, false}; }
+    virtual pair<Node*, bool> insert ( NodeDataManager*, int depth = 0) { return {nullptr, false}; }
+//    virtual pair<Node*, bool> insert ( NodeDataManager*, int depth = 0, Itemset itemset = Itemset()) { return {nullptr, false}; }
 
     virtual Node* get ( const Itemset &itemset ){ return nullptr; } // get a node in the tree based on its corresponding itemset
     virtual Node *get ( NodeDataManager*, int depth) { return nullptr; }

@@ -537,13 +537,13 @@ void Search_trie_cache::run() {
     cache->root = recurse(itemset, NO_ITEM, rootnode, true, attributes_to_visit, 0, maxError, sdb1, sdb2).first;
 
     if (cache->maxcachesize > NO_CACHE_LIMIT) {
-        cout << "Tree already found with error = " << cache->root->data->error << ". Trying to reconstitute the wiped subtrees" << endl;
-        cout << "===============================================================================" << endl;
+        out +=  "Tree already found with error = " + custom_to_str(cache->root->data->error) + ". Trying to reconstitute the wiped subtrees\n";
+        out +=  "===============================================================================\n";
         auto rtime = chrono::high_resolution_clock::now();
         while(not isTreeComplete(cache->root, itemset)) {
             retrieveWipedSubtrees(cache->root, itemset, NO_ITEM, attributes_to_visit, 0);
         }
-        cout << "Reconstitution time : "  << duration<float>(high_resolution_clock::now() - rtime).count() << " seconds" << endl;
+        out +=  "Reconstitution time : "  + custom_to_str(duration<float>(high_resolution_clock::now() - rtime).count()) + " seconds\n";
     }
 
 }

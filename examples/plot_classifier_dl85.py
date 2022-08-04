@@ -7,13 +7,11 @@ Default DL85Classifier
 import numpy as np
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, make_scorer
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import KFold
 from sklearn.model_selection import cross_val_score
 import time
-from dl85 import DL85Classifier
-from sklearn.tree import DecisionTreeClassifier
-import random
+from pydl85 import DL85Classifier
 
 dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')
 X = dataset[:, 1:]
@@ -30,7 +28,7 @@ print("######################################################################\n"
 clf = DL85Classifier(max_depth=2, time_limit=600, desc=True)
 start = time.perf_counter()
 print("Model building...")
-clf.fit(X, y)
+clf.fit(X_train, y_train)
 duration = time.perf_counter() - start
 print("Model built. Duration of building =", round(duration, 4))
 y_pred = clf.predict(X_test)

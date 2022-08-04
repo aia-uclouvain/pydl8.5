@@ -22,11 +22,9 @@ class labels for leafs in the tree.
 Another example of a user-specified error function is given in plot_cluster_user.py.
 """
 import numpy as np
-from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
 import time
-from dl85 import DL85Predictor
+from pydl85 import DL85Predictor
 
 dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')
 X = dataset[:, 1:]

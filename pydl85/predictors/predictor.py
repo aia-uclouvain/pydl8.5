@@ -28,8 +28,10 @@ def get_dot_body(treedict, parent=None, left=True):
             gstring += get_dot_body(treedict["left"], id)
             gstring += get_dot_body(treedict["right"], id, False)
     else:
-        val = str(int(treedict["value"])) if treedict["value"] - int(treedict["value"]) == 0 else str(round(treedict["value"], 3))
-        err = str(int(treedict["error"])) if treedict["error"] - int(treedict["error"]) == 0 else str(round(treedict["error"], 2))
+        val = str(int(treedict["value"])) if treedict["value"] - int(treedict["value"]) == 0 else str(
+            round(treedict["value"], 3))
+        err = str(int(treedict["error"])) if treedict["error"] - int(treedict["error"]) == 0 else str(
+            round(treedict["error"], 2))
         # maxi = max(len(val), len(err))
         # val = val if len(val) == maxi else val + (" " * (maxi - len(val)))
         # err = err if len(err) == maxi else err + (" " * (maxi - len(err)))
@@ -39,15 +41,15 @@ def get_dot_body(treedict, parent=None, left=True):
 
 
 class Cache_Type(Enum):
-    Cache_Trie = 1
-    Cache_Hash = 2
+    Cache_TrieItemset = 1
+    Cache_HashItemset = 2
     Cache_HashCover = 3
 
 
 class Wipe_Type(Enum):
-    All_nodes = 1
-    Sub_nodes = 2
-    Reused_nodes = 3
+    All = 1
+    Subnodes = 2
+    Reuses = 3
 
 
 class DL85Predictor(BaseEstimator):
@@ -121,9 +123,9 @@ class DL85Predictor(BaseEstimator):
             nps=False,
             quiet=True,
             print_output=False,
-            cache_type=Cache_Type.Cache_Trie,
-            cache_size=0,
-            wipe_type=Wipe_Type.Sub_nodes,
+            cache_type=Cache_Type.Cache_TrieItemset,
+            maxcachesize=0,
+            wipe_type=Wipe_Type.Subnodes,
             wipe_factor=0.5,
             use_cache=True,
             depth_two_special_algo=False,
@@ -153,7 +155,7 @@ class DL85Predictor(BaseEstimator):
         self.quiet = quiet
         self.print_output = print_output
         self.cache_type = cache_type
-        self.cache_size = cache_size
+        self.maxcachesize = maxcachesize
         self.wipe_type = wipe_type
         self.wipe_factor = wipe_factor
         self.use_cache = use_cache
@@ -164,6 +166,7 @@ class DL85Predictor(BaseEstimator):
         self.similar_for_branching = similar_for_branching
 
         self.tree_ = None
+        self.base_tree_ = None
         self.size_ = -1
         self.depth_ = -1
         self.error_ = -1
@@ -226,57 +229,56 @@ class DL85Predictor(BaseEstimator):
         import dl85Optimizer
         # print(opt_func)
         solution_str = dl85Optimizer.solve(data=X,
-                                       target=y,
-                                       tec_func_=opt_func,
-                                       sec_func_=opt_fast_func,
-                                       te_func_=opt_pred_func,
-                                       # exw_func_=self.example_weight_function,
-                                       # pred_func_=self.predict_error_function,
-                                       max_depth=self.max_depth,
-                                       min_sup=self.min_sup,
-                                       # max_estimators=self.max_estimators,
-                                       example_weights=self.sample_weight,
-                                       max_error=self.max_error,
-                                       stop_after_better=self.stop_after_better,
-                                       # iterative=self.iterative,
-                                       time_limit=self.time_limit,
-                                       verb=self.verbose,
-                                       desc=self.desc,
-                                       asc=self.asc,
-                                       repeat_sort=self.repeat_sort,
-                                       # bin_save=False,
-                                       # nps=self.nps,
-                                       predictor=predict,
-                                       cachetype=dl85Optimizer.CacheType.CacheTrie if self.cache_type == Cache_Type.Cache_Trie else dl85Optimizer.CacheType.CacheHash if self.cache_type == Cache_Type.Cache_Hash else dl85Optimizer.CacheType.CacheHashCover,
-                                       cachesize=self.cache_size,
-                                       wipetype=dl85Optimizer.WipeType.All if self.cache_size == Wipe_Type.All_nodes else dl85Optimizer.WipeType.Subnodes if self.cache_size == Wipe_Type.Sub_nodes else dl85Optimizer.WipeType.Recall,
-                                       wipefactor=self.wipe_factor,
-                                       withcache=self.use_cache,
-                                       usespecial=self.depth_two_special_algo,
-                                       useub=self.use_ub,
-                                       similar_lb=self.similar_lb,
-                                       dyn_branch=self.dynamic_branch,
-                                       similar_for_branching=self.similar_for_branching)
+                                           target=y,
+                                           tec_func_=opt_func,
+                                           sec_func_=opt_fast_func,
+                                           te_func_=opt_pred_func,
+                                           # exw_func_=self.example_weight_function,
+                                           # pred_func_=self.predict_error_function,
+                                           max_depth=self.max_depth,
+                                           min_sup=self.min_sup,
+                                           # max_estimators=self.max_estimators,
+                                           example_weights=self.sample_weight,
+                                           max_error=self.max_error,
+                                           stop_after_better=self.stop_after_better,
+                                           # iterative=self.iterative,
+                                           time_limit=self.time_limit,
+                                           verb=self.verbose,
+                                           desc=self.desc,
+                                           asc=self.asc,
+                                           repeat_sort=self.repeat_sort,
+                                           # bin_save=False,
+                                           # nps=self.nps,
+                                           predictor=predict,
+                                           cachetype=dl85Optimizer.CacheType.CacheTrieItemset if self.cache_type == Cache_Type.Cache_TrieItemset else dl85Optimizer.CacheType.CacheHashItemset if self.cache_type == Cache_Type.Cache_HashItemset else dl85Optimizer.CacheType.CacheHashCover,
+                                           cachesize=self.maxcachesize,
+                                           wipetype=dl85Optimizer.WipeType.All if self.wipe_type == Wipe_Type.All else dl85Optimizer.WipeType.Subnodes if self.wipe_type == Wipe_Type.Subnodes else dl85Optimizer.WipeType.Reuses,
+                                           wipefactor=self.wipe_factor,
+                                           withcache=self.use_cache,
+                                           usespecial=self.depth_two_special_algo,
+                                           useub=self.use_ub,
+                                           similar_lb=self.similar_lb,
+                                           dyn_branch=self.dynamic_branch,
+                                           similar_for_branching=self.similar_for_branching)
 
         solution = solution_str.rstrip("\n").splitlines()
 
-        self.tree_ = json.loads(solution[3].split('Tree: ')[1]) if "No such tree" not in solution[3] else None
-        self.size_ = int(solution[4].split(" ")[1])
-        self.depth_ = int(solution[5].split(" ")[1])
-        self.error_ = float(solution[6].split(" ")[1])
-        self.accuracy_ = float(solution[7].split(" ")[1])
-        self.lattice_size_ = int(solution[8].split(" ")[1])
-        self.runtime_ = float(solution[9].split(" ")[1])
-        self.timeout_ = bool(strtobool(solution[10].split(" ")[1]))
+        self.tree_ = json.loads(solution[-8].split('Tree: ')[1]) if "No such tree" not in solution[-8] else None
+        self.size_ = int(solution[-7].split(" ")[1])
+        self.depth_ = int(solution[-6].split(" ")[1])
+        self.error_ = float(solution[-5].split(" ")[1])
+        self.accuracy_ = float(solution[-4].split(" ")[1])
+        self.lattice_size_ = int(solution[-3].split(" ")[1])
+        self.runtime_ = float(solution[-2].split(" ")[1])
+        self.timeout_ = bool(strtobool(solution[-1].split(" ")[1]))
 
-        if self.tree_ is None:  # return just a leaf as fake solution
+        if self.tree_ is None:  # No solution
             if not self.timeout_:
-                print("DL8.5 fitting: Solution not found. However, a solution exists with error equal to the max error (exlusive upper bound) you specify. Please increase your bound if you want to find it.")
+                print("DL8.5 fitting: Solution not found. However, a solution exists with error greater than or equal to the max error (exlusive upper bound) you specify. Please increase your bound if you want to find it.")
             else:
-                print("DL8.5 fitting: Timeout reached without solution. Please increase the time limit or the max error (exlusive upper bound)")
+                print("DL8.5 fitting: Timeout reached without solution. Please increase the time limit and/or the max error (exlusive upper bound)")
             if target_is_need:  # problem with target
-                # Store the classes seen during fit
-                self.classes_ = unique_labels(y)
+                self.classes_ = unique_labels(y)  # Store the classes seen during fit
         else:
             if not self.quiet:
                 if not self.timeout_:
@@ -288,6 +290,7 @@ class DL85Predictor(BaseEstimator):
             # add transactions to nodes of the tree
             self.add_transactions_and_proba(X, y)
 
+            # label the leafs when a labelling function is provided
             if self.leaf_value_function is not None:
                 def search(node):
                     if self.is_leaf_node(node) is not True:
@@ -295,10 +298,13 @@ class DL85Predictor(BaseEstimator):
                         search(node['right'])
                     else:
                         node['value'] = self.leaf_value_function(node['transactions'])
+
                 node = self.tree_
                 search(node)
 
             self.remove_transactions()
+
+        self.base_tree_ = self.get_tree_without_transactions_and_probas() if self.tree_ is not None else None
 
         if self.print_output:
             print(solution_str)
@@ -425,7 +431,8 @@ class DL85Predictor(BaseEstimator):
         names = [x[0] for x in node.items()]
         return 'error' in names
 
-    def add_transactions_and_proba(self, X, y=None):  # explore the decision tree found and add transactions to leaf nodes.
+    # explore the decision tree found and add transactions and class probabilities to leaf nodes.
+    def add_transactions_and_proba(self, X, y=None):
         def recurse(transactions, node, feature, positive):
             if transactions is None:
                 current_transactions = list(range(0, X.shape[0]))
@@ -489,7 +496,7 @@ class DL85Predictor(BaseEstimator):
         root_node = self.tree_
         recurse(None, root_node, None, None)
 
-    def tree_without_transactions(self):
+    def get_tree_without_transactions(self):
 
         def recurse(node):
             if 'transactions' in node and ('feat' in node.keys() or 'value' in node.keys()):
@@ -509,7 +516,47 @@ class DL85Predictor(BaseEstimator):
                 if 'left' in node.keys():
                     recurse(node['left'])
                     recurse(node['right'])
+
         recurse(self.tree_)
+
+    def get_tree_without_probas(self):
+
+        def recurse(node):
+            if 'proba' in node and ('feat' in node.keys() or 'value' in node.keys()):
+                del node['proba']
+                if 'left' in node.keys():
+                    recurse(node['left'])
+                    recurse(node['right'])
+
+        tree = dict(self.tree_)
+        recurse(tree)
+        return tree
+
+    def remove_probas(self):
+        def recurse(node):
+            if 'proba' in node and ('feat' in node.keys() or 'value' in node.keys()):
+                del node['proba']
+                if 'left' in node.keys():
+                    recurse(node['left'])
+                    recurse(node['right'])
+
+        recurse(self.tree_)
+
+    def get_tree_without_transactions_and_probas(self):
+
+        def recurse(node):
+            if 'feat' in node.keys() or 'value' in node.keys():
+                if 'proba' in node:
+                    del node['proba']
+                if 'transactions' in node:
+                    del node['transactions']
+                if 'left' in node.keys():
+                    recurse(node['left'])
+                    recurse(node['right'])
+
+        tree = dict(self.tree_)
+        recurse(tree)
+        return tree
 
     def export_graphviz(self):
         if self.is_fitted_ is False:  # fit method has not been called

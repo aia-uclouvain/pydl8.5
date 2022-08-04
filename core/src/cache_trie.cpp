@@ -178,7 +178,7 @@ void Cache_Trie::wipe() {
             computeSubNodes((TrieNode *) root);
             sort(deletion_queue.begin(), deletion_queue.end(), sortDecOrder);
             break;
-        case Recall:
+        case Reuses:
             sort(deletion_queue.begin(), deletion_queue.end(), sortReuseDecOrder);
             break;
         default: // All. Since the cache structure is a trie, we ensure that the nodes are removed in  bottom-up fashion

@@ -400,7 +400,8 @@ pair<Node*,HasInter> Search_cover_cache::recurse(Itemset &itemset,
         // perform search on the first item
         itemsets[first_item] = addItem(itemset, item(attr, first_item));
         nodeDataManager->cover->intersect(attr, first_item);
-        pair<Node*, bool> node_state = cache->insert(nodeDataManager, itemsets[first_item].size(), itemsets[first_item]);
+        pair<Node*, bool> node_state = cache->insert(nodeDataManager, itemsets[first_item].size());
+//        pair<Node*, bool> node_state = cache->insert(nodeDataManager, itemsets[first_item].size(), itemsets[first_item]);
         child_nodes[first_item] = node_state.get_node;
         ((CoverNodeData*)node->data)->curr_left = (HashCoverNode*)node_state.get_node;
         if (node_state.is_new){
@@ -419,7 +420,8 @@ pair<Node*,HasInter> Search_cover_cache::recurse(Itemset &itemset,
         if (nodeDataManager->canimprove(child_nodes[first_item]->data, child_ub - second_lb)) { // perform search on the second item
             itemsets[second_item] = addItem(itemset, item(attr, second_item));
             nodeDataManager->cover->intersect(attr, second_item);
-            node_state = cache->insert(nodeDataManager, itemsets[second_item].size(), itemsets[second_item]);
+            node_state = cache->insert(nodeDataManager, itemsets[second_item].size());
+//            node_state = cache->insert(nodeDataManager, itemsets[second_item].size(), itemsets[second_item]);
             child_nodes[second_item] = node_state.get_node;
             ((CoverNodeData*)node->data)->curr_right = (HashCoverNode*)node_state.get_node;
             if (node_state.is_new){
@@ -493,7 +495,8 @@ void Search_cover_cache::run() {
 
     //create an empty array of items representing an emptyset and insert it
     Itemset itemset;
-    Node * rootnode = cache->insert(nodeDataManager, 0, itemset).first;
+    Node * rootnode = cache->insert(nodeDataManager, 0).first;
+//    Node * rootnode = cache->insert(nodeDataManager, 0, itemset).first;
     rootnode->data = nodeDataManager->initData();
     SimilarValss sdb1, sdb2;
     // call the recursive function to start the search
