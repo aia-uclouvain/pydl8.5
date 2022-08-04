@@ -1,86 +1,86 @@
-build/
+/build/
 
-dist/
+/dist/
 
-pydl8.5.egg-info/
+/pydl8.5.egg-info/
 
-doc/_build
-doc/auto_examples
-doc/generated
+/doc/_build
+/doc/auto_examples
+/doc/generated
 
-.pytest_cache/
+/.pytest_cache/
 
-.idea/
+/.idea/
 
-.ipynb_checkpoints/
+/.ipynb_checkpoints/
 
-tests/
+/tests/
 
-.vscode/
+/.vscode/
 
 
-datasets_noise/
-datasets_noise_30/
-datasets_noise_40/
-datasets_noise_50/
+/datasets_noise/
+/datasets_noise_30/
+/datasets_noise_40/
+/datasets_noise_50/
 
-datasets/boosting/eharmony/
-datasets/boosting/mnist/
-datasets/boosting/usps/
-datasets/bin/
-datasets/binoct/
-datasets/tests/
+/datasets/boosting/eharmony/
+/datasets/boosting/mnist/
+/datasets/boosting/usps/
+/datasets/bin/
+/datasets/binoct/
+/datasets/tests/
 
-notebooks/
+/notebooks/
 
-core/cmake-build-debug/
-core/cmake-build-release/
-core/cmake-build-relwithdebinfo/
-core/cmake-build-debug-docker/
-core/cmake-build-release-docker/
-core/cmake-build-debug-remote-host/
-core/cmake-build-release-remote-host/
+/core/cmake-build-debug/
+/core/cmake-build-release/
+/core/cmake-build-relwithdebinfo/
+/core/cmake-build-debug-docker/
+/core/cmake-build-release-docker/
+/core/cmake-build-debug-remote-host/
+/core/cmake-build-release-remote-host/
 
-core/tests_run/
-core/main_reg.cpp
+/core/tests_run/
+/core/main_reg.cpp
 
-dl85/__pycache__/
-dl85/supervised/classifiers/__pycache__/
-dl85/supervised/classifiers/utils/__pycache__/
-dl85/supervised/__pycache__/
-dl85/unsupervised/__pycache__/
-dl85/supervised/classifiers/tests/__pycache__/
-dl85/errors/__pycache__/
-dl85/predictors/__pycache__/
-dl85/supervised/classifiers/old_classifier.py
-dl85/unsupervised/old_clustering.py
-dl85/predictors/old_predictor.py
+/dl85/__pycache__/
+/dl85/supervised/classifiers/__pycache__/
+/dl85/supervised/classifiers/utils/__pycache__/
+/dl85/supervised/__pycache__/
+/dl85/unsupervised/__pycache__/
+/dl85/supervised/classifiers/tests/__pycache__/
+/dl85/errors/__pycache__/
+/dl85/predictors/__pycache__/
+/dl85/supervised/classifiers/old_classifier.py
+/dl85/unsupervised/old_clustering.py
+/dl85/predictors/old_predictor.py
 
-cython_extension/dl85Optimizer.cpp
-cython_extension/error_function.cpp
-cython_extension/error_function.h
+/cython_extension/dl85Optimizer.cpp
+/cython_extension/error_function.cpp
+/cython_extension/error_function.h
 
-examples/gurobi.log
-examples/plots/
-examples/*.csv
-examples/output/
-examples/test/
+/examples/gurobi.log
+/examples/plots/
+/examples/*.csv
+/examples/output/
+/examples/test/
 
-*.so
+/*.so
 
-.coverage
-.coverage.xml
+/.coverage
+/.coverage.xml
 
-todo.txt
+/todo.txt
 
-testenv/
+/testenv/
 
-doc_old/
+/doc_old/
 
-memory/
+/memory/
 
 mem_script.sh
-memory_plot.r
+/memory_plot.r
 
-dl85_memory.zip
-get_mem_generic.sh
+/dl85_memory.zip
+/get_mem_generic.sh
