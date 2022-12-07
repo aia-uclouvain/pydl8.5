@@ -18,6 +18,8 @@
 
 /.vscode/
 
+/venv/
+
 
 /datasets_noise/
 /datasets_noise_30/
