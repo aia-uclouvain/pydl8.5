@@ -1,15 +1,11 @@
 #include "globals.h"
-#include <math.h>
+#include <cmath>
 
-std::chrono::time_point<std::chrono::high_resolution_clock> startTime = std::chrono::high_resolution_clock::now();
-Class nclasses;
-Attribute nattributes;
-bool verbose = false;
-std::string dataname;
-std::string out;
+
+GlobalParams* GlobalParams::instance = nullptr;
 
 ErrorVals newErrorVals () {
-  return new ErrorVal[nclasses];
+  return new ErrorVal[GlobalParams::getInstance()->nclasses];
 }
 
 ErrorVals zeroErrorVals () {
@@ -94,7 +90,7 @@ Itemset addItem (const Itemset &src, Item item, bool quiet) {
     while (i < src.size() ) dest[k++] = src[i++];
     if ( j < 1 ) dest[k++] = item;
 
-    if (not quiet and verbose) {
+    if (not quiet and GlobalParams::getInstance()->verbose) {
         std::cout << "-\nitemset avant ajout : "; printItemset(src);
         std::cout << "Item à ajouter : " << item << std::endl;
         std::cout << "itemset après ajout : "; printItemset(dest);
@@ -103,7 +99,7 @@ Itemset addItem (const Itemset &src, Item item, bool quiet) {
 }
 
 void printItemset(const Itemset &itemset, bool force, bool newline) {
-    if (verbose or force) {
+    if (GlobalParams::getInstance()->verbose or force) {
         if (itemset.empty()) std::cout << "\\phi";
         for (const auto& item : itemset) std::cout << item << ",";
         if (newline) std::cout << std::endl;

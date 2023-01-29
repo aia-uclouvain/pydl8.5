@@ -23,7 +23,7 @@ LeafInfo NodeDataManager::computeLeafInfo(RCover *cov) {
     ErrorVal maxclassval = itemsetSupport[0];
     maxclass = 0;
 
-    for (int i = 1; i < nclasses; ++i) {
+    for (int i = 1; i < GlobalParams::getInstance()->nclasses; ++i) {
         if (itemsetSupport[i] > maxclassval) {
             maxclassval = itemsetSupport[i];
             maxclass = i;
@@ -42,7 +42,7 @@ LeafInfo NodeDataManager::computeLeafInfo(ErrorVals itemsetSupport) {
     Error error;
     ErrorVal maxclassval = itemsetSupport[0];
 
-    for (int i = 1; i < nclasses; ++i) {
+    for (int i = 1; i < GlobalParams::getInstance()->nclasses; ++i) {
         if (itemsetSupport[i] > maxclassval) {
             maxclassval = itemsetSupport[i];
             maxclass = i;

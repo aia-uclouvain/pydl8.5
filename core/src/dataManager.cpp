@@ -4,19 +4,20 @@
 
 #include "dataManager.h"
 
-DataManager::DataManager(ErrorVals supports, Transaction ntransactions, Attribute nattributes, Class nclasses, Bool *data, Class *target): supports(supports), ntransactions(ntransactions), nattributes(nattributes), nclasses(nclasses) {
-    nclasses = (nclasses == 1) ? 2 : nclasses;
-    nWords = (int)ceil((float)ntransactions/M);
-    b = new bitset<M> *[nattributes];
-    c = new bitset<M> *[nclasses];
+DataManager::DataManager(ErrorVals supports, Transaction _ntransactions, Attribute _nattributes, Class _nclasses, Bool *data, Class *target): supports(supports), ntransactions_(_ntransactions), nattributes_(_nattributes), nclasses_(_nclasses) {
 
-    for (int i = 0; i < nattributes; i++){
+    nclasses_ = (nclasses_ == 1) ? 2 : nclasses_;
+    nWords = (int)ceil((float)ntransactions_/M);
+    b = new bitset<M> *[nattributes_];
+    c = new bitset<M> *[nclasses_];
+
+    for (int i = 0; i < nattributes_; i++){
         bitset<M> * attrCov = new bitset<M>[nWords];
         for (int j = 0; j < nWords; ++j) {
             int current_index = -1;
-            Bool *start = data + (ntransactions*i) + (M*j), *end;
-            if (j != nWords - 1) end = data + (ntransactions * i) + (M*j) + M;
-            else end = data + (ntransactions * i) + ntransactions;
+            Bool *start = data + (ntransactions_*i) + (M*j), *end;
+            if (j != nWords - 1) end = data + (ntransactions_ * i) + (M*j) + M;
+            else end = data + (ntransactions_ * i) + ntransactions_;
 
             int dist;
             auto itr = find(start, end, 1);
@@ -33,13 +34,13 @@ DataManager::DataManager(ErrorVals supports, Transaction ntransactions, Attribut
 
 
     if (target != nullptr){
-        for (int i = 0; i < nclasses; i++){
+        for (int i = 0; i < nclasses_; i++){
             bitset<M> * classCov = new bitset<M>[nWords];
             for (int j = 0; j < nWords; ++j) {
                 int current_index = -1;
                 Class *start = target + (M*j), *end;
                 if (j != nWords - 1) end = target + (M*j) + M;
-                else end = target + ntransactions;
+                else end = target + ntransactions_;
 
                 int dist;
                 auto itr = find(start, end, i);
@@ -57,8 +58,9 @@ DataManager::DataManager(ErrorVals supports, Transaction ntransactions, Attribut
     else c = nullptr;
 
 
-    ::nattributes = nattributes;
-    ::nclasses = nclasses;
+    GlobalParams::getInstance()->nattributes = nattributes_;
+    GlobalParams::getInstance()->nclasses = nclasses_;
+    GlobalParams::getInstance()->ntransactions = ntransactions_;
 }
 
 bitset<M>* DataManager::getAttributeCover(Attribute attr) {

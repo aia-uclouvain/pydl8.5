@@ -44,13 +44,108 @@ typedef unsigned long ulong;
 typedef std::vector<Item> Itemset;
 typedef std::vector<Attribute> Attributes;
 
+/*class GlobalParams {
+public:
+    static GlobalParams* getInstance() {
+        static GlobalParams* instance = new GlobalParams();
+        return instance;
+    }
+    Class nclasses;
+    Attribute nattributes;
+    Transaction ntransactions;
+    bool verbose;
+    std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
+    std::string dataname;
+    std::string out;
 
-extern Class nclasses;
-extern Attribute nattributes;
-extern bool verbose;
-extern std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
-extern std::string dataname;
-extern std::string out;
+private:
+    explicit GlobalParams() {
+        std::cout << "params instanciated" << std::endl;
+        verbose = false;
+        startTime = std::chrono::high_resolution_clock::now();
+        nclasses = -1;
+        nattributes = -1;
+        ntransactions = -1;
+        dataname = "";
+        out = "";
+    }
+};*/
+
+class GlobalParams {
+public:
+    static GlobalParams* getInstance() {
+        if(instance == nullptr) {
+            instance = new GlobalParams();
+        }
+        return instance;
+    }
+    static void free() {
+        delete instance;
+        instance = nullptr;
+    }
+    Class nclasses;
+    Attribute nattributes;
+    Transaction ntransactions;
+    bool verbose;
+    std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
+    std::string dataname;
+    std::string out;
+    static GlobalParams* instance;
+
+
+    GlobalParams(const GlobalParams&) = delete;
+
+private:
+    explicit GlobalParams() {
+        verbose = false;
+        startTime = std::chrono::high_resolution_clock::now();
+        nclasses = -1;
+        nattributes = -1;
+        ntransactions = -1;
+        dataname = "";
+        out = "";
+    }
+};
+
+
+
+
+/*class GlobalParams {
+public:
+    static GlobalParams* getInstance() {
+        if (instance == nullptr)
+            instance = new GlobalParams();
+        return instance;
+    }
+    Class nclasses;
+    Attribute nattributes;
+    bool verbose;
+    std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
+    std::string dataname;
+    std::string out;
+    static GlobalParams* instance;
+    void set_nclasses(Class nclasses) { this->nclasses = nclasses; }
+private:
+    explicit GlobalParams() = default;
+
+};*/
+
+
+
+
+//extern Class nclasses;
+//extern Attribute nattributes;
+//extern bool verbose;
+//extern std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
+//extern std::string dataname;
+//extern std::string out;
+//
+//std::chrono::time_point<std::chrono::high_resolution_clock> startTime = std::chrono::high_resolution_clock::now();
+//Class nclasses;
+//Attribute nattributes;
+//bool verbose = false;
+//std::string dataname;
+//std::string out;
 
 
 #define NO_SUP INT_MAX // SHRT_MAX
@@ -72,7 +167,7 @@ extern std::string out;
 // compute the decision on an attribute based on its item value
 #define item_value(item) ( item % 2 )
 // loop in each class value
-#define forEachClass(n) for ( Class n = 0; n < nclasses; ++n )
+#define forEachClass(n) for ( Class n = 0; n < GlobalParams::getInstance()->nclasses; ++n )
 // loop in each index in an array
 #define forEach(index, array) for ( int index = 0; index < array.size; ++index )
 // redefine a class name to make it short

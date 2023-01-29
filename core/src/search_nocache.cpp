@@ -119,7 +119,7 @@ Error Search_nocache::recurse(Attribute last_added,
                               float ub) {
 
     // check if we ran out of time
-    if (timeLimit > 0 && duration<float>(high_resolution_clock::now() - startTime).count() >= (float)timeLimit) timeLimitReached = true;
+    if (timeLimit > 0 && duration<float>(high_resolution_clock::now() - GlobalParams::getInstance()->startTime).count() >= (float)timeLimit) timeLimitReached = true;
 
     // if upper bound is disabled, we set it to infinity
     if (not use_ub) ub = FLT_MAX;
@@ -208,14 +208,14 @@ void Search_nocache::run() {
 
     // Create empty list for candidate attributes
     Attributes attributes_to_visit;
-    attributes_to_visit.reserve(nattributes);
+    attributes_to_visit.reserve(GlobalParams::getInstance()->nattributes);
 
     // Update the candidate list based on frequency criterion
     if (minsup == 1) { // do not check frequency if minsup = 1
-        for (int attr = 0; attr < nattributes; ++attr) attributes_to_visit.push_back(attr);
+        for (int attr = 0; attr < GlobalParams::getInstance()->nattributes; ++attr) attributes_to_visit.push_back(attr);
     }
     else { // make sure each candidate attribute can be split into two nodes fulfilling the frequency criterion
-        for (int attr = 0; attr < nattributes; ++attr) {
+        for (int attr = 0; attr < GlobalParams::getInstance()->nattributes; ++attr) {
             if (nodeDataManager->cover->temporaryIntersectSup(attr, false) >= minsup && nodeDataManager->cover->temporaryIntersectSup(attr) >= minsup)
                 attributes_to_visit.push_back(attr);
         }

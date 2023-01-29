@@ -81,7 +81,7 @@ ErrorVals RCoverWeight::getErrorValPerClass(){
         return sup_class;
     }
     sup_class = zeroErrorVals();
-    for (int j = 0; j < nclasses; ++j) {
+    for (int j = 0; j < GlobalParams::getInstance()->nclasses; ++j) {
         bitset<M> * classCover = dm->getClassCover(j);
         for (int i = 0; i < limit.top(); ++i) {
             // get the real index of the word
@@ -100,7 +100,7 @@ ErrorVals RCoverWeight::getErrorValPerClass(){
 
 ErrorVals RCoverWeight::getErrorValPerClass(bitset<M>* cover, int nValidWords, int* validIndexes){
     ErrorVals sc = zeroErrorVals();
-    for (int j = 0; j < nclasses; ++j) {
+    for (int j = 0; j < GlobalParams::getInstance()->nclasses; ++j) {
         bitset<M> * classCover = dm->getClassCover(j);
         for (int i = 0; i < nValidWords; ++i) {
             // get the real index of the word

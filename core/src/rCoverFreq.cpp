@@ -20,7 +20,7 @@ void RCoverFreq::intersect(Attribute attribute, bool positive) {
 
         int word_sup = word.count();
         support += word_sup;
-        if (nclasses == 2){
+        if (GlobalParams::getInstance()->nclasses == 2){
             int addzero = (word & dm->getClassCover(0)[validWords[i]]).count();
             sup_class[0] += addzero;
             sup_class[1] += word_sup - addzero;
@@ -55,7 +55,7 @@ pair<ErrorVals, Support> RCoverFreq::temporaryIntersect(Attribute attribute, boo
         else word = coverWords[validWords[i]].top() & ~(dm->getAttributeCover(attribute)[validWords[i]]);
 
         int word_sup = word.count(); sup += word_sup;
-        if (nclasses == 2){
+        if (GlobalParams::getInstance()->nclasses == 2){
             int addzero = (word & dm->getClassCover(0)[validWords[i]]).count();
             sc[0] += addzero; sc[1] += word_sup - addzero;
         } else forEachClass(n) {
@@ -69,7 +69,7 @@ pair<ErrorVals, Support> RCoverFreq::temporaryIntersect(Attribute attribute, boo
 ErrorVals RCoverFreq::getErrorValPerClass(){
     if (sup_class != nullptr) return sup_class;
     sup_class = zeroErrorVals();
-    if (nclasses == 2){
+    if (GlobalParams::getInstance()->nclasses == 2){
         bitset<M> * classCover = dm->getClassCover(0);
         int sum = 0;
         for (int i = 0; i < limit.top(); ++i) {
@@ -79,7 +79,7 @@ ErrorVals RCoverFreq::getErrorValPerClass(){
         sup_class[1] = getSupport() - sum;
     }
     else{
-        for (int j = 0; j < nclasses; ++j) {
+        for (int j = 0; j < GlobalParams::getInstance()->nclasses; ++j) {
             bitset<M> * classCover = dm->getClassCover(j);
             for (int i = 0; i < limit.top(); ++i) {
                 sup_class[j] += (coverWords[validWords[i]].top() & classCover[validWords[i]]).count();
@@ -91,7 +91,7 @@ ErrorVals RCoverFreq::getErrorValPerClass(){
 
 ErrorVals RCoverFreq::getErrorValPerClass(bitset<M>* cover, int nValidWords, int* validIndexes){
     ErrorVals sc = zeroErrorVals();
-    for (int j = 0; j < nclasses; ++j) {
+    for (int j = 0; j < GlobalParams::getInstance()->nclasses; ++j) {
         bitset<M> * classCover = dm->getClassCover(j);
         for (int i = 0; i < nWords; ++i) {
             sc[j] += (cover[i] & classCover[i]).count();

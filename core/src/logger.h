@@ -18,14 +18,14 @@ public:
 
     template<typename T>
     static void showMessageAndReturn(T &&t) {
-        if (verbose){
+        if (GlobalParams::getInstance()->verbose){
             std::cout << t << "\n";
         }
     }
 
     template<typename Head, typename... Tail>
     static void showMessageAndReturn(Head &&head, Tail&&... tail) {
-        if (verbose){
+        if (GlobalParams::getInstance()->verbose){
             std::cout << head;
             showMessageAndReturn(std::forward<Tail>(tail)...);
         }
@@ -33,14 +33,14 @@ public:
 
     template<typename T>
     static void showMessage(T &&t) {
-        if (verbose){
+        if (GlobalParams::getInstance()->verbose){
             std::cout << t;
         }
     }
 
     template<typename Head, typename... Tail>
     static void showMessage(Head &&head, Tail&&... tail) {
-        if (verbose){
+        if (GlobalParams::getInstance()->verbose){
             std::cout << head;
             showMessage(std::forward<Tail>(tail)...);
         }

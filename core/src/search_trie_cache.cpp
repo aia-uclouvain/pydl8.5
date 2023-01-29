@@ -311,7 +311,7 @@ pair<Node*,HasInter> Search_trie_cache::recurse(const Itemset &itemset,
                                                 SimilarVals &sim_db2) {
 
     // check if we ran out of time
-    if (timeLimit > 0 and duration<float>(high_resolution_clock::now() - startTime).count() >= (float)timeLimit) timeLimitReached = true;
+    if (timeLimit > 0 and duration<float>(high_resolution_clock::now() - GlobalParams::getInstance()->startTime).count() >= (float)timeLimit) timeLimitReached = true;
 
     Node* result = getSolutionIfExists(node, ub, depth, itemset);
     if (result) { // the solution can be inferred without computation
@@ -389,19 +389,19 @@ pair<Node*,HasInter> Search_trie_cache::recurse(const Itemset &itemset,
             if (similarlb and similar_for_branching) {
                 nodeDataManager->cover->intersect(attr, false);
                 Error neg_sim_lb;
-                if (itemset.size() == 2 and itemset.at(0) == 40 and itemset.at(1) == 93)
-                    neg_sim_lb = computeSimilarityLB(similar_db1, similar_db2, false);
-                else
-                    neg_sim_lb = computeSimilarityLB(similar_db1, similar_db2);
+//                if (itemset.size() == 2 and itemset.at(0) == 40 and itemset.at(1) == 93)
+//                    neg_sim_lb = computeSimilarityLB(similar_db1, similar_db2, false);
+//                else
+                neg_sim_lb = computeSimilarityLB(similar_db1, similar_db2);
                 neg_lb = max(neg_lb, neg_sim_lb);
                 nodeDataManager->cover->backtrack();
 
                 nodeDataManager->cover->intersect(attr);
                 Error pos_sim_lb;
-                if (itemset.size() == 2 and itemset.at(0) == 40 and itemset.at(1) == 93)
-                    pos_sim_lb = computeSimilarityLB(similar_db1, similar_db2, false);
-                else
-                    pos_sim_lb = computeSimilarityLB(similar_db1, similar_db2);
+//                if (itemset.size() == 2 and itemset.at(0) == 40 and itemset.at(1) == 93)
+//                    pos_sim_lb = computeSimilarityLB(similar_db1, similar_db2, false);
+//                else
+                pos_sim_lb = computeSimilarityLB(similar_db1, similar_db2);
                 pos_lb = max(pos_lb, pos_sim_lb);
                 nodeDataManager->cover->backtrack();
             }
@@ -515,14 +515,14 @@ void Search_trie_cache::run() {
 
     // Create empty list for candidate attributes
     Attributes attributes_to_visit;
-    attributes_to_visit.reserve(nattributes);
+    attributes_to_visit.reserve(GlobalParams::getInstance()->nattributes);
 
     // Reduce the candidates list based on frequency criterion
     if (minsup == 1) { // do not check frequency if minsup = 1
-        for (int attr = 0; attr < nattributes; ++attr) attributes_to_visit.push_back(attr);
+        for (int attr = 0; attr < GlobalParams::getInstance()->nattributes; ++attr) attributes_to_visit.push_back(attr);
     }
     else { // make sure each candidate attribute can be split into two nodes fulfilling the frequency criterion
-        for (int attr = 0; attr < nattributes; ++attr) {
+        for (int attr = 0; attr < GlobalParams::getInstance()->nattributes; ++attr) {
             if (nodeDataManager->cover->temporaryIntersectSup(attr, false) >= minsup && nodeDataManager->cover->temporaryIntersectSup(attr) >= minsup)
                 attributes_to_visit.push_back(attr);
         }
@@ -537,13 +537,13 @@ void Search_trie_cache::run() {
     cache->root = recurse(itemset, NO_ITEM, rootnode, true, attributes_to_visit, 0, maxError, sdb1, sdb2).first;
 
     if (cache->maxcachesize > NO_CACHE_LIMIT) {
-        out +=  "Tree already found with error = " + custom_to_str(cache->root->data->error) + ". Trying to reconstitute the wiped subtrees\n";
-        out +=  "===============================================================================\n";
+        GlobalParams::getInstance()->out +=  "Tree already found with error = " + custom_to_str(cache->root->data->error) + ". Trying to reconstitute the wiped subtrees\n";
+        GlobalParams::getInstance()->out +=  "===============================================================================\n";
         auto rtime = chrono::high_resolution_clock::now();
         while(not isTreeComplete(cache->root, itemset)) {
             retrieveWipedSubtrees(cache->root, itemset, NO_ITEM, attributes_to_visit, 0);
         }
-        out +=  "Reconstitution time : "  + custom_to_str(duration<float>(high_resolution_clock::now() - rtime).count()) + " seconds\n";
+        GlobalParams::getInstance()->out +=  "Reconstitution time : "  + custom_to_str(duration<float>(high_resolution_clock::now() - rtime).count()) + " seconds\n";
     }
 
 }

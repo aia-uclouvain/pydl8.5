@@ -311,7 +311,7 @@ pair<Node*,HasInter> Search_cover_cache::recurse(Itemset &itemset,
                                                  SimilarValss &sim_db2) {
 
     // check if we ran out of time
-    if (timeLimit > 0 and duration<float>(high_resolution_clock::now() - startTime).count() >= (float)timeLimit) timeLimitReached = true;
+    if (timeLimit > 0 and duration<float>(high_resolution_clock::now() - GlobalParams::getInstance()->startTime).count() >= (float)timeLimit) timeLimitReached = true;
 
     Node* result = getSolutionIfExists(node, ub, depth);
     if (result) { // the solution can be inferred without computation
@@ -324,13 +324,13 @@ pair<Node*,HasInter> Search_cover_cache::recurse(Itemset &itemset,
 
     // in case the solution cannot be derived without computation and remaining depth is 2, we use a specific algorithm
     if (specialAlgo and maxdepth - depth == 2 and nodeDataManager->cover->getSupport() >= 2 * minsup and no_python_error) {
-        if (itemset.size() == 4 and itemset.at(0) == 4 and itemset.at(1) == 29 and itemset.at(2) == 35 and itemset.at(3) == 47) {
-            verbose = true;
-        }
+//        if (itemset.size() == 4 and itemset.at(0) == 4 and itemset.at(1) == 29 and itemset.at(2) == 35 and itemset.at(3) == 47) {
+//            GlobalParams::getInstance()->verbose = true;
+//        }
         computeDepthTwo(nodeDataManager->cover, ub, next_candidates, last_added_attr, itemset, node, nodeDataManager, ((CoverNodeData*) node->data)->lowerBound, cache, this, true);
-        if (itemset.size() == 4 and itemset.at(0) == 4 and itemset.at(1) == 29 and itemset.at(2) == 35 and itemset.at(3) == 47) {
-            verbose = false;
-        }
+//        if (itemset.size() == 4 and itemset.at(0) == 4 and itemset.at(1) == 29 and itemset.at(2) == 35 and itemset.at(3) == 47) {
+//            GlobalParams::getInstance()->verbose = false;
+//        }
         return {node, true};
     }
 
@@ -480,14 +480,14 @@ void Search_cover_cache::run() {
 
     // Create empty list for candidate attributes
     Attributes attributes_to_visit;
-    attributes_to_visit.reserve(nattributes);
+    attributes_to_visit.reserve(GlobalParams::getInstance()->nattributes);
 
     // Update the candidate list based on frequency criterion
     if (minsup == 1) { // do not check frequency if minsup = 1
-        for (int attr = 0; attr < nattributes; ++attr) attributes_to_visit.push_back(attr);
+        for (int attr = 0; attr < GlobalParams::getInstance()->nattributes; ++attr) attributes_to_visit.push_back(attr);
     }
     else { // make sure each candidate attribute can be split into two nodes fulfilling the frequency criterion
-        for (int attr = 0; attr < nattributes; ++attr) {
+        for (int attr = 0; attr < GlobalParams::getInstance()->nattributes; ++attr) {
             if (nodeDataManager->cover->temporaryIntersectSup(attr, false) >= minsup && nodeDataManager->cover->temporaryIntersectSup(attr) >= minsup)
                 attributes_to_visit.push_back(attr);
         }
