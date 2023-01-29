@@ -9,6 +9,7 @@ jobs:
       - run:
           command: |
             wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+            awk 'NR==1{print "#!/bin/bash"} NR>1' miniconda.sh > miniconda.tmp && mv miniconda.tmp miniconda.sh
             chmod +x miniconda.sh && ./miniconda.sh -b -p ~/miniconda
             export PATH="~/miniconda/bin:$PATH"
             conda update --yes --quiet conda
