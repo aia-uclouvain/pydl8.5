@@ -79,10 +79,9 @@ int main(int argc, char *argv[]) {
     argparse::ArgumentParser program("dl85");
 
 //    program.add_argument("-h", "--datasetPath").help("The path of the dataset").default_value(string{"../../datasets/anneal.txt"});
-//    program.add_argument("-p", "--maxdepth").help("Maximum of the tree to learn").default_value(5).scan<'d', int>();
 //    program.add_argument("-h", "--datasetPath").help("The path of the dataset").default_value(string{"/Users/aglin/Downloads/iris_log_bin_2.txt"});
-//    program.add_argument("-p", "--maxdepth").help("Maximum depth of the tree to learn").default_value(3).scan<'d', int>();
-//    program.add_argument("-m", "--minsup").help("Minimum number of examples per leaf").default_value(5).scan<'d', int>();
+//    program.add_argument("-p", "--maxdepth").help("Maximum depth of the tree to learn").default_value(2).scan<'d', int>();
+//    program.add_argument("-m", "--minsup").help("Minimum number of examples per leaf").default_value(1).scan<'d', int>();
 
 
     program.add_argument("datasetPath").help("The path of the dataset");

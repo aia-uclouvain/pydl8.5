@@ -192,7 +192,7 @@ Error computeDepthTwo(RCover* cover,
             Error feat_ub = best_tree->root_data->error; // the best tree found so far can be used as upper bound
             LeafInfo ev = nodeDataManager->computeLeafInfo(igsc.get());
             feat_best_tree->root_data->left->leafError = ev.error;
-            feat_best_tree->root_data->left->error = ev.error;
+            if (ev.error < feat_ub) feat_best_tree->root_data->left->error = ev.error;
             feat_best_tree->root_data->left->test = (cachecover) ? ev.maxclass : -(ev.maxclass + 1);
 
             // explore different features to find the best left child
@@ -298,7 +298,7 @@ Error computeDepthTwo(RCover* cover,
             Error feat_ub = best_tree->root_data->error - feat_best_tree->root_data->left->error;
             LeafInfo ev = nodeDataManager->computeLeafInfo(idsc);
             feat_best_tree->root_data->right->leafError = ev.error;
-            feat_best_tree->root_data->right->error = ev.error;
+            if (ev.error < feat_ub) feat_best_tree->root_data->right->error = ev.error;
             feat_best_tree->root_data->right->test = (cachecover) ? ev.maxclass : -(ev.maxclass + 1);
 
             // in case we encounter the lower bound
