@@ -80,6 +80,11 @@ int main(int argc, char *argv[]) {
 
 //    program.add_argument("-h", "--datasetPath").help("The path of the dataset").default_value(string{"../../datasets/anneal.txt"});
 //    program.add_argument("-p", "--maxdepth").help("Maximum of the tree to learn").default_value(5).scan<'d', int>();
+//    program.add_argument("-h", "--datasetPath").help("The path of the dataset").default_value(string{"/Users/aglin/Downloads/iris_log_bin_2.txt"});
+//    program.add_argument("-p", "--maxdepth").help("Maximum depth of the tree to learn").default_value(3).scan<'d', int>();
+//    program.add_argument("-m", "--minsup").help("Minimum number of examples per leaf").default_value(5).scan<'d', int>();
+
+
     program.add_argument("datasetPath").help("The path of the dataset");
     program.add_argument("maxdepth").help("Maximum depth of the tree to learn").scan<'d', int>();
     program.add_argument("-m", "--minsup").help("Minimum number of examples per leaf").default_value(1).scan<'d', int>();
@@ -159,8 +164,8 @@ int main(int argc, char *argv[]) {
     vector<Bool> data_flattened = getFlattenedData(data_per_feat, nfeatures);
     ErrorVals support_per_class = getSupportPerClassArray(supports_map);
 
-    dataname = datasetPath.substr(datasetPath.find_last_of('/') + 1,datasetPath.find_last_of('.') - datasetPath.find_last_of('/') - 1);
-    cout << "dataset: " << dataname << endl;
+//    string dataname = datasetPath.substr(datasetPath.find_last_of('/') + 1,datasetPath.find_last_of('.') - datasetPath.find_last_of('/') - 1);
+//    cout << "dataset: " << dataname << endl;
 
     string result = launch(
             support_per_class, //supports
