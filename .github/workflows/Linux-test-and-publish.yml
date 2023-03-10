@@ -42,7 +42,7 @@ jobs:
 #          python3 setup.py install
 
       - name: Build package
-        uses: docker://quay.io/pypa/manylinux2014_x86_64
+        uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
         with:
           args: bash -c "python -m ensurepip && pip install -U setuptools wheel && if [ -f requirements.txt ]; then pip install -r requirements.txt; fi && python setup.py sdist bdist_wheel && cp dist/* /github/workspace/"
 
