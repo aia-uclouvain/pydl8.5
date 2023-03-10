@@ -40,11 +40,20 @@ jobs:
         run: |
           docker run --rm -v "$(pwd):/io" -w /io quay.io/pypa/manylinux2014_x86_64 /io/.github/workflows/auditwheel.sh
 
-      - name: Upload to PyPI
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        uses: pypa/gh-action-pypi-publish@v2
+      - name: Publish distribution 📦 to Test PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          username: ${{ secrets.PYPI_USERNAME }}
-          password: ${{ secrets.PYPI_PASSWORD }}
-          repository-url: https://upload.pypi.org/legacy/
-          distribution: "dist/*"
+          user: __token__
+          password: ${{ secrets.TEST_PYPI_PUSH_API_TOKEN }}
+          repository_url: https://test.pypi.org/legacy/
+          skip_existing: true
+          verbose: true
+
+      - name: Publish distribution 📦 to PyPI
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_PUSH_API_TOKEN }}
+          skip_existing: true
+          verbose: true
