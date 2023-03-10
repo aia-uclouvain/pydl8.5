@@ -37,7 +37,7 @@ jobs:
         run: |
           python setup.py sdist bdist_wheel
           if [ "${{ runner.os }}" = "Linux" ]; then
-              auditwheel repair --plat manylinux2014_x86_64 dist/*.whl
+              auditwheel repair --plat manylinux_2_27_x86_64 dist/*.whl
           fi
           python3 setup.py install
 

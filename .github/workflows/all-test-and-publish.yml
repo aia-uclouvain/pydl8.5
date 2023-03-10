@@ -48,6 +48,9 @@ jobs:
       - name: Build package
         run: |
           python setup.py sdist bdist_wheel --plat-name=${{ runner.os }}-${{ matrix.architecture }}
+          if [ "${{ runner.os }}" = "Linux" ]; then
+              auditwheel repair --plat manylinux_2_27_x86_64 dist/*.whl
+          fi
 
       - name: Run tests, compute coverage and generate xml report
         run: |
