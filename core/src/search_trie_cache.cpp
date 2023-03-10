@@ -48,7 +48,7 @@ Node *infeasiblecase(Node *node, Error *saved_lb, Error ub) {
 Node * Search_trie_cache::getSolutionIfExists(Node *node, Error ub, Depth depth, const Itemset &itemset){
 
     Error *nodeError = &(node->data->error);
-    if (*nodeError < FLT_MAX) return existingsolution(node, nodeError); // solution exists (new node error is FLT_MAX)
+    if (*nodeError < NO_ERR) return existingsolution(node, nodeError); // solution exists (new node error is NO_ERR)
 
     Error *saved_lb = &(node->data->lowerBound);
     // in case the problem is infeasible
@@ -187,7 +187,7 @@ Error Search_trie_cache::computeSimilarityLB(SimilarVals &similar_db1, SimilarVa
 // replace the most similar db
 bool Search_trie_cache::updateSimilarLBInfo2(NodeData *node_data, SimilarVals &similar_db1, SimilarVals &similar_db2) {
 
-    Error err = (node_data->error < FLT_MAX) ? node_data->error : node_data->lowerBound;
+    Error err = (node_data->error < NO_ERR) ? node_data->error : node_data->lowerBound;
     Support sup = nodeDataManager->cover->getSupport();
 
     if (floatEqual(err, 0)) return false;
@@ -251,12 +251,12 @@ bool Search_trie_cache::updateSimilarLBInfo2(NodeData *node_data, SimilarVals &s
 // replace db1 if current error is lower than db1 error. Otherwise replace db2 if the current coversize is longer than db2's one
 bool Search_trie_cache::updateSimilarLBInfo1(NodeData *node_data, SimilarVals &highest_error_db, SimilarVals &highest_coversize_db) {
 
-    Error err = (node_data->error < FLT_MAX) ? node_data->error : node_data->lowerBound;
+    Error err = (node_data->error < NO_ERR) ? node_data->error : node_data->lowerBound;
     Support sup = nodeDataManager->cover->getSupport();
 
     if (floatEqual(err, 0)) return false;
 
-    if (err < FLT_MAX and err > highest_error_db.s_error) {
+    if (err < NO_ERR and err > highest_error_db.s_error) {
         delete[] highest_error_db.s_cover;
         highest_error_db.s_cover = nodeDataManager->cover->getTopCover();
         highest_error_db.s_error = err;
@@ -270,7 +270,7 @@ bool Search_trie_cache::updateSimilarLBInfo1(NodeData *node_data, SimilarVals &h
         return true;
     }
 
-    if (err < FLT_MAX and sup > highest_coversize_db.s_coversize) {
+    if (err < NO_ERR and sup > highest_coversize_db.s_coversize) {
         delete[] highest_coversize_db.s_cover;
         highest_coversize_db.s_cover = nodeDataManager->cover->getTopCover();
         highest_coversize_db.s_error = err;
@@ -357,7 +357,7 @@ pair<Node*,HasInter> Search_trie_cache::recurse(const Itemset &itemset,
     }
 
     SimilarVals similar_db1, similar_db2; // parameters for similarity lower bound
-    Error minlb = FLT_MAX; // in case solution is not found, the minimum of lb of each attribute(sum per item) can be used as a lb for the current node
+    Error minlb = NO_ERR; // in case solution is not found, the minimum of lb of each attribute(sum per item) can be used as a lb for the current node
     Error child_ub = ub; // upper bound for the first child (item)
     bool first_item, second_item; // variable to store the order to explore items of features
 
@@ -378,12 +378,12 @@ pair<Node*,HasInter> Search_trie_cache::recurse(const Itemset &itemset,
             Itemset tmp_itemset = addItem(itemset, item(attr, NEG_ITEM));
             Node* tmp_node = cache->get(tmp_itemset);
             if (tmp_node != nullptr and tmp_node->data != nullptr) {
-                neg_lb = tmp_node->data->error < FLT_MAX ? tmp_node->data->error : tmp_node->data->lowerBound;
+                neg_lb = tmp_node->data->error < NO_ERR ? tmp_node->data->error : tmp_node->data->lowerBound;
             }
             tmp_itemset = addItem(itemset, item(attr, POS_ITEM));
             tmp_node = cache->get(tmp_itemset);
             if (tmp_node != nullptr and tmp_node->data != nullptr) {
-                pos_lb = tmp_node->data->error < FLT_MAX ? tmp_node->data->error : tmp_node->data->lowerBound;
+                pos_lb = tmp_node->data->error < NO_ERR ? tmp_node->data->error : tmp_node->data->lowerBound;
             }
 
             if (similarlb and similar_for_branching) {
@@ -489,11 +489,11 @@ pair<Node*,HasInter> Search_trie_cache::recurse(const Itemset &itemset,
         }
         else { //we do not attempt the second child, so we use its lower bound
             // if the first error is foud, we use it. otherwise, we use its lower bound.
-            if (floatEqual(firstError, FLT_MAX)) minlb = min(minlb, child_nodes[first_item]->data->lowerBound + second_lb);
+            if (floatEqual(firstError, NO_ERR)) minlb = min(minlb, child_nodes[first_item]->data->lowerBound + second_lb);
             else minlb = min(minlb, firstError + second_lb);
         }
 
-        if (stopAfterError and depth == 0 and ub < FLT_MAX and *nodeError < ub) break;
+        if (stopAfterError and depth == 0 and ub < NO_ERR and *nodeError < ub) break;
     }
     ((TrieNodeData*)(node->data))->curr_test = -1;
 
@@ -503,7 +503,7 @@ pair<Node*,HasInter> Search_trie_cache::recurse(const Itemset &itemset,
     }
 
     // we do not find the solution and the new lower bound is better than the old
-    if (floatEqual(*nodeError, FLT_MAX)) node->data->lowerBound = max( node->data->lowerBound, max(ub, minlb) );
+    if (floatEqual(*nodeError, NO_ERR)) node->data->lowerBound = max( node->data->lowerBound, max(ub, minlb) );
 
     Logger::showMessageAndReturn("depth = ", depth, " and init ub = ", ub, " and error after search = ", *nodeError);
 
@@ -566,9 +566,9 @@ void Search_trie_cache::retrieveWipedSubtrees(Node *node, const Itemset &itemset
     }
     Error c_ub, c_lb;
 
-    if (children_node[NEG_ITEM] == nullptr or children_node[NEG_ITEM]->data == nullptr or floatEqual(children_node[NEG_ITEM]->data->error, FLT_MAX) or children_node[POS_ITEM] == nullptr or children_node[POS_ITEM]->data == nullptr or floatEqual(children_node[POS_ITEM]->data->error, FLT_MAX)) {
+    if (children_node[NEG_ITEM] == nullptr or children_node[NEG_ITEM]->data == nullptr or floatEqual(children_node[NEG_ITEM]->data->error, NO_ERR) or children_node[POS_ITEM] == nullptr or children_node[POS_ITEM]->data == nullptr or floatEqual(children_node[POS_ITEM]->data->error, NO_ERR)) {
 
-        if ( (children_node[NEG_ITEM] == nullptr or children_node[NEG_ITEM]->data == nullptr or floatEqual(children_node[NEG_ITEM]->data->error, FLT_MAX)) and (children_node[POS_ITEM] != nullptr and children_node[POS_ITEM]->data != nullptr and not floatEqual(children_node[POS_ITEM]->data->error, FLT_MAX)) ) { // item neg
+        if ( (children_node[NEG_ITEM] == nullptr or children_node[NEG_ITEM]->data == nullptr or floatEqual(children_node[NEG_ITEM]->data->error, NO_ERR)) and (children_node[POS_ITEM] != nullptr and children_node[POS_ITEM]->data != nullptr and not floatEqual(children_node[POS_ITEM]->data->error, NO_ERR)) ) { // item neg
             // search on neg item only
             c_lb = node->data->error - children_node[POS_ITEM]->data->error;
             c_ub = c_lb + 1;
@@ -585,7 +585,7 @@ void Search_trie_cache::retrieveWipedSubtrees(Node *node, const Itemset &itemset
             retrieveWipedSubtrees(children_node[POS_ITEM], children_itemset[POS_ITEM], item(attr, POS_ITEM), next_succ, depth + 1);
             nodeDataManager->cover->backtrack();
         }
-        else if ( (children_node[POS_ITEM] == nullptr or children_node[POS_ITEM]->data == nullptr or floatEqual(children_node[POS_ITEM]->data->error, FLT_MAX)) and (children_node[NEG_ITEM] != nullptr and children_node[NEG_ITEM]->data != nullptr and not floatEqual(children_node[NEG_ITEM]->data->error, FLT_MAX)) ) { // item pos
+        else if ( (children_node[POS_ITEM] == nullptr or children_node[POS_ITEM]->data == nullptr or floatEqual(children_node[POS_ITEM]->data->error, NO_ERR)) and (children_node[NEG_ITEM] != nullptr and children_node[NEG_ITEM]->data != nullptr and not floatEqual(children_node[NEG_ITEM]->data->error, NO_ERR)) ) { // item pos
             // search on pos item only
             c_lb = node->data->error - children_node[NEG_ITEM]->data->error;
             c_ub = c_lb + 1;
@@ -648,7 +648,7 @@ bool Search_trie_cache::isTreeComplete(Node* node, const Itemset &itemset) {
     Node* children_node[2] = {cache->get(children_itemset[0]), cache->get(children_itemset[1])};
 
     for (auto item_val : {NEG_ITEM, POS_ITEM}) {
-        if (children_node[item_val] == nullptr or children_node[item_val]->data == nullptr or floatEqual(children_node[item_val]->data->error, FLT_MAX)) return false;
+        if (children_node[item_val] == nullptr or children_node[item_val]->data == nullptr or floatEqual(children_node[item_val]->data->error, NO_ERR)) return false;
         else {
             if (not isTreeComplete(children_node[item_val], children_itemset[item_val])) return false;
         }

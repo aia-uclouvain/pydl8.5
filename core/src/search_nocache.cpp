@@ -122,7 +122,7 @@ Error Search_nocache::recurse(Attribute last_added,
     if (timeLimit > 0 && duration<float>(high_resolution_clock::now() - GlobalParams::getInstance()->startTime).count() >= (float)timeLimit) timeLimitReached = true;
 
     // if upper bound is disabled, we set it to infinity
-    if (not use_ub) ub = FLT_MAX;
+    if (not use_ub) ub = NO_ERR;
 
     auto leaf = nodeDataManager->computeLeafInfo();
 
@@ -193,7 +193,7 @@ Error Search_nocache::recurse(Attribute last_added,
         }
         else Logger::showMessageAndReturn("error found is high = ", feature_error, " best was = ", best_error);
 
-        if (stopAfterError && depth == 0 && ub < FLT_MAX && best_error < ub) break;
+        if (stopAfterError && depth == 0 && ub < NO_ERR && best_error < ub) break;
     }
 
     Logger::showMessageAndReturn("depth = ", depth, " and init ub = ", ub, " and error after search = ", best_error);

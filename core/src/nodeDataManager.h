@@ -31,9 +31,9 @@ struct NodeData {
     Size size;
 
     NodeData() {
-        test = INT32_MAX;
-        leafError = FLT_MAX;
-        error = FLT_MAX;
+        test = NO_ATTRIBUTE;
+        leafError = NO_ERR;
+        error = NO_ERR;
         lowerBound = 0;
         size = 1;
     }

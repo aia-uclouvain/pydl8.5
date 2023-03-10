@@ -52,13 +52,15 @@ jobs:
           name: codecov-umbrella
           verbose: true
 
-      - name: Publish 📦 on Test PyPI and on PyPI (if tag)
+      - name: Publish 📦 on PyPI and/or on Test PyPI (if tag)
         env:
           TWINE_USERNAME: __token__
-          TWINE_TEST_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-          TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/
-          TWINE_REPOSITORY: testpypi
+          TWINE_TEST_PASSWORD: ${{ secrets.TEST_PYPI_PUSH_API_TOKEN }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PUSH_API_TOKEN }}
+          TWINE_TEST_REPOSITORY_URL: https://test.pypi.org/legacy/
+          TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
+          TWINE_TEST_REPOSITORY: testpypi
+          TWINE_REPOSITORY: pypi
           PACKAGE_PATH: dist/*
         run: |
           if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then

@@ -49,7 +49,7 @@ Node *infeasiblecase_(Node *node, Error *saved_lb, Error ub) {
 Node * Search_cover_cache::getSolutionIfExists(Node *node, Error ub, Depth depth){
 
     Error *nodeError = &(((CoverNodeData*) node->data)->error);
-    if (*nodeError < FLT_MAX) return existingsolution_(node, nodeError); // solution exists (new node error is FLT_MAX)
+    if (*nodeError < NO_ERR) return existingsolution_(node, nodeError); // solution exists (new node error is NO_ERR)
 
     Error *saved_lb = &(((CoverNodeData*) node->data)->lowerBound);
     // in case the problem is infeasible
@@ -193,7 +193,7 @@ Error Search_cover_cache::computeSimilarityLB(SimilarValss &similar_db1, Similar
 
 void Search_cover_cache::updateSimilarLBInfo2(NodeData *node_data, SimilarValss &similar_db1, SimilarValss &similar_db2) {
 
-    Error err = (((CoverNodeData*) node_data)->error < FLT_MAX) ? ((CoverNodeData*) node_data)->error : ((CoverNodeData*) node_data)->lowerBound;
+    Error err = (((CoverNodeData*) node_data)->error < NO_ERR) ? ((CoverNodeData*) node_data)->error : ((CoverNodeData*) node_data)->lowerBound;
     Support sup = nodeDataManager->cover->getSupport();
 
     if (floatEqual(err, 0)) return;
@@ -253,12 +253,12 @@ void Search_cover_cache::updateSimilarLBInfo2(NodeData *node_data, SimilarValss 
 // store the node with the highest error as well as the one with the largest cover in order to find a similarity lower bound
 void Search_cover_cache::updateSimilarLBInfo1(NodeData *node_data, SimilarValss &highest_error_db, SimilarValss &highest_coversize_db) {
 
-    Error err = (((CoverNodeData*) node_data)->error < FLT_MAX) ? ((CoverNodeData*) node_data)->error : ((CoverNodeData*) node_data)->lowerBound;
+    Error err = (((CoverNodeData*) node_data)->error < NO_ERR) ? ((CoverNodeData*) node_data)->error : ((CoverNodeData*) node_data)->lowerBound;
     Support sup = nodeDataManager->cover->getSupport();
 
     if (floatEqual(err, 0)) return;
 
-    if (err < FLT_MAX and err > highest_error_db.s_error) {
+    if (err < NO_ERR and err > highest_error_db.s_error) {
         delete[] highest_error_db.s_cover;
         highest_error_db.s_cover = nodeDataManager->cover->getTopCover();
         highest_error_db.s_error = err;
@@ -272,7 +272,7 @@ void Search_cover_cache::updateSimilarLBInfo1(NodeData *node_data, SimilarValss 
         return;
     }
 
-    if (err < FLT_MAX and sup > highest_coversize_db.s_coversize) {
+    if (err < NO_ERR and sup > highest_coversize_db.s_coversize) {
         delete[] highest_coversize_db.s_cover;
         highest_coversize_db.s_cover = nodeDataManager->cover->getTopCover();
         highest_coversize_db.s_error = err;
@@ -355,7 +355,7 @@ pair<Node*,HasInter> Search_cover_cache::recurse(Itemset &itemset,
     SimilarValss similar_db1, similar_db2;
     /* in case solution is not found, this value is the minimum of lower bounds
      * error of each attribute(sum per item). It can be used as a lower bound for the current node*/
-    Error minlb = FLT_MAX, child_ub = ub; // upper bound for the first child (item)
+    Error minlb = NO_ERR, child_ub = ub; // upper bound for the first child (item)
     bool first_item, second_item; // the best feature for the current node
 
     // we evaluate the split on each candidate attribute
@@ -377,7 +377,7 @@ pair<Node*,HasInter> Search_cover_cache::recurse(Itemset &itemset,
             nodeDataManager->cover->intersect(attr, NEG_ITEM);
             Node* tmp_node = cache->get(nodeDataManager, itemset.size() + 1);
             if (tmp_node != nullptr and tmp_node->data != nullptr) {
-                neg_lb = tmp_node->data->error < FLT_MAX ? tmp_node->data->error : tmp_node->data->lowerBound;
+                neg_lb = tmp_node->data->error < NO_ERR ? tmp_node->data->error : tmp_node->data->lowerBound;
             }
             if (similarlb and similar_for_branching) neg_lb = max(neg_lb, computeSimilarityLB(similar_db1, similar_db2));
             nodeDataManager->cover->backtrack();
@@ -385,7 +385,7 @@ pair<Node*,HasInter> Search_cover_cache::recurse(Itemset &itemset,
             nodeDataManager->cover->intersect(attr, POS_ITEM);
             tmp_node = cache->get(nodeDataManager, itemset.size() + 1);
             if (tmp_node != nullptr and tmp_node->data != nullptr) {
-                pos_lb = tmp_node->data->error < FLT_MAX ? tmp_node->data->error : tmp_node->data->lowerBound;
+                pos_lb = tmp_node->data->error < NO_ERR ? tmp_node->data->error : tmp_node->data->lowerBound;
             }
             if (similarlb and similar_for_branching) pos_lb = max(pos_lb, computeSimilarityLB(similar_db1, similar_db2));
             nodeDataManager->cover->backtrack();
@@ -454,11 +454,11 @@ pair<Node*,HasInter> Search_cover_cache::recurse(Itemset &itemset,
         }
         else { //we do not attempt the second child, so we use its lower bound
             // if the first error is unknown, we use its lower bound. otherwise, we use it
-            if (floatEqual(firstError, FLT_MAX)) minlb = min(minlb, child_nodes[first_item]->data->lowerBound + second_lb);
+            if (floatEqual(firstError, NO_ERR)) minlb = min(minlb, child_nodes[first_item]->data->lowerBound + second_lb);
             else minlb = min(minlb, firstError + second_lb);
         }
 
-        if (stopAfterError and depth == 0 and ub < FLT_MAX and *nodeError < ub) break;
+        if (stopAfterError and depth == 0 and ub < NO_ERR and *nodeError < ub) break;
 
     }
 
@@ -468,7 +468,7 @@ pair<Node*,HasInter> Search_cover_cache::recurse(Itemset &itemset,
     }
 
     // we do not find the solution and the new lower bound is better than the old
-    if (floatEqual(*nodeError, FLT_MAX)) node->data->lowerBound = max( node->data->lowerBound, max(ub, minlb) );
+    if (floatEqual(*nodeError, NO_ERR)) node->data->lowerBound = max( node->data->lowerBound, max(ub, minlb) );
 
     Logger::showMessageAndReturn("depth = ", depth, " and init ub = ", ub, " and error after search = ", *nodeError);
 

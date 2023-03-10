@@ -107,7 +107,8 @@ void printItemset(const Itemset &itemset, bool force, bool newline) {
 }
 
 bool floatEqual(float f1, float f2) {
-    return fabs(f1 - f2) <= FLT_EPSILON;
+    return fabs(f1 - f2) <= std::numeric_limits<float>::epsilon();
+//    return fabs(f1 - f2) <= FLT_EPSILON;
 }
 
 int find_not_zero(std::string& str) {

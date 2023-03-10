@@ -102,7 +102,7 @@ Error computeDepthTwo(RCover* cover,
 
     // The fact to not bound the search make it find the best solution in any case and remove the chance to recall this
     // function for the same node with a higher upper bound. Since this function is not exponential, we can afford that.
-    ub = FLT_MAX;
+    ub = NO_ERR;
 
     // get the support and the support per class of the root node
     ErrorVals root_sup_clas = copyErrorVals(cover->getErrorValPerClass());
@@ -269,7 +269,7 @@ Error computeDepthTwo(RCover* cover,
             }
 
             // there is no left child coupled to the root to produce lower error than the best tree so far. No need to look at right
-            if (floatEqual(feat_best_tree->root_data->left->error, FLT_MAX)){
+            if (floatEqual(feat_best_tree->root_data->left->error, NO_ERR)){
                 Logger::showMessageAndReturn("aucun left n'a su améliorer l'arbre existant: ", feat_best_tree->root_data->left->error, "on garde l'ancien arbre");
                 continue; // test new root
             }
@@ -378,7 +378,7 @@ Error computeDepthTwo(RCover* cover,
             }
 
             // there is no left child coupled to the root and left to produce lower error than the best tree so far.
-            if (floatEqual(feat_best_tree->root_data->right->error, FLT_MAX)){
+            if (floatEqual(feat_best_tree->root_data->right->error, NO_ERR)){
                 Logger::showMessageAndReturn("pas d'arbre mieux que le meilleur jusque là.");
                 continue; // test new root
             }
@@ -411,7 +411,7 @@ Error computeDepthTwo(RCover* cover,
         return best_error;
     }
 
-    if (best_tree->root_data->test != INT32_MAX) {
+    if (best_tree->root_data->test != NO_ATTRIBUTE) {
 
         Logger::showMessageAndReturn("best tree found (root, left, right): (", best_tree->root_data->test, ",", best_tree->root_data->left->left ? best_tree->root_data->left->test : -best_tree->root_data->left->test, ",", best_tree->root_data->right->left ? best_tree->root_data->right->test : -best_tree->root_data->right->test, ") err:", best_tree->root_data->error);
 

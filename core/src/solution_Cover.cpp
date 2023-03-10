@@ -14,7 +14,7 @@ Solution_Cover::~Solution_Cover() {
 
 Tree* Solution_Cover::getTree() {
     int depth;
-    if (searcher->cache->root->data->size == 0 || (searcher->cache->root->data->size == 1 && floatEqual(searcher->cache->root->data->error, FLT_MAX))) {
+    if (searcher->cache->root->data->size == 0 || (searcher->cache->root->data->size == 1 && floatEqual(searcher->cache->root->data->error, NO_ERR))) {
         tree->expression = "(No such tree)";
         tree->timeout = searcher->timeLimitReached;
     }

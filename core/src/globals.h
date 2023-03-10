@@ -1,8 +1,7 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-#include <climits>
-#include <cfloat>
+#include <limits>
 #include <iostream>
 #include <algorithm>
 #include <vector>
@@ -44,32 +43,6 @@ typedef unsigned long ulong;
 typedef std::vector<Item> Itemset;
 typedef std::vector<Attribute> Attributes;
 
-/*class GlobalParams {
-public:
-    static GlobalParams* getInstance() {
-        static GlobalParams* instance = new GlobalParams();
-        return instance;
-    }
-    Class nclasses;
-    Attribute nattributes;
-    Transaction ntransactions;
-    bool verbose;
-    std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
-    std::string dataname;
-    std::string out;
-
-private:
-    explicit GlobalParams() {
-        std::cout << "params instanciated" << std::endl;
-        verbose = false;
-        startTime = std::chrono::high_resolution_clock::now();
-        nclasses = -1;
-        nattributes = -1;
-        ntransactions = -1;
-        dataname = "";
-        out = "";
-    }
-};*/
 
 class GlobalParams {
 public:
@@ -108,55 +81,15 @@ private:
 };
 
 
-
-
-/*class GlobalParams {
-public:
-    static GlobalParams* getInstance() {
-        if (instance == nullptr)
-            instance = new GlobalParams();
-        return instance;
-    }
-    Class nclasses;
-    Attribute nattributes;
-    bool verbose;
-    std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
-    std::string dataname;
-    std::string out;
-    static GlobalParams* instance;
-    void set_nclasses(Class nclasses) { this->nclasses = nclasses; }
-private:
-    explicit GlobalParams() = default;
-
-};*/
-
-
-
-
-//extern Class nclasses;
-//extern Attribute nattributes;
-//extern bool verbose;
-//extern std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
-//extern std::string dataname;
-//extern std::string out;
-//
-//std::chrono::time_point<std::chrono::high_resolution_clock> startTime = std::chrono::high_resolution_clock::now();
-//Class nclasses;
-//Attribute nattributes;
-//bool verbose = false;
-//std::string dataname;
-//std::string out;
-
-
-#define NO_SUP INT_MAX // SHRT_MAX
-#define NO_ERR FLT_MAX
+#define NO_SUP std::numeric_limits<Support>::max()
+#define NO_ERR std::numeric_limits<Error>::max()
 #define NO_CACHE_LIMIT 0
 #define NEG_ITEM 0
 #define POS_ITEM 1
-#define NO_GAIN FLT_MAX
-#define NO_ITEM INT_MAX // SHRT_MAX
-#define NO_ATTRIBUTE INT_MAX // SHRT_MAX
-#define NO_DEPTH INT_MAX
+#define NO_GAIN std::numeric_limits<Error>::max()
+#define NO_ITEM std::numeric_limits<Item>::max()
+#define NO_ATTRIBUTE std::numeric_limits<Attribute>::max()
+#define NO_DEPTH std::numeric_limits<Depth>::max()
 #define ZERO 0.f
 
 

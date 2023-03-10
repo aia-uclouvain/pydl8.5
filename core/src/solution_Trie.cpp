@@ -14,7 +14,7 @@ Solution_Trie::~Solution_Trie() {
 
 Tree* Solution_Trie::getTree() {
     int depth;
-    if (searcher->cache->root->data->size == 0 || (searcher->cache->root->data->size == 1 && floatEqual(searcher->cache->root->data->error, FLT_MAX))) {
+    if (searcher->cache->root->data->size == 0 || (searcher->cache->root->data->size == 1 && floatEqual(searcher->cache->root->data->error, NO_ERR))) {
         tree->expression = "(No such tree)";
         tree->timeout = searcher->timeLimitReached;
     }
