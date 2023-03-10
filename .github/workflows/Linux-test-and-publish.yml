@@ -54,18 +54,13 @@ jobs:
 
       - name: Publish 📦 on PyPI and/or on Test PyPI (if tag)
         env:
-          TWINE_USERNAME: __token__
-          TWINE_TEST_PASSWORD: ${{ secrets.TEST_PYPI_PUSH_API_TOKEN }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_PUSH_API_TOKEN }}
-          TWINE_TEST_REPOSITORY_URL: https://test.pypi.org/legacy/
-          TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
-          TWINE_TEST_REPOSITORY: testpypi
-          TWINE_REPOSITORY: pypi
+          TWINE_TEST_TOKEN: ${{ secrets.TEST_PYPI_PUSH_API_TOKEN }}
+          TWINE_TOKEN: ${{ secrets.PYPI_PUSH_API_TOKEN }}
           PACKAGE_PATH: dist/*
         run: |
           if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
             echo "Publishing on PyPI"
-            twine upload --verbose --skip-existing --repository pypi $PACKAGE_PATH -u $TWINE_USERNAME -p $TWINE_PASSWORD
+            twine upload --verbose --skip-existing --repository pypi $PACKAGE_PATH -u __token__ -p $TWINE_TOKEN
           fi
           echo "Publishing on Test PyPI"
-          twine upload --verbose --skip-existing --repository testpypi $PACKAGE_PATH -u $TWINE_USERNAME -p TWINE_TEST_PASSWORD
+          twine upload --verbose --skip-existing --repository testpypi $PACKAGE_PATH -u __token__ -p $TWINE_TEST_TOKEN
