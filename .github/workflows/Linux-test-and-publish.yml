@@ -27,11 +27,11 @@ jobs:
           python-version: '3.x'
           architecture: 'x64'
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install setuptools wheel twine auditwheel
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+#      - name: Install dependencies
+#        run: |
+#          python -m pip install --upgrade pip
+#          pip install setuptools wheel twine auditwheel
+#          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
 #      - name: Build and install the package
 #        run: |
@@ -44,12 +44,16 @@ jobs:
       - name: Build package
         uses: docker://quay.io/pypa/manylinux2014_x86_64
         with:
-          args: bash -c "pip install -U setuptools wheel && python setup.py sdist bdist_wheel"
+          args: bash -c "python -m pip install --upgrade pip && pip install -U setuptools wheel && if [ -f requirements.txt ]; then pip install -r requirements.txt; fi && python setup.py sdist bdist_wheel && cp dist/* /github/workspace/"
 
       - name: Auditwheel repair
         uses: docker://quay.io/pypa/manylinux2014_x86_64
         with:
-          args: bash -c "pip install -U auditwheel && auditwheel repair dist/*.whl"
+          args: bash -c "pip install -U auditwheel && auditwheel repair /github/workspace/*.whl"
+
+      - name: Install package
+        run: |
+          python3 setup.py install
 
       - name: Run tests, compute coverage and generate xml report
         run: |
@@ -65,11 +69,14 @@ jobs:
           name: codecov-umbrella
           verbose: true
 
+      - name: publish the package generated inside the docker container
+        run: |
+
       - name: Publish 📦 on PyPI and/or on Test PyPI (if tag)
         env:
           TWINE_TEST_TOKEN: ${{ secrets.TEST_PYPI_PUSH_API_TOKEN }}
           TWINE_TOKEN: ${{ secrets.PYPI_PUSH_API_TOKEN }}
-          PACKAGE_PATH: dist/*
+          PACKAGE_PATH: ${{ github.workspace }}/dist/*
         run: |
           if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
             echo "Publishing on PyPI"
