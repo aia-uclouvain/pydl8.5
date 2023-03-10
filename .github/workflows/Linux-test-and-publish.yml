@@ -33,13 +33,23 @@ jobs:
           pip install setuptools wheel twine auditwheel
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Build and install the package
-        run: |
-          python setup.py sdist bdist_wheel
-          if [ "${{ runner.os }}" = "Linux" ]; then
-              auditwheel repair --plat manylinux_2_27_x86_64 dist/*.whl
-          fi
-          python3 setup.py install
+#      - name: Build and install the package
+#        run: |
+#          python setup.py sdist bdist_wheel
+#          if [ "${{ runner.os }}" = "Linux" ]; then
+#              auditwheel repair --plat manylinux_2_27_x86_64 dist/*.whl
+#          fi
+#          python3 setup.py install
+
+      - name: Build package
+        uses: docker://quay.io/pypa/manylinux2014_x86_64
+        with:
+          args: bash -c "pip install -U setuptools wheel && python setup.py sdist bdist_wheel"
+
+      - name: Auditwheel repair
+        uses: docker://quay.io/pypa/manylinux2014_x86_64
+        with:
+          args: bash -c "pip install -U auditwheel && auditwheel repair dist/*.whl"
 
       - name: Run tests, compute coverage and generate xml report
         run: |
