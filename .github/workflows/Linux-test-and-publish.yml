@@ -55,6 +55,11 @@ jobs:
           name: codecov-umbrella
           verbose: true
 
+      - name: Build a binary wheel and a source tarball
+        run: |
+          python3 setup.py sdist --formats=gztar,zip
+          ls dist
+
 #      - name: Install dependencies
 #        run: |
 #          python -m pip install --upgrade pip
@@ -88,14 +93,15 @@ jobs:
 
       - name: Add source distribution to wheelhouse
         run: |
+          ls
           ls wheelhouse/
-          cp pydl8*.tar.gz wheelhouse/
-          cp pydl8*.zip wheelhouse/
-          ls wheelhouse/
+#          cp pydl8*.tar.gz wheelhouse/
+#          cp pydl8*.zip wheelhouse/
+#          ls wheelhouse/
 
       - name: Install twine
         run: |
-          python -m pip install twine
+          python3 -m pip install twine
 
       - name: Publish 📦 on PyPI and/or on Test PyPI (if tag)
         env:
