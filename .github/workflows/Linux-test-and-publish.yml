@@ -61,9 +61,12 @@ jobs:
 
       - name: Install package and upload dependencies
         run: |
-          python3 setup.py install
           python -m pip install --upgrade pip
           pip install setuptools twine
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          python setup.py sdist
+          python3 setup.py install 
+          cp wheelhouse/*.whl dist/
           
 
       - name: Run tests, compute coverage and generate xml report
