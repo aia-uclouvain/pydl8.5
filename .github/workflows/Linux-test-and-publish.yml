@@ -44,7 +44,7 @@ jobs:
       - name: Build package
         uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
         with:
-          args: bash -c "yum install -y python3-devel && python3 -m venv /venv && source /venv/bin/activate && curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && python get-pip.py && if [ -f requirements.txt ]; then pip install -r requirements.txt; fi && pip install wheel && python setup.py sdist bdist_wheel && cp dist/* /github/workspace/"
+          args: bash -c "yum install -y python3-devel && python3 -m venv /venv && source /venv/bin/activate && curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && python get-pip.py && if [ -f requirements.txt ]; then pip install -r requirements.txt; fi && pip install wheel && python setup.py sdist bdist_wheel --formats=gztar,zip && cp dist/* /github/workspace/"
 
 
       - name: Auditwheel repair
@@ -64,10 +64,7 @@ jobs:
         run: |
           python3 -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          python3 setup.py sdist
-          cp wheelhouse/*.whl dist/
           python3 setup.py install 
-          python -m pip install twine
           
 
       - name: Run tests, compute coverage and generate xml report
@@ -84,11 +81,22 @@ jobs:
           name: codecov-umbrella
           verbose: true
 
+      - name: Add source distribution to wheelhouse
+        run: |
+          ls wheelhouse/
+          cp dist/*.tar.gz wheelhouse/
+          cp dist/*.zip wheelhouse/
+          ls wheelhouse/
+
+      - name: Install twine
+        run: |
+          python -m pip install twine
+
       - name: Publish 📦 on PyPI and/or on Test PyPI (if tag)
         env:
           TWINE_TEST_TOKEN: ${{ secrets.TEST_PYPI_PUSH_API_TOKEN }}
           TWINE_TOKEN: ${{ secrets.PYPI_PUSH_API_TOKEN }}
-          PACKAGE_PATH: ${{ github.workspace }}/dist/*
+          PACKAGE_PATH: ${{ github.workspace }}/wheelhouse/*
         run: |
           if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
             echo "Publishing on PyPI"
