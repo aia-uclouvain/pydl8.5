@@ -44,7 +44,7 @@ jobs:
       - name: Build package
         uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
         with:
-          args: bash -c "yum install -y python3-devel && python3 -m venv /venv && source /venv/bin/activate && curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && python get-pip.py && if [ -f requirements.txt ]; then pip install -r requirements.txt; fi && pip install wheel && python setup.py sdist bdist_wheel --formats=gztar,zip && cp dist/* /github/workspace/"
+          args: bash -c "yum install -y python3-devel && python3 -m venv /venv && source /venv/bin/activate && curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && python get-pip.py && if [ -f requirements.txt ]; then pip install -r requirements.txt; fi && pip install wheel && python setup.py sdist bdist_wheel && cp dist/* /github/workspace/"
 
 
       - name: Auditwheel repair
@@ -84,8 +84,8 @@ jobs:
       - name: Add source distribution to wheelhouse
         run: |
           ls wheelhouse/
-          cp dist/*.tar.gz wheelhouse/
-          cp dist/*.zip wheelhouse/
+          cp pydl8*.tar.gz wheelhouse/
+          cp pydl8*.zip wheelhouse/
           ls wheelhouse/
 
       - name: Install twine
