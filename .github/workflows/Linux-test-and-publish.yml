@@ -44,16 +44,21 @@ jobs:
       - name: Build package
         uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
         with:
-          args: bash -c "yum install -y openssl-devel bzip2-devel libffi-devel && curl -LO https://www.python.org/ftp/python/3.10.0/Python-3.10.0.tgz && tar xzf Python-3.10.0.tgz && cd Python-3.10.0 && ./configure --enable-optimizations --with-ensurepip=install && make altinstall && cd .. && rm -rf Python-3.10.0* && pip install -U setuptools wheel && if [ -f requirements.txt ]; then pip install -r requirements.txt; fi && python setup.py sdist bdist_wheel && cp dist/* /github/workspace/"
+#          args: bash -c "yum install -y openssl-devel bzip2-devel libffi-devel && curl -LO https://www.python.org/ftp/python/3.10.0/Python-3.10.0.tgz && tar xzf Python-3.10.0.tgz && cd Python-3.10.0 && ./configure --enable-optimizations --with-ensurepip=install && make altinstall && cd .. && rm -rf Python-3.10.0* && python -m pip install -U setuptools wheel && if [ -f requirements.txt ]; then python -m pip install -r requirements.txt; fi && python setup.py sdist bdist_wheel && cp dist/* /github/workspace/"
+          args: bash -c "python -m pip install -U setuptools wheel && if [ -f requirements.txt ]; then python -m pip install -r requirements.txt; fi && python setup.py sdist bdist_wheel && cp dist/* /github/workspace/"
 
       - name: Auditwheel repair
         uses: docker://quay.io/pypa/manylinux2014_x86_64
         with:
-          args: bash -c "pip install -U auditwheel && auditwheel repair /github/workspace/*.whl"
+          args: bash -c "python -m pip install -U auditwheel && auditwheel repair /github/workspace/*.whl"
 
-      - name: Install package
+
+      - name: Install package and upload dependencies
         run: |
           python3 setup.py install
+          python -m pip install --upgrade pip
+          pip install setuptools twine
+          
 
       - name: Run tests, compute coverage and generate xml report
         run: |
@@ -68,9 +73,6 @@ jobs:
           fail_ci_if_error: true
           name: codecov-umbrella
           verbose: true
-
-      - name: publish the package generated inside the docker container
-        run: |
 
       - name: Publish 📦 on PyPI and/or on Test PyPI (if tag)
         env:
