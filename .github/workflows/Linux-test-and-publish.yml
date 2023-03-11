@@ -64,7 +64,7 @@ jobs:
         run: |
           python3 -m pip install --upgrade pip
           if [ -f requirements.txt ]; then python3 -m pip install -r requirements.txt; fi
-          python3 setup.py install 
+          python3 -m pip install .
           
 
       - name: Run tests, compute coverage and generate xml report
