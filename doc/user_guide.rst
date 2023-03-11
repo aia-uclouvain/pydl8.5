@@ -43,7 +43,7 @@ The following code illustrates how to use DL8.5 in its most basic setting::
 
     import numpy as np
     from sklearn.model_selection import train_test_split
-    from dl85 import DL85Classifier 
+    from pydl85 import DL85Classifier
 
     dataset = np.genfromtext("anneal.txt", delimiter=" ")
     X = dataset[:, 1:]
@@ -133,7 +133,7 @@ that evaluates the quality of clusters in the leafs. The full code is given belo
 
     import numpy as np
     from sklearn.neighbors import DistanceMetric
-    from dl85 import DL85Predictor
+    from pydl85 import DL85Predictor
 
     dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')
     X = dataset[:, 1:]

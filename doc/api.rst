@@ -8,7 +8,7 @@ The ``DL85Cluster`` class supports a form of predictive clustering.
 
 The documentation for these classes is given below.
 
-.. currentmodule:: dl85
+.. currentmodule:: pydl85
 
 Predictors
 ==========
