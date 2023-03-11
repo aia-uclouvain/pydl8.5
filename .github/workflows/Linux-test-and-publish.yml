@@ -54,17 +54,22 @@ jobs:
 
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v3
         with:
           python-version: '3.x'
           architecture: 'x64'
 
 
-      - name: Install package and upload dependencies
+#      - name: Install package and upload dependencies
+#        run: |
+#          python3 -m pip install --upgrade pip
+#          if [ -f requirements.txt ]; then python3 -m pip install -r requirements.txt; fi
+#          python3 -m pip install .
+
+      - name: installs dependencies and installs the package from setup.py
         run: |
-          python3 -m pip install --upgrade pip
           if [ -f requirements.txt ]; then python3 -m pip install -r requirements.txt; fi
-          python3 -m pip install .
+          python3 setup.py install
           
 
       - name: Run tests, compute coverage and generate xml report
