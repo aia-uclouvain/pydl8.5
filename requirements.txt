@@ -15,3 +15,4 @@ pytest
 pytest-cov
 gurobipy
 cvxpy
+graphviz
