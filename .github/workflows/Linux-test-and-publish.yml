@@ -41,11 +41,17 @@ jobs:
 #          fi
 #          python3 setup.py install
 
+#      - name: Build package
+#        uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
+#        with:
+##          args: bash -c "yum install -y openssl-devel bzip2-devel libffi-devel && curl -LO https://www.python.org/ftp/python/3.10.0/Python-3.10.0.tgz && tar xzf Python-3.10.0.tgz && cd Python-3.10.0 && ./configure --enable-optimizations --with-ensurepip=install && make altinstall && cd .. && rm -rf Python-3.10.0* && python -m pip install -U setuptools wheel && if [ -f requirements.txt ]; then python -m pip install -r requirements.txt; fi && python setup.py sdist bdist_wheel && cp dist/* /github/workspace/"
+#          args: bash -c "yum install -y python3-devel && curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && python3 get-pip.py --user && if [ -f requirements.txt ]; then /github/home/.local/bin/pip install -r requirements.txt; fi && /github/home/.local/bin/pip install wheel && python setup.py sdist bdist_wheel && cp dist/* /github/workspace/"
+
       - name: Build package
         uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
         with:
-#          args: bash -c "yum install -y openssl-devel bzip2-devel libffi-devel && curl -LO https://www.python.org/ftp/python/3.10.0/Python-3.10.0.tgz && tar xzf Python-3.10.0.tgz && cd Python-3.10.0 && ./configure --enable-optimizations --with-ensurepip=install && make altinstall && cd .. && rm -rf Python-3.10.0* && python -m pip install -U setuptools wheel && if [ -f requirements.txt ]; then python -m pip install -r requirements.txt; fi && python setup.py sdist bdist_wheel && cp dist/* /github/workspace/"
-          args: bash -c "yum install -y python3-devel && curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && python3 get-pip.py --user && /github/home/.local/bin/pip install -U setuptools wheel && if [ -f requirements.txt ]; then /github/home/.local/bin/pip install -r requirements.txt; fi && /github/home/.local/bin/pip install setuptools && python setup.py sdist bdist_wheel && cp dist/* /github/workspace/"
+          args: bash -c "yum install -y python3-devel && python3 -m venv /venv && source /venv/bin/activate && curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && python get-pip.py && if [ -f requirements.txt ]; then pip install -r requirements.txt; fi && pip install wheel && python setup.py sdist bdist_wheel && cp dist/* /github/workspace/"
+
 
       - name: Auditwheel repair
         uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
