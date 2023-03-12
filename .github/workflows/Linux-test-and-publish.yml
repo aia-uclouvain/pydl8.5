@@ -57,7 +57,7 @@ jobs:
 
       - name: Build a binary wheel and a source tarball
         run: |
-          python3 setup.py sdist --formats=gztar,zip
+          python3 setup.py sdist
           ls dist
 
 #      - name: Install dependencies
