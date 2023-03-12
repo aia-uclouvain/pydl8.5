@@ -58,6 +58,7 @@ jobs:
       - name: Build a binary wheel and a source tarball
         run: |
           python3 setup.py sdist --formats=gztar,zip
+          rm dist/*.whl
           ls dist
 
 #      - name: Install dependencies
@@ -89,7 +90,7 @@ jobs:
       - name: Auditwheel repair
         uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
         with:
-          args: bash -c "yum install -y python3-devel && curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && python3 get-pip.py --user && /github/home/.local/bin/pip install -U auditwheel && auditwheel repair /github/workspace/*.whl && cp wheelhouse/* /github/workspace/dist/"
+          args: bash -c "yum install -y python3-devel && curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && python3 get-pip.py --user && /github/home/.local/bin/pip install -U auditwheel && auditwheel repair /github/workspace/*.whl && cp wheelhouse/*manylinux* /github/workspace/dist/"
 
 
       - name: Add source distribution to wheelhouse
