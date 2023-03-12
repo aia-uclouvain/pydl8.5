@@ -93,12 +93,11 @@ jobs:
 
       - name: Add source distribution to wheelhouse
         run: |
-#          ls
-#          ls wheelhouse/
-          cp pydl8*.tar.gz wheelhouse/
-          cp pydl8*.zip wheelhouse/
-          echo "wheelhouse content:"
+          ls
           ls wheelhouse/
+#          cp pydl8*.tar.gz wheelhouse/
+#          cp pydl8*.zip wheelhouse/
+#          ls wheelhouse/
 
       - name: Install twine
         run: |
