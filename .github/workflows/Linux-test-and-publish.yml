@@ -91,10 +91,9 @@ jobs:
         with:
           args: bash -c "yum install -y python3-devel && curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && python3 get-pip.py --user && /github/home/.local/bin/pip install -U auditwheel && auditwheel repair /github/workspace/*.whl && cp wheelhouse/* /github/workspace/dist/"
 
+
       - name: Add source distribution to wheelhouse
         run: |
-#          cp pydl8*.tar.gz wheelhouse/
-#          cp pydl8*.zip wheelhouse/
           ls dist/
 
       - name: Install twine
