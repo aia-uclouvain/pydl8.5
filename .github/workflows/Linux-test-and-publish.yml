@@ -15,6 +15,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+
       - name: Install GCC
         uses: egor-tensin/setup-gcc@v1
         with:
@@ -29,12 +30,6 @@ jobs:
           architecture: 'x64'
 
 
-      #      - name: Install package and upload dependencies
-      #        run: |
-      #          python3 -m pip install --upgrade pip
-      #          if [ -f requirements.txt ]; then python3 -m pip install -r requirements.txt; fi
-      #          python3 -m pip install .
-
       - name: installs dependencies and installs the package from setup.py
         run: |
           if [ -f requirements.txt ]; then python3 -m pip install -r requirements.txt; fi
@@ -46,6 +41,7 @@ jobs:
           coverage run --source=pydl85/supervised/classifiers/tests/ -m pytest -v
           coverage xml --data-file=.coverage
 
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
         with:
@@ -55,45 +51,53 @@ jobs:
           name: codecov-umbrella
           verbose: true
 
+
       - name: Build a binary wheel and a source tarball
         run: |
-          python3 setup.py sdist --formats=gztar,zip
+          python3 setup.py sdist --formats=gztar
           ls dist
-
-#      - name: Install dependencies
-#        run: |
-#          python -m pip install --upgrade pip
-#          pip install setuptools wheel twine auditwheel
-#          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-#      - name: Build and install the package
-#        run: |
-#          python setup.py sdist bdist_wheel
-#          if [ "${{ runner.os }}" = "Linux" ]; then
-#              auditwheel repair --plat manylinux_2_27_x86_64 dist/*.whl
-#          fi
-#          python3 setup.py install
-
-#      - name: Build package
-#        uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
-#        with:
-##          args: bash -c "yum install -y openssl-devel bzip2-devel libffi-devel && curl -LO https://www.python.org/ftp/python/3.10.0/Python-3.10.0.tgz && tar xzf Python-3.10.0.tgz && cd Python-3.10.0 && ./configure --enable-optimizations --with-ensurepip=install && make altinstall && cd .. && rm -rf Python-3.10.0* && python -m pip install -U setuptools wheel && if [ -f requirements.txt ]; then python -m pip install -r requirements.txt; fi && python setup.py sdist bdist_wheel && cp dist/* /github/workspace/"
-#          args: bash -c "yum install -y python3-devel && curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && python3 get-pip.py --user && if [ -f requirements.txt ]; then /github/home/.local/bin/pip install -r requirements.txt; fi && /github/home/.local/bin/pip install wheel && python setup.py sdist bdist_wheel && cp dist/* /github/workspace/"
+      
 
       - name: Build package
         uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
         with:
-          args: bash -c "yum install -y python3-devel && python3 -m venv /venv && source /venv/bin/activate && curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && python get-pip.py && if [ -f requirements.txt ]; then pip install -r requirements.txt; fi && pip install wheel && python setup.py sdist bdist_wheel && cp dist/* /github/workspace/"
+          args: bash -c "yum install -y python3-devel
+            python3 -m venv /venv
+            source /venv/bin/activate
+            curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py
+            python get-pip.py
+            if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+            pip install wheel
+            python setup.py sdist bdist_wheel
+            cp dist/* /github/workspace/"
 
 
       - name: Auditwheel repair
         uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
         with:
-          args: bash -c "yum install -y python3-devel && curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && python3 get-pip.py --user && /github/home/.local/bin/pip install -U auditwheel && auditwheel repair /github/workspace/*.whl && rm /github/workspace/dist/*.whl && rm /github/workspace/dist/*.zip && cp wheelhouse/*.whl /github/workspace/dist && echo 'my dist content' && ls dist && echo 'github dist content' && ls /github/workspace/dist && echo 'my wheelhouse content' && ls wheelhouse && echo 'github wheelhouse content' && ls /github/workspace/wheelhouse "  #  && cp wheelhouse/*manylinux* /github/workspace/dist/
+          args: bash -c "yum install -y python3-devel
+            curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py
+            python3 get-pip.py --user
+            /github/home/.local/bin/pip install -U auditwheel
+            auditwheel repair /github/workspace/*.whl
+            echo 'my dist content before'
+            ls dist
+            rm /github/workspace/dist/*.whl
+#            rm /github/workspace/dist/*.zip
+            cp wheelhouse/*.whl /github/workspace/dist
+            echo 'my dist content'
+            ls dist
+            echo 'github dist content'
+            ls /github/workspace/dist
+            echo 'my wheelhouse content'
+            ls wheelhouse
+            echo 'github wheelhouse content'
+            ls /github/workspace/wheelhouse"  #  && cp wheelhouse/*manylinux* /github/workspace/dist/
 
 
       - name: Add source distribution to wheelhouse
         run: |
+          echo 'my dist content'
           ls dist/
 
       - name: Install twine
