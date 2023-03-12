@@ -89,7 +89,7 @@ jobs:
       - name: Auditwheel repair
         uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
         with:
-          args: bash -c "yum install -y python3-devel && curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && python3 get-pip.py --user && /github/home/.local/bin/pip install -U auditwheel && auditwheel repair /github/workspace/*.whl && cp wheelhouse/*manylinux* /github/workspace/dist/"
+          args: bash -c "yum install -y python3-devel && curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && python3 get-pip.py --user && /github/home/.local/bin/pip install -U auditwheel && auditwheel repair /github/workspace/*.whl && echo 'my dist content' && ls dist && echo 'github dist content' && ls /github/workspace/dist && echo 'my wheelhouse content' && ls wheelhouse && echo 'github wheelhouse content' && echo /github/workspace/wheelhouse "  #  && cp wheelhouse/*manylinux* /github/workspace/dist/
 
 
       - name: Add source distribution to wheelhouse
