@@ -89,13 +89,13 @@ jobs:
       - name: Auditwheel repair
         uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
         with:
-          args: bash -c "yum install -y python3-devel && curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && python3 get-pip.py --user && /github/home/.local/bin/pip install -U auditwheel && auditwheel repair /github/workspace/*.whl"
+          args: bash -c "yum install -y python3-devel && curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && python3 get-pip.py --user && /github/home/.local/bin/pip install -U auditwheel && auditwheel repair /github/workspace/*.whl && cp wheelhouse/* /github/workspace/dist/"
 
       - name: Add source distribution to wheelhouse
         run: |
-          cp pydl8*.tar.gz wheelhouse/
-          cp pydl8*.zip wheelhouse/
-          ls wheelhouse/
+#          cp pydl8*.tar.gz wheelhouse/
+#          cp pydl8*.zip wheelhouse/
+          ls dist/
 
       - name: Install twine
         run: |
@@ -105,7 +105,7 @@ jobs:
         env:
           TWINE_TEST_TOKEN: ${{ secrets.TEST_PYPI_PUSH_API_TOKEN }}
           TWINE_TOKEN: ${{ secrets.PYPI_PUSH_API_TOKEN }}
-          PACKAGE_PATH: ${{ github.workspace }}/wheelhouse/*
+          PACKAGE_PATH: ${{ github.workspace }}/dist/*
         run: |
           if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
             echo "Publishing on PyPI"
