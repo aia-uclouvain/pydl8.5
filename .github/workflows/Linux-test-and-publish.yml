@@ -57,7 +57,7 @@ jobs:
 
       - name: Build a binary wheel and a source tarball
         run: |
-          python3 setup.py sdist
+          python3 setup.py sdist --formats=gztar,zip
           ls dist
 
 #      - name: Install dependencies
@@ -82,14 +82,12 @@ jobs:
 
       - name: Build package
         uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
-#        uses: docker://quay.io/pypa/manylinux_2_24:latest
         with:
           args: bash -c "yum install -y python3-devel && python3 -m venv /venv && source /venv/bin/activate && curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && python get-pip.py && if [ -f requirements.txt ]; then pip install -r requirements.txt; fi && pip install wheel && python setup.py sdist bdist_wheel && cp dist/* /github/workspace/"
 
 
       - name: Auditwheel repair
         uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
-#        uses: docker://quay.io/pypa/manylinux_2_24:latest
         with:
           args: bash -c "yum install -y python3-devel && curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && python3 get-pip.py --user && /github/home/.local/bin/pip install -U auditwheel && auditwheel repair /github/workspace/*.whl"
 
@@ -97,10 +95,10 @@ jobs:
         run: |
 #          ls
 #          ls wheelhouse/
-          cp pydl8*.tar.gz /github/workspace/wheelhouse/
-          cp pydl8*.zip /github/workspace/wheelhouse/
+          cp pydl8*.tar.gz wheelhouse/
+          cp pydl8*.zip wheelhouse/
           echo "wheelhouse content:"
-          ls /github/workspace/wheelhouse/
+          ls wheelhouse/
 
       - name: Install twine
         run: |
