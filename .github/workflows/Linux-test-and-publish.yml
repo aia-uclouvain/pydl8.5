@@ -24,13 +24,13 @@ jobs:
 
 
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
           python-version: '3.x'
           architecture: 'x64'
 
 
-      - name: installs dependencies and installs the package from setup.py
+      - name: Install dependencies and install the package from setup.py
         run: |
           if [ -f requirements.txt ]; then python3 -m pip install -r requirements.txt; fi
           python3 setup.py install
@@ -52,10 +52,9 @@ jobs:
           verbose: true
 
 
-      - name: Build a binary wheel and a source tarball
+      - name: Build a source tarball
         run: |
           python3 setup.py sdist --formats=gztar
-          ls dist
       
 
       - name: Build package
@@ -80,28 +79,14 @@ jobs:
               python3 get-pip.py --user &&
               /github/home/.local/bin/pip install -U auditwheel &&
               auditwheel repair /github/workspace/*.whl &&
-              echo 'my dist content before' &&
-              ls dist &&
               rm /github/workspace/dist/*.whl &&
-              cp wheelhouse/*.whl /github/workspace/dist &&
-              echo 'my dist content' &&
-              ls dist &&
-              echo 'github dist content' &&
-              ls /github/workspace/dist &&
-              echo 'my wheelhouse content' &&
-              ls wheelhouse &&
-              echo 'github wheelhouse content' &&
-              ls /github/workspace/wheelhouse"  #  && cp wheelhouse/*manylinux* /github/workspace/dist/  rm /github/workspace/dist/*.zip
+              cp wheelhouse/*.whl /github/workspace/dist"
 
-
-      - name: Add source distribution to wheelhouse
-        run: |
-          echo 'my dist content'
-          ls dist/
 
       - name: Install twine
         run: |
           python3 -m pip install twine
+
 
       - name: Publish 📦 on PyPI and/or on Test PyPI (if tag)
         env:
