@@ -57,7 +57,7 @@ jobs:
           python3 setup.py sdist --formats=gztar
       
 
-      - name: Build package
+      - name: Build binary wheel in a docker container
         uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
         with:
           args: bash -c "yum install -y python3-devel &&
@@ -71,7 +71,7 @@ jobs:
               cp dist/* /github/workspace/"
 
 
-      - name: Auditwheel repair
+      - name: Repair the wheel with Auditwheel using manylinux2014 docker image
         uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
         with:
           args: bash -c "yum install -y python3-devel &&
