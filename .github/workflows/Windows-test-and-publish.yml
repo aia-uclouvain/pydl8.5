@@ -1,0 +1,81 @@
+name: All - Publish Package on PyPI or Test PyPI
+
+on:
+  push:
+    branches: [ master ]
+    tags:
+      - '*'
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-2022
+        compiler:
+          - gcc
+          - msvc
+        cpp-version:
+            - c++20
+        python-version: [3.8, 3.9]
+        architecture: [x86_64]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/vcpkg
+            ./build/vcpkg_installed
+            ${{ env.HOME }}/.cache/vcpkg/archives
+            ${{ env.XDG_CACHE_HOME }}/vcpkg/archives
+            ${{ env.LOCALAPPDATA }}\vcpkg\archives
+            ${{ env.APPDATA }}\vcpkg\archives
+          key: ${{ runner.os }}-${{ matrix.compiler }}-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt') }}-${{ hashFiles('./vcpkg.json')}}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.BUILD_TYPE }}-
+
+      - name: Setup Cpp
+        uses: aminya/setup-cpp@v1
+        with:
+          compiler: ${{ matrix.compiler }}
+          vcvarsall: ${{ contains(matrix.os, 'windows') }}
+          cmake: true
+          ninja: true
+          vcpkg: true
+          cppcheck: true
+          clangtidy: true # instead of `true`, which chooses the default version, you can pass a specific version.
+
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: 'x64'
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install setuptools wheel twine
+          python3 -m pip install -r requirements.txt
+
+      - name: Build package and install it
+        run: |
+          python3 setup.py sdist bdist_wheel
+
+      - name: Publish 📦 on PyPI and/or on Test PyPI (if tag)
+        env:
+          TWINE_TEST_TOKEN: ${{ secrets.TEST_PYPI_PUSH_API_TOKEN }}
+          TWINE_TOKEN: ${{ secrets.PYPI_PUSH_API_TOKEN }}
+          PACKAGE_PATH: ${{ github.workspace }}/dist/*
+        run: |
+          IF "%GITHUB_REF%"=="refs/tags/*" (
+            ECHO Publishing on PyPI
+            twine upload --verbose --skip-existing --repository pypi %PACKAGE_PATH% -u __token__ -p %TWINE_TOKEN%
+          )
+          ECHO Publishing on Test PyPI
+          twine upload --verbose --skip-existing --repository testpypi %PACKAGE_PATH% -u __token__ -p %TWINE_TEST_TOKEN%

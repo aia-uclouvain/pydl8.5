@@ -43,10 +43,27 @@ public:
     }
 
     vector<float> operator()(RCover* ar) {
-        PyInit_error_function();
-        if (pyFunction) { // nullptr check
-            return call_python_tid_error_class_function(pyFunction, ar); // note, no way of checking for errors until you return to Python
+        int status = PyImport_AppendInittab("error_function", PyInit_error_function);
+        if (status == -1) {
+            vector<float> result;
+            return result;
         }
+        Py_Initialize();
+        PyObject* module = PyImport_ImportModule("error_function");
+        if (!module) {
+            Py_Finalize();
+            vector<float> result;
+            return result;
+        }
+
+//        PyInit_error_function();
+        vector<float> result;
+        if (pyFunction) { // nullptr check
+            result = *call_python_tid_error_class_function(pyFunction, ar); // note, no way of checking for errors until you return to Python
+        }
+
+        Py_Finalize();
+        return result;
     }
 
 private:

@@ -58,11 +58,13 @@ cdef public wrap_array(RCover *ar, bool trans):
     tid_python_object.init_iterator()
     return tid_python_object
 
-cdef public vector[float] call_python_tid_error_class_function(py_function, RCover *ar):
-    return py_function(wrap_array(ar, True))
+cdef public vector[float]* call_python_tid_error_class_function(py_function, RCover *ar):
+    cdef vector[float]* tmp = py_function(wrap_array(ar, True))
+    return &tmp
 
-cdef public vector[float] call_python_support_error_class_function(py_function, RCover *ar):
-    return py_function(wrap_array(ar, False))
+cdef public vector[float]* call_python_support_error_class_function(py_function, RCover *ar):
+    cdef vector[float]* tmp = py_function(wrap_array(ar, False))
+    return &tmp
 
 cdef public float call_python_tid_error_function(py_function, RCover *ar):
     return py_function(wrap_array(ar, True))

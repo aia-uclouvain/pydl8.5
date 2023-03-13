@@ -8,6 +8,7 @@
 #include <Python.h>
 #include "error_function.h" // cython helper file
 #include "rCover.h"
+#include <limits>
 
 class PyTidErrorWrapper {
 public:
@@ -43,10 +44,25 @@ public:
     }
 
     float operator()(RCover* ar) {
-        PyInit_error_function();
-        if (pyFunction) { // nullptr check
-            return call_python_tid_error_function(pyFunction, ar); // note, no way of checking for errors until you return to Python
+        int status = PyImport_AppendInittab("error_function", PyInit_error_function);
+        if (status == -1) {
+            return std::numeric_limits<float>::max();
         }
+        Py_Initialize();
+        PyObject* module = PyImport_ImportModule("error_function");
+        if (!module) {
+            Py_Finalize();
+            return std::numeric_limits<float>::max();
+        }
+
+//        PyInit_error_function();
+        float result = std::numeric_limits<float>::max();
+        if (pyFunction) { // nullptr check
+            result = call_python_tid_error_function(pyFunction, ar); // note, no way of checking for errors until you return to Python
+        }
+
+        Py_Finalize();
+        return std::numeric_limits<float>::max();
     }
 
 private:

@@ -71,11 +71,9 @@ EXTENSION_SOURCE_FILES = ['cython_extension/dl85Optimizer.pyx',
 EXTENSION_INCLUDE_DIR = ['core/src', 'cython_extension']
 EXTENSION_BUILD_ARGS = None
 if platform.system() == "Windows":
-    EXTENSION_BUILD_ARGS = ['/std=c++20', '/DCYTHON_PEP489_MULTI_PHASE_INIT=0']
+    EXTENSION_BUILD_ARGS = ['/std:c++20']
 else:
-    EXTENSION_BUILD_ARGS = ['-std=c++20', '-DCYTHON_PEP489_MULTI_PHASE_INIT=0']
-if platform.system() == 'Darwin':
-    EXTENSION_BUILD_ARGS.append('-mmacosx-version-min=10.12')
+    EXTENSION_BUILD_ARGS = ['-std=c++20']
 
 dl85_extension = Extension(
     name=EXTENSION_NAME,
