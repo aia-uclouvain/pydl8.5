@@ -17,12 +17,15 @@ jobs:
           - windows-2022
           - macos-12
         compiler:
-          - gcc-12.2.0
-          - msvc-19.30.30705.0
+          - gcc-11.2.0
+          - msvc
+        cpp-version:
+            - c++20
           # you can specify the version after `-` like `llvm-13.0.0`.
-#        include:
-#          - os: "windows-2022"
-#            compiler: "msvc"
+        include:
+          - os: "windows-2022"
+            compiler: "msvc-19.29.30133.0"
+            cpp-version: "c++20"
         python-version: [3.8, 3.9]
         architecture: [x86_64]
 
