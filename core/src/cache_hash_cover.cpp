@@ -31,11 +31,11 @@ pair<Node *, bool> Cache_Hash_Cover::insert(NodeDataManager *nodeDataManager, in
             delete node;
             info.first->second->n_reuse++;
         }
-        else {
-            /*if (maxcachesize > NO_CACHE_LIMIT) {
-                deletion_queue.push_back(make_pair(&(info.first), depth));
-            }*/
-        }
+//        else {
+//            /*if (maxcachesize > NO_CACHE_LIMIT) {
+//                deletion_queue.push_back(make_pair(&(info.first), depth));
+//            }*/
+//        }
         return {info.first->second, info.second};
     }
 }
