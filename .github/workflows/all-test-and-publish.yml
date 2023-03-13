@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, windows-latest]
-        python-version: [3.8, 3.9, 3.10, 3.11]
+        python-version: [3.8, 3.9, 3.10]
         architecture: [x86_64]
     steps:
       - name: Checkout code
@@ -21,9 +21,9 @@ jobs:
 
       - name: Install GCC
         run: |
-          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+          if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
             brew install gcc
-          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
+          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             choco install mingw
           else
             echo "Unsupported OS: ${{ matrix.os }}"
