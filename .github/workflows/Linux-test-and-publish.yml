@@ -12,41 +12,41 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/vcpkg
-            ./build/vcpkg_installed
-            ${{ env.HOME }}/.cache/vcpkg/archives
-            ${{ env.XDG_CACHE_HOME }}/vcpkg/archives
-            ${{ env.LOCALAPPDATA }}\vcpkg\archives
-            ${{ env.APPDATA }}\vcpkg\archives
-          key: ${{ runner.os }}-${{ matrix.compiler }}-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt') }}-${{ hashFiles('./vcpkg.json')}}
-          restore-keys: |
-            ${{ runner.os }}-${{ env.BUILD_TYPE }}-
-
-      - name: Setup Cpp
-        uses: aminya/setup-cpp@v1
-        with:
-          compiler: gcc
-          vcvarsall: false
-          cmake: true
-          ninja: true
-          vcpkg: true
-          cppcheck: true
-          clangtidy: true # instead of `true`, which chooses the default version, you can pass a specific version.
-
-#      - name: Checkout code
-#        uses: actions/checkout@v3
-#
-#
-#      - name: Install GCC
-#        uses: egor-tensin/setup-gcc@v1
+#      - uses: actions/checkout@v3
+#      - name: Cache
+#        uses: actions/cache@v3
 #        with:
-#          version: latest
-#          platform: x64
+#          path: |
+#            ~/vcpkg
+#            ./build/vcpkg_installed
+#            ${{ env.HOME }}/.cache/vcpkg/archives
+#            ${{ env.XDG_CACHE_HOME }}/vcpkg/archives
+#            ${{ env.LOCALAPPDATA }}\vcpkg\archives
+#            ${{ env.APPDATA }}\vcpkg\archives
+#          key: ${{ runner.os }}-${{ matrix.compiler }}-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt') }}-${{ hashFiles('./vcpkg.json')}}
+#          restore-keys: |
+#            ${{ runner.os }}-${{ env.BUILD_TYPE }}-
+#
+#      - name: Setup Cpp
+#        uses: aminya/setup-cpp@v1
+#        with:
+#          compiler: gcc
+#          vcvarsall: false
+#          cmake: true
+#          ninja: true
+#          vcpkg: true
+#          cppcheck: true
+#          clangtidy: true # instead of `true`, which chooses the default version, you can pass a specific version.
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+
+      - name: Install GCC
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: latest
+          platform: x64
 
 
       - name: Set up Python
