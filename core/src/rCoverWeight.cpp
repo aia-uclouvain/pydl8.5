@@ -125,7 +125,7 @@ ErrorVal RCoverWeight::getErrorVal(bitset<64> &coverWord, int wordIndex) {
  * @param index - the index value to check
  * @return boolean value representing the result of the query
  */
-bool isKthBitSet(u_long number, int index) {
+bool isKthBitSet(unsigned long number, int index) {
     return (number & (1 << (index - 1))) != 0;
 }
 
@@ -135,7 +135,7 @@ bool isKthBitSet(u_long number, int index) {
  * @param number - int value of the binary number
  * @return the index of the first set bit
  */
-unsigned int getFirstSetBitPos(const u_long& number) { return log2(number & -number) + 1;}
+unsigned int getFirstSetBitPos(const unsigned long& number) { return log2(number & -number) + 1;}
 
 /**
  * getTransactionsID
@@ -146,7 +146,7 @@ vector<int> RCoverWeight::getTransactionsID() {
     for (int i = 0; i < limit.top(); ++i) {
         int indexForTransactions = nWords - (validWords[i]+1);
         bitset<M> word = coverWords[validWords[i]].top();
-        u_long w = word.to_ulong();
+        unsigned long w = word.to_ulong();
         int pos = getFirstSetBitPos(w);
         int transInd = pos - 1;
         while (pos >= 1){
