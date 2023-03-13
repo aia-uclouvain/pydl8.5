@@ -73,9 +73,11 @@ jobs:
           TWINE_TOKEN: ${{ secrets.PYPI_PUSH_API_TOKEN }}
           PACKAGE_PATH: ${{ github.workspace }}/dist/*
         run: |
-          IF "%GITHUB_REF%"=="refs/tags/*" (
-            ECHO Publishing on PyPI
-            twine upload --verbose --skip-existing --repository pypi %PACKAGE_PATH% -u __token__ -p %TWINE_TOKEN%
+          if("%GITHUB_REF:~10%"=="") (
+              echo "No tag found, publishing to Test PyPI"
+              twine upload --repository testpypi --verbose --skip-existing %PACKAGE_PATH%
+          ) else (
+              echo "Tag found, publishing to PyPI"
+              twine upload --verbose --skip-existing %PACKAGE_PATH%
           )
-          ECHO Publishing on Test PyPI
-          twine upload --verbose --skip-existing --repository testpypi %PACKAGE_PATH% -u __token__ -p %TWINE_TEST_TOKEN%
+      
