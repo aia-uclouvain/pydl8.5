@@ -1,4 +1,4 @@
-name: All - Publish Package on PyPI or Test PyPI
+name: Mac - Publish Package on PyPI or Test PyPI
 
 on:
   push:
