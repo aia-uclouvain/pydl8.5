@@ -18,7 +18,6 @@ jobs:
           - macos-12
         compiler:
           - gcc-11.2.0
-          - msvc
         cpp-version:
             - c++20
           # you can specify the version after `-` like `llvm-13.0.0`.
