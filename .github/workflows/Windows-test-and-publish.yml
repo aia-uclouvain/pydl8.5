@@ -78,5 +78,5 @@ jobs:
               twine upload --verbose --skip-existing --repository pypi $env:PACKAGE_PATH -u __token__ -p $env:TWINE_TOKEN
           }
           Write-Host "Publishing on Test PyPI"
-          twine upload --verbose --skip-existing --repository testpypi $env:PACKAGE_PATH -u __token__ -p $env:TWINE_TEST_TOKEN
+          twine upload --verbose --skip-existing --repository testpypi dist/* -u __token__ -p ${{ secrets.TEST_PYPI_PUSH_API_TOKEN }}
           

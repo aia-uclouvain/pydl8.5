@@ -73,7 +73,7 @@ EXTENSION_BUILD_ARGS = None
 if platform.system() == "Windows":
     EXTENSION_BUILD_ARGS = ['/std:c++20']
 else:
-    EXTENSION_BUILD_ARGS = ['-std=c++17']
+    EXTENSION_BUILD_ARGS = ['-std=c++17', '-DCYTHON_PEP489_MULTI_PHASE_INIT=0']
 
 dl85_extension = Extension(
     name=EXTENSION_NAME,
