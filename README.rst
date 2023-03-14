@@ -1,25 +1,40 @@
 |Travis|_ |CircleCI|_ |GithubCI_Linux|_ |GithubCI_Mac|_ |GithubCI_Windows|_ |ReadTheDocs|_ |Codecov|_
 
+
 .. |Travis| image:: https://app.travis-ci.com/aglingael/PyDL8.5.svg?branch=master
 .. _Travis: https://app.travis-ci.com/github/aglingael/PyDL8.5
 
 .. |CircleCI| image:: https://circleci.com/gh/aglingael/PyDL8.5/tree/master.svg?style=shield
 .. _CircleCI: https://app.circleci.com/pipelines/github/aglingael/PyDL8.5
 
-.. |GithubCI_Linux| image:: ![Linux - Build and Publish Package on PyPI](https://github.com/aia-uclouvain/pydl8.5/actions/workflows/Linux-test-and-publish.yml/badge.svg)
-.. _GithubCI_Linux: https://github.com/aia-uclouvain/pydl8.5/actions/workflows/Linux-test-and-publish.yml
-
-.. |GithubCI_Mac| image:: ![Mac - Build and Publish Package on PyPI](https://github.com/aia-uclouvain/pydl8.5/actions/workflows/Mac-test-and-publish.yml/badge.svg)
-.. _GithubCI_Mac: https://github.com/aia-uclouvain/pydl8.5/actions/workflows/Mac-test-and-publish.yml
-
-.. |GithubCI_Windows| image:: ![Windows - Build and Publish Package on PyPI](https://github.com/aia-uclouvain/pydl8.5/actions/workflows/Windows-test-and-publish.yml/badge.svg)
-.. _GithubCI_Windows: https://github.com/aia-uclouvain/pydl8.5/actions/workflows/Windows-test-and-publish.yml
-
 .. |ReadTheDocs| image:: https://readthedocs.org/projects/pydl85/badge/?version=latest
 .. _ReadTheDocs: https://pydl85.readthedocs.io/en/latest/
 
 .. |Codecov| image:: https://codecov.io/gh/aglingael/PyDL8.5/branch/master/graph/badge.svg?token=UAP32DK54M
 .. _Codecov: https://codecov.io/gh/aglingael/PyDL8.5
+
+
+
+.. |GithubCI_Linux| raw:: html
+
+   <a href="https://github.com/aia-uclouvain/pydl8.5/actions/workflows/Linux-test-and-publish.yml"><img src="https://github.com/aia-uclouvain/pydl8.5/actions/workflows/Linux-test-and-publish.yml/badge.svg" alt="Linux - Build and Publish Package on PyPI"></a>
+
+.. _GithubCI_Linux: https://github.com/aia-uclouvain/pydl8.5/actions/workflows/Linux-test-and-publish.yml
+
+
+.. |GithubCI_Mac| raw:: html
+
+   <a href="https://github.com/aia-uclouvain/pydl8.5/actions/workflows/Mac-test-and-publish.yml"><img src="https://github.com/aia-uclouvain/pydl8.5/actions/workflows/Mac-test-and-publish.yml/badge.svg" alt="Mac - Build and Publish Package on PyPI"></a>
+
+.. _GithubCI_Mac: https://github.com/aia-uclouvain/pydl8.5/actions/workflows/Mac-test-and-publish.yml
+
+.. |GithubCI_Windows| raw:: html
+
+   <a href="https://github.com/aia-uclouvain/pydl8.5/actions/workflows/Windows-test-and-publish.yml"><img src="https://github.com/aia-uclouvain/pydl8.5/actions/workflows/Windows-test-and-publish.yml/badge.svg" alt="Windows - Build and Publish Package on PyPI"></a>
+
+.. _GithubCI_Windows: https://github.com/aia-uclouvain/pydl8.5/actions/workflows/Windows-test-and-publish.yml
+
+
 
 
 :Authors:
