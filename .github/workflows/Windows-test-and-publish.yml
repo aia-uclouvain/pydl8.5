@@ -16,7 +16,7 @@ jobs:
         os:
           - windows-2022
         compiler:
-          - gcc
+#          - gcc
           - msvc
         cpp-version:
             - c++20
@@ -49,7 +49,6 @@ jobs:
           vcpkg: true
           cppcheck: true
           clangtidy: true # instead of `true`, which chooses the default version, you can pass a specific version.
-
 
       - name: Set up Python
         uses: actions/setup-python@v4

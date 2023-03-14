@@ -12,35 +12,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-#      - uses: actions/checkout@v3
-#      - name: Cache
-#        uses: actions/cache@v3
-#        with:
-#          path: |
-#            ~/vcpkg
-#            ./build/vcpkg_installed
-#            ${{ env.HOME }}/.cache/vcpkg/archives
-#            ${{ env.XDG_CACHE_HOME }}/vcpkg/archives
-#            ${{ env.LOCALAPPDATA }}\vcpkg\archives
-#            ${{ env.APPDATA }}\vcpkg\archives
-#          key: ${{ runner.os }}-${{ matrix.compiler }}-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt') }}-${{ hashFiles('./vcpkg.json')}}
-#          restore-keys: |
-#            ${{ runner.os }}-${{ env.BUILD_TYPE }}-
-#
-#      - name: Setup Cpp
-#        uses: aminya/setup-cpp@v1
-#        with:
-#          compiler: gcc
-#          vcvarsall: false
-#          cmake: true
-#          ninja: true
-#          vcpkg: true
-#          cppcheck: true
-#          clangtidy: true # instead of `true`, which chooses the default version, you can pass a specific version.
-
       - name: Checkout code
         uses: actions/checkout@v3
-
 
       - name: Install GCC
         uses: egor-tensin/setup-gcc@v1
@@ -48,25 +21,21 @@ jobs:
           version: latest
           platform: x64
 
-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
           architecture: 'x64'
 
-
       - name: Install dependencies and install the package from setup.py
         run: |
           if [ -f requirements.txt ]; then python3 -m pip install -r requirements.txt; fi
           python3 -m pip install .
 
-
       - name: Run tests, compute coverage and generate xml report
         run: |
           coverage run --source=pydl85/supervised/classifiers/tests/ -m pytest -v
           coverage xml --data-file=.coverage
-
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
@@ -77,42 +46,39 @@ jobs:
           name: codecov-umbrella
           verbose: true
 
-
       - name: Build a source tarball
         run: |
           python3 setup.py sdist --formats=gztar
-      
 
       - name: Build binary wheel in a docker container
         uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
         with:
-          args: bash -c "yum install -y python3-devel &&
-              python3 -m venv /venv &&
+          args: bash -c "yum install -y python39 &&
+              yum install -y python3-devel &&
+              python3.9 -m venv /venv &&
               source /venv/bin/activate &&
-              curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py &&
-              python get-pip.py &&
-              if [ -f requirements.txt ]; then pip install -r requirements.txt; fi &&
-              pip install wheel &&
-              python setup.py sdist bdist_wheel &&
+              curl https://bootstrap.pypa.io/pip/get-pip.py -o get-pip.py &&
+              python3.9 get-pip.py &&
+              if [ -f requirements.txt ]; then python3.9 -m pip install -r requirements.txt; fi &&
+              python3.9 -m pip install wheel &&
+              python3.9 setup.py sdist bdist_wheel &&
               cp dist/* /github/workspace/"
-
 
       - name: Repair the wheel with Auditwheel using manylinux2014 docker image
         uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
         with:
-          args: bash -c "yum install -y python3-devel &&
-              curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py &&
-              python3 get-pip.py --user &&
+          args: bash -c "yum install -y python39 &&
+              yum install -y python3-devel &&
+              curl https://bootstrap.pypa.io/pip/get-pip.py -o get-pip.py &&
+              python3.9 get-pip.py --user &&
               /github/home/.local/bin/pip install -U auditwheel &&
               auditwheel repair /github/workspace/*.whl &&
               rm /github/workspace/dist/*.whl &&
               cp wheelhouse/*.whl /github/workspace/dist"
 
-
       - name: Install twine
         run: |
           python3 -m pip install twine
-
 
       - name: Publish 📦 on PyPI and/or on Test PyPI (if tag)
         env:
