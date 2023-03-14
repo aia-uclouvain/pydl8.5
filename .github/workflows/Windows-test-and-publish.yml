@@ -62,7 +62,7 @@ jobs:
           python3 -m pip install setuptools wheel twine
           python3 -m pip install -r requirements.txt
 
-      - name: Build package and install it
+      - name: Build package
         run: |
           python3 setup.py sdist bdist_wheel
 

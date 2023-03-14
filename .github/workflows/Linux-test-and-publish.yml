@@ -9,7 +9,14 @@ on:
 
 jobs:
   build-and-publish:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+        python-version: [ 3.8, 3.9 ]
+        architecture: [ x86_64 ]
 
     steps:
       - name: Checkout code
@@ -54,13 +61,13 @@ jobs:
         uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
         with:
           args: bash -c "yum install -y python3-devel &&
-              python3.9 -m venv /venv &&
+              python${{ matrix.python-version }} -m venv /venv &&
               source /venv/bin/activate &&
               curl https://bootstrap.pypa.io/pip/get-pip.py -o get-pip.py &&
-              python3.9 get-pip.py &&
-              if [ -f requirements.txt ]; then python3.9 -m pip install -r requirements.txt; fi &&
-              python3.9 -m pip install wheel &&
-              python3.9 setup.py sdist bdist_wheel &&
+              python3 get-pip.py &&
+              if [ -f requirements.txt ]; then python3 -m pip install -r requirements.txt; fi &&
+              python3 -m pip install wheel &&
+              python3 setup.py sdist bdist_wheel &&
               cp dist/* /github/workspace/"
 
       - name: Repair the wheel with Auditwheel using manylinux2014 docker image
@@ -68,7 +75,7 @@ jobs:
         with:
           args: bash -c "yum install -y python3-devel &&
               curl https://bootstrap.pypa.io/pip/get-pip.py -o get-pip.py &&
-              python3.9 get-pip.py --user &&
+              python3${{ matrix.python-version }} get-pip.py --user &&
               /github/home/.local/bin/pip install -U auditwheel &&
               auditwheel repair /github/workspace/*.whl &&
               rm /github/workspace/dist/*.whl &&
