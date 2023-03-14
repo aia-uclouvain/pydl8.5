@@ -73,7 +73,7 @@ EXTENSION_BUILD_ARGS = None
 if platform.system() == "Windows":
     EXTENSION_BUILD_ARGS = ['/std:c++20']
 else:
-    EXTENSION_BUILD_ARGS = ['-std=c++17', '-DCYTHON_PEP489_MULTI_PHASE_INIT=0']
+    EXTENSION_BUILD_ARGS = ['-std=c++20']
 
 dl85_extension = Extension(
     name=EXTENSION_NAME,
@@ -98,7 +98,7 @@ setup(
     packages=find_packages(),  # ["pydl85", "pydl85.classifiers", "pydl85.errors"],
     keywords=KEYWORDS,
     description=DESCRIPTION,
-    long_description=LONG_DESCRIPTION,
+    long_description=LONG_DESCRIPTION if platform.system() != "Windows" else "",
     classifiers=CLASSIFIERS,
     # setup_requires=SETUP_REQUIRES,
     install_requires=INSTALL_REQUIRES,
