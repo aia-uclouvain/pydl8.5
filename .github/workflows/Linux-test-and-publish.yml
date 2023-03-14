@@ -1,4 +1,4 @@
-name: Linux - Publish Package on PyPI or Test PyPI
+name: Linux - Build and Publish on PyPI
 
 on:
   push:

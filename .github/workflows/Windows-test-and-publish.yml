@@ -1,4 +1,4 @@
-name: Windows - Publish Package on PyPI or Test PyPI
+name: Windows - Build and Publish on PyPI
 
 on:
   push:
