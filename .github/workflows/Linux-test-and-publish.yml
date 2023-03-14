@@ -75,7 +75,7 @@ jobs:
         with:
           args: bash -c "yum install -y python3-devel &&
               curl https://bootstrap.pypa.io/pip/get-pip.py -o get-pip.py &&
-              python3${{ matrix.python-version }} get-pip.py --user &&
+              python${{ matrix.python-version }} get-pip.py --user &&
               /github/home/.local/bin/pip install -U auditwheel &&
               auditwheel repair /github/workspace/*.whl &&
               rm /github/workspace/dist/*.whl &&
