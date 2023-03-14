@@ -14,7 +14,7 @@
 ### Relevant papers
 [[DL852020]](https://dial.uclouvain.be/pr/boreal/fr/object/boreal%3A223390/datastream/PDF_01/view) [![DOI](https://img.shields.io/badge/DOI:DL8.5-10.1609%2Faaai.v34i04.5711-blue?logo=adobe-acrobat-reader)](https://doi.org/10.1609/aaai.v34i04.5711)
 
-[[PYDL852020]](https://www.ijcai.org/Proceedings/2020/0750.pdf) [![DOI](https://img.shields.io/badge/DOI:PYDL8.5-10.1609%2Faaai.v34i04.5711-blue?logo=adobe-acrobat-reader)](https://www.ijcai.org/proceedings/2020/0750.pdf)
+[[PYDL852020]](https://www.ijcai.org/Proceedings/2020/0750.pdf) [![DOI](https://img.shields.io/badge/DOI:PYDL8.5-10.24963%2Fijcai.2020/750-blue?logo=adobe-acrobat-reader)](https://doi.org/10.24963/ijcai.2020/750)
 
 
 ### Description
