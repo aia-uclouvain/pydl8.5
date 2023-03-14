@@ -57,7 +57,7 @@ jobs:
         run: |
           python3 setup.py sdist --formats=gztar
 
-      - name: Build binary wheel in a docker container
+      - name: Build and repair binary wheel in a docker container
         uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
         with:
           args: bash -c "yum install -y python3-devel &&
@@ -66,20 +66,11 @@ jobs:
               curl https://bootstrap.pypa.io/pip/get-pip.py -o get-pip.py &&
               python3 get-pip.py &&
               if [ -f requirements.txt ]; then python3 -m pip install -r requirements.txt; fi &&
-              python3 -m pip install wheel &&
+              python3 -m pip install wheel auditwheel &&
               python3 setup.py sdist bdist_wheel &&
-              cp dist/* /github/workspace/"
-
-      - name: Repair the wheel with Auditwheel using manylinux2014 docker image
-        uses: docker://quay.io/pypa/manylinux2014_x86_64:latest
-        with:
-          args: bash -c "yum install -y python3-devel &&
-              curl https://bootstrap.pypa.io/pip/get-pip.py -o get-pip.py &&
-              python${{ matrix.python-version }} get-pip.py --user &&
-              /github/home/.local/bin/pip install -U auditwheel &&
-              auditwheel repair /github/workspace/*.whl &&
-              rm /github/workspace/dist/*.whl &&
-              cp wheelhouse/*.whl /github/workspace/dist"
+              auditwheel repair dist/*.whl &&
+              rm dist/*.whl &&
+              cp wheelhouse/*.whl dist/"
 
       - name: Install twine
         run: |

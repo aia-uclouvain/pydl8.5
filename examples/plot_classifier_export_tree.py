@@ -8,6 +8,8 @@ import numpy as np
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+
+from examples.utils import PlotGraphviz  # Only for rendering the graph on the webpage
 from pydl85 import DL85Classifier
 import graphviz
 
@@ -37,5 +39,6 @@ print("Accuracy on test set =", round(accuracy_score(y_test, y_pred), 4))
 # print the tree
 dot = clf.export_graphviz()
 graph = graphviz.Source(dot, format="png")
-graph.render("plots/anneal_odt")
+# This line is only for the example, you can remove it. Use graph.render("plots/anneal_odt.pdf") instead
+PlotGraphviz(str(graph))
 

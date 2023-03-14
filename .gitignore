@@ -66,6 +66,7 @@
 /examples/*.csv
 /examples/output/
 /examples/test/
+/examples/__pycache__/
 
 /*.so
 

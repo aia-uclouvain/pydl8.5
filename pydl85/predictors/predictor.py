@@ -1,3 +1,5 @@
+import html
+
 from sklearn.base import BaseEstimator
 from sklearn.utils.validation import assert_all_finite, check_X_y, check_array, check_is_fitted
 from sklearn.utils.multiclass import unique_labels
@@ -11,27 +13,31 @@ from enum import Enum
 from subprocess import check_call
 
 
-def get_dot_body(treedict, parent=None, left=True):
+def get_dot_body(treedict, parent=None, left=True, feature_names=None, class_names=None):
     gstring = ""
     id = str(uuid.uuid4())
     id = id.replace('-', '_')
 
     if "feat" in treedict.keys():
         feat = treedict["feat"]
+        if feature_names is not None:
+            feat = feature_names[int(feat)]
+            feat = html.escape(feat)
         if parent is None:
             gstring += "node_" + id + " [label=\"{{feat|" + str(feat) + "}}\"];\n"
-            gstring += get_dot_body(treedict["left"], id)
-            gstring += get_dot_body(treedict["right"], id, False)
+            gstring += get_dot_body(treedict["left"], id, True, feature_names, class_names)
+            gstring += get_dot_body(treedict["right"], id, False, feature_names, class_names)
         else:
             gstring += "node_" + id + " [label=\"{{feat|" + str(feat) + "}}\"];\n"
             gstring += "node_" + parent + " -> node_" + id + " [label=" + str(int(left)) + "];\n"
-            gstring += get_dot_body(treedict["left"], id)
-            gstring += get_dot_body(treedict["right"], id, False)
+            gstring += get_dot_body(treedict["left"], id, True, feature_names, class_names)
+            gstring += get_dot_body(treedict["right"], id, False, feature_names, class_names)
     else:
-        val = str(int(treedict["value"])) if treedict["value"] - int(treedict["value"]) == 0 else str(
-            round(treedict["value"], 3))
-        err = str(int(treedict["error"])) if treedict["error"] - int(treedict["error"]) == 0 else str(
-            round(treedict["error"], 2))
+        val = str(int(treedict["value"])) if treedict["value"] - int(treedict["value"]) == 0 else str(round(treedict["value"], 3))
+        if class_names is not None:
+            val = class_names[int(val)]
+            val = html.escape(val)
+        err = str(int(treedict["error"])) if treedict["error"] - int(treedict["error"]) == 0 else str(round(treedict["error"], 2))
         # maxi = max(len(val), len(err))
         # val = val if len(val) == maxi else val + (" " * (maxi - len(val)))
         # err = err if len(err) == maxi else err + (" " * (maxi - len(err)))
@@ -559,7 +565,7 @@ class DL85Predictor(BaseEstimator):
         recurse(tree)
         return tree
 
-    def export_graphviz(self):
+    def export_graphviz(self, feature_names=None, class_names=None):
         if self.is_fitted_ is False:  # fit method has not been called
             raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
 
@@ -577,7 +583,7 @@ class DL85Predictor(BaseEstimator):
                        "node [shape=record]; \n"
 
         # build the body
-        graph_string += get_dot_body(self.tree_)
+        graph_string += get_dot_body(self.tree_, parent=None, left=True, feature_names=feature_names, class_names=class_names)
 
         # end by the footer
         graph_string += "}"

@@ -44,7 +44,7 @@ def test_predict():
 def test_depth_2():
     solutions = [137, 10, 87, 22, 177, 267, 60, 16, 70, 32, 418, 599, 22, 252, 153, 58, 9, 55, 508, 282, 75, 17, 437, 0]
     mypath = "./datasets"
-    onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
+    onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f)) and "compas" not in f]
     onlyfiles = sorted(onlyfiles)
     depth = 2
 
@@ -67,7 +67,7 @@ def test_depth_2():
 def test_depth_3():
     solutions = [112, 5, 73, 15, 162, 236, 41, 10, 61, 22, 198, 369, 12, 8, 47, 46, 0, 29, 224, 216, 26, 12, 403, 0]
     mypath = "./datasets"
-    onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
+    onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f)) and "compas" not in f]
     onlyfiles = sorted(onlyfiles)
     depth = 3
 
