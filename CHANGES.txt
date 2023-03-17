@@ -1,3 +1,6 @@
+Release v0.1.5
+- fix bug in specialized depth-2 algo
+
 Release v0.1.4
 - fix bug related to earlier stopping of runs when there are multiple calls to DL8Classifier
 
@@ -59,5 +62,5 @@ Release v0.0.2
 - ...
 
 Release v0.0.1
-This is the first release of DL8.5 so all in the tools are news.
+This is the first release of PyDL8.5 so everything in the tool is new.
 Wait the next release for changes ;-)

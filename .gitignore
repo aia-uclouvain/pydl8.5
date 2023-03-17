@@ -1,5 +1,7 @@
 /build/
 
+/cython_debug/
+
 /dist/
 
 /pydl8.5.egg-info/
@@ -14,7 +16,7 @@
 
 /.ipynb_checkpoints/
 
-/tests/
+/tests_code/
 
 /.vscode/
 

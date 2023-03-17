@@ -34,7 +34,7 @@ bool NodeDataManager_Cover::updateData(Node *best, Error upperBound, Attribute a
 }
 
 NodeData *NodeDataManager_Cover::initData(RCover *cov, Depth currentMaxDepth, int hashcode) {
-    Class maxclass = -1;
+    Class maxclass = 1;  // default value. It will be turned into negative value if the class is not computed
     Error error;
     auto *data = new CoverNodeData();
     if (cov == nullptr) cov = cover;
@@ -45,7 +45,7 @@ NodeData *NodeDataManager_Cover::initData(RCover *cov, Depth currentMaxDepth, in
         if (supports_error_class_callback != nullptr) {
             function<vector<float>(RCover *)> callback = *supports_error_class_callback;
             cov->getErrorValPerClass(); // allocate the sup_array if it does not exist yet and compute the frequency counts
-            vector<float> infos = callback(cover);
+            vector<float> infos = callback(cov);
             error = infos[0];
             maxclass = int(infos[1]);
         }

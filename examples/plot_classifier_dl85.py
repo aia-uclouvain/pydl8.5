@@ -14,11 +14,7 @@ import time
 from pydl85 import DL85Classifier
 
 dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')
-X = dataset[:, 1:]
-y = dataset[:, 0]
-X = X.astype('int32')
-y = y.astype('int32')
-
+X, y = dataset[:, 1:], dataset[:, 0]
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
 

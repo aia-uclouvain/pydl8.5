@@ -43,6 +43,37 @@ public:
     }
 
     vector<float> operator()(RCover* ar) {
+        PyInit_error_function();
+        vector<float> result;
+        if (pyFunction != nullptr) { // nullptr check
+            float* result_pointer =  call_python_tid_error_class_function(pyFunction, ar); // note, no way of checking for errors until you return to Python
+            result.push_back(result_pointer[0]);
+            result.push_back(result_pointer[1]);
+        }
+        return result;
+    }
+
+    /*vector<float> operator()(RCover* ar) {
+        PyInit_error_function();
+        if (pyFunction) { // nullptr check
+            float* result_pointer = call_python_tid_error_class_function(pyFunction, ar); // note, no way of checking for errors until you return to Python
+            cout << "@re: " << result_pointer << endl;
+            vector<float> result;
+            int size = 2; // the function returns a vector of size 2 (error and class)
+            for (int i = 0; i < size; i++) {
+                result.push_back(result_pointer[i]);
+            }
+            // print r
+            cout << "result: ";
+            for (int i = 0; i < result.size(); i++) {
+                cout << result[i] << " ";
+            }
+            cout << endl;
+            return result;
+        }
+    }*/
+
+    /*vector<float> operator()(RCover* ar) {
         int status = PyImport_AppendInittab("error_function", PyInit_error_function);
         if (status == -1) {
             vector<float> result;
@@ -56,7 +87,6 @@ public:
             return result;
         }
 
-//        PyInit_error_function();
         vector<float> result;
         if (pyFunction) { // nullptr check
             result = *call_python_tid_error_class_function(pyFunction, ar); // note, no way of checking for errors until you return to Python
@@ -64,7 +94,7 @@ public:
 
         Py_Finalize();
         return result;
-    }
+    }*/
 
 private:
     PyObject* pyFunction;

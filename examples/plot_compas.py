@@ -16,8 +16,6 @@ from pydl85 import DL85Classifier, Cache_Type
 
 dataset = np.genfromtxt("../datasets/compas.csv", delimiter=',', skip_header=1)
 X, y = dataset[:, :-1], dataset[:, -1]
-X, y = X.astype('int32'), y.astype('int32')
-
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # read the column names
@@ -39,11 +37,12 @@ y_pred = clf.predict(X_test)
 print("Confusion Matrix below")
 print(confusion_matrix(y_test, y_pred))
 print("Accuracy DL8.5 on training set =", round(clf.accuracy_, 4))
-print("Accuracy DL8.5 on test set =", round(accuracy_score(y_test, y_pred), 4), "\n\n\n")
+print("Accuracy DL8.5 on test set =", round(accuracy_score(y_test, y_pred), 4))
 
 
 # print the tree
+print("Serialized json tree:", clf.tree_)
 dot = clf.export_graphviz(feature_names=col_names, class_names=["No Recidivism", "Recidivism"])
 graph = graphviz.Source(dot)
-# This line is only for the example. Use graph.render("plots/compas.pdf") to save the graph
-PlotGraphviz(str(graph))
+graph.render("plots/compas_odt.pdf")
+PlotGraphviz(str(graph))  # Only for rendering the graph on the webpage (remove it when running the script locally)

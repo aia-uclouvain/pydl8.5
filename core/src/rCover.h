@@ -21,22 +21,22 @@ using namespace std;
 class RCover {
 
 public:
-    stack<bitset<M>, vector<bitset<M>>>* coverWords;
-    int* validWords;
+    stack<bitset<M>, vector<bitset<M>>> *coverWords;
+    int *validWords;
     stack<int, vector<int>> limit;
     int nWords;
-    DataManager* dm;
+    DataManager *dm;
     ErrorVals sup_class = nullptr;
     int support = -1;
 
-    RCover(DataManager* dmm);
+    RCover(DataManager *dmm);
 
-    RCover(RCover&& cover) noexcept ;
+    RCover(RCover &&cover) noexcept;
 
-    virtual ~RCover(){
+    virtual ~RCover() {
         delete[] coverWords;
         delete[] validWords;
-        delete [] sup_class;
+        delete[] sup_class;
     }
 
     virtual void intersect(Attribute attribute, bool positive = true) = 0;
@@ -45,21 +45,21 @@ public:
 
     Support temporaryIntersectSup(Attribute attribute, bool positive = true);
 
-    ErrorVal getDiffErrorVal(bitset<M>* cover1, int* valids, int nvalids, bool cover_is_first = false);
+    ErrorVal getDiffErrorVal(bitset<M> *cover1, int *valids, int nvalids, bool cover_is_first = false);
 
-    ErrorVals getDiffErrorVals(bitset<M>* cover1, bool cover_is_first = false);
+    ErrorVals getDiffErrorVals(bitset<M> *cover1, bool cover_is_first = false);
 
-    bitset<M>* getDiffCover(bitset<M>* cover1, bool cover_is_first = false);
+    bitset<M> *getDiffCover(bitset<M> *cover1, bool cover_is_first = false);
 
-    bitset<M>* getTopCover() const;
+    bitset<M> *getTopCover() const;
 
     Support getSupport();
 
     virtual ErrorVals getErrorValPerClass() = 0;
 
-    virtual ErrorVal getErrorVal(bitset<M>& coverWord, int wordIndex) = 0;
+    virtual ErrorVal getErrorVal(bitset<M> &coverWord, int wordIndex) = 0;
 
-    virtual ErrorVals getErrorValPerClass(bitset<M>* cover, int nValidWords, int* validIndexes) = 0;
+    virtual ErrorVals getErrorValPerClass(bitset<M> *cover, int nValidWords, int *validIndexes) = 0;
 
     void backtrack();
 
@@ -77,11 +77,11 @@ public:
         typedef int difference_type;
 
         explicit iterator(RCover *container_, size_t index = 0, bool trans = false) : container(container_) {
-            if (trans){
+            if (trans) {
                 trans_loop = true;
                 if (index == -1)
                     wordIndex = container->limit.top();
-                else if (index == 0){
+                else if (index == 0) {
                     wordIndex = index;
                     pos = 0;
                     transInd = 0;
@@ -90,11 +90,11 @@ public:
                     setNextTransID();
                 }
 
-            } else{
+            } else {
                 trans_loop = false;
                 if (index == -1)
                     wordIndex = container->dm->getNClasses();
-                else if (index == 0){
+                else if (index == 0) {
                     wordIndex = index;
                 }
             }
@@ -108,24 +108,23 @@ public:
 
         void setNextTransID() {
             if (wordIndex < container->limit.top()) {
-                int indexForTransactions = container->nWords - (container->validWords[wordIndex]+1);
+                int indexForTransactions = container->nWords - (container->validWords[wordIndex] + 1);
                 int pos = getFirstSetBitPos(word.to_ulong());
 
-                if (pos >= 1){
-                    if (first){
+                if (pos >= 1) {
+                    if (first) {
                         transInd = pos - 1;
                         first = false;
-                    }
-                    else
+                    } else
                         transInd += pos;
 
                     value = indexForTransactions * M + transInd;
                     word = (word >> pos);
-                } else{
+                } else {
                     ++wordIndex;
                     transInd = 0;
                     first = true;
-                    if (wordIndex < container->limit.top()){
+                    if (wordIndex < container->limit.top()) {
                         word = container->coverWords[container->validWords[wordIndex]].top();
                         setNextTransID();
                     }
@@ -135,18 +134,16 @@ public:
         }
 
         value_type operator*() const {
-            if (trans_loop){
-                if (wordIndex >= container->limit.top()){
+            if (trans_loop) {
+                if (wordIndex >= container->limit.top()) {
                     throw std::out_of_range("Out of Range Exception!");
-                }
-                else {
+                } else {
                     return value;
                 }
-            } else{
-                if (wordIndex >= container->dm->getNClasses()){
+            } else {
+                if (wordIndex >= container->dm->getNClasses()) {
                     throw std::out_of_range("Out of Range Exception!");
-                }
-                else {
+                } else {
                     return container->sup_class[wordIndex];
                 }
             }
@@ -161,11 +158,11 @@ public:
             return *this;
         }
 
-        bool operator==(const self_type rhs) {
+        bool operator==(const self_type rhs) const {
             return container + trans_loop + wordIndex == rhs.container + rhs.trans_loop + rhs.wordIndex;
         }
 
-        bool operator!=(const self_type rhs) {
+        bool operator!=(const self_type rhs) const {
             return container + trans_loop + wordIndex != rhs.container + rhs.trans_loop + rhs.wordIndex;
         }
 
@@ -194,7 +191,7 @@ public:
 namespace std {
     template<>
     struct hash<RCover> {
-        std::size_t operator()(const RCover& array) const noexcept {
+        std::size_t operator()(const RCover &array) const noexcept {
             std::size_t h = array.nWords;
             for (int i = 0; i < array.nWords; ++i) {
                 h ^= array.coverWords[i].top().to_ulong() + 0x9e3779b9 + 64 * h + h / 4;
@@ -205,7 +202,7 @@ namespace std {
 
     template<>
     struct equal_to<RCover> {
-        bool operator()(const RCover& lhs, const RCover& rhs) const noexcept {
+        bool operator()(const RCover &lhs, const RCover &rhs) const noexcept {
             for (int i = 0; i < lhs.nWords; ++i) {
                 if (lhs.coverWords[i].top().to_ulong() != rhs.coverWords[i].top().to_ulong()) return false;
             }

@@ -16,7 +16,7 @@ URL = 'https://github.com/aia-uclouvain/pydl8.5'
 LICENSE = 'LICENSE.txt'
 DOWNLOAD_URL = 'https://github.com/aia-uclouvain/pydl8.5'
 VERSION = __version__
-INSTALL_REQUIRES = ['setuptools', 'cython', 'numpy', 'scikit-learn', 'gurobipy', 'cvxpy']
+INSTALL_REQUIRES = ["setuptools", "cython", "numpy", "scikit-learn", "gurobipy", "cvxpy"]
 KEYWORDS = ['decision trees', 'discrete optimization', 'classification']
 CLASSIFIERS = ['Programming Language :: Python :: 3',
                'License :: OSI Approved :: MIT License',
@@ -72,9 +72,9 @@ EXTENSION_SOURCE_FILES = ['cython_extension/dl85Optimizer.pyx',
 EXTENSION_INCLUDE_DIR = ['core/src', 'cython_extension']
 EXTENSION_BUILD_ARGS = None
 if platform.system() == "Windows":
-    EXTENSION_BUILD_ARGS = ['/std:c++20']
+    EXTENSION_BUILD_ARGS = ['/std:c++20', '/DCYTHON_PEP489_MULTI_PHASE_INIT=0']
 else:
-    EXTENSION_BUILD_ARGS = ['-std=c++20']
+    EXTENSION_BUILD_ARGS = ['-std=c++20', '-DCYTHON_PEP489_MULTI_PHASE_INIT=0']
 
 dl85_extension = Extension(
     name=EXTENSION_NAME,
@@ -103,12 +103,12 @@ setup(
     long_description_content_type=LONG_DESCRIPTION_CONTENT_TYPE,
     # long_description=LONG_DESCRIPTION if platform.system() == "Linux" else DESCRIPTION,
     classifiers=CLASSIFIERS,
-    # setup_requires=SETUP_REQUIRES,
+    setup_requires=INSTALL_REQUIRES,
     install_requires=INSTALL_REQUIRES,
-    # extras_require=EXTRAS_REQUIRE,
+    extras_require=EXTRAS_REQUIRE,
     zip_safe=True,  # the package can run out of an .egg file
     ext_modules=cythonize(
         [dl85_extension],
-        compiler_directives={"language_level": "3"}
+        compiler_directives={"language_level": "3"},
     )
 )

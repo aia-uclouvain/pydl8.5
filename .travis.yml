@@ -12,20 +12,20 @@ install:
   - pip install codecov
   - pip install .
 script:
-  - pytest -v --cov=dl85 dl85/supervised/classifiers/tests/
-after_success:
-  - codecov
-deploy:
-  provider: pypi
-  edge: true # v2
-  user: __token__
-  password:
-    secure: a7BQN7o+148QnZyFOAVMM1BiZ/p0/tj0ssxBH7UwVWihrOLkzIfD9zDF0Pt+WbhJwba3Prj3jybO1bzyxslbOSkoUdunce2flPobE3oGeja8JU5pzxEfIRbOCMOlmyg2G72USAwDKWnEdpyA0J9CfQms+cFHBWlHa2PhBFHvroFKw6GepkHDcBCuwZEVKxZdA+JThUYhGe+hOlLmFPKWb7FHpxoaWUpKEKx9F+gFGualIX/PmMh4vS1JWcYMu033XzGQ60ms0LFhHqNRX9uFVSMbWz9l4yfoOFGYiw2LZMbR/Po9dkKK1vdXamdoxcetVBmsUKXE1cz3Ybbfo57Yy3V1RNy03p9uQqA5ZM3MsdH0saW1BfUz4Yy9sBCZZWINZ09y1NB3bHB8w3D38HQz6sr0amrKlFtM5kRjq/GzN8MgPYC4i3yWzaiyMJTaamhQUNjMOD7oD9baDilmvndavK/1QCy/A4RswoiyH/EC0u5xBj+WFbM//uTCTqAmvEDq326Jcs5gFEnZRmJ0AnzNdacenGEi4xI8p1/K7YmYemFpTIocPGy8JQK9JdtWmm5wfOurxq350wl3Yck0N2KxHnC2Iz15kwnux33fGYgprRA7S6vOg43RlTpKrIoaLR+2Hl35PEHmRfbf+WSjqeKoBS2kBVNS2/rwnjDSHU54mB4=
-  on:
-    tags: true
-    branch: master
-  # distributions: sdist bdist_wheel
-  distributions: sdist
-  allow_failure: true # v2
-  skip_existing: true
-  # skip_cleanup: true # v1
+  - pytest -v --cov=dl85 pydl85/tests/
+#after_success:
+#  - codecov
+#deploy:
+#  provider: pypi
+#  edge: true # v2
+#  user: __token__
+#  password:
+#    secure: a7BQN7o+148QnZyFOAVMM1BiZ/p0/tj0ssxBH7UwVWihrOLkzIfD9zDF0Pt+WbhJwba3Prj3jybO1bzyxslbOSkoUdunce2flPobE3oGeja8JU5pzxEfIRbOCMOlmyg2G72USAwDKWnEdpyA0J9CfQms+cFHBWlHa2PhBFHvroFKw6GepkHDcBCuwZEVKxZdA+JThUYhGe+hOlLmFPKWb7FHpxoaWUpKEKx9F+gFGualIX/PmMh4vS1JWcYMu033XzGQ60ms0LFhHqNRX9uFVSMbWz9l4yfoOFGYiw2LZMbR/Po9dkKK1vdXamdoxcetVBmsUKXE1cz3Ybbfo57Yy3V1RNy03p9uQqA5ZM3MsdH0saW1BfUz4Yy9sBCZZWINZ09y1NB3bHB8w3D38HQz6sr0amrKlFtM5kRjq/GzN8MgPYC4i3yWzaiyMJTaamhQUNjMOD7oD9baDilmvndavK/1QCy/A4RswoiyH/EC0u5xBj+WFbM//uTCTqAmvEDq326Jcs5gFEnZRmJ0AnzNdacenGEi4xI8p1/K7YmYemFpTIocPGy8JQK9JdtWmm5wfOurxq350wl3Yck0N2KxHnC2Iz15kwnux33fGYgprRA7S6vOg43RlTpKrIoaLR+2Hl35PEHmRfbf+WSjqeKoBS2kBVNS2/rwnjDSHU54mB4=
+#  on:
+#    tags: true
+#    branch: master
+#  # distributions: sdist bdist_wheel
+#  distributions: sdist
+#  allow_failure: true # v2
+#  skip_existing: true
+#  # skip_cleanup: true # v1

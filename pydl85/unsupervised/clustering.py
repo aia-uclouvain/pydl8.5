@@ -1,6 +1,6 @@
 from sklearn.base import ClusterMixin
 from sklearn.utils.validation import assert_all_finite, check_array
-from sklearn.neighbors import DistanceMetric
+from sklearn.metrics import DistanceMetric
 from ..predictors.predictor import DL85Predictor, Cache_Type, Wipe_Type
 import numpy as np
 
@@ -112,9 +112,9 @@ class DL85Cluster(DL85Predictor, ClusterMixin):
     def default_error(tids, X):
         dist = DistanceMetric.get_metric('euclidean')
         X_subset = np.asarray([X[index, :] for index in list(tids)], dtype='int32')
-        centroid = np.mean(X_subset, axis=0).reshape(1, X_subset.shape[1])
-        distances = [dist.pairwise(instance.reshape(1, X_subset.shape[1]), centroid)[0, 0] for instance in X_subset]
-        return round(sum(distances), 2)
+        centroid = np.mean(X_subset, axis=0)
+        distances = dist.pairwise(X_subset, [centroid])
+        return round(np.sum(distances), 2)
 
     @staticmethod
     def default_leaf_value(tids, X):

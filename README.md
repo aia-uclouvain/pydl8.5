@@ -21,13 +21,41 @@
 **The PyDL8.5 library provides an implementation of DL8.5 algorithm.
 Please read the relevant articles referenced below to learn about the
 additional features. Please cite these papers if you use the current
-library. The documentation will help you get started with PyDL8.5.**
+library. The documentation will help you get started with PyDL8.5. It is
+available [here](https://pydl85.readthedocs.io/en/latest/).**
 
 This project implements an algorithm for inferring optimal binary
-decision trees. It is scikit-learn compatible and can be used in
-combination with scikit-learn. As a scikit-learn classifier, it
-implements the methods "fit" and "predict". The documentation is
-available [here](https://pydl85.readthedocs.io/en/latest/).
+decision trees. The core code is written in C++ and this library is
+a python wrapper extended by additional features. It is scikit-learn 
+compatible and can be used in combination with scikit-learn. As a 
+scikit-learn classifier, it implements the methods "fit" and "predict".
+
+Because the search algorithm and the bounds used in DL8.5 are problem-agnostic,
+the library can be used to learn any binary decision tree that optimizes
+an arbitrary objective function. The only requirement is that the criterion
+function should be additive, i.e. the value of the criterion function for
+a node should be equal to the sum of the values of the criterion function
+for its children. The library provides a default misclassification rate
+criterion function, but it can be easily replaced by any other additive
+criterion function. As the user-defined criterion function is defined in
+Python, the learning process will be slower than the default one. Using this
+feature, the library can be used to learn decision trees for many ML tasks
+such as regression, classification, clustering, etc. It can solve many problems
+such as cost-sensitive classification, multi-class classification, false
+positive/negative minimization, feature selection, unfairness
+mitigation, complex model explanations, etc. The different criterion functions
+can be also easily added to the core C++ code for faster learning.
+
+The core C++ code can be used as a standalone tool. It is available in the
+`core` folder. There is a cmake file
+to compile the code. The code is also compatible with Windows, Linux and
+MacOS. After compilation, the tool can be used in the console by typing
+`./dl85 -h` to get the list of available options. There is no dependency
+to any other library than the standard C++ library. The only requirement
+is a C++ compiler supporting C++17 for Unix systems and C++20 for Windows.
+The code is compatible with GCC, Clang and MSVC. The
+argument parsing code used originates from the
+[argpase](https://github.com/p-ranav/argparse) GitHub project.
 
 The current version of PyDL8.5 is enhanced using some ideas from
 [MurTree](https://www.jmlr.org/papers/volume23/20-520/20-520.pdf) paper
@@ -37,16 +65,12 @@ paper [[DL852020]](https://dial.uclouvain.be/pr/boreal/fr/object/boreal%3A223390
 This tool can be installed in two ways:
 
 -   download the source from GitHub and install using the command
-    `pip install .` in the root folder
--   install from pip by using the command `pip install pydl8.5` in the
+    `pip install .` in the root folder.
+-   install from `PYPI` using `pip` by running the command `pip install pydl8.5` in the
     console
 
-The core code provided in C++ can also be used solely without the
-add-ons provides by the python library. For this, use the code inside
-the <span class="title-ref">core</span> folder. It is a C++ project than
-can be compiled using CMake and the CMakeLists.txt file provided. The
-argument parsing code used originates from the
-[argpase](https://github.com/p-ranav/argparse) GitHub project.
+A C++ compiler supporting C++20 is required to build the code as a
+Python library if there is no wheel available for your machine.
 
 
 ### References

@@ -12,14 +12,12 @@ own decision tree learning task using PyDL8.5's interface for writing error func
 """
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.neighbors import DistanceMetric
+from sklearn.metrics import DistanceMetric
 import time
 from pydl85 import DL85Predictor
 
 dataset = np.genfromtxt("../datasets/anneal.txt", delimiter=' ')
 X = dataset[:, 1:]
-X = X.astype('int32')
-
 X_train, X_test = train_test_split(X, test_size=0.2, random_state=0)
 
 
@@ -34,7 +32,7 @@ eucl_dist = DistanceMetric.get_metric('euclidean')
 # user error function
 def error(tids):
     # collect the complete examples identified using the tids. 
-    X_subset = X_train[list(tids),:]
+    X_subset = X_train[list(tids), :]
     # determine the centroid of the cluster
     centroid = np.mean(X_subset, axis=0)
     # calculate the distances towards centroid

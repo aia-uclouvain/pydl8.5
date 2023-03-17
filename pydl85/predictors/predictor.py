@@ -204,41 +204,46 @@ class DL85Predictor(BaseEstimator):
         """
 
         target_is_need = True if y is not None else False
-        opt_func = self.error_function
-        opt_fast_func = self.fast_error_function
-        opt_pred_func = self.error_function
+        # both slow error function and predictor error function receive the tid list as input
+        # the need or not of a labelling function will define whether the error function
+        # is a slow function or a predictor function but at this point we don't know which one
+        # so they are both set to the input error function
+        user_slow_func = self.error_function  # input: tid list, output: label, error
+        user_fast_func = self.fast_error_function  # input: support per class, output: label, error
+        user_pred_func = self.error_function  # input: tid list, output: error
         predict = True
 
         if target_is_need:  # target-needed tasks (eg: classification, regression, etc.)
             # Check that X and y have correct shape and raise ValueError if not
             X, y = check_X_y(X, y, dtype='int32')
-            if self.leaf_value_function is None:
-                opt_pred_func = None
-                predict = False
-            else:
-                opt_func = None
-                opt_fast_func = None
-            # if opt_func is None and opt_pred_func is None:
-            #     print("No optimization criterion defined. Misclassification error is used by default.")
-        else:  # target-less tasks (clustering, etc.)
+        else:
             # Check that X has correct shape and raise ValueError if not
             assert_all_finite(X)
             X = check_array(X, dtype='int32')
-            if self.leaf_value_function is None:
-                opt_pred_func = None
-                predict = False
-            else:
-                opt_func = None
-                opt_fast_func = None
+
+        if self.leaf_value_function is None:
+            # if no labelling function is defined, the error function is a slow function
+            user_pred_func = None
+            predict = False
+        else:
+            # if a labelling function is defined, the error function is a predictor function
+            user_slow_func = None
+            user_fast_func = None
+
+        # if opt_func is None and opt_pred_func is None:
+        #     print("No optimization criterion defined. Misclassification error is used by default.")
 
         # sys.path.insert(0, "../../")
         import dl85Optimizer
-        # print(opt_func)
+        # print("user_func: ", user_func)
+        # print("user_fast_func: ", user_fast_func)
+        # print("user_pred_func: ", user_pred_func)
+
         solution_str = dl85Optimizer.solve(data=X,
                                            target=y,
-                                           tec_func_=opt_func,
-                                           sec_func_=opt_fast_func,
-                                           te_func_=opt_pred_func,
+                                           tec_func_=user_slow_func,
+                                           sec_func_=user_fast_func,
+                                           te_func_=user_pred_func,
                                            # exw_func_=self.example_weight_function,
                                            # pred_func_=self.predict_error_function,
                                            max_depth=self.max_depth,
