@@ -41,7 +41,7 @@ jobs:
 
       - name: Run tests, compute coverage and generate xml report
         run: |
-          coverage run --source=pydl85/tests/ -m pytest -v
+          coverage run --source=tests/ -m pytest -v
           coverage xml --data-file=.coverage
 
       - name: Upload coverage to Codecov

@@ -73,7 +73,7 @@
 /*.so
 
 /.coverage
-/.coverage.xml
+/coverage.xml
 
 /todo.txt
 

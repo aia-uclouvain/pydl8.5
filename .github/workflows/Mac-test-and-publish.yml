@@ -49,23 +49,32 @@ jobs:
           cppcheck: true
           clangtidy: true # instead of `true`, which chooses the default version, you can pass a specific version.
 
-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
           architecture: 'x64'
 
-      - name: Install dependencies
+      - name: Install dependencies for installation and testing
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install setuptools wheel twine
           python3 -m pip install -r requirements.txt
+
+      - name: install the package from setup.py
+        run: |
+          python3 -m pip install .
+
+      - name: Run tests
+        run: |
+          pytest -v tests/
+
+      - name: Install dependencies for building distribution
+        run: |
+          python3 -m pip install setuptools wheel twine
 
       - name: Build package
         run: |
-          python3 setup.py sdist bdist_wheel
-
+          python3 setup.py bdist_wheel
 
       - name: Publish 📦 on PyPI and/or on Test PyPI (if tag)
         env:
