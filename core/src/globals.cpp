@@ -54,7 +54,7 @@ ErrorVals subErrorVals (constErrorVals src1, constErrorVals src2 ) {
     return sub;
 }
 
-int countSetBits(unsigned long i) {
+int countSetBits(unsigned long long i) {
     i = i - ((i >> 1) & 0x5555555555555555UL);
     i = (i & 0x3333333333333333UL) + ((i >> 2) & 0x3333333333333333UL);
     return (int)((((i + (i >> 4)) & 0xF0F0F0F0F0F0F0FUL) * 0x101010101010101UL) >> 56);

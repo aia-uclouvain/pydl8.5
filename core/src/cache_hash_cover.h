@@ -22,14 +22,14 @@ struct HashCoverNode : public Node {
 // structure used to represent the key of the cache. Here it is the cover, so a duplicate of the current state of the
 // cover is performed as the RSBS data structure keeps only one instance of the cover through the whose search
 struct MyCover{
-    unsigned long* cover;
+    unsigned long long* cover;
     int nwords;
 
     explicit MyCover(RCover* c){
         nwords = c->nWords;
-        cover = new unsigned long[c->nWords];
+        cover = new unsigned long long[c->nWords];
         for (int i = 0; i < c->nWords; ++i) {
-            cover[i] = c->coverWords[i].top().to_ulong();
+            cover[i] = c->coverWords[i].top().to_ullong();
         }
     }
 };

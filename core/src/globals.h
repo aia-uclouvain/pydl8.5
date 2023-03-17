@@ -39,7 +39,7 @@ typedef float ErrorVal;
 typedef ErrorVal* ErrorVals;
 typedef const ErrorVal* constErrorVals;
 //typedef Support *Supports;
-typedef unsigned long ulong;
+typedef unsigned long long ullong;
 typedef std::vector<Item> Itemset;
 typedef std::vector<Attribute> Attributes;
 

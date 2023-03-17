@@ -125,7 +125,7 @@ ErrorVal RCoverWeight::getErrorVal(bitset<64> &coverWord, int wordIndex) {
  * @param index - the index value to check
  * @return boolean value representing the result of the query
  */
-bool isKthBitSet(unsigned long number, int index) {
+bool isKthBitSet(unsigned long long number, int index) {
     return (number & (1 << (index - 1))) != 0;
 }
 
@@ -135,7 +135,7 @@ bool isKthBitSet(unsigned long number, int index) {
  * @param number - int value of the binary number
  * @return the index of the first set bit
  */
-unsigned int getFirstSetBitPos(const unsigned long& number) { return log2(number & -number) + 1;}
+unsigned int getFirstSetBitPos(const unsigned long long& number) { return log2(number & -number) + 1;}
 
 /**
  * getTransactionsID
@@ -146,13 +146,13 @@ vector<int> RCoverWeight::getTransactionsID() {
     for (int i = 0; i < limit.top(); ++i) {
         int indexForTransactions = nWords - (validWords[i]+1);
         bitset<M> word = coverWords[validWords[i]].top();
-        unsigned long w = word.to_ulong();
+        unsigned long long w = word.to_ullong();
         int pos = getFirstSetBitPos(w);
         int transInd = pos - 1;
         while (pos >= 1){
             tid.push_back(indexForTransactions * M + transInd);
             word = (word >> pos);
-            w = word.to_ulong();
+            w = word.to_ullong();
             pos = getFirstSetBitPos(w);
             transInd += pos;
         }
@@ -168,13 +168,13 @@ vector<int> RCoverWeight::getTransactionsID() {
  */
 vector<int> RCoverWeight::getTransactionsID(bitset<M>& word, int real_word_index) {
     vector<int> tid;
-    int pos = getFirstSetBitPos(word.to_ulong());
+    int pos = getFirstSetBitPos(word.to_ullong());
     int transInd = pos - 1;
 
     while (pos >= 1){
         tid.push_back(real_word_index * M + transInd );
         word = (word >> pos);
-        pos = getFirstSetBitPos(word.to_ulong());
+        pos = getFirstSetBitPos(word.to_ullong());
         transInd += pos;
     }
     return tid;
@@ -183,14 +183,14 @@ vector<int> RCoverWeight::getTransactionsID(bitset<M>& word, int real_word_index
 
 pair<ErrorVal, Support> RCoverWeight::getSups(bitset<M>& word, int real_word_index){
     pair<ErrorVal, Support> result(0, 0);
-    int pos = getFirstSetBitPos(word.to_ulong());
+    int pos = getFirstSetBitPos(word.to_ullong());
     int transInd = pos - 1;
 
     while (pos >= 1){
         result.first += (*weights)[real_word_index * M + transInd];
         result.second++;
         word = (word >> pos);
-        pos = getFirstSetBitPos(word.to_ulong());
+        pos = getFirstSetBitPos(word.to_ullong());
         transInd += pos;
     }
     return result;

@@ -13,7 +13,7 @@ cdef extern from "../core/src/dataManager.h":
 cdef extern from "../core/src/rCover.h":
     cdef cppclass RCover:
         cppclass iterator:
-            int wordIndex
+            int wordOrder
             int operator*()
             iterator operator++()
             bool operator==(iterator)
@@ -36,14 +36,14 @@ cdef class ArrayIterator:
 
     def __next__(self):
         if self.trans_loop:
-            if self.it.wordIndex < self.arr.limit.top():
+            if self.it.wordOrder < self.arr.limit.top():
                 val = deref(self.it)
                 self.it = inc(self.it)
                 return val
             else:
                 raise StopIteration()
         else:
-            if self.it.wordIndex < deref(self.arr.dm).getNClasses():
+            if self.it.wordOrder < deref(self.arr.dm).getNClasses():
                 val = deref(self.it)
                 self.it = inc(self.it)
                 return val
