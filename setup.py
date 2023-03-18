@@ -28,7 +28,9 @@ CLASSIFIERS = ['Programming Language :: Python :: 3',
 EXTRAS_REQUIRE = {
     'tests': [
         'pytest',
-        'pytest-cov'],
+        'pytest-cov',
+        'graphviz'
+    ],
     'docs': [
         'sphinx',
         'sphinx-gallery',
@@ -36,7 +38,13 @@ EXTRAS_REQUIRE = {
         'numpydoc',
         'sphinxcontrib',
         'sphinx_copybutton',
-        'matplotlib'
+        'matplotlib',
+        'scipy',
+        'pillow',
+    ],
+    'boosting': [
+        "gurobipy",
+        "cvxpy"
     ]
 }
 PROJECT_URLS = {
@@ -103,7 +111,7 @@ setup(
     long_description_content_type=LONG_DESCRIPTION_CONTENT_TYPE,
     # long_description=LONG_DESCRIPTION if platform.system() == "Linux" else DESCRIPTION,
     classifiers=CLASSIFIERS,
-    setup_requires=INSTALL_REQUIRES,
+    # setup_requires=INSTALL_REQUIRES,
     install_requires=INSTALL_REQUIRES,
     extras_require=EXTRAS_REQUIRE,
     zip_safe=True,  # the package can run out of an .egg file

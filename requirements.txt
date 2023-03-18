@@ -1,3 +1,5 @@
+setuptools
+cython
 numpy
 scikit-learn
 scipy
@@ -9,10 +11,8 @@ sphinxcontrib.bibtex
 sphinx_copybutton
 numpydoc
 pillow
-setuptools
-cython
 pytest
 pytest-cov
+graphviz
 gurobipy
 cvxpy
-graphviz
