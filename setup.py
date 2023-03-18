@@ -51,7 +51,6 @@ PROJECT_URLS = {
     "Source on github": "https://github.com/aia-uclouvain/pydl8.5",
     "Documentation": "https://pydl85.readthedocs.io/en/latest/?badge=latest",
 }
-
 EXTENSION_NAME = 'dl85Optimizer'
 EXTENSION_LANGUAGE = 'c++'
 EXTENSION_SOURCE_FILES = ['cython_extension/dl85Optimizer.pyx',
