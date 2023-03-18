@@ -1,3 +1,6 @@
+Release v0.1.6
+- add compatibility with windows for user error function
+
 Release v0.1.5
 - fix bug in specialized depth-2 algo
 
