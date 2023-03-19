@@ -16,7 +16,7 @@ URL = 'https://github.com/aia-uclouvain/pydl8.5'
 LICENSE = 'LICENSE.txt'
 DOWNLOAD_URL = 'https://github.com/aia-uclouvain/pydl8.5'
 VERSION = __version__
-INSTALL_REQUIRES = ["setuptools", "cython", "numpy", "scikit-learn", "gurobipy", "cvxpy"]
+INSTALL_REQUIRES = ["setuptools", "cython", "numpy", "scikit-learn", "cvxpy"]
 KEYWORDS = ['decision trees', 'discrete optimization', 'classification']
 CLASSIFIERS = ['Programming Language :: Python :: 3',
                'License :: OSI Approved :: MIT License',
@@ -43,7 +43,6 @@ EXTRAS_REQUIRE = {
         'pillow',
     ],
     'boosting': [
-        "gurobipy",
         "cvxpy"
     ]
 }
@@ -108,7 +107,6 @@ setup(
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
     long_description_content_type=LONG_DESCRIPTION_CONTENT_TYPE,
-    # long_description=LONG_DESCRIPTION if platform.system() == "Linux" else DESCRIPTION,
     classifiers=CLASSIFIERS,
     # setup_requires=INSTALL_REQUIRES,
     install_requires=INSTALL_REQUIRES,

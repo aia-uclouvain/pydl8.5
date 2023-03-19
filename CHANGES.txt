@@ -1,3 +1,6 @@
+Release v0.1.8
+- fix bug in setup.py
+
 Release v0.1.7
 - remove the dependency to the python package 'gurobipy' (which is not free)
 

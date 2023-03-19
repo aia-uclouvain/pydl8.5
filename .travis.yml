@@ -12,7 +12,7 @@ install:
   - pip install codecov
   - pip install .
 script:
-  - pytest -v --cov=dl85 pydl85/tests/
+  - pytest -v --cov=pydl85 tests/
 #after_success:
 #  - codecov
 #deploy:

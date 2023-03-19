@@ -14,5 +14,4 @@ pillow
 pytest
 pytest-cov
 graphviz
-gurobipy
 cvxpy
