@@ -77,6 +77,8 @@
 
 /todo.txt
 
+/tests/__pycache__/
+
 /testenv/
 
 /doc_old/

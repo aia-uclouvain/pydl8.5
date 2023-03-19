@@ -1,26 +1,17 @@
-import json
 import os
-import random
 import sys
 import time
-import copy
 
-from gurobipy import Model, GRB, quicksum
 from sklearn.base import ClassifierMixin
 
-from .classifier import DL85Classifier
-from ...predictors.predictor import DL85Predictor
 from ..classifiers.classifier import Cache_Type, Wipe_Type, DL85Classifier
 from ...errors.errors import SearchFailedError, TreeNotFoundError
 from sklearn.exceptions import NotFittedError
 from sklearn.utils.multiclass import unique_labels
 from sklearn.base import BaseEstimator
 from copy import deepcopy
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import StratifiedKFold
 import numpy as np
-import cvxpy as cp
-import math
+import cvxpy
 
 MODEL_LP_RATSCH = 1  # regulator of ratsch is between ]0; 1]
 MODEL_LP_DEMIRIZ = 2  # regulator of demiriz is between ]1/n_instances; +\infty]
@@ -215,6 +206,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         self.opti_gap = opti_gap
         self.n_instances = None
         self.A_inv = None
+        self.solver = cvxpy.SCS
 
         self.optimal_ = True
         self.estimators_, self.estimator_weights_ = [], []
@@ -235,7 +227,6 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         predictions, r, self.n_iterations_, constant = None, None, 1, 0.0001
 
         if self.model == MODEL_QP_MDBOOST:
-            # A_inv = None
             if self.gamma is None:
                 # Build positive semidefinite A matrix
                 self.A_inv = np.full((self.n_instances, self.n_instances), -1/(self.n_instances - 1), dtype=np.float64)
@@ -255,27 +246,13 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
                 for i in range(self.n_instances):
                     for j in range(self.n_instances):
                         if i != j:
-                            self.A_inv[i, j] = np.exp(-self.gamma * np.linalg.norm(np.subtract(X[i, :], X[j, :]))**2)
-                        # else:
-                        #     self.A_inv[i, j] = 1
-                        # for k in range(n_instances):
-                        #     if k != i:
-                        #         self.A_inv[i, j] += np.exp(-self.gamma * np.linalg.norm(np.subtract(X[i, :], X[k, :]))**2)
-            # if not is_pos_def(self.A_inv) and not is_semipos_def(self.A_inv):
-            # A_inv = np.add(self.A_inv, np.dot(np.eye(n_instances), constant))
+                            self.A_inv[i, j] = np.exp(-self.gamma * np.linalg.norm(np.subtract(X[i, :], X[j, :])) ** 2)
 
             if not self.quiet:
                 print(self.A_inv)
                 print("is psd", is_pos_def(self.A_inv))
                 print("is semi psd", is_semipos_def(self.A_inv))
 
-            # if isPD(A_inv) is False:
-            #     A_inv = nearestPD(A_inv)
-
-            # invert A matrix
-            # try:
-            #     A_inv = np.linalg.inv(A_inv)
-            # except:
             self.A_inv = np.linalg.pinv(self.A_inv)
 
             if isPD(self.A_inv) is False:
@@ -283,7 +260,6 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
 
             if not self.quiet:
                 print("A_inv")
-                # print(A_inv)
                 print("is psd", isPD(self.A_inv))
                 print("is psd", is_pos_def(self.A_inv))
                 print("is semi psd", is_semipos_def(self.A_inv))
@@ -296,32 +272,31 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
                 print("n_iter", self.n_iterations_)
 
             # initialize the classifier
-            # self.clf_params["time_limit"] = self.clf_params["time_limit"] - (time.perf_counter() - start_time)
             clf = DL85Classifier(**self.clf_params) if self.base_estimator is None else self.base_estimator
 
             # fit the model
+            zero_indices = np.where(sample_weights == 0)[0].tolist()
+            keep_mask = np.in1d(np.arange(len(y)), zero_indices, invert=True)
+            X_filtered = X[keep_mask]
+            y_filtered = y[keep_mask]
+            sample_weights_filtered = sample_weights[keep_mask]
             if self.quiet:
                 old_stdout = sys.stdout
                 sys.stdout = open(os.devnull, "w")
-                clf.fit(X, y, sample_weight=sample_weights.tolist())
+                clf.fit(X_filtered, y_filtered, sample_weight=sample_weights_filtered.tolist())
                 sys.stdout = old_stdout
             else:
-                clf.fit(X, y, sample_weight=sample_weights.tolist())
+                clf.fit(X_filtered, y_filtered, sample_weight=sample_weights_filtered.tolist())
 
             # print the tree expression of the estimator if it has
             if not self.quiet:
                 print("A new tree has been learnt based on previous found sample weights")
                 if hasattr(clf, "tree_") and isinstance(clf.tree_, dict):
                     pass
-                    # print(clf.tree_)
 
             # compute the prediction of the new estimator : 1 if correct else -1
             try:
                 pred = np.array([-1 if p != y[i] else 1 for i, p in enumerate(clf.predict(X))])
-                # pred = np.array([2*p[y[i]]-1 for i, p in enumerate(clf.predict_proba(X))])
-                # pred = np.array([.5 * y[i] * math.log(p[1]/(p[0]+.00000001)) for i, p in enumerate(clf.predict_proba(X))])
-                # if not self.quiet:
-                #     print("entering tree value", pred @ sample_weights)
             except (NotFittedError, SearchFailedError, TreeNotFoundError) as error:
                 if not self.quiet:
                     print("Problem during the search so we stop")
@@ -330,7 +305,6 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             if not self.quiet:
                 print("correct predictions - incorrect predictions =", pred.sum())
                 print("np.dot(predictions, sample_weigths) =", pred @ sample_weights)
-                # print("sum pred", pred.sum(), "\n", "sample weights inline", sample_weights.tolist(), "\nsample weights", sample_weights, "\n", "p@w more plus or moins", pred @ sample_weights)
 
             # check if optimal condition is met
             if self.n_iterations_ > 1:
@@ -349,7 +323,6 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             if not self.quiet:
                 print("whole predictions shape", predictions.shape)
                 print("run dual...")
-                # print(predictions)
 
             # add the new estimator and compute the dual to find new sample weights for another estimator to add
             self.estimators_.append(deepcopy(clf))
@@ -391,7 +364,6 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         predictions = np.delete(predictions, np.s_[zero_ind], axis=1)
         if not self.quiet:
             print("final pred shape", predictions.shape)
-            # print(predictions)
 
         # compute training accuracy of the found ensemble and store it in the variable `accuracy_`
         forest_pred_val = np.dot(predictions, np.array(self.estimator_weights_))
@@ -418,105 +390,69 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         return self
 
     def compute_dual_ratsch(self, predictions):  # primal is maximization
-        r_ = cp.Variable()
-        u_ = cp.Variable(self.n_instances)
-        obj = cp.Minimize(r_)
+        r_ = cvxpy.Variable()
+        u_ = cvxpy.Variable(self.n_instances)
+        obj = cvxpy.Minimize(r_)
         constr = [predictions[:, i] @ u_ <= r_ for i in range(predictions.shape[1])]
         constr.append(-u_ <= 0)
         if self.regulator > 0:
             constr.append(u_ <= self.regulator)
-        constr.append(cp.sum(u_) == 1)
-        problem = cp.Problem(obj, constr)
+        constr.append(cvxpy.sum(u_) == 1)
+        problem = cvxpy.Problem(obj, constr)
         if self.quiet:
             old_stdout = sys.stdout
             sys.stdout = open(os.devnull, "w")
-        opti = problem.solve(solver=cp.GUROBI)
+        opti = problem.solve(solver=self.solver)
         if self.quiet:
             sys.stdout = old_stdout
-        return r_.value, u_.value, opti, [x.dual_value.tolist() for x in problem.constraints[:predictions.shape[1]]]
+        return r_.value, u_.value, opti, [x.dual_value for x in problem.constraints[:predictions.shape[1]]]
 
     def compute_dual_aglin(self, predictions):  # primal is maximization
-        r_ = cp.Variable()
-        u_ = cp.Variable(self.n_instances)
-        v_ = cp.Variable(self.n_instances)
-        obj = cp.Minimize(r_)
+        r_ = cvxpy.Variable()
+        u_ = cvxpy.Variable(self.n_instances)
+        v_ = cvxpy.Variable(self.n_instances)
+        obj = cvxpy.Minimize(r_)
         constr = [-(predictions[:, t] @ u_) <= r_ for t in range(predictions.shape[1])]
         constr.append(u_ + v_ == -1)
-        constr.append(cp.sum(v_) == self.regulator)
+        constr.append(cvxpy.sum(v_) == self.regulator)
         constr.append(-v_ <= 0)
-        problem = cp.Problem(obj, constr)
+        problem = cvxpy.Problem(obj, constr)
         if self.quiet:
             old_stdout = sys.stdout
             sys.stdout = open(os.devnull, "w")
-        opti = problem.solve(solver=cp.GUROBI)
+        opti = problem.solve(solver=self.solver)
         if self.quiet:
             sys.stdout = old_stdout
-        # print(predictions.shape[1])
-        # print(problem.constraints)
-        # print("size cons", len([x.dual_value for x in problem.constraints[:predictions.shape[1]]]))
-        # print("size cons", len([x.dual_value for x in problem.constraints]))
-        # print("type cons", type([x.dual_value for x in problem.constraints][1]))
-        # print("size cons", [x.dual_value for x in problem.constraints][0].shape)
-        # print("size cons", [x.dual_value for x in problem.constraints][0])
-        # print("size cons", [x.dual_value for x in problem.constraints][1].shape)
-        # print("size cons", [x.dual_value for x in problem.constraints][2].shape)
-        # print("size cons", [x.dual_value for x in problem.constraints][3].shape)
-        # print("size cons", len([x.dual_value for x in problem.constraints[0]]))
-        # print("size cons", len(problem.constraints[1]))
-        # print("size cons", len(problem.constraints[2]))
-        # print("size cons", len(problem.constraints[3]))
-        # print(type([x.dual_value for x in problem.constraints[predictions.shape[1]:predictions.shape[1] + 1]]))
-        # print(type([x.dual_value for x in problem.constraints[predictions.shape[1]:predictions.shape[1] + 1]][0]))
-        # print(type(np.array([x.dual_value for x in problem.constraints[predictions.shape[1]:predictions.shape[1] + 1]])))
-        # print([x.dual_value for x in problem.constraints[predictions.shape[1]:predictions.shape[1] + 1]])
-        # return r_.value, [x.dual_value for x in problem.constraints[predictions.shape[1]:predictions.shape[1] + 1]][0], opti, [x.dual_value.tolist() for x in problem.constraints[:predictions.shape[1]]]
-        return r_.value, v_.value, opti, [x.dual_value.tolist() for x in problem.constraints[:predictions.shape[1]]]
+        return r_.value, v_.value, opti, [x.dual_value for x in problem.constraints[:predictions.shape[1]]]
 
     def compute_dual_demiriz(self, predictions):  # primal is minimization
-        u_ = cp.Variable(self.n_instances)
-        obj = cp.Maximize(cp.sum(u_))
+        u_ = cvxpy.Variable(self.n_instances)
+        obj = cvxpy.Maximize(cvxpy.sum(u_))
         constr = [predictions[:, i] @ u_ <= 1 for i in range(predictions.shape[1])]
         constr.append(-u_ <= 0)
         constr.append(u_ <= self.regulator)
-        problem = cp.Problem(obj, constr)
+        problem = cvxpy.Problem(obj, constr)
         if self.quiet:
             old_stdout = sys.stdout
             sys.stdout = open(os.devnull, "w")
-        opti = problem.solve(solver=cp.GUROBI)
+        opti = problem.solve(solver=self.solver)
         if self.quiet:
             sys.stdout = old_stdout
-        return 1, u_.value, opti, [x.dual_value.tolist() for x in problem.constraints[:predictions.shape[1]]]
+        return 1, u_.value, opti, [x.dual_value for x in problem.constraints[:predictions.shape[1]]]
 
     def compute_dual_mdboost(self, predictions):  # primal is maximization
-        r_ = cp.Variable()
-        u_ = cp.Variable(self.n_instances)
-        obj = cp.Minimize(r_ + 1/(2*self.regulator) * cp.quad_form((u_ - 1), self.A_inv))
+        r_ = cvxpy.Variable()
+        u_ = cvxpy.Variable(self.n_instances)
+        obj = cvxpy.Minimize(r_ + 1/(2*self.regulator) * cvxpy.quad_form((u_ - 1), self.A_inv))
         constr = [predictions[:, i] @ u_ <= r_ for i in range(predictions.shape[1])]
-        problem = cp.Problem(obj, constr)
+        problem = cvxpy.Problem(obj, constr)
         if self.quiet:
             old_stdout = sys.stdout
             sys.stdout = open(os.devnull, "w")
-        opti = problem.solve(solver=cp.GUROBI)
+        opti = problem.solve(solver=self.solver)
         if self.quiet:
             sys.stdout = old_stdout
-        return r_.value, u_.value, opti, [x.dual_value.tolist() for x in problem.constraints]
-
-    # def compute_dual_aglin(self, predictions):  # primal is minimization
-    #     r_ = cp.Variable()
-    #     u_ = cp.Variable(self.n_instances)
-    #     obj = cp.Minimize(r_)
-    #     constr = [predictions[:, i] @ u_ <= r_ for i in range(predictions.shape[1])]
-    #     constr.append(-u_ <= 0)
-    #     # constr.append(u_ <= self.regulator)
-    #     constr.append(cp.sum(u_) == self.regulator)
-    #     problem = cp.Problem(obj, constr)
-    #     if self.quiet:
-    #         old_stdout = sys.stdout
-    #         sys.stdout = open(os.devnull, "w")
-    #     opti = problem.solve(solver=cp.GUROBI)
-    #     if self.quiet:
-    #         sys.stdout = old_stdout
-    #     return r_.value, u_.value, opti, [x.dual_value.tolist() for x in problem.constraints[:predictions.shape[1]]]
+        return r_.value, u_.value, opti, [x.dual_value for x in problem.constraints]
 
     def softmax(self, X, copy=True):
         """
@@ -551,14 +487,10 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             print(self.estimators_)
             print(self.estimator_weights_)
             raise NotFittedError("Call fit method first" % {'name': type(self).__name__})
-        # return np.argmax(self.predict_proba(X), axis=1)
+
         # Run a prediction on each estimator
         predict_per_clf = np.asarray([clf.predict(X) for clf in self.estimators_]).transpose()
         return np.apply_along_axis(lambda x: np.argmax(np.bincount(x, weights=self.estimator_weights_)), axis=1, arr=predict_per_clf.astype('int'))
-
-    # def predict_proba(self, X):
-    #     prob_per_tree = np.asarray([clf.predict_proba(X) for clf in self.estimators_])
-    #     return np.average(prob_per_tree, axis=0, weights=self.estimator_weights_)
 
     def predict_proba(self, X):
         classes = self.classes_[:, np.newaxis]

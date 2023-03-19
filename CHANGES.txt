@@ -1,3 +1,6 @@
+Release v0.1.7
+- remove the dependency to the python package 'gurobipy' (which is not free)
+
 Release v0.1.6
 - add compatibility with windows for user error function
 
