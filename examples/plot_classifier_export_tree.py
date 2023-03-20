@@ -36,6 +36,7 @@ print("Accuracy on test set =", round(accuracy_score(y_test, y_pred), 4))
 # print the tree
 print("Serialized json tree:", clf.tree_)
 dot = clf.export_graphviz()
-graph = graphviz.Source(dot, format="png")
-graph.render("plots/anneal_odt")
+# uncomment the following lines to save the tree as a png file
+# graph = graphviz.Source(dot, format="png")
+# graph.render("plots/anneal_odt")
 

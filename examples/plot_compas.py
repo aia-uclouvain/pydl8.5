@@ -42,5 +42,6 @@ print("Accuracy DL8.5 on test set =", round(accuracy_score(y_test, y_pred), 4))
 # print the tree
 print("Serialized json tree:", clf.tree_)
 dot = clf.export_graphviz(feature_names=col_names, class_names=["No Recidivism", "Recidivism"])
-graph = graphviz.Source(dot, format="png")
-graph.render("plots/compas_odt")
+# uncomment the following lines to save the tree as a png file
+# graph = graphviz.Source(dot, format="png")
+# graph.render("plots/compas_odt")
