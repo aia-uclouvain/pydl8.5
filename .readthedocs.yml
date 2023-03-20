@@ -15,7 +15,7 @@ build:
     - pip install --upgrade pip
     - pip install -r requirements.txt
     - pip install pydl8.5
-    - sphinx-build -b html doc doc/_build/html
+    - sphinx-build -b html doc _readthedocs/html
 
 sphinx:
   builder: html
