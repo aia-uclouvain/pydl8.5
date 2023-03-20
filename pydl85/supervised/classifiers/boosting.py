@@ -465,13 +465,13 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         Parameters
         ----------
         X : array-like of float of shape (M, N)
-            Argument to the logistic function.
+        Argument to the logistic function.
         copy : bool, default=True
-            Copy X or not.
+        Copy X or not.
         Returns
         -------
         out : ndarray of shape (M, N)
-            Softmax function evaluated at every point in x.
+        Softmax function evaluated at every point in x.
         """
         if copy:
             X = np.copy(X)
