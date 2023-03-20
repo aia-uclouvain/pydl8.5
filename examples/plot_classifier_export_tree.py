@@ -4,14 +4,13 @@ Default DL85Classifier export tree
 ==================================
 
 """
+import graphviz
 import numpy as np
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
-from examples.utils import PlotGraphviz  # Only for rendering the graph on the webpage
 from pydl85 import DL85Classifier
-import graphviz
 
 
 print("######################################################################\n"
@@ -39,5 +38,4 @@ print("Serialized json tree:", clf.tree_)
 dot = clf.export_graphviz()
 graph = graphviz.Source(dot)
 graph.render("plots/anneal_odt.pdf")
-PlotGraphviz(str(graph))  # Only for rendering the graph on the webpage (remove it when running the script locally)
 

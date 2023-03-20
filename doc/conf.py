@@ -316,6 +316,7 @@ intersphinx_mapping = {
 # sphinx-gallery configuration
 sphinx_gallery_conf = {
     'examples_dirs': '../examples',   # path to your example scripts
+    # 'ignore_pattern': '../examples/utils.py',
     'gallery_dirs': 'auto_examples',  # path to where to save gallery generated output
 }
 

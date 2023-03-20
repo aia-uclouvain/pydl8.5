@@ -11,7 +11,6 @@ from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
-from examples.utils import PlotGraphviz  # Only for rendering the graph on the webpage
 from pydl85 import DL85Classifier, Cache_Type
 
 dataset = np.genfromtxt("../datasets/compas.csv", delimiter=',', skip_header=1)
@@ -45,4 +44,3 @@ print("Serialized json tree:", clf.tree_)
 dot = clf.export_graphviz(feature_names=col_names, class_names=["No Recidivism", "Recidivism"])
 graph = graphviz.Source(dot)
 graph.render("plots/compas_odt.pdf")
-PlotGraphviz(str(graph))  # Only for rendering the graph on the webpage (remove it when running the script locally)
