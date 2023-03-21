@@ -13,31 +13,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runtime: [osx-64, osx-arm64]
-        include:
-        - runtime: osx-64
-          os: macos-latest
-          compiler: gcc
-          cpp-version: c++20
-          architecture: x86_64
-#          python-version: [3.8, 3.9]
-        - runtime: osx-arm64
-          os: macos-latest
-          compiler: gcc
-          cpp-version: c++20
-          architecture: arm64
-#          python-version: [3.8, 3.9]
+        os:
+          - macos-12
+        compiler:
+          - gcc
+        cpp-version:
+            - c++20
         python-version: [3.8, 3.9]
-#        os: [macos-latest, osx-arm64] # macos-12
-#        compiler:
-#          - gcc
-#        cpp-version:
-#            - c++20
-#        python-version: [3.8, 3.9]
-#        architecture: [x86_64]
+        architecture: [x86_64]
 
     steps:
       - uses: actions/checkout@v3
+
       - name: Cache
         uses: actions/cache@v3
         with:
@@ -51,13 +38,6 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.compiler }}-${{ env.BUILD_TYPE }}-${{ hashFiles('**/CMakeLists.txt') }}-${{ hashFiles('./vcpkg.json')}}
           restore-keys: |
             ${{ runner.os }}-${{ env.BUILD_TYPE }}-
-
-      - name: Print intel architecture os arm architecture of the runner
-        run: |
-          echo "Intel architecture: ${{ env.ARCHITECTURE }}"
-          echo "OS: ${{ env.RUNNER_OS }}"
-          echo "ARM architecture: ${{ env.ARM_ARCHITECTURE }}"
-          uname -m
 
       - name: Setup Cpp
         uses: aminya/setup-cpp@v1
