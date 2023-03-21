@@ -19,12 +19,13 @@ jobs:
           os: macos-latest
           compiler: gcc
           cpp-version: c++20
-          python-version: [3.8, 3.9]
+#          python-version: [3.8, 3.9]
         - runtime: osx-arm64
           os: macos-latest
           compiler: gcc
           cpp-version: c++20
-          python-version: [3.8, 3.9]
+#          python-version: [3.8, 3.9]
+        python-version: [3.8, 3.9]
 #        os: [macos-latest, osx-arm64] # macos-12
 #        compiler:
 #          - gcc
