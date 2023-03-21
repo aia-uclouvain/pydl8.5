@@ -13,13 +13,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, osx-arm64] # macos-12
-        compiler:
-          - gcc
-        cpp-version:
-            - c++20
-        python-version: [3.8, 3.9]
-        architecture: [x86_64]
+        runtime: [osx-64, osx-arm64]
+        include:
+        - runtime: osx-64
+          os: macos-latest
+          compiler: gcc
+          cpp-version: c++20
+          python-version: [3.8, 3.9]
+        - runtime: osx-arm64
+          os: macos-latest
+          compiler: gcc
+          cpp-version: c++20
+          python-version: [3.8, 3.9]
+#        os: [macos-latest, osx-arm64] # macos-12
+#        compiler:
+#          - gcc
+#        cpp-version:
+#            - c++20
+#        python-version: [3.8, 3.9]
+#        architecture: [x86_64]
 
     steps:
       - uses: actions/checkout@v3
