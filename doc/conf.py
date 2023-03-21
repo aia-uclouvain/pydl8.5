@@ -18,12 +18,13 @@ from pydl85 import __version__
 
 import sphinx_gallery
 import sphinx_rtd_theme
+from datetime import date
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'PyDL8.5'
-copyright = '2021, Gaël Aglin and Siegfried Nijssen and Pierre Schaus'
+copyright = str(date.today().year) + ', Gaël Aglin and Siegfried Nijssen and Pierre Schaus'
 author = 'Gaël Aglin and Siegfried Nijssen and Pierre Schaus'
 
 # The full version, including alpha/beta/rc tags

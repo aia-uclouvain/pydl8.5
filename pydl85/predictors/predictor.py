@@ -47,12 +47,24 @@ def get_dot_body(treedict, parent=None, left=True, feature_names=None, class_nam
 
 
 class Cache_Type(Enum):
+    """ An enum class used to indicate the type of cache used when the `DL85Predictor.usecache` is set to True.
+
+    :cvar Cache_TrieItemset: Use a Trie as cache and decision paths as keys of storage to reuse solutions
+    :cvar Cache_HashItemset: Use a Hash Table as cache and decision paths as keys of storage to reuse solutions
+    :cvar Cache_HashCover: Use a Hash Table as cache and list of covered examples as keys of storage for a path
+    """
     Cache_TrieItemset = 1
     Cache_HashItemset = 2
     Cache_HashCover = 3
 
 
 class Wipe_Type(Enum):
+    """ An enum class used to indicate the type of cache used when the `DL85Predictor.maxcachesize` is reached.
+
+    :cvar Wipe_All: Wipe the cache (using the wipe factor) without any specific policy
+    :cvar Wipe_Subnodes: Wipe the cache by removing the nodes from ones having few subnodes to ones having many subnodes
+    :cvar Wipe_Reuses: Wipe the cache by removing the nodes from ones being reused the least to ones being reused the most
+    """
     All = 1
     Subnodes = 2
     Reuses = 3
@@ -67,8 +79,10 @@ class DL85Predictor(BaseEstimator):
         Maximum depth of the tree to be found
     min_sup : int, default=1
         Minimum number of examples per leaf
-    iterative : bool, default=False
-        Whether the search will be Iterative Deepening Search or not. By default, it is Depth First Search
+    error_function : function, default=None
+        Function used to evaluate the quality of each node. The function must take at least one argument, the list of instances covered by the node. It should return a float value representing the error of the node. In case of supervised learning, it should additionally return a label. If no error function is provided, the default one is used.
+    fast_error_function : function, default=None
+        Function used to evaluate the quality of each node. The function must take at least one argument, the list of number of instances per class in the node. It should return a float value representing the error of the node and the predicted label. If no error function is provided, the default one is used.
     max_error : int, default=0
         Maximum allowed error. Default value stands for no bound. If no tree can be found that is strictly better, the model remains empty.
     stop_after_better : bool, default=False
@@ -83,15 +97,39 @@ class DL85Predictor(BaseEstimator):
         A parameter used to indicate heuristic function used to sort the items in ascending order
     repeat_sort : bool, default=False
         A parameter used to indicate whether the heuristic sort will be applied at each level of the lattice or only at the root
-    nps : bool, default=False
-        A parameter used to indicate if only optimal solutions should be stored in the cache.
+    leaf_value_function : function, default=None
+        Function used to assign a label to a leaf in case of unsupervised learning. The function must take at least one argument, the list of instances covered by the leaf. It should return the desired label. If no function is provided, there will be no label assigned to the leafs.
+    quiet : bool, default=True
+        A parameter used to indicate if the boosting log will be printed or not
     print_output : bool, default=False
         A parameter used to indicate if the search output will be printed or not
+    cache_type : Cache_Type, default=Cache_Type.Cache_TrieItemset
+        A parameter used to indicate the type of cache used when the `DL85Predictor.usecache` is set to True.
+    maxcachesize : int, default=0
+        A parameter used to indicate the maximum size of the cache. If the cache size is reached, the cache will be wiped using the `DL85Predictor.wipe_type` and `DL85Predictor.wipe_factor` parameters. Default value 0 stands for no limit.
+    wipe_type : Wipe_Type, default=Wipe_Type.Reuses
+        A parameter used to indicate the type of cache used when the `DL85Predictor.maxcachesize` is reached.
+    wipe_factor : float, default=0.5
+        A parameter used to indicate the rate of elements to delete from the cache when the `DL85Predictor.maxcachesize` is reached.
+    use_cache : bool, default=True
+        A parameter used to indicate if a cache will be used or not
+    depth_two_special_algo : bool, default=False
+        Define whether the special algo from depth-2 is used or not
+    use_ub : bool, default=True
+        Define whether the hierarchical upper bound is used or not
+    similar_lb : bool, default=False
+        Define whether the similarity lower bound is used or not
+    dynamic_branch : bool, default=True
+        Define whether a dynamic branching is used to decide in which order explore decisions on an attribute
+    similar_for_branching : bool, default=False
+        Define whether the similarity lower bound is involved in the dynamic branching or not
 
     Attributes
     ----------
     tree_ : str
         Outputted tree in serialized form; remains empty as long as no model is learned.
+    base_tree_ : str
+        Basic outputted tree without any additional data (transactions, proba, etc.)
     size_ : int
         The size of the outputted tree
     depth_ : int
@@ -108,6 +146,8 @@ class DL85Predictor(BaseEstimator):
         Whether the search reached timeout or not
     classes_ : ndarray, shape (n_classes,)
         The classes seen at :meth:`fit`.
+    is_fitted_ : bool
+        Whether the classifier is fitted or not
     """
 
     def __init__(
@@ -116,8 +156,6 @@ class DL85Predictor(BaseEstimator):
             min_sup=1,
             error_function=None,
             fast_error_function=None,
-            predict_error_function=None,
-            iterative=False,
             max_error=0,
             stop_after_better=False,
             time_limit=0,
@@ -126,7 +164,6 @@ class DL85Predictor(BaseEstimator):
             asc=False,
             repeat_sort=False,
             leaf_value_function=None,
-            nps=False,
             quiet=True,
             print_output=False,
             cache_type=Cache_Type.Cache_TrieItemset,
@@ -142,13 +179,9 @@ class DL85Predictor(BaseEstimator):
 
         self.max_depth = max_depth
         self.min_sup = min_sup
-        # self.max_estimators = max_estimators
         self.sample_weight = []
         self.error_function = error_function
         self.fast_error_function = fast_error_function
-        # self.example_weight_function = example_weight_function
-        # self.predict_error_function = predict_error_function
-        self.iterative = iterative
         self.max_error = max_error
         self.stop_after_better = stop_after_better
         self.time_limit = time_limit
@@ -157,7 +190,6 @@ class DL85Predictor(BaseEstimator):
         self.asc = asc
         self.repeat_sort = repeat_sort
         self.leaf_value_function = leaf_value_function
-        self.nps = nps
         self.quiet = quiet
         self.print_output = print_output
         self.cache_type = cache_type
@@ -244,22 +276,16 @@ class DL85Predictor(BaseEstimator):
                                            tec_func_=user_slow_func,
                                            sec_func_=user_fast_func,
                                            te_func_=user_pred_func,
-                                           # exw_func_=self.example_weight_function,
-                                           # pred_func_=self.predict_error_function,
                                            max_depth=self.max_depth,
                                            min_sup=self.min_sup,
-                                           # max_estimators=self.max_estimators,
                                            example_weights=self.sample_weight,
                                            max_error=self.max_error,
                                            stop_after_better=self.stop_after_better,
-                                           # iterative=self.iterative,
                                            time_limit=self.time_limit,
                                            verb=self.verbose,
                                            desc=self.desc,
                                            asc=self.asc,
                                            repeat_sort=self.repeat_sort,
-                                           # bin_save=False,
-                                           # nps=self.nps,
                                            predictor=predict,
                                            cachetype=dl85Optimizer.CacheType.CacheTrieItemset if self.cache_type == Cache_Type.Cache_TrieItemset else dl85Optimizer.CacheType.CacheHashItemset if self.cache_type == Cache_Type.Cache_HashItemset else dl85Optimizer.CacheType.CacheHashCover,
                                            cachesize=self.maxcachesize,

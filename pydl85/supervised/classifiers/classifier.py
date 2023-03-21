@@ -13,8 +13,10 @@ class DL85Classifier(DL85Predictor, ClassifierMixin):
         Maximum depth of the tree to be found
     min_sup : int, default=1
         Minimum number of examples per leaf
-    iterative : bool, default=False
-        Whether the search will be Iterative Deepening Search or not. By default, it is Depth First Search
+    error_function : function, default=None
+        Function used to evaluate the quality of each node. The function must take at least one argument, the list of instances covered by the node. It should return a float value representing the error of the node. In case of supervised learning, it should additionally return a label. If no error function is provided, the default one is used.
+    fast_error_function : function, default=None
+        Function used to evaluate the quality of each node. The function must take at least one argument, the list of number of instances per class in the node. It should return a float value representing the error of the node and the predicted label. If no error function is provided, the default one is used.
     max_error : int, default=0
         Maximum allowed error. Default value stands for no bound. If no tree can be found that is strictly better, the model remains empty.
     stop_after_better : bool, default=False
@@ -23,21 +25,43 @@ class DL85Classifier(DL85Predictor, ClassifierMixin):
         Allocated time in second(s) for the search. Default value stands for no limit. The best tree found within the time limit is stored, if this tree is better than max_error.
     verbose : bool, default=False
         A parameter used to switch on/off the print of what happens during the search
-    desc : bool, default=False
-        A parameter used to indicate if the sorting of the items is done in descending order of information gain
-    asc : bool, default=False
-        A parameter used to indicate if the sorting of the items is done in ascending order of information gain
+    desc : function, default=None
+        A parameter used to indicate heuristic function used to sort the items in descending order
+    asc : function, default=None
+        A parameter used to indicate heuristic function used to sort the items in ascending order
     repeat_sort : bool, default=False
-        A parameter used to indicate whether the sorting of items is done at each level of the lattice or only before the search
-    nps : bool, default=False
-        A parameter used to indicate if only optimal solutions should be stored in the cache.
+        A parameter used to indicate whether the heuristic sort will be applied at each level of the lattice or only at the root
+    quiet : bool, default=True
+        A parameter used to indicate if the boosting log will be printed or not
     print_output : bool, default=False
         A parameter used to indicate if the search output will be printed or not
+    cache_type : Cache_Type, default=Cache_Type.Cache_TrieItemset
+        A parameter used to indicate the type of cache used when the `DL85Predictor.usecache` is set to True.
+    maxcachesize : int, default=0
+        A parameter used to indicate the maximum size of the cache. If the cache size is reached, the cache will be wiped using the `DL85Predictor.wipe_type` and `DL85Predictor.wipe_factor` parameters. Default value 0 stands for no limit.
+    wipe_type : Wipe_Type, default=Wipe_Type.Reuses
+        A parameter used to indicate the type of cache used when the `DL85Predictor.maxcachesize` is reached.
+    wipe_factor : float, default=0.5
+        A parameter used to indicate the rate of elements to delete from the cache when the `DL85Predictor.maxcachesize` is reached.
+    use_cache : bool, default=True
+        A parameter used to indicate if a cache will be used or not
+    depth_two_special_algo : bool, default=True
+        Define whether the special algo from depth-2 is used or not
+    use_ub : bool, default=True
+        Define whether the hierarchical upper bound is used or not
+    similar_lb : bool, default=True
+        Define whether the similarity lower bound is used or not
+    dynamic_branch : bool, default=True
+        Define whether a dynamic branching is used to decide in which order explore decisions on an attribute
+    similar_for_branching : bool, default=True
+        Define whether the similarity lower bound is involved in the dynamic branching or not
 
     Attributes
     ----------
     tree_ : str
         Outputted tree in serialized form; remains empty as long as no model is learned.
+    base_tree_ : str
+        Basic outputted tree without any additional data (transactions, proba, etc.)
     size_ : int
         The size of the outputted tree
     depth_ : int
@@ -54,6 +78,8 @@ class DL85Classifier(DL85Predictor, ClassifierMixin):
         Whether the search reached timeout or not
     classes_ : ndarray, shape (n_classes,)
         The classes seen at :meth:`fit`.
+    is_fitted_ : bool
+        Whether the classifier is fitted or not
     """
 
     def __init__(

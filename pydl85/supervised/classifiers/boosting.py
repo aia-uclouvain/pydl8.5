@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+from enum import Enum
 
 from sklearn.base import ClassifierMixin
 
@@ -13,10 +14,20 @@ from copy import deepcopy
 import numpy as np
 import cvxpy
 
-MODEL_LP_RATSCH = 1  # regulator of ratsch is between ]0; 1]
-MODEL_LP_DEMIRIZ = 2  # regulator of demiriz is between ]1/n_instances; +\infty]
-MODEL_LP_AGLIN = 3  # regulator of aglin is between [0; 1]
-MODEL_QP_MDBOOST = 4
+
+class Boosting_Model(Enum):
+    """
+    The mathematical model solved by the boosting algorithm
+
+    :cvar MODEL_LP_RATSCH: Model used in Ratsch paper. The regulator value is between ]0; 1]
+    :cvar MODEL_LP_DEMIRIZ: Model used in Demiriz paper. The regulator value is between ]1/n_instances; +\infty]
+    :cvar MODEL_LP_AGLIN: Model proposed by Aglin. The regulator value is between [0; 1]
+    :cvar MODEL_QP_MDBOOST: regulator used in MDBOOST paper. The regulator value is between ]1/n_instances; +\infty]
+    """
+    MODEL_LP_RATSCH = 1  # regulator of ratsch is between ]0; 1]
+    MODEL_LP_DEMIRIZ = 2  # regulator of demiriz is between ]1/n_instances; +\infty]
+    MODEL_LP_AGLIN = 3  # regulator of aglin is between [0; 1]
+    MODEL_QP_MDBOOST = 4
 
 
 def is_pos_def(x):
@@ -95,51 +106,81 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
 
     Parameters
     ----------
+    base_estimator : Object, default=None
+        The base estimator implementing fit/predict/predict_proba to learn at each step of the boosting process.
     max_depth : int, default=1
         Maximum depth of the tree to be found
     min_sup : int, default=1
         Minimum number of examples per leaf
-    iterative : bool, default=False
-        Whether the search will be Iterative Deepening Search or not. By default, it is Depth First Search
+    max_iterations : int, default=0
+        Maximum number of iterations. Default value stands for no bound.
+    model : Boosting_Model, default=Boosting_Model.MODEL_LP_DEMIRIZ
+        The mathematical model used to solve the boosting problem
+    gamma : float, default=None
+        Regularization parameter used in MDBOOST model. If None, it is set automatically
+    error_function : function, default=None
+        Function used to evaluate the quality of each node. The function must take at least one argument, the list of instances covered by the node. It should return a float value representing the error of the node. In case of supervised learning, it should additionally return a label. If no error function is provided, the default one is used.
+    fast_error_function : function, default=None
+        Function used to evaluate the quality of each node. The function must take at least one argument, the list of number of instances per class in the node. It should return a float value representing the error of the node and the predicted label. If no error function is provided, the default one is used.
+    opti_gap : float, default=0.01
+        The optimality gap used in the optimization model
     max_error : int, default=0
         Maximum allowed error. Default value stands for no bound. If no tree can be found that is strictly better, the model remains empty.
+    regulator : float, default=-1
+        The regulator used in the optimization model.
     stop_after_better : bool, default=False
         A parameter used to indicate if the search will stop after finding a tree better than max_error
     time_limit : int, default=0
         Allocated time in second(s) for the search. Default value stands for no limit. The best tree found within the time limit is stored, if this tree is better than max_error.
     verbose : bool, default=False
         A parameter used to switch on/off the print of what happens during the search
-    desc : bool, default=False
-        A parameter used to indicate if the sorting of the items is done in descending order of information gain
-    asc : bool, default=False
-        A parameter used to indicate if the sorting of the items is done in ascending order of information gain
+    desc : function, default=None
+        A parameter used to indicate heuristic function used to sort the items in descending order
+    asc : function, default=None
+        A parameter used to indicate heuristic function used to sort the items in ascending order
     repeat_sort : bool, default=False
-        A parameter used to indicate whether the sorting of items is done at each level of the lattice or only before the search
-    nps : bool, default=False
-        A parameter used to indicate if only optimal solutions should be stored in the cache.
+        A parameter used to indicate whether the heuristic sort will be applied at each level of the lattice or only at the root
+    quiet : bool, default=True
+        A parameter used to indicate if the boosting log will be printed or not
     print_output : bool, default=False
         A parameter used to indicate if the search output will be printed or not
+    cache_type : Cache_Type, default=Cache_Type.Cache_TrieItemset
+        A parameter used to indicate the type of cache used when the `DL85Predictor.usecache` is set to True.
+    maxcachesize : int, default=0
+        A parameter used to indicate the maximum size of the cache. If the cache size is reached, the cache will be wiped using the `DL85Predictor.wipe_type` and `DL85Predictor.wipe_factor` parameters. Default value 0 stands for no limit.
+    wipe_type : Wipe_Type, default=Wipe_Type.Reuses
+        A parameter used to indicate the type of cache used when the `DL85Predictor.maxcachesize` is reached.
+    wipe_factor : float, default=0.5
+        A parameter used to indicate the rate of elements to delete from the cache when the `DL85Predictor.maxcachesize` is reached.
+    use_cache : bool, default=True
+        A parameter used to indicate if a cache will be used or not
+    use_ub : bool, default=True
+        Define whether the hierarchical upper bound is used or not
+    dynamic_branch : bool, default=True
+        Define whether a dynamic branching is used to decide in which order explore decisions on an attribute
 
     Attributes
     ----------
-    tree_ : str
-        Outputted tree in serialized form; remains empty as long as no model is learned.
-    size_ : int
-        The size of the outputted tree
-    depth_ : int
-        Depth of the found tree
-    error_ : float
-        Error of the found tree
+    optimal_ : bool
+        Whether the found forest is optimal or not
+    estimators_ : list
+        List of DL85Classifier in the forest
+    estimator_weights_ : list
+        List of weights of the estimators in the forest
     accuracy_ : float
-        Accuracy of the found tree on training set
-    lattice_size_ : int
-        The number of nodes explored before found the optimal tree
-    runtime_ : float
-        Time of the optimal decision tree search
-    timeout_ : bool
-        Whether the search reached timeout or not
+        Accuracy of the found forest on training set
+    duration_ : float
+        Time of the optimal forest learning
+    n_estimators_ : int
+        Number of estimators in the forest
+    n_iterations_ : int
+        Number of iterations of the forest learning
+    margins_ : list
+        List of margins of each instance in the training set
+    margins_norm_ : list
+        List of normalized margins of each instance in the training set
     classes_ : ndarray, shape (n_classes,)
-        The classes seen at :meth:`fit`.
+        The classes seen in :meth:`fit`.
     """
 
     def __init__(
@@ -148,11 +189,10 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             max_depth=1,
             min_sup=1,
             max_iterations=0,
-            model=MODEL_LP_DEMIRIZ,
+            model=Boosting_Model.MODEL_LP_DEMIRIZ,
             gamma=None,
             error_function=None,
             fast_error_function=None,
-            min_trans_cost=0,
             opti_gap=0.01,
             max_error=0,
             regulator=-1,
@@ -162,8 +202,8 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
             desc=False,
             asc=False,
             repeat_sort=False,
-            print_output=False,
             quiet=True,
+            print_output=False,
             cache_type=Cache_Type.Cache_TrieItemset,
             maxcachesize=0,
             wipe_type=Wipe_Type.Subnodes,
@@ -181,7 +221,6 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         del self.clf_params["max_iterations"]
         del self.clf_params["model"]
         del self.clf_params["gamma"]
-        del self.clf_params["min_trans_cost"]
         del self.clf_params["opti_gap"]
 
         self.base_estimator = base_estimator
@@ -202,7 +241,6 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         self.quiet = quiet
         self.model = model
         self.gamma = gamma
-        self.min_trans_cost = min_trans_cost
         self.opti_gap = opti_gap
         self.n_instances = None
         self.A_inv = None
@@ -226,7 +264,7 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
         sample_weights = np.array([1/self.n_instances] * self.n_instances)
         predictions, r, self.n_iterations_, constant = None, None, 1, 0.0001
 
-        if self.model == MODEL_QP_MDBOOST:
+        if self.model == Boosting_Model.MODEL_QP_MDBOOST:
             if self.gamma is None:
                 # Build positive semidefinite A matrix
                 self.A_inv = np.full((self.n_instances, self.n_instances), -1/(self.n_instances - 1), dtype=np.float64)
@@ -326,13 +364,13 @@ class DL85Booster(BaseEstimator, ClassifierMixin):
 
             # add the new estimator and compute the dual to find new sample weights for another estimator to add
             self.estimators_.append(deepcopy(clf))
-            if self.model == MODEL_LP_RATSCH:
+            if self.model == Boosting_Model.MODEL_LP_RATSCH:
                 r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_ratsch(predictions)
-            elif self.model == MODEL_LP_DEMIRIZ:
+            elif self.model == Boosting_Model.MODEL_LP_DEMIRIZ:
                 r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_demiriz(predictions)
-            elif self.model == MODEL_LP_AGLIN:
+            elif self.model == Boosting_Model.MODEL_LP_AGLIN:
                 r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_aglin(predictions)
-            elif self.model == MODEL_QP_MDBOOST:
+            elif self.model == Boosting_Model.MODEL_QP_MDBOOST:
                 r, sample_weights, opti, self.estimator_weights_ = self.compute_dual_mdboost(predictions)
 
             self.margins_ = (predictions @ np.array(self.estimator_weights_).reshape(-1, 1)).transpose().tolist()[0]
