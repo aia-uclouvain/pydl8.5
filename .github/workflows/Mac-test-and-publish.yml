@@ -52,6 +52,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ env.BUILD_TYPE }}-
 
+      - name: Print intel architecture os arm architecture of the runner
+        run: |
+          echo "Intel architecture: ${{ env.ARCHITECTURE }}"
+          echo "OS: ${{ env.RUNNER_OS }}"
+          echo "ARM architecture: ${{ env.ARM_ARCHITECTURE }}"
+          uname -m
+
       - name: Setup Cpp
         uses: aminya/setup-cpp@v1
         with:
