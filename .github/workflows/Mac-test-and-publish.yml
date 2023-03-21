@@ -13,8 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - macos-12
+        os: [macos-latest, osx-arm64] # macos-12
         compiler:
           - gcc
         cpp-version:

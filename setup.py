@@ -82,6 +82,9 @@ if platform.system() == "Windows":
 else:
     EXTENSION_BUILD_ARGS = ['-std=c++20', '-DCYTHON_PEP489_MULTI_PHASE_INIT=0']
 
+# if platform.system() == "Darwin":
+#     EXTENSION_BUILD_ARGS.append('-mmacosx-version-min=10.9')
+
 dl85_extension = Extension(
     name=EXTENSION_NAME,
     language=EXTENSION_LANGUAGE,
